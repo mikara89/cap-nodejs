@@ -92,21 +92,28 @@ export function discoverSubscriptions(
     if (!fn) continue;
 
     const meta =
-      (Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, fn) as unknown) ??
-      (Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, instance, key) as unknown) ??
-      (Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, proto, key) as unknown);
+      (Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, fn) as
+        | CapSubscribeOptions
+        | undefined) ??
+      (Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, instance, key) as
+        | CapSubscribeOptions
+        | undefined) ??
+      (Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, proto, key) as
+        | CapSubscribeOptions
+        | undefined);
 
     if (!meta) continue;
 
-    const opts = meta as CapSubscribeOptions;
+    const opts = meta;
+
+    const boundHandler = async (payload: unknown) =>
+      Promise.resolve(fn.call(instance, payload) as unknown);
 
     subs.push({
       topic: opts.topic,
       group: opts.group ?? undefined,
       filter: opts.filter,
-      handler: fn.bind(
-        instance,
-      ) as unknown as DiscoveredSubscription['handler'],
+      handler: boundHandler,
     });
   }
 

@@ -1,36 +1,37 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
-
+/* eslint-disable @typescript-eslint/unbound-method */
 import { RetrySchedulerService } from './schedule.service';
+import {
+  createInMemoryPublishStorage,
+  createInMemoryPublisher,
+  createInMemoryReceivedStorage,
+} from '../testing/test-helpers';
 
 describe('RetrySchedulerService', () => {
   let svc: RetrySchedulerService;
-  let pubStore: any;
-  let publisher: any;
-  let recStore: any;
-  let cap: any;
+  let pubStore = createInMemoryPublishStorage();
+  let publisher = createInMemoryPublisher();
+  let recStore = createInMemoryReceivedStorage();
+  let cap = { retryReceived: jest.fn().mockResolvedValue(undefined) };
 
   beforeEach(() => {
-    pubStore = {
-      getUnpublished: jest.fn().mockResolvedValue([]),
-      markPublished: jest.fn().mockResolvedValue(undefined),
-    };
-
-    publisher = {
-      emit: jest.fn().mockResolvedValue(undefined),
-    };
-
-    recStore = {
-      getRetryDue: jest.fn().mockResolvedValue([]),
-    };
-
+    pubStore = createInMemoryPublishStorage();
+    publisher = createInMemoryPublisher();
+    recStore = createInMemoryReceivedStorage();
     cap = { retryReceived: jest.fn().mockResolvedValue(undefined) };
 
-    svc = new RetrySchedulerService(pubStore, publisher, recStore, cap);
+    // spy on key methods
+    jest.spyOn(pubStore, 'getUnpublished');
+    jest.spyOn(pubStore, 'markPublished');
+    jest.spyOn(publisher, 'emit');
+    jest.spyOn(recStore, 'getRetryDue');
+    jest.spyOn(cap, 'retryReceived');
+
+    svc = new RetrySchedulerService(pubStore, publisher, recStore, cap as any);
   });
 
   it('flushOutbox publishes unpublished messages and marks published', async () => {
-    const evt = { id: '1', topic: 't', payload: { a: 1 } };
-    pubStore.getUnpublished.mockResolvedValueOnce([evt]);
+    const evt = { id: '1', topic: 't', payload: { a: 1 } } as any;
+    (pubStore.getUnpublished as jest.Mock).mockResolvedValueOnce([evt]);
 
     await svc.flushOutbox();
 
@@ -39,9 +40,9 @@ describe('RetrySchedulerService', () => {
   });
 
   it('flushOutbox leaves record when publish fails', async () => {
-    const evt = { id: '2', topic: 't2', payload: {} };
-    pubStore.getUnpublished.mockResolvedValueOnce([evt]);
-    publisher.emit.mockRejectedValueOnce(new Error('net'));
+    const evt = { id: '2', topic: 't2', payload: {} } as any;
+    (pubStore.getUnpublished as jest.Mock).mockResolvedValueOnce([evt]);
+    (publisher.emit as jest.Mock).mockRejectedValueOnce(new Error('net'));
 
     await svc.flushOutbox();
 
@@ -50,8 +51,8 @@ describe('RetrySchedulerService', () => {
   });
 
   it('retryInbox calls cap.retryReceived for due messages', async () => {
-    const rec = { id: 'r1', topic: 'x', group: 'g' };
-    recStore.getRetryDue.mockResolvedValueOnce([rec]);
+    const rec = { id: 'r1', topic: 'x', group: 'g' } as any;
+    (recStore.getRetryDue as jest.Mock).mockResolvedValueOnce([rec]);
 
     await svc.retryInbox();
 

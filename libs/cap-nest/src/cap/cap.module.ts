@@ -69,7 +69,7 @@ export interface CapModuleAsyncOptions {
   useExisting?: Type<CapModuleFactory>;
   useClass?: Type<CapModuleFactory>;
   useFactory?: (
-    ...args: any[]
+    ...args: unknown[]
   ) => Promise<CapAsyncProviders> | CapAsyncProviders;
   inject?: any[];
 }

@@ -6,6 +6,7 @@
   "private": true,
   "workspaces": [
     "apps/*",
+    "libs/*",
     "packages/*"
   ],
   "license": "UNLICENSED",
@@ -73,16 +74,21 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "libs/**/*.(t|j)s"
     ],
     "coverageDirectory": "./coverage",
+    "coveragePathIgnorePatterns": [
+      "libs/cap-nest/src/testing/"
+    ],
     "testEnvironment": "node",
     "roots": [
       "<rootDir>/libs/",
       "<rootDir>/apps/"
     ],
     "moduleNameMapper": {
-      "^@cap/cap-nest(|/.*)$": "<rootDir>/libs/cap-nest/src/$1"
+      "^@cap/cap-nest(|/.*)$": "<rootDir>/libs/cap-nest/src/$1",
+      "^@cap/storage-mikro-orm(|/.*)$": "<rootDir>/libs/storage-mikro-orm/src/$1",
+      "^@cap/transport-azure-servicebus(|/.*)$": "<rootDir>/libs/transport-azure-servicebus/src/$1"
     }
   }
 }

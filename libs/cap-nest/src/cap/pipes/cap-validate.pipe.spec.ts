@@ -1,6 +1,4 @@
 import 'reflect-metadata';
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
-
 import { CapValidatePipe } from './cap-validate.pipe';
 import { BadRequestException } from '@nestjs/common';
 import { IsString } from 'class-validator';
@@ -12,13 +10,13 @@ class GoodDto {
 
 describe('CapValidatePipe', () => {
   it('transforms plain object into dto instance when valid', () => {
-    const pipe = new CapValidatePipe(GoodDto as any);
-    const result = pipe.transform({ name: 'alice' });
-    expect((result as any).name).toBe('alice');
+    const pipe = new CapValidatePipe(GoodDto);
+    const result = pipe.transform({ name: 'alice' }) as GoodDto;
+    expect(result.name).toBe('alice');
   });
 
   it('throws BadRequestException for invalid payload', () => {
-    const pipe = new CapValidatePipe(GoodDto as any);
+    const pipe = new CapValidatePipe(GoodDto);
     expect(() => pipe.transform({})).toThrow(BadRequestException);
   });
 });

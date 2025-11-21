@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return */
-
 import { CapModule } from './cap.module';
+import { DynamicModule } from '@nestjs/common';
 import { PUBLISHER, SUBSCRIBER } from './abstractions/transport.interface';
 import {
   PUBLISH_STORAGE,
@@ -12,23 +11,25 @@ describe('CapModule builders', () => {
     const dm = CapModule.forInMemory();
 
     // adaptersModule is the first import
-    const adapters = dm.imports && dm.imports[0];
+    const adapters = (dm.imports && dm.imports[0]) as DynamicModule | undefined;
     expect(adapters).toBeDefined();
     // adapters should expose providers array
     // Providers should include the in-memory storage classes and transport providers
-    const providers = (adapters as any).providers || [];
+    const providers = adapters?.providers || [];
 
     const hasPublishStorage = providers.some(
-      (p: any) => p && (p.provide === PUBLISH_STORAGE || p.useClass),
+      (p) =>
+        p && ((p as any).provide === PUBLISH_STORAGE || (p as any).useClass),
     );
     const hasReceivedStorage = providers.some(
-      (p: any) => p && (p.provide === RECEIVED_STORAGE || p.useClass),
+      (p) =>
+        p && ((p as any).provide === RECEIVED_STORAGE || (p as any).useClass),
     );
     const hasPublisher = providers.some(
-      (p: any) => p && p.provide === PUBLISHER,
+      (p) => p && (p as any).provide === PUBLISHER,
     );
     const hasSubscriber = providers.some(
-      (p: any) => p && p.provide === SUBSCRIBER,
+      (p) => p && (p as any).provide === SUBSCRIBER,
     );
 
     expect(hasPublishStorage).toBe(true);

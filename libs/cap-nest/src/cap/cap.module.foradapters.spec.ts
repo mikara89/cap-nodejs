@@ -1,15 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
-
-import { CapModule } from './cap.module';
+import { CapModule, CapAdapterModule } from './cap.module';
 
 describe('CapModule.forAdapters', () => {
   it('returns a DynamicModule that includes providers and imports', () => {
     const storageModule = {
       providers: [{ provide: 'S1', useValue: 1 }],
-    } as any;
+    } as unknown as CapAdapterModule;
     const transportModule = {
       providers: [{ provide: 'T1', useValue: 2 }],
-    } as any;
+    } as unknown as CapAdapterModule;
 
     const dm = CapModule.forAdapters(storageModule, transportModule);
 
@@ -17,14 +15,31 @@ describe('CapModule.forAdapters', () => {
     expect(Array.isArray(dm.imports)).toBe(true);
     expect(dm.providers).toBeDefined();
     // Core providers should include CapService
-    const provNames = (dm.providers || []).map(
-      (p: any) => (p && p.name) || (p && p.provide),
+    const providers = (dm.providers || []) as Array<unknown>;
+    const provNames = providers.map((p) => {
+      if (!p) return '';
+      if (typeof p === 'function') return (p as { name?: string }).name || '';
+      if (typeof p === 'object') {
+        const obj = p as Record<string, unknown>;
+        const name = typeof obj['name'] === 'string' ? obj['name'] : '';
+        let provide = '';
+        if ('provide' in obj) {
+          const pr = obj['provide'];
+          if (typeof pr === 'string') provide = pr;
+          else if (typeof pr === 'function' && (pr as { name?: string }).name)
+            provide = (pr as { name?: string }).name!;
+          else if (typeof pr === 'symbol') provide = pr.toString();
+        }
+        return name || provide;
+      }
+      return '';
+    });
+
+    const found = provNames.some(
+      (n) =>
+        typeof n === 'string' &&
+        (n.includes('CapService') || n === 'CapService'),
     );
-    expect(
-      provNames.some(
-        (n: any) =>
-          n && (n.toString().includes('CapService') || n === 'CapService'),
-      ),
-    ).toBe(true);
+    expect(found).toBe(true);
   });
 });

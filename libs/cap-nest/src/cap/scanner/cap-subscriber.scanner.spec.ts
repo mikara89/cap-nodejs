@@ -1,6 +1,6 @@
 import { CapSubscriberScanner } from './cap-subscriber.scanner';
 import { CapSubscribe } from '../decorators/cap-subscribe.decorator';
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
+import { ModulesContainer, Reflector } from '@nestjs/core';
 
 describe('CapSubscriberScanner (integration)', () => {
   it('discovers @CapSubscribe methods and calls CapService.subscribe', () => {
@@ -15,21 +15,18 @@ describe('CapSubscriberScanner (integration)', () => {
     const inst = new ProviderWithHandler();
 
     // fake ModulesContainer: Map with one module value containing providers Map
-    const providersMap = new Map();
+    const providersMap: Map<string, { instance: object }> = new Map();
     providersMap.set('pw', { instance: inst });
 
-    const modulesContainer = new Map();
-    modulesContainer.set('mod', { providers: providersMap });
+    const modulesContainer = new Map() as unknown as ModulesContainer;
+    modulesContainer.set('mod', { providers: providersMap as any } as any);
 
-    // simple Reflector shim that reads Reflect metadata
-    const reflector = {
-      get: (key: string, target: any) => Reflect.getMetadata(key, target),
-    } as any;
+    const reflector = new Reflector();
 
-    const capService = { subscribe: jest.fn() } as any;
+    const capService = { subscribe: jest.fn() } as unknown as any;
 
     const scanner = new CapSubscriberScanner(
-      modulesContainer as any,
+      modulesContainer,
       reflector,
       capService,
     );

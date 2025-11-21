@@ -24,7 +24,7 @@ import { expJitter } from './scheduler/backoff.util';
 /* ------------------------------------------------------------------ */
 /* Local helper types                                                 */
 /* ------------------------------------------------------------------ */
-type Handler<T = any> = (payload: T) => Promise<void>;
+type Handler<T = unknown> = (payload: T) => Promise<void>;
 
 type HandlerMap = Map<string /*topic*/, Map<string /*group*/, Handler>>;
 

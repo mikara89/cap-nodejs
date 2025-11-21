@@ -1,49 +1,34 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await, @typescript-eslint/no-unsafe-argument */
-
+/* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/require-await */
 import { CapService } from './cap.service';
+import {
+  createInMemoryPublisher,
+  createInMemorySubscriber,
+  createInMemoryPublishStorage,
+  createInMemoryReceivedStorage,
+} from './testing/test-helpers';
 
 describe('CapService (unit)', () => {
   let cap: CapService;
 
-  let pubStore: any;
-  let recStore: any;
-  let publisher: any;
-  let subscriber: any;
+  let pubStore: ReturnType<typeof createInMemoryPublishStorage>;
+  let recStore: ReturnType<typeof createInMemoryReceivedStorage>;
+  let publisher: ReturnType<typeof createInMemoryPublisher>;
+  let subscriber: ReturnType<typeof createInMemorySubscriber>;
 
   beforeEach(() => {
-    pubStore = {
-      savePublish: jest.fn().mockResolvedValue('db1'),
-      markPublished: jest.fn().mockResolvedValue(undefined),
-      getUnpublished: jest.fn().mockResolvedValue([]),
-    };
+    pubStore = createInMemoryPublishStorage();
+    recStore = createInMemoryReceivedStorage();
 
-    recStore = {
-      saveReceived: jest.fn().mockImplementation(async (e) => e.id),
-      markProcessed: jest.fn().mockResolvedValue(undefined),
-      getRetryDue: jest.fn().mockResolvedValue([]),
-      scheduleRetry: jest.fn().mockResolvedValue(undefined),
-    };
+    publisher = createInMemoryPublisher();
+    subscriber = createInMemorySubscriber();
 
-    // publisher just records calls, can be made to throw in tests
-    publisher = { emit: jest.fn().mockResolvedValue(undefined) };
-
-    // subscriber stores handlers so tests can trigger them
-    const handlers = new Map<string, any>();
-    subscriber = {
-      consume: jest
-        .fn()
-        .mockImplementation(
-          async (topic: string, group: string, onMessage: any) => {
-            handlers.set(`${topic}|${group}`, onMessage);
-            return Promise.resolve();
-          },
-        ),
-      __trigger: (topic: string, group: string, payload: any) => {
-        const fn = handlers.get(`${topic}|${group}`);
-        if (!fn) throw new Error('no handler');
-        return fn(payload);
-      },
-    };
+    // create spies on important methods to assert calls in tests
+    jest.spyOn(publisher, 'emit');
+    jest.spyOn(pubStore, 'savePublish');
+    jest.spyOn(pubStore, 'markPublished');
+    jest.spyOn(recStore, 'saveReceived');
+    jest.spyOn(recStore, 'markProcessed');
+    jest.spyOn(recStore, 'scheduleRetry');
 
     cap = new CapService(pubStore, recStore, publisher, subscriber);
   });
@@ -57,7 +42,7 @@ describe('CapService (unit)', () => {
   });
 
   it('publish - transport failure leaves unpublished', async () => {
-    publisher.emit.mockRejectedValueOnce(new Error('boom'));
+    (publisher.emit as jest.Mock).mockRejectedValueOnce(new Error('boom'));
 
     await cap.publish('t2', { b: 2 });
 
@@ -76,7 +61,9 @@ describe('CapService (unit)', () => {
     cap.subscribe('topic-x', 'group-1', handler);
 
     // trigger the subscriber's onMessage
-    await subscriber.__trigger('topic-x', 'group-1', { foo: 'bar' });
+    const handlers = subscriber.listeners.get('topic-x|group-1');
+    expect(handlers).toBeDefined();
+    for (const fn of handlers!) await fn({ foo: 'bar' });
 
     // persisted and processed
     expect(recStore.saveReceived).toHaveBeenCalled();
@@ -91,12 +78,15 @@ describe('CapService (unit)', () => {
 
     cap.subscribe('topic-retry', 'group-r', handler);
 
-    await subscriber.__trigger('topic-retry', 'group-r', { z: 9 });
+    const handlers2 = subscriber.listeners.get('topic-retry|group-r');
+    expect(handlers2).toBeDefined();
+    for (const fn of handlers2!) await fn({ z: 9 });
 
     expect(recStore.saveReceived).toHaveBeenCalled();
     // after failure, scheduleRetry should be called
     expect(recStore.scheduleRetry).toHaveBeenCalled();
-    const args = recStore.scheduleRetry.mock.calls[0];
+    const scheduleSpy = recStore.scheduleRetry as jest.Mock;
+    const args = scheduleSpy.mock.calls[0];
     // args: id, retryCount, nextRetry(Date)
     expect(typeof args[0]).toBe('string');
     expect(args[1]).toBe(1);

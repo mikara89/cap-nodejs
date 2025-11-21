@@ -1,0 +1,106 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+
+import { Test } from '@nestjs/testing';
+import { EntityManager } from '@mikro-orm/core';
+import { MikroPublishStorage } from './mikro-publish-storage';
+import { CapPublishEntity } from '../entities/cap-publish.entity';
+import { CapPublishEvent } from '@cap/cap-nest';
+
+describe('MikroPublishStorage', () => {
+  let storage: MikroPublishStorage;
+  let em: EntityManager;
+
+  beforeEach(async () => {
+    const mockEm = {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      create: jest.fn((_, data) => ({ ...data, id: data.id })),
+      persistAndFlush: jest.fn(),
+      findOne: jest.fn(),
+      find: jest.fn(),
+      flush: jest.fn(),
+    };
+
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        MikroPublishStorage,
+        { provide: EntityManager, useValue: mockEm },
+      ],
+    }).compile();
+
+    storage = moduleRef.get(MikroPublishStorage);
+    em = moduleRef.get(EntityManager);
+  });
+
+  describe('savePublish', () => {
+    it('should persist a publish event', async () => {
+      const event: CapPublishEvent = {
+        id: 'test-id',
+        topic: 'test-topic',
+        occurredAt: new Date().toISOString(),
+        payload: { foo: 'bar' },
+        headers: { 'x-trace': '123' },
+        retryCount: 0,
+      };
+
+      await storage.savePublish(event);
+
+      expect(em.persistAndFlush).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'test-id',
+          topic: 'test-topic',
+          payload: { foo: 'bar' },
+          headers: { 'x-trace': '123' },
+          retryCount: 0,
+        }),
+      );
+    });
+  });
+
+  describe('markPublished', () => {
+    it('should update status to published and flush', async () => {
+      const entity = new CapPublishEntity();
+      entity.id = 'test-id';
+      entity.status = 'published';
+
+      (em.findOne as jest.Mock).mockResolvedValue(entity);
+
+      await storage.markPublished('test-id');
+
+      expect(entity.status).toBe('published');
+      expect(em.flush).toHaveBeenCalled();
+    });
+
+    it('should do nothing if event not found', async () => {
+      (em.findOne as jest.Mock).mockResolvedValue(null);
+
+      await storage.markPublished('missing-id');
+
+      expect(em.flush).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getUnpublished', () => {
+    it('should return pending events', async () => {
+      const entity = new CapPublishEntity();
+      entity.id = 'test-id';
+      entity.topic = 'test-topic';
+      entity.payload = { foo: 'bar' };
+      entity.headers = {};
+      entity.status = 'published';
+      entity.retryCount = 0;
+      entity.createdAt = new Date();
+
+      (em.find as jest.Mock).mockResolvedValue([entity]);
+
+      const result = await storage.getUnpublished(10);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        id: 'test-id',
+        topic: 'test-topic',
+        payload: { foo: 'bar' },
+        retryCount: 0,
+      });
+    });
+  });
+});

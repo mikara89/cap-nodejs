@@ -45,9 +45,11 @@ export class CapSubscriberScanner implements OnModuleInit {
       // skip accessors / non-functions
       if (typeof desc.value !== 'function') continue;
 
+      // desc.value is known to be a function due to the earlier check.
+
       const meta = this.reflector.get<CapSubscribeOptions | undefined>(
         CAP_SUBSCRIBE_METADATA,
-        desc.value as unknown as (...args: unknown[]) => unknown,
+        desc.value as (...args: unknown[]) => unknown,
       );
       if (!meta) continue;
 
