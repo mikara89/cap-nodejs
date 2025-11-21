@@ -7,7 +7,7 @@ MySQL, SQLite, etc.).
 ## Installation
 
 ```bash
-npm install @cap/storage-mikro-orm @mikro-orm/core @mikro-orm/nestjs
+npm install @cap/mikroorm-storage @mikro-orm/core @mikro-orm/nestjs
 ```
 
 Install the appropriate driver for your database:
@@ -29,7 +29,7 @@ npm install @mikro-orm/sqlite
 import { Module } from "@nestjs/common";
 import { MikroOrmModule } from "@mikro-orm/nestjs";
 import { CapModule } from "@cap/cap-nest";
-import { MikroStorageModule } from "@cap/storage-mikro-orm";
+import { MikroStorageModule } from "@cap/mikroorm-storage";
 
 @Module({
     imports: [

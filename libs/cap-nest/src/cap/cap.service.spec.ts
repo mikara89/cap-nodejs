@@ -37,7 +37,7 @@ describe('CapService (unit)', () => {
     await cap.publish('t1', { a: 1 });
 
     expect(pubStore.savePublish).toHaveBeenCalled();
-    expect(publisher.emit).toHaveBeenCalledWith('t1', { a: 1 });
+    expect(publisher.emit).toHaveBeenCalledWith('t1', { a: 1 }, undefined);
     expect(pubStore.markPublished).toHaveBeenCalled();
   });
 
@@ -47,7 +47,7 @@ describe('CapService (unit)', () => {
     await cap.publish('t2', { b: 2 });
 
     expect(pubStore.savePublish).toHaveBeenCalled();
-    expect(publisher.emit).toHaveBeenCalledWith('t2', { b: 2 });
+    expect(publisher.emit).toHaveBeenCalledWith('t2', { b: 2 }, undefined);
     expect(pubStore.markPublished).not.toHaveBeenCalled();
   });
 
@@ -91,5 +91,28 @@ describe('CapService (unit)', () => {
     expect(typeof args[0]).toBe('string');
     expect(args[1]).toBe(1);
     expect(args[2] instanceof Date).toBe(true);
+  });
+
+  it('publish - uses transactional save when tx provided and storage supports it', async () => {
+    const tx = { em: 'fake-tx' };
+    const transactionalPubStore: any = {
+      savePublish: jest.fn(),
+      savePublishWithTx: jest.fn().mockResolvedValue('tx-id-1'),
+      markPublished: jest.fn(),
+      getUnpublished: jest.fn(),
+    };
+
+    // keep the same recStore/publisher/subscriber
+    cap = new CapService(
+      transactionalPubStore,
+      recStore,
+      publisher,
+      subscriber,
+    );
+
+    await cap.publish('t-tx', { tx: true }, undefined, tx);
+
+    expect(transactionalPubStore.savePublishWithTx).toHaveBeenCalled();
+    expect(transactionalPubStore.savePublish).not.toHaveBeenCalled();
   });
 });

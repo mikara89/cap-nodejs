@@ -3,7 +3,7 @@ import {
   ServiceBusAdministrationClient,
   ServiceBusClient,
 } from '@azure/service-bus';
-import { ServiceBusTransportModule } from '@cap/transport-azure-servicebus';
+import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
 import {
   PUBLISHER,
   SUBSCRIBER,

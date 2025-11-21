@@ -284,7 +284,7 @@ export class LocalBus implements IPublisher, ISubscriber {
     Set<(p: unknown) => Promise<void>>
   >();
 
-  async emit(topic: string, payload: unknown): Promise<void> {
+  async emit(topic: string, payload: unknown, _tx?: unknown): Promise<void> {
     const handlers = this.listeners.get(topic);
     if (handlers && handlers.size > 0) {
       await Promise.all(Array.from(handlers).map((fn) => fn(payload)));

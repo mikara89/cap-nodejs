@@ -12,7 +12,7 @@ import { MikroReceivedStorage } from './storage/mikro-received-storage';
  * Usage:
  * ```ts
  * import { CapModule } from '@cap/cap-nest';
- * import { MikroStorageModule } from '@cap/storage-mikro-orm';
+ * import { MikroStorageModule } from '@cap/mikroorm-storage';
  *
  * @Module({
  *   imports: [

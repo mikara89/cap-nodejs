@@ -20,6 +20,21 @@ export interface IPublishStorage {
 }
 
 /*------------------------------------------------------------------
+ | Optional transactional extension                                     
+ *-----------------------------------------------------------------*/
+/**
+ * Optional interface for storages that can persist an outbox record
+ * inside an existing transaction/context. Adapters that support
+ * transactions (e.g. MikroORM) can implement this to opt-in.
+ */
+export interface ITransactionalPublishStorage extends IPublishStorage {
+  savePublishWithTx<T = unknown>(
+    evt: CapPublishEvent<T>,
+    tx: unknown,
+  ): Promise<string>;
+}
+
+/*------------------------------------------------------------------
  | Inbox  ▸ messages we CONSUME
  *-----------------------------------------------------------------*/
 export interface IReceivedStorage {

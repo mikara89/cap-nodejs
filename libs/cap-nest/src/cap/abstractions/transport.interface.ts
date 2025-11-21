@@ -2,7 +2,7 @@ export const PUBLISHER = Symbol('CAP_PUBLISHER');
 export const SUBSCRIBER = Symbol('CAP_SUBSCRIBER');
 
 export interface IPublisher {
-  emit(topic: string, payload: unknown): Promise<void>;
+  emit(topic: string, payload: unknown, tx?: unknown): Promise<void>;
 }
 export interface ISubscriber {
   consume(
@@ -10,4 +10,11 @@ export interface ISubscriber {
     group: string,
     onMessage: (payload: unknown) => Promise<void>,
   ): Promise<void>;
+}
+
+/** Optional transactional publisher interface. Adapters that can coordinate
+ * with a database transaction may implement this to defer or participate
+ * in sending messages in the same transactional context. */
+export interface ITransactionalPublisher {
+  emitWithTx(topic: string, payload: unknown, tx: unknown): Promise<void>;
 }

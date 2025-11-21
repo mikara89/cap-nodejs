@@ -15,9 +15,9 @@ export class ServiceBusPublisher implements IPublisher, OnModuleDestroy {
   constructor(
     private readonly client: ServiceBusClient,
     @Inject('CAP_SERVICEBUS_CONFIG') private readonly config: ServiceBusConfig,
-  ) {}
+  ) { }
 
-  async emit(topic: string, payload: unknown): Promise<void> {
+  async emit(topic: string, payload: unknown, _tx?: unknown): Promise<void> {
     const topicName = this.config.topicPrefix + topic;
     let sender = this.senders.get(topicName);
 

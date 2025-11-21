@@ -10,7 +10,7 @@ import {
   MikroStorageModule,
   CapPublishEntity,
   CapReceivedEntity,
-} from '@cap/storage-mikro-orm';
+} from '@cap/mikroorm-storage';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { MikroORM } from '@mikro-orm/core';
 

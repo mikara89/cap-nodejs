@@ -9,7 +9,7 @@ import { CapPublishEntity } from '../entities/cap-publish.entity';
  */
 @Injectable()
 export class MikroPublishStorage implements IPublishStorage {
-  constructor(private readonly em: EntityManager) {}
+  constructor(private readonly em: EntityManager) { }
 
   async savePublish(event: CapPublishEvent<unknown>): Promise<string> {
     const entity = this.em.create(CapPublishEntity, {
@@ -56,5 +56,26 @@ export class MikroPublishStorage implements IPublishStorage {
       status: e.status,
       retryCount: e.retryCount,
     }));
+  }
+
+  async savePublishWithTx(
+    event: CapPublishEvent<unknown>,
+    tx: unknown,
+  ): Promise<string> {
+    const em = (tx as EntityManager) ?? this.em;
+
+    const entity = em.create(CapPublishEntity, {
+      id: event.id,
+      topic: event.topic,
+      payload: event.payload as Record<string, unknown>,
+      headers: event.headers,
+      retryCount: event.retryCount || 0,
+      status: event.status,
+      createdAt: new Date(event.occurredAt),
+      updatedAt: new Date(),
+    });
+
+    await em.persistAndFlush(entity);
+    return entity.id;
   }
 }

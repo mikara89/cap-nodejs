@@ -11,3 +11,4 @@ export * from './cap/models/cap-base-message';
 export * from './cap/models/cap-publish-event';
 export * from './cap/models/cap-received-event';
 export * from './cap/models/cap-headers.type';
+export * from './cap/utils/transaction.util';

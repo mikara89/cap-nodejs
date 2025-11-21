@@ -5,7 +5,7 @@ transport adapters for the CAP library.
 
 ## Storage Adapter: MikroORM
 
-**Package**: `@cap/storage-mikro-orm` (or `libs/storage-mikro-orm/`)
+**Package**: `@cap/mikroorm-storage` (or `libs/storage-mikro-orm/`)
 
 ### Overview
 
@@ -71,14 +71,14 @@ database persistence (PostgreSQL, MySQL, SQLite).
 4. **Create module**
    ```ts
    @Module({
-       imports: [
-           MikroOrmModule.forFeature([CapPublishEntity, CapReceivedEntity]),
-       ],
-       providers: [
-           { provide: PUBLISH_STORAGE, useClass: MikroPublishStorage },
-           { provide: RECEIVED_STORAGE, useClass: MikroReceivedStorage },
-       ],
-       exports: [PUBLISH_STORAGE, RECEIVED_STORAGE],
+     imports: [
+       MikroOrmModule.forFeature([CapPublishEntity, CapReceivedEntity]),
+     ],
+     providers: [
+       { provide: PUBLISH_STORAGE, useClass: MikroPublishStorage },
+       { provide: RECEIVED_STORAGE, useClass: MikroReceivedStorage },
+     ],
+     exports: [PUBLISH_STORAGE, RECEIVED_STORAGE],
    })
    export class MikroStorageModule {}
    ```
@@ -97,7 +97,7 @@ database persistence (PostgreSQL, MySQL, SQLite).
 
 ## Transport Adapter: Azure Service Bus
 
-**Package**: `@cap/transport-azure-servicebus` (or
+**Package**: `@cap/azure-servicebus-transport` (or
 `libs/transport-azure-servicebus/`)
 
 ### Overview
@@ -127,10 +127,10 @@ topics/subscriptions for reliable message delivery.
 3. **Configuration interface**
    ```ts
    export interface ServiceBusConfig {
-       connectionString: string;
-       topicPrefix?: string; // e.g., 'cap-'
-       subscriptionPrefix?: string; // e.g., 'cap-sub-'
-       maxConcurrentCalls?: number;
+     connectionString: string;
+     topicPrefix?: string; // e.g., 'cap-'
+     subscriptionPrefix?: string; // e.g., 'cap-sub-'
+     maxConcurrentCalls?: number;
    }
    ```
 
@@ -155,29 +155,29 @@ topics/subscriptions for reliable message delivery.
 6. **Create module**
    ```ts
    @Module({
-       providers: [
-           {
-               provide: "SERVICEBUS_CLIENT",
-               useFactory: (config: ServiceBusConfig) =>
-                   new ServiceBusClient(config.connectionString),
-               inject: ["SERVICEBUS_CONFIG"],
-           },
-           { provide: PUBLISHER, useClass: ServiceBusPublisher },
-           { provide: SUBSCRIBER, useClass: ServiceBusSubscriber },
-       ],
-       exports: [PUBLISHER, SUBSCRIBER],
+     providers: [
+       {
+         provide: "SERVICEBUS_CLIENT",
+         useFactory: (config: ServiceBusConfig) =>
+           new ServiceBusClient(config.connectionString),
+         inject: ["SERVICEBUS_CONFIG"],
+       },
+       { provide: PUBLISHER, useClass: ServiceBusPublisher },
+       { provide: SUBSCRIBER, useClass: ServiceBusSubscriber },
+     ],
+     exports: [PUBLISHER, SUBSCRIBER],
    })
    export class ServiceBusTransportModule {
-       static forRoot(config: ServiceBusConfig): DynamicModule {
-           return {
-               module: ServiceBusTransportModule,
-               providers: [
-                   { provide: "SERVICEBUS_CONFIG", useValue: config },
-                   // ... other providers
-               ],
-               exports: [PUBLISHER, SUBSCRIBER],
-           };
-       }
+     static forRoot(config: ServiceBusConfig): DynamicModule {
+       return {
+         module: ServiceBusTransportModule,
+         providers: [
+           { provide: "SERVICEBUS_CONFIG", useValue: config },
+           // ... other providers
+         ],
+         exports: [PUBLISHER, SUBSCRIBER],
+       };
+     }
    }
    ```
 
@@ -209,26 +209,25 @@ After implementing both adapters, usage in the main app:
 import { Module } from "@nestjs/common";
 import { MikroOrmModule } from "@mikro-orm/nestjs";
 import { CapModule } from "@cap/cap-nest";
-import { MikroStorageModule } from "@cap/storage-mikro-orm";
-import { ServiceBusTransportModule } from "@cap/transport-azure-servicebus";
+import { MikroStorageModule } from "@cap/mikroorm-storage";
+import { ServiceBusTransportModule } from "@cap/azure-servicebus-transport";
 
 @Module({
-    imports: [
-        MikroOrmModule.forRoot({
-            type: "postgresql",
-            host: "localhost",
-            dbName: "capdb",
-            // ... other options
-        }),
-        CapModule.forAdapters(
-            MikroStorageModule,
-            ServiceBusTransportModule.forRoot({
-                connectionString:
-                    process.env.AZURE_SERVICEBUS_CONNECTION_STRING,
-                topicPrefix: "cap-",
-            }),
-        ),
-    ],
+  imports: [
+    MikroOrmModule.forRoot({
+      type: "postgresql",
+      host: "localhost",
+      dbName: "capdb",
+      // ... other options
+    }),
+    CapModule.forAdapters(
+      MikroStorageModule,
+      ServiceBusTransportModule.forRoot({
+        connectionString: process.env.AZURE_SERVICEBUS_CONNECTION_STRING,
+        topicPrefix: "cap-",
+      }),
+    ),
+  ],
 })
 export class AppModule {}
 ```

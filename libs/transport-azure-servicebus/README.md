@@ -6,7 +6,7 @@ reliable messaging using Azure Service Bus topics and subscriptions.
 ## Installation
 
 ```bash
-npm install @cap/transport-azure-servicebus @azure/service-bus
+npm install @cap/azure-servicebus-transport @azure/service-bus
 ```
 
 ## Usage
@@ -14,7 +14,7 @@ npm install @cap/transport-azure-servicebus @azure/service-bus
 ```ts
 import { Module } from "@nestjs/common";
 import { CapModule } from "@cap/cap-nest";
-import { ServiceBusTransportModule } from "@cap/transport-azure-servicebus";
+import { ServiceBusTransportModule } from "@cap/azure-servicebus-transport";
 
 @Module({
     imports: [

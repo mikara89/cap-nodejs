@@ -6,7 +6,9 @@ import {
   IReceivedStorage,
   PUBLISH_STORAGE,
   RECEIVED_STORAGE,
+  ITransactionalPublishStorage,
 } from './abstractions/storage.interface';
+import { ITransactionalPublisher } from './abstractions/transport.interface';
 
 import {
   IPublisher,
@@ -52,7 +54,7 @@ export class CapService {
     /* message bus */
     @Inject(PUBLISHER) private readonly publisher: IPublisher,
     @Inject(SUBSCRIBER) private readonly subscriber: ISubscriber,
-  ) {}
+  ) { }
 
   /* ==============================================================
    *  PUBLIC – PUBLISH
@@ -61,6 +63,7 @@ export class CapService {
     topic: string,
     payload: T,
     headers?: CapHeaders,
+    tx?: unknown,
   ): Promise<void> {
     const evt: CapPublishEvent<T> = {
       id: randomUUID(),
@@ -71,10 +74,39 @@ export class CapService {
       retryCount: 0,
     };
 
-    const dbId = await this.pubStore.savePublish(evt);
+    // If a transaction/context is provided and the storage adapter
+    // implements the transactional API, prefer saving inside the
+    // provided tx. This lets adapters opt-in to transactional writes
+    // without breaking backwards compatibility.
+    const isTransactional = (s: unknown): s is ITransactionalPublishStorage => {
+      return (
+        Boolean(s) &&
+        typeof (s as ITransactionalPublishStorage).savePublishWithTx ===
+        'function'
+      );
+    };
+
+    let dbId: string;
+    if (tx && isTransactional(this.pubStore)) {
+      dbId = await this.pubStore.savePublishWithTx(evt, tx);
+    } else {
+      dbId = await this.pubStore.savePublish(evt);
+    }
 
     try {
-      await this.publisher.emit(topic, payload);
+      const isTransactionalPublisher = (p: unknown): p is ITransactionalPublisher => {
+        return Boolean(p) && typeof (p as ITransactionalPublisher).emitWithTx === 'function';
+      };
+
+      if (tx && isTransactionalPublisher(this.publisher)) {
+        await (this.publisher as ITransactionalPublisher).emitWithTx(
+          topic,
+          payload,
+          tx,
+        );
+      } else {
+        await this.publisher.emit(topic, payload, tx);
+      }
       await this.pubStore.markPublished(dbId);
       this.log.debug(`✓ published #${dbId} ${topic}`);
     } catch (err) {

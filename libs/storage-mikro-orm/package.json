@@ -1,5 +1,5 @@
 {
-    "name": "@cap/storage-mikro-orm",
+    "name": "@cap/mikroorm-storage",
     "version": "0.0.1",
     "description": "MikroORM storage adapter for CAP NestJS library",
     "main": "dist/index.js",

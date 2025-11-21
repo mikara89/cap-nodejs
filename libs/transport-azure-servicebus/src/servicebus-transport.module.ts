@@ -11,7 +11,7 @@ import { ServiceBusConfig } from './servicebus.config';
  * Usage:
  * ```ts
  * import { CapModule } from '@cap/cap-nest';
- * import { ServiceBusTransportModule } from '@cap/transport-azure-servicebus';
+ * import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
  *
  * @Module({
  *   imports: [

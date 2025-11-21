@@ -8,7 +8,8 @@ type MessageHandler = (payload: unknown) => Promise<void>;
  */
 export class TestTransportSpy implements IPublisher, ISubscriber {
   // Spy tracking
-  public emitCalls: Array<{ topic: string; payload: unknown }> = [];
+  public emitCalls: Array<{ topic: string; payload: unknown; tx?: unknown }> =
+    [];
   public consumeCalls: Array<{ topic: string; group: string }> = [];
 
   // Control flags
@@ -20,14 +21,26 @@ export class TestTransportSpy implements IPublisher, ISubscriber {
 
   // --- IPublisher ---
 
-  async emit(topic: string, payload: unknown): Promise<void> {
-    this.emitCalls.push({ topic, payload });
+  async emit(topic: string, payload: unknown, tx?: unknown): Promise<void> {
+    this.emitCalls.push({ topic, payload, tx });
 
     if (this.shouldFailEmit) {
       throw this.emitFailureError;
     }
 
     // Simulate successful emit - notify subscribers
+    await this.deliverMessage(topic, payload);
+  }
+
+  // Optional transactional emit. For the in-memory spy we treat this the same
+  // as a normal emit (the tx is recorded). Real transports may defer emission.
+  async emitWithTx(topic: string, payload: unknown, tx: unknown): Promise<void> {
+    this.emitCalls.push({ topic, payload, tx });
+
+    if (this.shouldFailEmit) {
+      throw this.emitFailureError;
+    }
+
     await this.deliverMessage(topic, payload);
   }
 

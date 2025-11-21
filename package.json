@@ -98,8 +98,8 @@
     ],
     "moduleNameMapper": {
       "^@cap/cap-nest(|/.*)$": "<rootDir>/libs/cap-nest/src/$1",
-      "^@cap/storage-mikro-orm(|/.*)$": "<rootDir>/libs/storage-mikro-orm/src/$1",
-      "^@cap/transport-azure-servicebus(|/.*)$": "<rootDir>/libs/transport-azure-servicebus/src/$1"
+      "^@cap/mikroorm-storage(|/.*)$": "<rootDir>/libs/storage-mikro-orm/src/$1",
+      "^@cap/azure-servicebus-transport(|/.*)$": "<rootDir>/libs/transport-azure-servicebus/src/$1"
     }
   }
 }

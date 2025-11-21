@@ -24,16 +24,16 @@
       "@cap/cap-nest/*": [
         "libs/cap-nest/dist/*"
       ],
-      "@cap/storage-mikro-orm": [
+      "@cap/mikroorm-storage": [
         "libs/storage-mikro-orm/dist"
       ],
-      "@cap/storage-mikro-orm/*": [
+      "@cap/mikroorm-storage/*": [
         "libs/storage-mikro-orm/dist/*"
       ],
-      "@cap/transport-azure-servicebus": [
+      "@cap/azure-servicebus-transport": [
         "libs/transport-azure-servicebus/dist"
       ],
-      "@cap/transport-azure-servicebus/*": [
+      "@cap/azure-servicebus-transport/*": [
         "libs/transport-azure-servicebus/dist/*"
       ]
     }
