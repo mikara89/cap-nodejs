@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { SetMetadata } from '@nestjs/common';
-import { Controller } from '@nestjs/common/interfaces';
 
 /** ----------------------------------------------------------------
  *  Public decorator API
@@ -66,41 +65,52 @@ export function CapSubscribe<T = unknown>(
  * ```
  */
 export function discoverSubscriptions(
-  instance: Controller,
+  instance: object,
 ): DiscoveredSubscription[] {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const proto = Object.getPrototypeOf(instance);
+  const proto = Object.getPrototypeOf(instance) as Record<
+    string,
+    unknown
+  > | null;
   if (!proto) return [];
-  return Object.getOwnPropertyNames(proto)
-    .filter((key) => typeof instance[key] === 'function')
-    .map((key) => {
-      // Try multiple metadata locations: method (descriptor value), prototype property, or instance property
-      // This mirrors how Nest's SetMetadata/Reflector may attach metadata.
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-      const fn = proto[key] ?? instance[key];
-      // Try metadata on the function itself (common when SetMetadata applied to method)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const meta =
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, fn) ||
-        // Fallback to metadata on the instance property (older patterns)
-        Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, instance, key) ||
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, proto, key);
 
-      if (!meta) return undefined;
-      return {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-        topic: meta.topic,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-        group: meta.group ?? undefined,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-        filter: meta.filter,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        handler: (fn as (...args: unknown[]) => unknown).bind(instance),
-      } as DiscoveredSubscription;
-    })
-    .filter(Boolean) as DiscoveredSubscription[];
+  const subs: DiscoveredSubscription[] = [];
+
+  for (const key of Object.getOwnPropertyNames(proto)) {
+    const desc = Object.getOwnPropertyDescriptor(proto, key);
+
+    let fn: ((...args: unknown[]) => unknown) | undefined;
+
+    if (desc && typeof desc.value === 'function') {
+      fn = desc.value as (...args: unknown[]) => unknown;
+    } else {
+      const maybe = (instance as Record<string, unknown>)[key];
+      if (typeof maybe === 'function') {
+        fn = maybe as (...args: unknown[]) => unknown;
+      }
+    }
+
+    if (!fn) continue;
+
+    const meta =
+      (Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, fn) as unknown) ??
+      (Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, instance, key) as unknown) ??
+      (Reflect.getMetadata(CAP_SUBSCRIBE_METADATA, proto, key) as unknown);
+
+    if (!meta) continue;
+
+    const opts = meta as CapSubscribeOptions;
+
+    subs.push({
+      topic: opts.topic,
+      group: opts.group ?? undefined,
+      filter: opts.filter,
+      handler: fn.bind(
+        instance,
+      ) as unknown as DiscoveredSubscription['handler'],
+    });
+  }
+
+  return subs;
 }
 
 /** Shape returned by `discoverSubscriptions` */

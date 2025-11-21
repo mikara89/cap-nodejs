@@ -15,7 +15,7 @@ export class CapSubscriberScanner implements OnModuleInit {
     private readonly modules: ModulesContainer, // all loaded modules
     private readonly reflector: Reflector, // read decorator metadata
     private readonly cap: CapService, // facade (storage+transport)
-  ) {}
+  ) { }
 
   onModuleInit() {
     // Walk every provider instance in the app
@@ -30,11 +30,16 @@ export class CapSubscriberScanner implements OnModuleInit {
   }
 
   private registerDecoratedMethods(target: object) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const proto = Object.getPrototypeOf(target);
+    const proto = Object.getPrototypeOf(target) as Record<
+      string,
+      PropertyDescriptor
+    > | null;
     if (!proto) return;
 
-    const descriptors = Object.getOwnPropertyDescriptors(proto);
+    const descriptors = Object.getOwnPropertyDescriptors(proto) as Record<
+      string,
+      PropertyDescriptor
+    >;
 
     for (const [key, desc] of Object.entries(descriptors)) {
       // skip accessors / non-functions
@@ -42,27 +47,30 @@ export class CapSubscriberScanner implements OnModuleInit {
 
       const meta = this.reflector.get<CapSubscribeOptions | undefined>(
         CAP_SUBSCRIBE_METADATA,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        desc.value,
+        desc.value as unknown as (...args: unknown[]) => unknown,
       );
       if (!meta) continue;
 
       const { topic, group = '', filter, dto } = meta;
 
-      const pipe = dto ? new CapValidatePipe(dto) : null;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-function-type
-      const handler = (desc.value as Function).bind(target);
+      const pipe = dto ? new CapValidatePipe(dto as new () => unknown) : null;
+
+      // `desc.value` is guaranteed to be a function here (we checked earlier).
+      // Type it as a safe callable and call it via `.call(target, ...)` to
+      // avoid unsafe `any` casts and direct binding that ESLint flags.
+      const fn = desc.value as (...args: unknown[]) => unknown;
+      const invokeBound = (payload: unknown) =>
+        Promise.resolve(fn.call(target, payload));
 
       this.log.debug(
         `@CapSubscribe → ${target.constructor.name}.${key} ` +
-          `(${topic}|${group || 'broadcast'})`,
+        `(${topic}|${group || 'broadcast'})`,
       );
 
       this.cap.subscribe(topic, group, async (payload: unknown) => {
         const validated = pipe ? pipe.transform(payload) : payload;
         if (!filter || (await filter(validated))) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-          await handler(validated);
+          await invokeBound(validated);
         }
       });
     }

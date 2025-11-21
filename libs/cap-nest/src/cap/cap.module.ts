@@ -113,22 +113,22 @@ export class CapModule {
     const InMemPublishStorage: Token<IPublishStorage> = {
       provide: PUBLISH_STORAGE,
       useClass: class implements IPublishStorage {
-        private readonly m = new Map<string, CapPublishEvent>();
-        async savePublish(e) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        private readonly m = new Map<string, CapPublishEvent<unknown>>();
+
+        async savePublish(e: CapPublishEvent<unknown>): Promise<string> {
           this.m.set(e.id, e);
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
           return Promise.resolve(e.id);
         }
-        markPublished(id) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
+        markPublished(id: string): Promise<void> {
           const event = this.m.get(id);
           if (event) {
             event.status = 'published';
           }
           return Promise.resolve();
         }
-        getUnpublished(n: number): Promise<CapPublishEvent[]> {
+
+        getUnpublished(n: number): Promise<CapPublishEvent<unknown>[]> {
           return Promise.resolve(
             [...this.m.values()]
               .filter(
@@ -226,21 +226,27 @@ export class CapModule {
             typeof p === 'object' &&
             p !== null &&
             'provide' in p &&
-            (p as { provide: any }).provide === token,
+            (p as { provide: unknown }).provide === token,
         );
+
         if (!found)
           throw new Error(
             `CAP async config did not supply provider for token ${token.toString()}`,
           );
+
         // Nest will treat it as value provider or class/factory provider
         // because we return the whole Provider object.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return 'useValue' in found
-          ? found.useValue
-          : 'useClass' in found
-            ? new found.useClass()
-            : // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-              (found as any).useFactory!(); // unsafe but fine for in-mem example
+        const f = found as unknown as Record<string, unknown>;
+        if ('useValue' in f) return f['useValue'];
+        if ('useClass' in f && typeof f['useClass'] === 'function') {
+          const C = f['useClass'] as new () => unknown;
+          return new C();
+        }
+        if ('useFactory' in f && typeof f['useFactory'] === 'function') {
+          const factory = f['useFactory'] as (...args: unknown[]) => unknown;
+          return factory();
+        }
+        return undefined as unknown;
       },
       inject: ['CAP_ASYNC_CFG'],
     }));
@@ -265,16 +271,25 @@ export class CapModule {
 }
 // simple EventEmitter shared by publisher + subscriber
 class LocalBus implements IPublisher, ISubscriber {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  private readonly listeners = new Map<string, Set<Function>>();
+  private readonly listeners = new Map<
+    string,
+    Set<(p: unknown) => Promise<void>>
+  >();
+
   async emit(topic: string, payload: unknown) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-    this.listeners.get(topic)?.forEach((fn) => fn(payload));
+    const handlers = this.listeners.get(topic);
+    if (handlers && handlers.size > 0) {
+      await Promise.all(Array.from(handlers).map((fn) => fn(payload)));
+    }
     return Promise.resolve();
   }
-  async consume(topic: string, _group: string, on: any) {
+
+  async consume(
+    topic: string,
+    _group: string,
+    on: (payload: unknown) => Promise<void>,
+  ) {
     if (!this.listeners.has(topic)) this.listeners.set(topic, new Set());
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     this.listeners.get(topic)!.add(on);
     return Promise.resolve();
   }
