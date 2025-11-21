@@ -24,7 +24,7 @@ export class CapPublishEntity {
   status?: 'published' | 'failed';
 
   @Property({ type: 'number', default: 0 })
-  retryCount: number = 0;
+  retryCount = 0;
 
   @Property({ type: 'datetime' })
   createdAt: Date = new Date();

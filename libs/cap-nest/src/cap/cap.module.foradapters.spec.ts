@@ -1,4 +1,4 @@
-import { CapModule, CapAdapterModule } from './cap.module';
+import { CapModule, type CapAdapterModule } from './cap.module';
 
 describe('CapModule.forAdapters', () => {
   it('returns a DynamicModule that includes providers and imports', () => {
@@ -15,10 +15,10 @@ describe('CapModule.forAdapters', () => {
     expect(Array.isArray(dm.imports)).toBe(true);
     expect(dm.providers).toBeDefined();
     // Core providers should include CapService
-    const providers = (dm.providers || []) as Array<unknown>;
+    const providers = (dm.providers ?? []) as Array<unknown>;
     const provNames = providers.map((p) => {
       if (!p) return '';
-      if (typeof p === 'function') return (p as { name?: string }).name || '';
+      if (typeof p === 'function') return (p as { name?: string }).name ?? '';
       if (typeof p === 'object') {
         const obj = p as Record<string, unknown>;
         const name = typeof obj['name'] === 'string' ? obj['name'] : '';

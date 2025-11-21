@@ -6,9 +6,10 @@ export class CapExampleHandler {
   private readonly log = new Logger(CapExampleHandler.name);
 
   @CapSubscribe({ topic: 'example.topic', group: 'example-group' })
-  onExample(payload: unknown) {
+  async onExample(payload: unknown): Promise<void> {
     this.log.log(
       `CapExampleHandler received payload: ${JSON.stringify(payload)}`,
     );
+    return Promise.resolve();
   }
 }

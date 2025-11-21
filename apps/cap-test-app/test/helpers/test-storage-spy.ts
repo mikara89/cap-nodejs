@@ -1,8 +1,8 @@
 import {
-  IPublishStorage,
-  IReceivedStorage,
-  CapPublishEvent,
-  CapReceivedEvent,
+  type IPublishStorage,
+  type IReceivedStorage,
+  type CapPublishEvent,
+  type CapReceivedEvent,
 } from '@cap/cap-nest';
 
 /**

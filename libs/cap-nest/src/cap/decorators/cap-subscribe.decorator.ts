@@ -45,7 +45,7 @@ export function CapSubscribe<T = unknown>(
   // Support legacy signature  @CapSubscribe('topic','group')
   const normalized: CapSubscribeOptions = (
     typeof opts === 'string' ? { topic: opts, group: maybeGroup } : opts
-  ) as any;
+  ) as CapSubscribeOptions;
 
   return SetMetadata(CAP_SUBSCRIBE_METADATA, normalized);
 }
@@ -107,7 +107,7 @@ export function discoverSubscriptions(
 
     const opts = meta;
 
-    const boundHandler = async (payload: unknown) =>
+    const boundHandler = async (payload: unknown): Promise<unknown> =>
       Promise.resolve(fn.call(instance, payload) as unknown);
 
     subs.push({
@@ -126,6 +126,5 @@ export interface DiscoveredSubscription {
   topic: string;
   group?: string;
   filter?: (payload: unknown) => boolean | Promise<boolean>;
-  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-  handler: (payload: unknown) => unknown | Promise<unknown>;
+  handler: (payload: unknown) => Promise<unknown>;
 }

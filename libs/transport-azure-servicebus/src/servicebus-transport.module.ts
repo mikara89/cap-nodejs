@@ -54,12 +54,4 @@ export class ServiceBusTransportModule {
       exports: [PUBLISHER, SUBSCRIBER],
     };
   }
-
-  static get providers() {
-    // Expose providers array for CapModule.forAdapters() compatibility
-    // Note: This requires config to be injected separately
-    throw new Error(
-      'Use ServiceBusTransportModule.forRoot(config) instead of accessing providers directly',
-    );
-  }
 }

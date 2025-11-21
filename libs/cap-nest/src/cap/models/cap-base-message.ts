@@ -1,4 +1,4 @@
-import { CapHeaders } from './cap-headers.type';
+import { type CapHeaders } from './cap-headers.type';
 
 /**
  * Core shape every CAP message shares – NEVER mutate these fields in-place;

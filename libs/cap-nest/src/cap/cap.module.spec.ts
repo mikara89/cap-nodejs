@@ -1,5 +1,5 @@
 import { CapModule } from './cap.module';
-import { DynamicModule } from '@nestjs/common';
+import { type DynamicModule } from '@nestjs/common';
 import { PUBLISHER, SUBSCRIBER } from './abstractions/transport.interface';
 import {
   PUBLISH_STORAGE,
@@ -11,11 +11,11 @@ describe('CapModule builders', () => {
     const dm = CapModule.forInMemory();
 
     // adaptersModule is the first import
-    const adapters = (dm.imports && dm.imports[0]) as DynamicModule | undefined;
+    const adapters = dm.imports?.[0] as DynamicModule | undefined;
     expect(adapters).toBeDefined();
     // adapters should expose providers array
     // Providers should include the in-memory storage classes and transport providers
-    const providers = adapters?.providers || [];
+    const providers = adapters?.providers ?? [];
 
     const hasPublishStorage = providers.some(
       (p) =>

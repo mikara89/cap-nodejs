@@ -17,7 +17,7 @@ export class CapSubscriberScanner implements OnModuleInit {
     private readonly cap: CapService, // facade (storage+transport)
   ) {}
 
-  onModuleInit() {
+  onModuleInit(): void {
     // Walk every provider instance in the app
     for (const { providers } of this.modules.values()) {
       for (const wrapper of providers.values()) {
@@ -29,7 +29,7 @@ export class CapSubscriberScanner implements OnModuleInit {
     }
   }
 
-  private registerDecoratedMethods(target: object) {
+  private registerDecoratedMethods(target: object): void {
     const proto = Object.getPrototypeOf(target) as Record<
       string,
       PropertyDescriptor
@@ -61,7 +61,7 @@ export class CapSubscriberScanner implements OnModuleInit {
       // Type it as a safe callable and call it via `.call(target, ...)` to
       // avoid unsafe `any` casts and direct binding that ESLint flags.
       const fn = desc.value as (...args: unknown[]) => unknown;
-      const invokeBound = (payload: unknown) =>
+      const invokeBound = (payload: unknown): Promise<unknown> =>
         Promise.resolve(fn.call(target, payload));
 
       this.log.debug(

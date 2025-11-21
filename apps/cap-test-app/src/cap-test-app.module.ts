@@ -14,9 +14,10 @@ import {
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { MikroORM } from '@mikro-orm/core';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+// In-memory transport for local development (no external dependencies)
+
 const InMemPublisher = { provide: PUBLISHER, useClass: LocalBus };
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
 const InMemSubscriber = { provide: SUBSCRIBER, useExisting: PUBLISHER };
 
 @Module({
@@ -33,10 +34,9 @@ const InMemSubscriber = { provide: SUBSCRIBER, useExisting: PUBLISHER };
     }),
     // ensure the storage module registers the entities with MikroORM
     MikroStorageModule,
-    // register CAP using the Mikro storage adapter and an in-memory transport
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    // register CAP using the Mikro storage adapter and in-memory transport
+
     CapModule.forRoot({
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       storage: MikroStorageModule.providers,
       transport: [InMemPublisher, InMemSubscriber],
     }),
@@ -50,7 +50,7 @@ const InMemSubscriber = { provide: SUBSCRIBER, useExisting: PUBLISHER };
       @Injectable()
       class MikroSchemaInit implements OnModuleInit {
         constructor(private readonly orm: MikroORM) {}
-        async onModuleInit() {
+        async onModuleInit(): Promise<void> {
           const generator = this.orm.getSchemaGenerator();
           await generator.createSchema();
         }

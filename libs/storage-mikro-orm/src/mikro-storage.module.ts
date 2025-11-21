@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { ClassProvider, Module } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { PUBLISH_STORAGE, RECEIVED_STORAGE } from '@cap/cap-nest';
 import { CapPublishEntity } from './entities/cap-publish.entity';
@@ -38,7 +38,7 @@ import { MikroReceivedStorage } from './storage/mikro-received-storage';
   exports: [PUBLISH_STORAGE, RECEIVED_STORAGE],
 })
 export class MikroStorageModule {
-  static get providers() {
+  static get providers(): Array<ClassProvider> {
     return [
       {
         provide: PUBLISH_STORAGE,

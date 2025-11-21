@@ -38,7 +38,7 @@ export class ServiceBusPublisher implements IPublisher, OnModuleDestroy {
     }
   }
 
-  async onModuleDestroy() {
+  async onModuleDestroy(): Promise<void> {
     for (const [topic, sender] of this.senders.entries()) {
       try {
         await sender.close();

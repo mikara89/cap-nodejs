@@ -7,7 +7,7 @@ import { validateSync } from 'class-validator';
 export class CapValidatePipe implements PipeTransform {
   constructor(private readonly dto: new () => unknown) {}
 
-  transform(value: unknown) {
+  transform(value: unknown): unknown {
     const obj = plainToInstance(this.dto, value, {
       enableImplicitConversion: true,
     });

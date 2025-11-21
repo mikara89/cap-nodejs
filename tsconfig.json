@@ -38,5 +38,10 @@
       ]
     }
   },
-  "include": ["types/**/*.d.ts"]
+  "include": [
+    "apps/**/*",
+    "libs/**/*",
+    "libs/**/*.d.ts",
+    "types/**/*.d.ts"
+  ]
 }

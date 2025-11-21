@@ -1,10 +1,13 @@
-import { IPublisher, ISubscriber } from '../abstractions/transport.interface';
 import {
-  IPublishStorage,
-  IReceivedStorage,
+  type IPublisher,
+  type ISubscriber,
+} from '../abstractions/transport.interface';
+import {
+  type IPublishStorage,
+  type IReceivedStorage,
 } from '../abstractions/storage.interface';
-import { CapPublishEvent } from '../models/cap-publish-event';
-import { CapReceivedEvent } from '../models/cap-received-event';
+import { type CapPublishEvent } from '../models/cap-publish-event';
+import { type CapReceivedEvent } from '../models/cap-received-event';
 
 // Typed in-memory spy implementations for tests
 export function createInMemoryPublisher(): IPublisher & {
@@ -38,7 +41,10 @@ export function createInMemorySubscriber(): ISubscriber & {
     ) {
       const key = `${topic}|${group}`;
       if (!listeners.has(key)) listeners.set(key, new Set());
-      listeners.get(key)!.add(onMessage);
+      const topicListeners = listeners.get(key);
+      if (!topicListeners)
+        throw new Error('InMemorySubscriber: topicListeners missing');
+      topicListeners.add(onMessage);
       return Promise.resolve();
     },
   };

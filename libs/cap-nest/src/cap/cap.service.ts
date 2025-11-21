@@ -26,7 +26,10 @@ import { expJitter } from './scheduler/backoff.util';
 /* ------------------------------------------------------------------ */
 type Handler<T = unknown> = (payload: T) => Promise<void>;
 
-type HandlerMap = Map<string /*topic*/, Map<string /*group*/, Handler<any>>>;
+type HandlerMap = Map<
+  string /*topic*/,
+  Map<string /*group*/, Handler<unknown>>
+>;
 
 /* ================================================================== */
 /*                        CapService (core)                           */
@@ -84,7 +87,7 @@ export class CapService {
    *  PUBLIC – SUBSCRIBE  (called by CapSubscriberScanner)
    * ============================================================ */
   subscribe<T>(topic: string, group: string, handler: Handler<T>): void {
-    this.registerHandler(topic, group, handler as Handler<any>);
+    this.registerHandler(topic, group, handler as Handler<unknown>);
 
     this.subscriber
       .consume(topic, group, async (msg) => {
@@ -100,9 +103,7 @@ export class CapService {
    *  CALLED BY SCHEDULER  – re-executes failed handlers
    * ============================================================ */
   async retryReceived(rec: CapReceivedEvent): Promise<void> {
-    const handler = this.handlers.get(rec.topic)?.get(rec.group) as
-      | Handler<unknown>
-      | undefined;
+    const handler = this.handlers.get(rec.topic)?.get(rec.group);
     if (!handler) {
       this.log.warn(
         `No handler registered for ${rec.topic}|${rec.group}; skipping retry`,
@@ -116,9 +117,18 @@ export class CapService {
    *  Internal helpers
    * ============================================================ */
 
-  private registerHandler(topic: string, group: string, handler: Handler<any>) {
+  private registerHandler(
+    topic: string,
+    group: string,
+    handler: Handler<unknown>,
+  ): void {
     if (!this.handlers.has(topic)) this.handlers.set(topic, new Map());
-    this.handlers.get(topic)!.set(group, handler);
+    const groupHandlers = this.handlers.get(topic);
+    if (!groupHandlers) {
+      throw new Error('CapService: registerHandler - groupHandlers missing');
+    }
+
+    groupHandlers.set(group, handler);
   }
 
   /** write inbox row to storage */

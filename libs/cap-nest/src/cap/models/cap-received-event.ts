@@ -1,4 +1,4 @@
-import { CapBaseMessage } from './cap-base-message';
+import { type CapBaseMessage } from './cap-base-message';
 
 /**
  * Message as observed on the subscriber side, AFTER persistence.

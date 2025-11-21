@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import { EntityManager } from '@mikro-orm/core';
 import { MikroPublishStorage } from './mikro-publish-storage';
 import { CapPublishEntity } from '../entities/cap-publish.entity';
-import { CapPublishEvent } from '@cap/cap-nest';
+import { type CapPublishEvent } from '@cap/cap-nest';
 
 describe('MikroPublishStorage', () => {
   let storage: MikroPublishStorage;
@@ -12,7 +12,6 @@ describe('MikroPublishStorage', () => {
 
   beforeEach(async () => {
     const mockEm = {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       create: jest.fn((_, data) => ({ ...data, id: data.id })),
       persistAndFlush: jest.fn(),
       findOne: jest.fn(),

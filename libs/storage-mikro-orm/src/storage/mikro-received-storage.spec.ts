@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import { EntityManager } from '@mikro-orm/core';
 import { MikroReceivedStorage } from './mikro-received-storage';
 import { CapReceivedEntity } from '../entities/cap-received.entity';
-import { CapReceivedEvent } from '@cap/cap-nest';
+import { type CapReceivedEvent } from '@cap/cap-nest';
 
 describe('MikroReceivedStorage', () => {
   let storage: MikroReceivedStorage;
@@ -12,7 +12,6 @@ describe('MikroReceivedStorage', () => {
 
   beforeEach(async () => {
     const mockEm = {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       create: jest.fn((_, data) => ({ ...data, id: data.id })),
       persistAndFlush: jest.fn(),
       findOne: jest.fn(),

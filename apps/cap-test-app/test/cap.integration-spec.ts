@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { type INestApplication } from '@nestjs/common';
 import {
   CapModule,
   CapService,
@@ -17,7 +17,10 @@ import {
   AlternateHandlerService,
   TestHandlersModule,
 } from './fixtures/test-handlers.module';
-import { UserCreatedDto, OrderPlacedDto } from './fixtures/test-messages';
+import {
+  type UserCreatedDto,
+  type OrderPlacedDto,
+} from './fixtures/test-messages';
 
 describe('CAP Integration Tests', () => {
   let app: INestApplication;

@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/require-await */
 import {
-  IPublisher,
-  ISubscriber,
+  type IPublisher,
+  type ISubscriber,
 } from '../cap/abstractions/transport.interface';
 import {
-  IPublishStorage,
-  IReceivedStorage,
+  type IPublishStorage,
+  type IReceivedStorage,
 } from '../cap/abstractions/storage.interface';
-import { CapPublishEvent } from '../cap/models/cap-publish-event';
-import { CapReceivedEvent } from '../cap/models/cap-received-event';
+import { type CapPublishEvent } from '../cap/models/cap-publish-event';
+import { type CapReceivedEvent } from '../cap/models/cap-received-event';
 
 // Typed in-memory spy implementations for tests
 export function createInMemoryPublisher(): IPublisher & {
@@ -41,7 +41,10 @@ export function createInMemorySubscriber(): ISubscriber & {
       onMessage: (payload: unknown) => Promise<void>,
     ) {
       if (!listeners.has(topic)) listeners.set(topic, new Set());
-      listeners.get(topic)!.add(onMessage);
+      const topicListeners = listeners.get(topic);
+      if (!topicListeners)
+        throw new Error('InMemorySubscriber: topicListeners missing');
+      topicListeners.add(onMessage);
       return Promise.resolve();
     },
   };

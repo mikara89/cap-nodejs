@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { Test } from '@nestjs/testing';
-import { ServiceBusClient, ServiceBusSender } from '@azure/service-bus';
+import { ServiceBusClient, type ServiceBusSender } from '@azure/service-bus';
 import { ServiceBusPublisher } from './servicebus-publisher';
 
 describe('ServiceBusPublisher', () => {

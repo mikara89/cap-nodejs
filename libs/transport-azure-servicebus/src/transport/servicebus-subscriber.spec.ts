@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import { ServiceBusClient, ServiceBusReceiver } from '@azure/service-bus';
+import {
+  type ServiceBusClient,
+  type ServiceBusReceiver,
+} from '@azure/service-bus';
 import { ServiceBusSubscriber } from './servicebus-subscriber';
 
 describe('ServiceBusSubscriber', () => {

@@ -25,10 +25,10 @@ export class CapReceivedEntity {
   headers?: Record<string, string>;
 
   @Property({ type: 'boolean', default: false })
-  processed: boolean = false;
+  processed = false;
 
   @Property({ type: 'number', default: 0 })
-  retryCount: number = 0;
+  retryCount = 0;
 
   @Property({ type: 'datetime', nullable: true })
   nextRetry?: Date;

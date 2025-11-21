@@ -1,4 +1,4 @@
-import { CapPublishEvent } from '../models/cap-publish-event';
+import { type CapPublishEvent } from '../models/cap-publish-event';
 import { CapReceivedEvent } from '../models/cap-received-event';
 
 /** IoC tokens – easier than string literals */

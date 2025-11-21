@@ -59,7 +59,7 @@ export class RetrySchedulerService {
   }
   /** every minute retry failed *inbox* messages */
   @Cron(CronExpression.EVERY_MINUTE)
-  async retryInbox() {
+  async retryInbox(): Promise<void> {
     const batch = await this.recStore.getRetryDue(200);
     if (!batch.length) return;
 

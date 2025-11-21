@@ -1,7 +1,15 @@
 // ───────────────────────────────────────────────────────────
 // src/cap/cap.module.ts
 // ───────────────────────────────────────────────────────────
-import { DynamicModule, Global, Module, Provider, Type } from '@nestjs/common';
+import {
+  DynamicModule,
+  Global,
+  InjectionToken,
+  Module,
+  OptionalFactoryDependency,
+  Provider,
+  Type,
+} from '@nestjs/common';
 
 import { CapService } from './cap.service';
 import { CapSubscriberScanner } from './scanner/cap-subscriber.scanner';
@@ -71,7 +79,7 @@ export interface CapModuleAsyncOptions {
   useFactory?: (
     ...args: unknown[]
   ) => Promise<CapAsyncProviders> | CapAsyncProviders;
-  inject?: any[];
+  inject?: (InjectionToken | OptionalFactoryDependency)[];
 }
 
 @Global()
@@ -165,7 +173,7 @@ export class CapModule {
           );
         }
         private readonly m = new Map<string, CapReceivedEvent<unknown>>();
-        async saveReceived(e: CapReceivedEvent<unknown>) {
+        async saveReceived(e: CapReceivedEvent<unknown>): Promise<string> {
           this.m.set(e.id, e);
           return Promise.resolve<string>(e.id);
         }
@@ -254,7 +262,7 @@ export class CapModule {
     return {
       module: CapModule,
       imports: [
-        ...(opts.imports || []),
+        ...(opts.imports ?? []),
         ScheduleModule.forRoot(),
         // If user passed useClass but not useExisting, we have to declare it
         ...(opts.useClass && !opts.useExisting ? [opts.useClass] : []),
@@ -276,7 +284,7 @@ export class LocalBus implements IPublisher, ISubscriber {
     Set<(p: unknown) => Promise<void>>
   >();
 
-  async emit(topic: string, payload: unknown) {
+  async emit(topic: string, payload: unknown): Promise<void> {
     const handlers = this.listeners.get(topic);
     if (handlers && handlers.size > 0) {
       await Promise.all(Array.from(handlers).map((fn) => fn(payload)));
@@ -288,9 +296,15 @@ export class LocalBus implements IPublisher, ISubscriber {
     topic: string,
     _group: string,
     on: (payload: unknown) => Promise<void>,
-  ) {
+  ): Promise<void> {
     if (!this.listeners.has(topic)) this.listeners.set(topic, new Set());
-    this.listeners.get(topic)!.add(on);
+
+    const listeners = this.listeners.get(topic);
+    if (!listeners) {
+      throw new Error(`Listeners set for topic ${topic} is undefined`);
+    }
+
+    listeners.add(on);
     return Promise.resolve();
   }
 }
@@ -300,12 +314,17 @@ function createAsyncOptionsProvider(opts: CapModuleAsyncOptions): Provider {
     return {
       provide: 'CAP_ASYNC_CFG',
       useFactory: opts.useFactory,
-      inject: opts.inject || [],
+      inject: opts.inject ?? [],
     };
   }
 
   // class-based or existing provider
-  const injectType = opts.useExisting ?? opts.useClass!;
+  const injectType = opts.useExisting ?? opts.useClass;
+  if (!injectType) {
+    throw new Error(
+      'Invalid CapModuleAsyncOptions: must provide useFactory, useExisting, or useClass',
+    );
+  }
   return {
     provide: 'CAP_ASYNC_CFG',
     async useFactory(factory: CapModuleFactory) {

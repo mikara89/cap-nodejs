@@ -20,7 +20,7 @@ export class MikroReceivedStorage implements IReceivedStorage {
       headers: event.headers,
       processed: event.processed || false,
       retryCount: event.retryCount || 0,
-      nextRetry: event.nextRetry || undefined,
+      nextRetry: event.nextRetry ?? undefined,
       createdAt: new Date(event.occurredAt),
       updatedAt: new Date(),
     });
@@ -73,7 +73,7 @@ export class MikroReceivedStorage implements IReceivedStorage {
       headers: e.headers,
       processed: e.processed,
       retryCount: e.retryCount,
-      nextRetry: e.nextRetry || null,
+      nextRetry: e.nextRetry ?? null,
     }));
   }
 }

@@ -1,4 +1,4 @@
-import { IPublisher, ISubscriber } from '@cap/cap-nest';
+import { type IPublisher, type ISubscriber } from '@cap/cap-nest';
 
 type MessageHandler = (payload: unknown) => Promise<void>;
 
@@ -83,7 +83,7 @@ export class TestTransportSpy implements IPublisher, ISubscriber {
    * Get all handlers registered for a topic/group.
    */
   getHandlers(topic: string, group: string): MessageHandler[] {
-    return this.handlers.get(this.getHandlerKey(topic, group)) || [];
+    return this.handlers.get(this.getHandlerKey(topic, group)) ?? [];
   }
 
   reset(): void {

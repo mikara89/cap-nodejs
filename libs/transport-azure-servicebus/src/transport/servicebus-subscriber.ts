@@ -81,7 +81,7 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
     return Promise.resolve();
   }
 
-  async onModuleDestroy() {
+  async onModuleDestroy(): Promise<void> {
     for (const [key, receiver] of this.receivers.entries()) {
       try {
         await receiver.close();
