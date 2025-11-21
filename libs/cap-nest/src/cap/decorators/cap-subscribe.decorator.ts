@@ -43,8 +43,9 @@ export function CapSubscribe<T = unknown>(
   maybeGroup?: string,
 ): MethodDecorator {
   // Support legacy signature  @CapSubscribe('topic','group')
-  const normalized: CapSubscribeOptions =
-    typeof opts === 'string' ? { topic: opts, group: maybeGroup } : opts;
+  const normalized: CapSubscribeOptions = (
+    typeof opts === 'string' ? { topic: opts, group: maybeGroup } : opts
+  ) as any;
 
   return SetMetadata(CAP_SUBSCRIBE_METADATA, normalized);
 }

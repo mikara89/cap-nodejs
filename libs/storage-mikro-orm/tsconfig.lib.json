@@ -1,8 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "paths": {
+      "@cap/cap-nest": ["../cap-nest/src"],
+      "@cap/cap-nest/*": ["../cap-nest/src/*"]
+    },
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

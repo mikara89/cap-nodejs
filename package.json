@@ -11,7 +11,12 @@
   ],
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "npm run build:libs && nest build",
+    "build:libs": "npm run build:lib:cap-nest && npm run build:lib:storage && npm run build:lib:transport",
+    "build:lib:cap-nest": "cd libs/cap-nest && tsc -p tsconfig.lib.json",
+    "build:lib:storage": "cd libs/storage-mikro-orm && tsc -p tsconfig.lib.json",
+    "build:lib:transport": "cd libs/transport-azure-servicebus && tsc -p tsconfig.lib.json",
+    "prestart": "npm run build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start cap-test-app",
     "start:dev": "nest start cap-test-app --watch",
@@ -33,7 +38,10 @@
     "@nestjs/schedule": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "@mikro-orm/core": "^6.0.0",
+    "@mikro-orm/nestjs": "^6.0.0",
+    "@mikro-orm/sqlite": "^6.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

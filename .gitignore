@@ -1,5 +1,9 @@
 # compiled output
 /dist
+# dist dir from any project
+/apps/**/dist
+/libs/**/dist
+# dependencies
 /node_modules
 /build
 

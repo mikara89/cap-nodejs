@@ -19,23 +19,24 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@cap/cap-nest": [
-        "libs/cap-nest/src"
+        "libs/cap-nest/dist"
       ],
       "@cap/cap-nest/*": [
-        "libs/cap-nest/src/*"
+        "libs/cap-nest/dist/*"
       ],
       "@cap/storage-mikro-orm": [
-        "libs/storage-mikro-orm/src"
+        "libs/storage-mikro-orm/dist"
       ],
       "@cap/storage-mikro-orm/*": [
-        "libs/storage-mikro-orm/src/*"
+        "libs/storage-mikro-orm/dist/*"
       ],
       "@cap/transport-azure-servicebus": [
-        "libs/transport-azure-servicebus/src"
+        "libs/transport-azure-servicebus/dist"
       ],
       "@cap/transport-azure-servicebus/*": [
-        "libs/transport-azure-servicebus/src/*"
+        "libs/transport-azure-servicebus/dist/*"
       ]
     }
-  }
+  },
+  "include": ["types/**/*.d.ts"]
 }

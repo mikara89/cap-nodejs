@@ -17,6 +17,24 @@
         "tsConfigPath": "libs/cap-nest/tsconfig.lib.json"
       }
     },
+    "storage-mikro-orm": {
+      "type": "library",
+      "root": "libs/storage-mikro-orm",
+      "entryFile": "index",
+      "sourceRoot": "libs/storage-mikro-orm/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/storage-mikro-orm/tsconfig.lib.json"
+      }
+    },
+    "transport-azure-servicebus": {
+      "type": "library",
+      "root": "libs/transport-azure-servicebus",
+      "entryFile": "index",
+      "sourceRoot": "libs/transport-azure-servicebus/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/transport-azure-servicebus/tsconfig.lib.json"
+      }
+    },
     "cap-test-app": {
       "type": "application",
       "root": "apps/cap-test-app",

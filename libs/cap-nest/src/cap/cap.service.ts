@@ -26,7 +26,7 @@ import { expJitter } from './scheduler/backoff.util';
 /* ------------------------------------------------------------------ */
 type Handler<T = unknown> = (payload: T) => Promise<void>;
 
-type HandlerMap = Map<string /*topic*/, Map<string /*group*/, Handler>>;
+type HandlerMap = Map<string /*topic*/, Map<string /*group*/, Handler<any>>>;
 
 /* ================================================================== */
 /*                        CapService (core)                           */
@@ -84,12 +84,12 @@ export class CapService {
    *  PUBLIC – SUBSCRIBE  (called by CapSubscriberScanner)
    * ============================================================ */
   subscribe<T>(topic: string, group: string, handler: Handler<T>): void {
-    this.registerHandler(topic, group, handler);
+    this.registerHandler(topic, group, handler as Handler<any>);
 
     this.subscriber
       .consume(topic, group, async (msg) => {
-        const rec = await this.persistReceived(topic, group, msg);
-        await this.tryHandle(rec, handler);
+        const rec = await this.persistReceived<T>(topic, group, msg as T);
+        await this.tryHandle<T>(rec, handler);
       })
       .catch((err) =>
         this.log.error(`Subscriber attach failed (${topic}|${group})`, err),
@@ -100,7 +100,9 @@ export class CapService {
    *  CALLED BY SCHEDULER  – re-executes failed handlers
    * ============================================================ */
   async retryReceived(rec: CapReceivedEvent): Promise<void> {
-    const handler = this.handlers.get(rec.topic)?.get(rec.group);
+    const handler = this.handlers.get(rec.topic)?.get(rec.group) as
+      | Handler<unknown>
+      | undefined;
     if (!handler) {
       this.log.warn(
         `No handler registered for ${rec.topic}|${rec.group}; skipping retry`,
@@ -114,11 +116,7 @@ export class CapService {
    *  Internal helpers
    * ============================================================ */
 
-  private registerHandler<T>(
-    topic: string,
-    group: string,
-    handler: Handler<T>,
-  ) {
+  private registerHandler(topic: string, group: string, handler: Handler<any>) {
     if (!this.handlers.has(topic)) this.handlers.set(topic, new Map());
     this.handlers.get(topic)!.set(group, handler);
   }
