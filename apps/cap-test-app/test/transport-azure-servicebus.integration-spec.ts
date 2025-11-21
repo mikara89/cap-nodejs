@@ -1,7 +1,15 @@
 import { Test } from '@nestjs/testing';
-import { ServiceBusAdministrationClient, ServiceBusClient } from '@azure/service-bus';
+import {
+  ServiceBusAdministrationClient,
+  ServiceBusClient,
+} from '@azure/service-bus';
 import { ServiceBusTransportModule } from '@cap/transport-azure-servicebus';
-import { PUBLISHER, SUBSCRIBER, IPublisher, ISubscriber } from '@cap/cap-nest';
+import {
+  PUBLISHER,
+  SUBSCRIBER,
+  type IPublisher,
+  type ISubscriber,
+} from '@cap/cap-nest';
 import { v4 as uuid } from 'uuid';
 
 describe('Integration: transport-azure-servicebus', () => {
@@ -12,9 +20,9 @@ describe('Integration: transport-azure-servicebus', () => {
     // using Testcontainers. This mirrors the docker-compose snippet:
     // - mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
     // - mcr.microsoft.com/azure-sql-edge:latest
-    let network: any | null = null;
-    let emulatorContainer: any | null = null;
-    let sqlEdgeContainer: any | null = null;
+    let network: any = null;
+    let emulatorContainer: any = null;
+    let sqlEdgeContainer: any = null;
 
     async function startServiceBusEmulator(): Promise<{
       conn?: string;
@@ -22,12 +30,12 @@ describe('Integration: transport-azure-servicebus', () => {
       emulatorContainer?: any;
       sqlEdgeContainer?: any;
     }> {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      // load dynamically to avoid static typing mismatches
+      // use dynamic import (allowed in async function)
       let tc: any;
       try {
-        // load dynamically to avoid static typing mismatches
-        tc = require('testcontainers');
-      } catch (err) {
+        tc = await import('testcontainers');
+      } catch {
         throw new Error('testcontainers not available');
       }
 
@@ -41,7 +49,7 @@ describe('Integration: transport-azure-servicebus', () => {
             // class style: new Network().start()
             networkLocal = await new tc.Network().start();
           }
-        } catch (e) {
+        } catch {
           // ignore and continue without network
           networkLocal = null;
         }
@@ -53,23 +61,29 @@ describe('Integration: transport-azure-servicebus', () => {
       let sqlC: any = null;
       let emuC: any = null;
       try {
-        const sqlBuilder = new tc.GenericContainer('mcr.microsoft.com/azure-sql-edge:latest')
+        const sqlBuilder = new tc.GenericContainer(
+          'mcr.microsoft.com/azure-sql-edge:latest',
+        )
           .withEnv('ACCEPT_EULA', ACCEPT_EULA)
           .withEnv('MSSQL_SA_PASSWORD', MSSQL_SA_PASSWORD);
         if (networkLocal && typeof sqlBuilder.withNetwork === 'function') {
           sqlBuilder.withNetwork(networkLocal);
-          if (typeof sqlBuilder.withNetworkAliases === 'function') sqlBuilder.withNetworkAliases('sqledge');
+          if (typeof sqlBuilder.withNetworkAliases === 'function')
+            sqlBuilder.withNetworkAliases('sqledge');
         }
         sqlC = await sqlBuilder.start();
 
-        const emuBuilder = new tc.GenericContainer('mcr.microsoft.com/azure-messaging/servicebus-emulator:latest')
+        const emuBuilder = new tc.GenericContainer(
+          'mcr.microsoft.com/azure-messaging/servicebus-emulator:latest',
+        )
           .withEnv('SQL_SERVER', 'sqledge')
           .withEnv('MSSQL_SA_PASSWORD', MSSQL_SA_PASSWORD)
           .withEnv('ACCEPT_EULA', ACCEPT_EULA)
           .withExposedPorts(5672);
         if (networkLocal && typeof emuBuilder.withNetwork === 'function') {
           emuBuilder.withNetwork(networkLocal);
-          if (typeof emuBuilder.withNetworkAliases === 'function') emuBuilder.withNetworkAliases('sb-emulator');
+          if (typeof emuBuilder.withNetworkAliases === 'function')
+            emuBuilder.withNetworkAliases('sb-emulator');
         }
         emuC = await emuBuilder.start();
 
@@ -77,18 +91,30 @@ describe('Integration: transport-azure-servicebus', () => {
         const port = emuC.getMappedPort(5672);
         const connStr = `Endpoint=sb://${host}:${port}/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=secret`;
 
-        return { conn: connStr, network: networkLocal, emulatorContainer: emuC, sqlEdgeContainer: sqlC };
+        return {
+          conn: connStr,
+          network: networkLocal,
+          emulatorContainer: emuC,
+          sqlEdgeContainer: sqlC,
+        };
       } catch (err) {
         // cleanup partials
         try {
           if (emuC) await emuC.stop().catch(() => {});
-        } catch {}
+        } catch {
+          void 0;
+        }
         try {
           if (sqlC) await sqlC.stop().catch(() => {});
-        } catch {}
+        } catch {
+          void 0;
+        }
         try {
-          if (networkLocal && typeof networkLocal.stop === 'function') await networkLocal.stop().catch(() => {});
-        } catch {}
+          if (networkLocal && typeof networkLocal.stop === 'function')
+            await networkLocal.stop().catch(() => {});
+        } catch {
+          void 0;
+        }
         throw err;
       }
     }
@@ -100,16 +126,23 @@ describe('Integration: transport-azure-servicebus', () => {
         network = started.network ?? null;
         emulatorContainer = started.emulatorContainer ?? null;
         sqlEdgeContainer = started.sqlEdgeContainer ?? null;
-      } catch (err) {
-        console.warn('Service Bus emulator startup failed, skipping test:', err?.message ?? err);
+      } catch (_err) {
+        console.warn(
+          'Service Bus emulator startup failed, skipping test:',
+          _err?.message ?? _err,
+        );
         // ensure any partial started resources are stopped
         if (emulatorContainer) await emulatorContainer.stop().catch(() => {});
         if (sqlEdgeContainer) await sqlEdgeContainer.stop().catch(() => {});
         if (network) {
           try {
-            if (typeof network.stop === 'function') await network.stop().catch(() => {});
-            else if (typeof network.close === 'function') await network.close().catch(() => {});
-          } catch {}
+            if (typeof network.stop === 'function')
+              await network.stop().catch(() => {});
+            else if (typeof network.close === 'function')
+              await network.close().catch(() => {});
+          } catch {
+            void 0;
+          }
         }
         return;
       }
@@ -127,17 +160,24 @@ describe('Integration: transport-azure-servicebus', () => {
     const admin = new ServiceBusAdministrationClient(conn as string);
     // create topic and subscription if not exists
     try {
-      const exists = await admin.getTopic(topicName).then(() => true).catch(() => false);
+      const exists = await admin
+        .getTopic(topicName)
+        .then(() => true)
+        .catch(() => false);
       if (!exists) await admin.createTopic(topicName);
-    } catch (err) {
-      // ignore, will surface on actual operations
+    } catch {
+      void 0;
     }
 
     try {
-      const existsSub = await admin.getSubscription(topicName, subscriptionName).then(() => true).catch(() => false);
-      if (!existsSub) await admin.createSubscription(topicName, subscriptionName);
-    } catch (err) {
-      // ignore
+      const existsSub = await admin
+        .getSubscription(topicName, subscriptionName)
+        .then(() => true)
+        .catch(() => false);
+      if (!existsSub)
+        await admin.createSubscription(topicName, subscriptionName);
+    } catch {
+      void 0;
     }
 
     const moduleRef = await Test.createTestingModule({
@@ -161,6 +201,8 @@ describe('Integration: transport-azure-servicebus', () => {
       void subscriber.consume(topic, group, async (payload) => {
         received = payload;
         resolve(payload);
+        // include await so lint rule `require-await` is satisfied
+        await Promise.resolve();
       });
     });
 
@@ -169,7 +211,9 @@ describe('Integration: transport-azure-servicebus', () => {
 
     const result = await Promise.race([
       receivedPromise,
-      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout waiting for message')), 15000)),
+      new Promise((_, rej) =>
+        setTimeout(() => rej(new Error('timeout waiting for message')), 15000),
+      ),
     ]);
 
     expect(result).toBeTruthy();
@@ -179,23 +223,30 @@ describe('Integration: transport-azure-servicebus', () => {
     await app.close();
     // also try to close the underlying ServiceBusClient if present
     try {
-      const client = moduleRef.get(ServiceBusClient as any) as ServiceBusClient | undefined;
+      const client = moduleRef.get(ServiceBusClient as any);
       if (client && typeof client.close === 'function') await client.close();
     } catch {
-      // ignore
+      void 0;
     }
 
     // stop emulator containers if we started them
     if (!providedConn) {
       try {
         if (emulatorContainer) await emulatorContainer.stop();
-      } catch {}
+      } catch {
+        void 0;
+      }
       try {
         if (sqlEdgeContainer) await sqlEdgeContainer.stop();
-      } catch {}
+      } catch {
+        void 0;
+      }
       try {
-        if (network) await (network.stop ? network.stop() : network).catch?.(() => {});
-      } catch {}
+        if (network)
+          await (network.stop ? network.stop() : network).catch?.(() => {});
+      } catch {
+        void 0;
+      }
     }
   });
 });

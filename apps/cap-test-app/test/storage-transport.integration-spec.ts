@@ -34,7 +34,7 @@ async function createAppWithMikro(opts: {
 }) {
   // require driver package dynamically to avoid ESM/CJS import shape problems
   // the package exports differ across versions; try common shapes
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const pgDriverModule = require('@mikro-orm/postgresql');
   const driver =
     pgDriverModule?.PostgreSqlDriver ??
@@ -60,7 +60,7 @@ async function createAppWithMikro(opts: {
   if (orm && typeof orm.getSchemaGenerator === 'function') {
     // create schema for test entities
     // this may throw on some driver shapes; allow test to surface errors
-    // eslint-disable-next-line no-await-in-loop
+
     await orm.getSchemaGenerator().createSchema();
   }
 
