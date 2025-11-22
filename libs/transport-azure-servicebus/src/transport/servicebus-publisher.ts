@@ -15,10 +15,42 @@ export class ServiceBusPublisher implements IPublisher, OnModuleDestroy {
   constructor(
     private readonly client: ServiceBusClient,
     @Inject('CAP_SERVICEBUS_CONFIG') private readonly config: ServiceBusConfig,
-  ) { }
+  ) {}
+
+  async initialize?(options?: {
+    autoInit?: boolean;
+    createQueues?: boolean;
+  }): Promise<void> {
+    if (!(options && (options.autoInit || options.createQueues)))
+      return Promise.resolve();
+    try {
+      // Best-effort pre-warm: create a sender for the configured resource
+      // (topic or queue) to ensure the client can create connections. This
+      // does not provision Service Bus entities; management operations
+      // require the Admin client.
+      const prefix =
+        this.config.mode === 'queue'
+          ? (this.config.queuePrefix ?? this.config.topicPrefix ?? '')
+          : (this.config.topicPrefix ?? '');
+      const sampleName = prefix + 'init-check';
+      const s = this.client.createSender(sampleName);
+      // close immediately after creation
+      await s.close();
+      this.logger.log(`Pre-warmed sender for ${sampleName}`);
+    } catch (err) {
+      this.logger.warn(
+        'ServiceBusPublisher.initialize() encountered an error',
+        err as Error,
+      );
+    }
+  }
 
   async emit(topic: string, payload: unknown, _tx?: unknown): Promise<void> {
-    const topicName = this.config.topicPrefix + topic;
+    const prefix =
+      this.config.mode === 'queue'
+        ? (this.config.queuePrefix ?? this.config.topicPrefix ?? '')
+        : (this.config.topicPrefix ?? '');
+    const topicName = prefix + topic;
     let sender = this.senders.get(topicName);
 
     if (!sender) {

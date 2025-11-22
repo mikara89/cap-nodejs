@@ -56,29 +56,29 @@ export function createInMemoryPublishStorage(): IPublishStorage & {
 } {
   const store = new Map<string, CapPublishEvent<unknown>>();
   const st: IPublishStorage & { store: Map<string, CapPublishEvent<unknown>> } =
-  {
-    store,
-    savePublish(e: CapPublishEvent<unknown>) {
-      store.set(e.id, e);
-      return Promise.resolve(e.id);
-    },
-    markPublished(id: string) {
-      const ev = store.get(id);
-      if (ev) ev.status = 'published';
-      return Promise.resolve();
-    },
-    getUnpublished(limit: number) {
-      return Promise.resolve(
-        [...store.values()]
-          .filter(
-            (v) =>
-              v.status === undefined ||
-              (v.status === 'failed' && v.retryCount < 3),
-          )
-          .slice(0, limit),
-      );
-    },
-  };
+    {
+      store,
+      savePublish(e: CapPublishEvent<unknown>) {
+        store.set(e.id, e);
+        return Promise.resolve(e.id);
+      },
+      markPublished(id: string) {
+        const ev = store.get(id);
+        if (ev) ev.status = 'published';
+        return Promise.resolve();
+      },
+      getUnpublished(limit: number) {
+        return Promise.resolve(
+          [...store.values()]
+            .filter(
+              (v) =>
+                v.status === undefined ||
+                (v.status === 'failed' && v.retryCount < 3),
+            )
+            .slice(0, limit),
+        );
+      },
+    };
   return st;
 }
 

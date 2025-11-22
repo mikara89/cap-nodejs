@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { SetMetadata } from '@nestjs/common';
+import { type CapHeaders } from '../models/cap-headers.type';
 
 /** ----------------------------------------------------------------
  *  Public decorator API
@@ -107,8 +108,11 @@ export function discoverSubscriptions(
 
     const opts = meta;
 
-    const boundHandler = async (payload: unknown): Promise<unknown> =>
-      Promise.resolve(fn.call(instance, payload) as unknown);
+    const boundHandler = async (
+      payload: unknown,
+      headers?: CapHeaders,
+    ): Promise<unknown> =>
+      Promise.resolve(fn.call(instance, payload, headers) as unknown);
 
     subs.push({
       topic: opts.topic,
@@ -126,5 +130,5 @@ export interface DiscoveredSubscription {
   topic: string;
   group?: string;
   filter?: (payload: unknown) => boolean | Promise<boolean>;
-  handler: (payload: unknown) => Promise<unknown>;
+  handler: (payload: unknown, headers?: CapHeaders) => Promise<unknown>;
 }

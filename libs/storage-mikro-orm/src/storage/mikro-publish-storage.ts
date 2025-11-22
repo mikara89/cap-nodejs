@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { EntityManager } from '@mikro-orm/core';
+import { Injectable, Logger, Optional } from '@nestjs/common';
+import { EntityManager, MikroORM } from '@mikro-orm/core';
 import { IPublishStorage, CapPublishEvent } from '@cap/cap-nest';
 import { CapPublishEntity } from '../entities/cap-publish.entity';
 
@@ -9,7 +9,66 @@ import { CapPublishEntity } from '../entities/cap-publish.entity';
  */
 @Injectable()
 export class MikroPublishStorage implements IPublishStorage {
-  constructor(private readonly em: EntityManager) { }
+  private readonly logger = new Logger(MikroPublishStorage.name);
+  constructor(
+    private readonly em: EntityManager,
+    @Optional() private readonly orm?: MikroORM,
+  ) {}
+
+  async initialize?(options?: {
+    autoInit?: boolean;
+    createSchema?: boolean;
+  }): Promise<void> {
+    if (!(options && (options.autoInit || options.createSchema)))
+      return Promise.resolve();
+
+    try {
+      // Best-effort: prefer MikroORM instance's schema generator if available
+      if (this.orm) {
+        const schemaGen = (
+          this.orm as unknown as {
+            getSchemaGenerator?: () => { createSchema?: () => Promise<void> };
+          }
+        ).getSchemaGenerator?.();
+        if (schemaGen?.createSchema) {
+          this.logger.log(
+            'Creating DB schema via MikroORM schema generator (orm)',
+          );
+          await schemaGen.createSchema();
+          return;
+        }
+      }
+
+      // Fallback: try to find a schema generator on the EntityManager
+      const emWithSchema = this.em as unknown as {
+        getSchemaGenerator?: () => { createSchema?: () => Promise<void> };
+      };
+      const getSchemaGenerator = emWithSchema.getSchemaGenerator;
+      if (typeof getSchemaGenerator === 'function') {
+        const schemaGen = getSchemaGenerator.call(this.em) as
+          | { createSchema?: () => Promise<void> }
+          | undefined;
+        if (schemaGen?.createSchema) {
+          this.logger.log(
+            'Creating DB schema via MikroORM schema generator (em)',
+          );
+          await schemaGen.createSchema();
+          return;
+        }
+      }
+
+      // Fallback: nothing actionable to do here — migrations are recommended
+      // for production schema management.
+      this.logger.log(
+        'Init requested but no schema generator available; skipping',
+      );
+    } catch (err) {
+      this.logger.warn(
+        'initialize() failed for MikroPublishStorage',
+        err as Error,
+      );
+    }
+  }
 
   async savePublish(event: CapPublishEvent<unknown>): Promise<string> {
     const entity = this.em.create(CapPublishEntity, {

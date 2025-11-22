@@ -26,7 +26,7 @@ import { expJitter } from './scheduler/backoff.util';
 /* ------------------------------------------------------------------ */
 /* Local helper types                                                 */
 /* ------------------------------------------------------------------ */
-type Handler<T = unknown> = (payload: T) => Promise<void>;
+type Handler<T = unknown> = (payload: T, headers?: CapHeaders) => Promise<void>;
 
 type HandlerMap = Map<
   string /*topic*/,
@@ -54,7 +54,7 @@ export class CapService {
     /* message bus */
     @Inject(PUBLISHER) private readonly publisher: IPublisher,
     @Inject(SUBSCRIBER) private readonly subscriber: ISubscriber,
-  ) { }
+  ) {}
 
   /* ==============================================================
    *  PUBLIC – PUBLISH
@@ -82,7 +82,7 @@ export class CapService {
       return (
         Boolean(s) &&
         typeof (s as ITransactionalPublishStorage).savePublishWithTx ===
-        'function'
+          'function'
       );
     };
 
@@ -94,21 +94,38 @@ export class CapService {
     }
 
     try {
-      const isTransactionalPublisher = (p: unknown): p is ITransactionalPublisher => {
-        return Boolean(p) && typeof (p as ITransactionalPublisher).emitWithTx === 'function';
+      const isTransactionalPublisher = (
+        p: unknown,
+      ): p is ITransactionalPublisher => {
+        return (
+          Boolean(p) &&
+          typeof (p as ITransactionalPublisher).emitWithTx === 'function'
+        );
       };
 
-      if (tx && isTransactionalPublisher(this.publisher)) {
-        await (this.publisher as ITransactionalPublisher).emitWithTx(
-          topic,
-          payload,
-          tx,
-        );
+      if (tx) {
+        if (isTransactionalPublisher(this.publisher)) {
+          await (this.publisher as ITransactionalPublisher).emitWithTx(
+            topic,
+            payload,
+            tx,
+          );
+          await this.pubStore.markPublished(dbId);
+          this.log.debug(`✓ published (withTx) #${dbId} ${topic}`);
+        } else {
+          // Transaction was provided but publisher doesn't support transactional
+          // emission. In this case we should NOT emit immediately as the
+          // surrounding transaction may still roll back. Leave the row
+          // unpublished; the scheduler will pick it up after commit.
+          this.log.debug(
+            `tx provided but publisher not transactional; deferring emit #${dbId} ${topic}`,
+          );
+        }
       } else {
-        await this.publisher.emit(topic, payload, tx);
+        await this.publisher.emit(topic, payload);
+        await this.pubStore.markPublished(dbId);
+        this.log.debug(`✓ published #${dbId} ${topic}`);
       }
-      await this.pubStore.markPublished(dbId);
-      this.log.debug(`✓ published #${dbId} ${topic}`);
     } catch (err) {
       // leave unpublished; scheduler will retry
       this.log.error(`✗ publish failed #${dbId} (${topic})`, err);
@@ -169,13 +186,32 @@ export class CapService {
     group: string,
     payload: T,
   ): Promise<CapReceivedEvent<T>> {
+    function isWrapped(
+      v: unknown,
+    ): v is { payload: unknown; headers?: CapHeaders } {
+      return Boolean(
+        v &&
+          typeof v === 'object' &&
+          'payload' in (v as Record<string, unknown>),
+      );
+    }
+
+    let realPayload: unknown = payload as unknown;
+    let inferredHeaders: CapHeaders | undefined = undefined;
+
+    if (isWrapped(payload)) {
+      realPayload = (payload as { payload: unknown }).payload;
+      inferredHeaders = (payload as { headers?: CapHeaders }).headers;
+    }
+
     const rec: CapReceivedEvent<T> = {
       id: randomUUID(),
       topic,
       group,
       occurredAt: new Date().toISOString(),
-      payload,
-      headers: undefined,
+      // allow transports to forward a wrapper { payload, headers }
+      payload: realPayload as T,
+      headers: inferredHeaders,
       retryCount: 0,
       processed: false,
       nextRetry: null,
@@ -190,7 +226,7 @@ export class CapService {
     handler: Handler<T>,
   ): Promise<void> {
     try {
-      await handler(rec.payload);
+      await handler(rec.payload, rec.headers);
       await this.recStore.markProcessed(rec.id);
       this.log.debug(`✓ processed #${rec.id} (${rec.topic}|${rec.group})`);
     } catch (err) {

@@ -1,32 +1,55 @@
-import { MikroORM, type EntityManager } from '@mikro-orm/core';
-
 /**
  * Helper that runs a transactional function and then executes an after-commit
  * callback with items that were queued during the transaction.
  *
- * The transactionalFn receives the transaction-scoped `EntityManager` and a
- * `queueForPostCommit` function to register items to run after commit.
+ * This utility is intentionally transport/storage-agnostic: callers can pass
+ * either a transaction-runner function `(fn) => Promise<T>` or an ORM-like
+ * object that exposes `em.transactional(fn)` (keeps backwards compatibility
+ * with MikroORM without importing it here).
  */
-export async function withTransactionAndPostCommit<T, Item = unknown>(
-    orm: MikroORM,
-    transactionalFn: (
-        em: EntityManager,
-        queueForPostCommit: (item: Item) => void,
-    ) => Promise<T>,
-    afterCommitFn: (items: Item[]) => Promise<void>,
+export async function withTransactionAndPostCommit<
+  T,
+  Item = unknown,
+  Tx = unknown,
+>(
+  runnerOrOrm:
+    | ((fn: (tx: Tx) => Promise<T>) => Promise<T>)
+    | { em?: { transactional: (fn: (tx: Tx) => Promise<T>) => Promise<T> } },
+  transactionalFn: (
+    tx: Tx,
+    queueForPostCommit: (item: Item) => void,
+  ) => Promise<T>,
+  afterCommitFn: (items: Item[]) => Promise<void>,
 ): Promise<T> {
-    const postCommitQueue: Item[] = [];
+  const postCommitQueue: Item[] = [];
 
-    const result = await orm.em.transactional(async (em) => {
-        const queueForPostCommit = (item: Item) => postCommitQueue.push(item);
-        return transactionalFn(em, queueForPostCommit);
-    });
-
-    if (postCommitQueue.length > 0) {
-        await afterCommitFn(postCommitQueue);
+  const runInTx: (fn: (tx: Tx) => Promise<T>) => Promise<T> = (() => {
+    if (typeof runnerOrOrm === 'function')
+      return runnerOrOrm as (fn: (tx: Tx) => Promise<T>) => Promise<T>;
+    const maybeOrm = runnerOrOrm as
+      | { em?: { transactional?: (fn: (tx: Tx) => Promise<T>) => Promise<T> } }
+      | undefined;
+    if (maybeOrm?.em && typeof maybeOrm.em.transactional === 'function') {
+      const transactional = maybeOrm.em.transactional as (
+        fn: (tx: Tx) => Promise<T>,
+      ) => Promise<T>;
+      return (fn: (tx: Tx) => Promise<T>) => transactional(fn);
     }
+    throw new Error(
+      'withTransactionAndPostCommit: invalid runnerOrOrm provided',
+    );
+  })();
 
-    return result;
+  const result = await runInTx(async (tx) => {
+    const queueForPostCommit = (item: Item): void => {
+      postCommitQueue.push(item);
+    };
+    return transactionalFn(tx, queueForPostCommit);
+  });
+
+  if (postCommitQueue.length > 0) {
+    await afterCommitFn(postCommitQueue);
+  }
+
+  return result;
 }
-
-export type { EntityManager };

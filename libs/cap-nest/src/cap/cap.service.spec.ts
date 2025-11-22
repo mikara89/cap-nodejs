@@ -37,7 +37,9 @@ describe('CapService (unit)', () => {
     await cap.publish('t1', { a: 1 });
 
     expect(pubStore.savePublish).toHaveBeenCalled();
-    expect(publisher.emit).toHaveBeenCalledWith('t1', { a: 1 }, undefined);
+    const emitCall = (publisher.emit as jest.Mock).mock.calls[0];
+    expect(emitCall[0]).toBe('t1');
+    expect(emitCall[1]).toEqual({ a: 1 });
     expect(pubStore.markPublished).toHaveBeenCalled();
   });
 
@@ -47,7 +49,9 @@ describe('CapService (unit)', () => {
     await cap.publish('t2', { b: 2 });
 
     expect(pubStore.savePublish).toHaveBeenCalled();
-    expect(publisher.emit).toHaveBeenCalledWith('t2', { b: 2 }, undefined);
+    const emitCall2 = (publisher.emit as jest.Mock).mock.calls[0];
+    expect(emitCall2[0]).toBe('t2');
+    expect(emitCall2[1]).toEqual({ b: 2 });
     expect(pubStore.markPublished).not.toHaveBeenCalled();
   });
 
@@ -68,7 +72,8 @@ describe('CapService (unit)', () => {
     // persisted and processed
     expect(recStore.saveReceived).toHaveBeenCalled();
     expect(recStore.markProcessed).toHaveBeenCalled();
-    expect(handler).toHaveBeenCalledWith({ foo: 'bar' });
+    const handlerCall = (handler as jest.Mock).mock.calls[0];
+    expect(handlerCall[0]).toEqual({ foo: 'bar' });
   });
 
   it('subscribe - handler failure schedules retry', async () => {

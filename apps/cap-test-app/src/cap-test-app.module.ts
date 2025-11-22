@@ -4,21 +4,33 @@ import type { Options as MikroOptions } from '@mikro-orm/core';
 import { SqliteDriver } from '@mikro-orm/sqlite';
 import { CapTestAppController } from './cap-test-app.controller';
 import { CapTestAppService } from './cap-test-app.service';
-import { CapModule, PUBLISHER, SUBSCRIBER, LocalBus } from '@cap/cap-nest';
+import { CapModule, CapAdapterModule } from '@cap/cap-nest';
 import { CapExampleHandler } from './cap-example.handler';
 import {
   MikroStorageModule,
   CapPublishEntity,
   CapReceivedEntity,
-} from '@cap/mikroorm-storage';
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { MikroORM } from '@mikro-orm/core';
+} from '../../../libs/storage-mikro-orm/src';
+// Note: schema creation is handled via CapModule init options.
+import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
+
+// create the dynamic transport module instance so we can pass its
+// provider array to the CapModule helper. Avoid accessing the class
+// property `ServiceBusTransportModule.providers` which doesn't exist.
+const serviceBusTransport = ServiceBusTransportModule.forRoot({
+  connectionString:
+    'Endpoint=sb://db-nh-t-ns.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=a9SHmHaijRL5AOhKwqRUB6GuGXY+paCaM+ASbPMihg0=',
+  maxConcurrentCalls: 10,
+  subscriptionPrefix: 'sub-',
+  mode: 'queue',
+  queuePrefix: 'cap-',
+});
 
 // In-memory transport for local development (no external dependencies)
 
-const InMemPublisher = { provide: PUBLISHER, useClass: LocalBus };
+// const InMemPublisher = { provide: PUBLISHER, useClass: LocalBus };
 
-const InMemSubscriber = { provide: SUBSCRIBER, useExisting: PUBLISHER };
+// const InMemSubscriber = { provide: SUBSCRIBER, useExisting: PUBLISHER };
 
 @Module({
   imports: [
@@ -36,27 +48,18 @@ const InMemSubscriber = { provide: SUBSCRIBER, useExisting: PUBLISHER };
     MikroStorageModule,
     // register CAP using the Mikro storage adapter and in-memory transport
 
-    CapModule.forRoot({
-      storage: MikroStorageModule.providers,
-      transport: [InMemPublisher, InMemSubscriber],
-    }),
+    serviceBusTransport,
+    CapModule.forAdapters(
+      MikroStorageModule,
+      serviceBusTransport as unknown as CapAdapterModule,
+      {
+        autoInit: false,
+        createQueues: false,
+        createSchema: false,
+      },
+    ),
   ],
   controllers: [CapTestAppController],
-  providers: [
-    CapTestAppService,
-    CapExampleHandler,
-    // Create DB schema on startup for in-memory SQLite used in tests/dev
-    (function () {
-      @Injectable()
-      class MikroSchemaInit implements OnModuleInit {
-        constructor(private readonly orm: MikroORM) {}
-        async onModuleInit(): Promise<void> {
-          const generator = this.orm.getSchemaGenerator();
-          await generator.createSchema();
-        }
-      }
-      return MikroSchemaInit;
-    })(),
-  ],
+  providers: [CapTestAppService, CapExampleHandler],
 })
 export class CapTestAppModule {}

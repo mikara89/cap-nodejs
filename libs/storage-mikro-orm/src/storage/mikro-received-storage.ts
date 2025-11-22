@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { EntityManager } from '@mikro-orm/core';
+import { Injectable, Logger, Optional } from '@nestjs/common';
+import { EntityManager, MikroORM } from '@mikro-orm/core';
 import { IReceivedStorage, CapReceivedEvent } from '@cap/cap-nest';
 import { CapReceivedEntity } from '../entities/cap-received.entity';
 
@@ -9,7 +9,63 @@ import { CapReceivedEntity } from '../entities/cap-received.entity';
  */
 @Injectable()
 export class MikroReceivedStorage implements IReceivedStorage {
-  constructor(private readonly em: EntityManager) {}
+  private readonly logger = new Logger(MikroReceivedStorage.name);
+  constructor(
+    private readonly em: EntityManager,
+    @Optional() private readonly orm?: MikroORM,
+  ) {}
+
+  async initialize?(options?: {
+    autoInit?: boolean;
+    createSchema?: boolean;
+  }): Promise<void> {
+    if (!(options && (options.autoInit || options.createSchema)))
+      return Promise.resolve();
+
+    try {
+      // Prefer MikroORM instance schema generator when available
+      if (this.orm) {
+        const schemaGen = (
+          this.orm as unknown as {
+            getSchemaGenerator?: () => { createSchema?: () => Promise<void> };
+          }
+        ).getSchemaGenerator?.();
+        if (schemaGen?.createSchema) {
+          this.logger.log(
+            'Creating DB schema via MikroORM schema generator (orm)',
+          );
+          await schemaGen.createSchema();
+          return;
+        }
+      }
+
+      const emWithSchema = this.em as unknown as {
+        getSchemaGenerator?: () => { createSchema?: () => Promise<void> };
+      };
+      const getSchemaGenerator = emWithSchema.getSchemaGenerator;
+      if (typeof getSchemaGenerator === 'function') {
+        const schemaGen = getSchemaGenerator.call(this.em) as
+          | { createSchema?: () => Promise<void> }
+          | undefined;
+        if (schemaGen?.createSchema) {
+          this.logger.log(
+            'Creating DB schema via MikroORM schema generator (em)',
+          );
+          await schemaGen.createSchema();
+          return;
+        }
+      }
+
+      this.logger.log(
+        'Init requested but no schema generator available; skipping',
+      );
+    } catch (err) {
+      this.logger.warn(
+        'initialize() failed for MikroReceivedStorage',
+        err as Error,
+      );
+    }
+  }
 
   async saveReceived(event: CapReceivedEvent<unknown>): Promise<string> {
     const entity = this.em.create(CapReceivedEntity, {

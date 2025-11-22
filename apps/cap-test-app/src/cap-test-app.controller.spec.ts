@@ -1,4 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing';
+import { MikroORM } from '@mikro-orm/core';
 import { CapTestAppController } from './cap-test-app.controller';
 import { CapTestAppService } from './cap-test-app.service';
 import { CapService } from '@cap/cap-nest';
@@ -12,6 +13,8 @@ describe('CapTestAppController', () => {
       providers: [
         CapTestAppService,
         { provide: CapService, useValue: { publish: jest.fn() } },
+        // provide a lightweight MikroORM mock for controller construction
+        { provide: MikroORM, useValue: { em: { transactional: jest.fn() } } },
       ],
     }).compile();
 

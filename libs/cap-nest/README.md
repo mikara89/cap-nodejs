@@ -19,10 +19,10 @@ Quick guide for contributors
 
     ```ts
     export const providers = [
-        { provide: PUBLISH_STORAGE, useClass: TypeOrmPublishStorage },
-        { provide: RECEIVED_STORAGE, useClass: TypeOrmReceivedStorage },
-        { provide: PUBLISHER, useClass: RabbitPublisher },
-        { provide: SUBSCRIBER, useExisting: PUBLISHER },
+      { provide: PUBLISH_STORAGE, useClass: TypeOrmPublishStorage },
+      { provide: RECEIVED_STORAGE, useClass: TypeOrmReceivedStorage },
+      { provide: PUBLISHER, useClass: RabbitPublisher },
+      { provide: SUBSCRIBER, useExisting: PUBLISHER },
     ];
     ```
 
@@ -51,6 +51,41 @@ Quick guide for contributors
      `abstractions/`.
   2. Export a `providers` array with appropriate `provide` tokens.
   3. Register your module with `CapModule.forAdapters()`.
+
+- Initialization options (new)
+  - The module supports an optional `init` object that lets adapters perform
+    one-time setup during application bootstrap (create DB schema, create
+    queues/topics, run migrations, etc.). The shape is defined as `InitOptions`
+    in `abstractions/initializer.interface.ts` with flags:
+    - `autoInit?: boolean` — shorthand to request default initialization.
+    - `createSchema?: boolean` — storage adapters should create schema/tables.
+    - `createQueues?: boolean` — transport adapters should create queues/topics.
+
+  - Usage examples:
+
+    ```ts
+    // using raw provider arrays
+    CapModule.forRoot({
+      storage: storageProviders,
+      transport: transportProviders,
+      init: { createSchema: true, createQueues: true },
+    });
+
+    // using adapter modules convenience helper
+    CapModule.forAdapters(
+      StorageAdapterModule,
+      TransportAdapterModule,
+      { createSchema: true }, // forwarded to forRoot()
+    );
+    ```
+
+  - Notes:
+    - Adapters opt-in by implementing an
+      `initialize(options?: InitOptions): Promise<void>` method on the classes
+      they expose (e.g. your `useClass` implementations).
+    - The core module will detect `initialize` and call it with the `init`
+      options if provided. Adapters that don't implement `initialize` are
+      unaffected.
 
 - Contributing
   - Keep runtime library code free of `any` where possible; use `unknown` for

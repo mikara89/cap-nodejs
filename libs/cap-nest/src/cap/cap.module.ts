@@ -29,6 +29,7 @@ import {
   IPublisher,
   ISubscriber,
 } from './abstractions/transport.interface';
+import type { InitOptions } from './abstractions/initializer.interface';
 import { CapPublishEvent } from './models/cap-publish-event';
 import { AdaptersModule } from './adapters.module';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -39,6 +40,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 export interface CapModuleOptions {
   storage: Provider[]; // must include bindings for PUBLISH_STORAGE & RECEIVED_STORAGE
   transport: Provider[]; // must include bindings for PUBLISHER & SUBSCRIBER
+  init?: InitOptions;
 }
 
 /* --------------------------------------------------------------------
@@ -70,6 +72,7 @@ export interface CapModuleFactory {
 export interface CapAsyncProviders {
   storage: Provider[]; // must include PUBLISH_STORAGE & RECEIVED_STORAGE
   transport: Provider[]; // must include PUBLISHER & SUBSCRIBER
+  init?: InitOptions;
 }
 
 export interface CapModuleAsyncOptions {
@@ -91,10 +94,41 @@ export class CapModule {
   static forRoot(opts: CapModuleOptions): DynamicModule {
     const adapterProviders = [...opts.storage, ...opts.transport];
     const adaptersModule = AdaptersModule.register(adapterProviders);
+    const initProvider: Provider = {
+      provide: 'CAP_INIT',
+      useFactory: async (
+        pubStorage: IPublishStorage,
+        recStorage: IReceivedStorage,
+        publisher: IPublisher,
+        subscriber: ISubscriber,
+      ) => {
+        const init = opts.init;
+        if (!init) return;
+        type AdapterWithInit = {
+          initialize?: (options?: InitOptions) => Promise<void>;
+        };
+        const adapters: AdapterWithInit[] = [
+          pubStorage as AdapterWithInit,
+          recStorage as AdapterWithInit,
+          publisher as AdapterWithInit,
+          subscriber as AdapterWithInit,
+        ];
+
+        await Promise.all(
+          adapters.map(async (a) => {
+            if (a && typeof a.initialize === 'function') {
+              return a.initialize(init);
+            }
+            return Promise.resolve();
+          }),
+        );
+      },
+      inject: [PUBLISH_STORAGE, RECEIVED_STORAGE, PUBLISHER, SUBSCRIBER],
+    };
     return {
       module: CapModule,
       imports: [adaptersModule, CapSchedulerModule.attach(adaptersModule)],
-      providers: [CapService, CapSubscriberScanner],
+      providers: [CapService, CapSubscriberScanner, initProvider],
       exports: [CapService],
     };
   }
@@ -106,10 +140,13 @@ export class CapModule {
   static forAdapters(
     storageModule: CapAdapterModule,
     transportModule: CapAdapterModule,
+    /** optional init options forwarded to forRoot() */
+    init?: InitOptions,
   ): DynamicModule {
     return this.forRoot({
       storage: storageModule.providers,
       transport: transportModule.providers,
+      init,
     });
   }
 
@@ -272,6 +309,44 @@ export class CapModule {
         ...tokenProviders,
         CapService,
         CapSubscriberScanner,
+        {
+          provide: 'CAP_INIT',
+          useFactory: async (
+            cfg: CapAsyncProviders,
+            pubStorage: IPublishStorage,
+            recStorage: IReceivedStorage,
+            publisher: IPublisher,
+            subscriber: ISubscriber,
+          ) => {
+            const init = cfg?.init;
+            if (!init) return;
+            type AdapterWithInit = {
+              initialize?: (options?: InitOptions) => Promise<void>;
+            };
+            const adapters: AdapterWithInit[] = [
+              pubStorage as AdapterWithInit,
+              recStorage as AdapterWithInit,
+              publisher as AdapterWithInit,
+              subscriber as AdapterWithInit,
+            ];
+
+            await Promise.all(
+              adapters.map(async (a) => {
+                if (a && typeof a.initialize === 'function') {
+                  return a.initialize(init);
+                }
+                return Promise.resolve();
+              }),
+            );
+          },
+          inject: [
+            'CAP_ASYNC_CFG',
+            PUBLISH_STORAGE,
+            RECEIVED_STORAGE,
+            PUBLISHER,
+            SUBSCRIBER,
+          ],
+        },
       ],
       exports: [CapService],
     };

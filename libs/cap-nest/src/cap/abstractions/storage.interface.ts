@@ -1,5 +1,6 @@
 import { type CapPublishEvent } from '../models/cap-publish-event';
 import { CapReceivedEvent } from '../models/cap-received-event';
+import type { InitOptions } from './initializer.interface';
 
 /** IoC tokens – easier than string literals */
 export const PUBLISH_STORAGE = Symbol('CAP_PUBLISH_STORAGE');
@@ -11,6 +12,9 @@ export const RECEIVED_STORAGE = Symbol('CAP_RECEIVED_STORAGE');
 export interface IPublishStorage {
   /** Insert a fresh record and return its DB id */
   savePublish<T = unknown>(evt: CapPublishEvent<T>): Promise<string>;
+
+  /** Optional one-time initialization: create schema/tables if needed */
+  initialize?(options?: InitOptions): Promise<void>;
 
   /** Mark record as successfully emitted to the broker */
   markPublished(id: string): Promise<void>;
@@ -40,6 +44,9 @@ export interface ITransactionalPublishStorage extends IPublishStorage {
 export interface IReceivedStorage {
   /** Persist a delivery; return record id */
   saveReceived<T = unknown>(evt: CapReceivedEvent<T>): Promise<string>;
+
+  /** Optional one-time initialization: create schema/tables if needed */
+  initialize?(options?: InitOptions): Promise<void>;
 
   /** Mark processed=true */
   markProcessed(id: string): Promise<void>;

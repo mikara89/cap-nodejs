@@ -1,14 +1,28 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CapSubscribe } from '@cap/cap-nest';
+import { CapSubscribe, CapHeaders } from '@cap/cap-nest';
 
 @Injectable()
 export class CapExampleHandler {
   private readonly log = new Logger(CapExampleHandler.name);
 
   @CapSubscribe({ topic: 'example.topic', group: 'example-group' })
-  async onExample(payload: unknown): Promise<void> {
+  async onExample(payload: unknown, headers?: CapHeaders): Promise<void> {
     this.log.log(
-      `CapExampleHandler received payload: ${JSON.stringify(payload)}`,
+      `CapExampleHandler received payload: ${JSON.stringify(payload)} and headers: ${JSON.stringify(headers)}`,
+    );
+    return Promise.resolve();
+  }
+  @CapSubscribe({ topic: 'example.topic2', group: 'example-group' })
+  async onExample2(payload: unknown, headers?: CapHeaders): Promise<void> {
+    this.log.log(
+      `CapExampleHandler received payload: ${JSON.stringify(payload)} and headers: ${JSON.stringify(headers)}`,
+    );
+    return Promise.resolve();
+  }
+  @CapSubscribe({ topic: 'example.topic3', group: 'example-group' })
+  async onExample3(payload: unknown, headers?: CapHeaders): Promise<void> {
+    this.log.log(
+      `CapExampleHandler received payload: ${JSON.stringify(payload)} and headers: ${JSON.stringify(headers)}`,
     );
     return Promise.resolve();
   }

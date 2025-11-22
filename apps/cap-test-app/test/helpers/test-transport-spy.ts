@@ -34,7 +34,11 @@ export class TestTransportSpy implements IPublisher, ISubscriber {
 
   // Optional transactional emit. For the in-memory spy we treat this the same
   // as a normal emit (the tx is recorded). Real transports may defer emission.
-  async emitWithTx(topic: string, payload: unknown, tx: unknown): Promise<void> {
+  async emitWithTx(
+    topic: string,
+    payload: unknown,
+    tx: unknown,
+  ): Promise<void> {
     this.emitCalls.push({ topic, payload, tx });
 
     if (this.shouldFailEmit) {
