@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      NPM_REGISTRY_URL: ${{ secrets.NPM_REGISTRY_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: ${{ secrets.NPM_REGISTRY_URL }}
+
+      - name: Authenticate to registry
+        run: |
+          echo "//$(echo ${{ secrets.NPM_REGISTRY_URL }} | sed -E 's|https?://||')/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
+
+      - name: Install
+        run: npm ci
+
+      - name: Bootstrap workspace
+        run: npm install
+
+      - name: Build libs
+        run: npm run build:libs:lerna
+
+      - name: Publish packages (Lerna)
+        run: npx lerna publish --conventional-commits --yes --registry ${{ secrets.NPM_REGISTRY_URL }}

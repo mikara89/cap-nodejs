@@ -7,8 +7,12 @@
     "files": [
         "dist"
     ],
+    "publishConfig": {
+        "registry": "http://localhost:4873"
+    },
     "scripts": {
         "build": "tsc -p tsconfig.lib.json",
+        "prepare": "npm run build",
         "test": "jest"
     },
     "dependencies": {},

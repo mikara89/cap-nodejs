@@ -1,0 +1,16 @@
+{
+  "packages": [
+    "libs/*"
+  ],
+  "version": "independent",
+  "npmClient": "npm",
+  "command": {
+    "version": {
+      "conventionalCommits": true
+    },
+    "publish": {
+      "conventionalCommits": true
+    }
+  },
+  "hoist": false
+}
