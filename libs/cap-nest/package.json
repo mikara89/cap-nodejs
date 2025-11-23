@@ -1,14 +1,17 @@
 {
     "name": "@cap/cap-nest",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Cloud Access Pattern (CAP) library for NestJS - reliable message handling with outbox/inbox patterns",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
-    "private": true,
     "scripts": {
         "build": "tsc -p tsconfig.lib.json",
+        "prepare": "npm run build",
         "test": "jest",
         "lint": "eslint \"src/**/*.ts\" --fix"
+    },
+    "publishConfig": {
+        "registry": "http://localhost:4873"
     },
     "peerDependencies": {
         "@nestjs/common": "^11.0.0",
