@@ -1,16 +1,29 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Release channel'
+        required: true
+        default: stable
+        type: choice
+        options:
+          - stable
+          - beta
+          - rc
+      graduate:
+        description: 'Graduate existing prereleases to stable'
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
+  packages: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.workflow }}
   cancel-in-progress: false
 
 jobs:
@@ -18,9 +31,16 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NPM_REGISTRY_URL: ${{ secrets.NPM_REGISTRY_URL }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      NPM_TOKEN_BASE64: ${{ secrets.NPM_TOKEN_BASE64 }}
+      NPM_USERNAME: ${{ secrets.NPM_USERNAME }}
+      NPM_EMAIL: ${{ secrets.NPM_EMAIL }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -29,9 +49,39 @@ jobs:
           registry-url: ${{ secrets.NPM_REGISTRY_URL }}
           cache: 'npm'
 
-      - name: Authenticate to registry
+      - name: Configure git
         run: |
-          echo "//$(echo ${{ secrets.NPM_REGISTRY_URL }} | sed -E 's|https?://||')/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Authenticate to registry
+        shell: bash
+        run: |
+          REGISTRY_HOST_PATH="$(echo "${NPM_REGISTRY_URL}" | sed -E 's|https?://||')"
+          REGISTRY_HOST_PATH="${REGISTRY_HOST_PATH%/}/"
+
+          echo "registry=${NPM_REGISTRY_URL}" >> ~/.npmrc
+          echo "always-auth=true" >> ~/.npmrc
+
+          if [ -n "${NPM_TOKEN_BASE64}" ]; then
+            NPM_AUTH_USERNAME="${NPM_USERNAME:-github-actions}"
+            NPM_AUTH_EMAIL="${NPM_EMAIL:-npm@example.com}"
+            FEED_HOST_PATH="${REGISTRY_HOST_PATH%registry/}"
+
+            {
+              echo "//${REGISTRY_HOST_PATH}:username=${NPM_AUTH_USERNAME}"
+              echo "//${REGISTRY_HOST_PATH}:_password=${NPM_TOKEN_BASE64}"
+              echo "//${REGISTRY_HOST_PATH}:email=${NPM_AUTH_EMAIL}"
+              echo "//${FEED_HOST_PATH}:username=${NPM_AUTH_USERNAME}"
+              echo "//${FEED_HOST_PATH}:_password=${NPM_TOKEN_BASE64}"
+              echo "//${FEED_HOST_PATH}:email=${NPM_AUTH_EMAIL}"
+            } >> ~/.npmrc
+          elif [ -n "${NPM_TOKEN}" ]; then
+            echo "//${REGISTRY_HOST_PATH}:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+          else
+            echo "NPM_TOKEN or NPM_TOKEN_BASE64 must be configured." >&2
+            exit 1
+          fi
 
       - name: Install
         run: npm ci
@@ -43,4 +93,28 @@ jobs:
         run: npm run pack:dry-run
 
       - name: Publish packages (Lerna)
-        run: npx lerna publish --conventional-commits --yes --registry ${{ secrets.NPM_REGISTRY_URL }}
+        shell: bash
+        run: |
+          LERNA_ARGS=(
+            "--conventional-commits"
+            "--create-release"
+            "github"
+            "--yes"
+            "--registry"
+            "${NPM_REGISTRY_URL}"
+          )
+
+          if [ "${{ inputs.graduate }}" = "true" ]; then
+            LERNA_ARGS+=("--conventional-graduate" "--dist-tag" "latest")
+          elif [ "${{ inputs.channel }}" = "stable" ]; then
+            LERNA_ARGS+=("--dist-tag" "latest")
+          elif [ "${{ inputs.channel }}" = "beta" ]; then
+            LERNA_ARGS+=("--conventional-prerelease" "--preid" "beta" "--dist-tag" "beta")
+          elif [ "${{ inputs.channel }}" = "rc" ]; then
+            LERNA_ARGS+=("--conventional-prerelease" "--preid" "rc" "--dist-tag" "rc")
+          else
+            echo "Unsupported release channel: ${{ inputs.channel }}" >&2
+            exit 1
+          fi
+
+          npx lerna publish "${LERNA_ARGS[@]}"
