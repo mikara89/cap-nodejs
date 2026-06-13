@@ -33,7 +33,7 @@ Use one release path only:
 The release workflow:
 
 - uses Node 22
-- installs with `npm ci --ignore-scripts`
+- installs with `npm ci`
 - builds libraries
 - verifies package contents
 - publishes with Lerna using the configured npm registry secret

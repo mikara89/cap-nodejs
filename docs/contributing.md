@@ -5,7 +5,7 @@
 Install dependencies:
 
 ```powershell
-npm install --ignore-scripts
+npm install
 ```
 
 Run tests:
@@ -58,9 +58,9 @@ Verify publish package contents:
 npm run pack:dry-run
 ```
 
-CI uses `npm ci --ignore-scripts` so package lifecycle hooks never build
-workspaces during dependency installation. Publishable packages use `prepack`
-to build when package contents are verified or published.
+CI uses `npm ci` so native dependencies can install their bindings. Publishable
+packages use `prepack`, not `prepare`, so workspace packages are built only when
+package contents are verified or published.
 
 ## Coding Guidelines
 
