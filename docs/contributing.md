@@ -5,7 +5,7 @@
 Install dependencies:
 
 ```powershell
-npm install
+npm install --ignore-scripts
 ```
 
 Run tests:
@@ -57,6 +57,10 @@ Verify publish package contents:
 ```powershell
 npm run pack:dry-run
 ```
+
+CI uses `npm ci --ignore-scripts` so workspace package `prepare` scripts do not
+build packages before internal CAP packages are available. Use the explicit
+build commands above after installation.
 
 ## Coding Guidelines
 

@@ -10,7 +10,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.lib.json",
     "prepare": "npm run build",
     "test": "jest",
     "lint": "eslint \"src/**/*.ts\" --fix"
