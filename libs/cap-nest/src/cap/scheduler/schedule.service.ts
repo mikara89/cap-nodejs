@@ -21,7 +21,9 @@ export class RetrySchedulerService implements OnModuleDestroy {
     @Inject(RECEIVED_STORAGE) private readonly recStore: IReceivedStorage,
     private readonly cap: CapService,
     private readonly schedulerRegistry?: SchedulerRegistry,
-  ) { this.constructorCleanup(); }
+  ) {
+    this.constructorCleanup();
+  }
 
   constructorCleanup(): void {
     const registry = this.schedulerRegistry;
@@ -31,14 +33,16 @@ export class RetrySchedulerService implements OnModuleDestroy {
         const jobs = registry.getCronJobs();
         jobs.forEach((job, name) => {
           try {
-            job.stop();
+            void job.stop();
             registry.deleteCronJob(name);
-            this.log.debug(`Stopped and removed cron job (process cleanup): ${name}`);
-          } catch (err) {
+            this.log.debug(
+              `Stopped and removed cron job (process cleanup): ${name}`,
+            );
+          } catch {
             // ignore
           }
         });
-      } catch (err) {
+      } catch {
         // ignore
       }
     };
@@ -99,15 +103,19 @@ export class RetrySchedulerService implements OnModuleDestroy {
       const jobs = schedulerRegistry.getCronJobs();
       jobs.forEach((job, name) => {
         try {
-          job.stop();
+          void job.stop();
           schedulerRegistry.deleteCronJob(name);
           this.log.debug(`Stopped and removed cron job: ${name}`);
         } catch (err) {
-          this.log.warn(`Failed to stop/delete cron job ${name}: ${String(err)}`);
+          this.log.warn(
+            `Failed to stop/delete cron job ${name}: ${String(err)}`,
+          );
         }
       });
-    } catch (err) {
-      this.log.debug('No cron jobs to clean up or failed to access scheduler registry');
+    } catch {
+      this.log.debug(
+        'No cron jobs to clean up or failed to access scheduler registry',
+      );
     }
   }
 }

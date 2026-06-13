@@ -1,4 +1,5 @@
 import { Entity, PrimaryKey, Property, Index } from '@mikro-orm/core';
+import type { CapHeaders } from '@cap/cap-nest';
 import { v4 as uuid } from 'uuid';
 
 /**
@@ -18,7 +19,7 @@ export class CapPublishEntity {
   payload!: Record<string, unknown>;
 
   @Property({ type: 'json', nullable: true })
-  headers?: Record<string, string>;
+  headers?: CapHeaders;
 
   @Property({ type: 'string', nullable: true, length: 50 })
   status?: 'published' | 'failed';

@@ -26,6 +26,12 @@ Run lint with auto-fix:
 npm run lint
 ```
 
+Run lint without modifying files:
+
+```powershell
+npm run lint:check
+```
+
 ## Focused Test Commands
 
 Core library tests:
@@ -44,6 +50,12 @@ Focused coverage for `cap-nest`:
 
 ```powershell
 npx jest --coverage --roots libs/cap-nest/src --collectCoverageFrom "libs/cap-nest/src/cap/**/*.ts"
+```
+
+Verify publish package contents:
+
+```powershell
+npm run pack:dry-run
 ```
 
 ## Coding Guidelines

@@ -14,49 +14,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: 'npm'
       - name: Install
         run: npm ci
       - name: Lint
-        run: npm run lint
+        run: npm run lint:check
       - name: Build
         run: npm run build
       - name: Type-check `libs/cap-nest`
         run: npx tsc -p libs/cap-nest/tsconfig.lib.json --noEmit
       - name: Run tests
         run: npm test --silent
-
-  release:
-    name: Publish packages
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      contents: write
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-      - name: Authenticate to registry
-        env:
-          NPM_REGISTRY_URL: ${{ secrets.NPM_REGISTRY_URL }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -z "$NPM_REGISTRY_URL" ]; then
-            echo "Missing NPM_REGISTRY_URL secret"; exit 1
-          fi
-          if [ -z "$NPM_TOKEN" ]; then
-            echo "Missing NPM_TOKEN secret"; exit 1
-          fi
-          HOST=$(echo "$NPM_REGISTRY_URL" | sed -E 's#https?://##' | sed -E 's#/$##')
-          printf "//%s/:_authToken=%s\n" "$HOST" "$NPM_TOKEN" >> ~/.npmrc
-      - name: Install
-        run: npm ci
-      - name: Build libs
-        run: npm run build:libs:lerna
-      - name: Publish packages (Lerna)
-        run: npx lerna publish --conventional-commits --yes --registry ${{ secrets.NPM_REGISTRY_URL }}
+      - name: Run e2e tests
+        run: npm run test:e2e -- --runInBand
+      - name: Verify package contents
+        run: npm run pack:dry-run

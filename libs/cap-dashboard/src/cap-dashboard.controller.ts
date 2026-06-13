@@ -75,7 +75,6 @@ export class CapDashboardController {
 
   @Post('scheduler/flush-outbox')
   flushOutbox(): Promise<ActionResultDto> {
-    // trigger scheduler-like flush; service will implement
-    return Promise.resolve({ success: false, message: 'Not implemented' });
+    return this.svc.flushOutbox();
   }
 }

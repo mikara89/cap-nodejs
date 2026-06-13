@@ -13,12 +13,9 @@ The project is pre-MVP. The core messaging path is implemented and covered by
 tests, but a few MVP items remain before the packages should be treated as
 production-ready:
 
-- remove and rotate the committed Azure Service Bus secret in the demo app
-- finish the dashboard scheduler flush action
-- add efficient dashboard list/find methods to the MikroORM adapter
 - decide whether the `CapHeaders` decorator feature belongs in MVP or post-MVP
-- clean tracked generated artifacts such as nested `node_modules` and
-  `tsbuildinfo` files
+- harden external Azure Service Bus integration coverage
+- finish release/version policy for the first public MVP package set
 
 ## Packages
 
@@ -76,6 +73,7 @@ export class AppModule {}
 - [Adapters](docs/adapters.md)
 - [Dashboard](docs/cap-dashboard.md)
 - [Roadmap](docs/roadmap.md)
+- [Release checklist](docs/release.md)
 - [ADRs](docs/adr/README.md)
 - [Contributing](docs/contributing.md)
 

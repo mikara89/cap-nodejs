@@ -10,6 +10,12 @@ export class CapExampleHandler {
     this.log.log(
       `CapExampleHandler received payload: ${JSON.stringify(payload)} and headers: ${JSON.stringify(headers)}`,
     );
+    if (payload && typeof payload === 'object' && 'fail' in payload) {
+      const maybeFailingPayload = payload as { fail?: boolean };
+      if (maybeFailingPayload.fail) {
+        throw new Error('Demo handler failure requested');
+      }
+    }
     return Promise.resolve();
   }
   @CapSubscribe({ topic: 'example.topic2', group: 'example-group' })

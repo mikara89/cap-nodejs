@@ -14,16 +14,17 @@ adapters.
    MikroORM and Azure Service Bus adapters.
 4. [Dashboard](cap-dashboard.md) - admin API and UI behavior.
 5. [Roadmap](roadmap.md) - MVP, Beta, v1, and Later stages.
-6. [ADRs](adr/README.md) - durable architecture decisions.
-7. [Contributing](contributing.md) - local workflow, tests, coverage, and docs
+6. [Release checklist](release.md) - validation and publishing safety.
+7. [ADRs](adr/README.md) - durable architecture decisions.
+8. [Contributing](contributing.md) - local workflow, tests, coverage, and docs
    rules.
 
 ## Current Maturity
 
 The repository is pre-MVP. The core publish/subscribe path exists, first-party
 MikroORM and Azure Service Bus adapters exist, and the dashboard package exists.
-The [roadmap](roadmap.md) tracks the remaining work required before the project
-can be considered MVP-ready.
+The [roadmap](roadmap.md) tracks remaining hardening work before the project can
+be considered MVP-ready.
 
 ## Documentation Rules
 

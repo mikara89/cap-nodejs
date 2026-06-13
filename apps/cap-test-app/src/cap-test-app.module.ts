@@ -5,7 +5,13 @@ import type { Options as MikroOptions } from '@mikro-orm/core';
 import { BetterSqliteDriver } from '@mikro-orm/better-sqlite';
 import { CapTestAppController } from './cap-test-app.controller';
 import { CapTestAppService } from './cap-test-app.service';
-import { CapModule, CapAdapterModule } from '@cap/cap-nest';
+import {
+  CapModule,
+  CapAdapterModule,
+  LocalBus,
+  PUBLISHER,
+  SUBSCRIBER,
+} from '@cap/cap-nest';
 import { CapExampleHandler } from './cap-example.handler';
 import {
   MikroStorageModule,
@@ -16,23 +22,31 @@ import {
 import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
 import { CapDashboardModule } from '@cap/cap-dashboard';
 
-// create the dynamic transport module instance so we can pass its
-// provider array to the CapModule helper. Avoid accessing the class
-// property `ServiceBusTransportModule.providers` which doesn't exist.
-const serviceBusTransport = ServiceBusTransportModule.forRoot({
-  connectionString:
-    'Endpoint=sb://db-nh-t-ns.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=a9SHmHaijRL5AOhKwqRUB6GuGXY+paCaM+ASbPMihg0=',
-  maxConcurrentCalls: 10,
-  subscriptionPrefix: 'sub-',
-  mode: 'queue',
-  queuePrefix: 'cap-',
-});
+const serviceBusConnectionString =
+  process.env.SERVICEBUS_CONNECTION_STRING ??
+  process.env.AZURE_SERVICEBUS_CONNECTION_STRING;
 
-// In-memory transport for local development (no external dependencies)
+const useServiceBus = Boolean(serviceBusConnectionString);
 
-// const InMemPublisher = { provide: PUBLISHER, useClass: LocalBus };
+const localTransport: CapAdapterModule = {
+  providers: [
+    { provide: PUBLISHER, useClass: LocalBus },
+    { provide: SUBSCRIBER, useExisting: PUBLISHER },
+  ],
+};
 
-// const InMemSubscriber = { provide: SUBSCRIBER, useExisting: PUBLISHER };
+const serviceBusTransport = useServiceBus
+  ? ServiceBusTransportModule.forRoot({
+      connectionString: serviceBusConnectionString ?? '',
+      maxConcurrentCalls: 10,
+      subscriptionPrefix: process.env.CAP_SUBSCRIPTION_PREFIX ?? 'sub-',
+      mode: process.env.CAP_SERVICEBUS_MODE === 'topic' ? 'topic' : 'queue',
+      queuePrefix: process.env.CAP_QUEUE_PREFIX ?? 'cap-',
+      topicPrefix: process.env.CAP_TOPIC_PREFIX ?? 'cap-',
+    })
+  : undefined;
+
+const transportModule = serviceBusTransport ?? localTransport;
 
 @Module({
   imports: [
@@ -50,13 +64,13 @@ const serviceBusTransport = ServiceBusTransportModule.forRoot({
     MikroStorageModule,
     // register CAP using the Mikro storage adapter and in-memory transport
 
-    serviceBusTransport,
+    ...(serviceBusTransport ? [serviceBusTransport] : []),
     CapModule.forAdapters(
       MikroStorageModule,
-      serviceBusTransport as unknown as CapAdapterModule,
+      transportModule as unknown as CapAdapterModule,
       {
         autoInit: false,
-        createQueues: false,
+        createQueues: useServiceBus && process.env.CAP_CREATE_QUEUES === 'true',
         createSchema: true,
       },
     ),

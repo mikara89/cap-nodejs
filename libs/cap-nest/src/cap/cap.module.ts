@@ -191,12 +191,24 @@ export class CapModule {
         }
 
         async listPublish(
-          opts: { limit?: number; offset?: number; topic?: string } = {},
+          opts: {
+            limit?: number;
+            offset?: number;
+            topic?: string;
+            onlyUnpublished?: boolean;
+          } = {},
         ) {
           const all = [...this.m.values()];
-          const filtered = opts.topic
+          let filtered = opts.topic
             ? all.filter((v) => v.topic === opts.topic)
             : all;
+          if (opts.onlyUnpublished) {
+            filtered = filtered.filter(
+              (v) =>
+                v.status === undefined ||
+                (v.status === 'failed' && v.retryCount < 3),
+            );
+          }
           const total = filtered.length;
           const offset = opts.offset ?? 0;
           const items = filtered.slice(offset, offset + (opts.limit ?? total));
@@ -244,7 +256,12 @@ export class CapModule {
         getRetryDue(limit: number): Promise<CapReceivedEvent[]> {
           const now = Date.now();
           const pendingRetries = [...this.m.values()]
-            .filter((rec) => !rec.processed && rec.nextRetry)
+            .filter(
+              (rec) =>
+                !rec.processed &&
+                rec.nextRetry &&
+                rec.nextRetry.getTime() <= now,
+            )
             .slice(0, limit);
 
           if (pendingRetries.length > 0) {

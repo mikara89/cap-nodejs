@@ -8,12 +8,12 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.lib.json",
+    "build": "tsc -p tsconfig.lib.json && node -e \"require('fs').cpSync('src/public','dist/public',{recursive:true})\"",
     "prepare": "npm run build",
     "test": "jest"
   },
   "peerDependencies": {
-    "@cap/cap-nest": "^0.2.0",
+    "@cap/cap-nest": "^0.5.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",

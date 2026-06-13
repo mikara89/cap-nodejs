@@ -16,6 +16,7 @@ describe('MikroReceivedStorage', () => {
       persistAndFlush: jest.fn(),
       findOne: jest.fn(),
       find: jest.fn(),
+      findAndCount: jest.fn(),
       flush: jest.fn(),
     };
 
@@ -135,6 +136,64 @@ describe('MikroReceivedStorage', () => {
         processed: false,
         retryCount: 1,
       });
+    });
+  });
+
+  describe('dashboard helpers', () => {
+    it('should find a received event by id', async () => {
+      const entity = new CapReceivedEntity();
+      entity.id = 'test-id';
+      entity.topic = 'test-topic';
+      entity.group = 'test-group';
+      entity.payload = { foo: 'bar' };
+      entity.headers = {};
+      entity.processed = false;
+      entity.retryCount = 0;
+      entity.createdAt = new Date();
+
+      (em.findOne as jest.Mock).mockResolvedValue(entity);
+
+      const result = await storage.findReceivedById('test-id');
+
+      expect(result).toMatchObject({
+        id: 'test-id',
+        topic: 'test-topic',
+        group: 'test-group',
+      });
+    });
+
+    it('should list received events with filters', async () => {
+      const entity = new CapReceivedEntity();
+      entity.id = 'test-id';
+      entity.topic = 'test-topic';
+      entity.group = 'test-group';
+      entity.payload = { foo: 'bar' };
+      entity.headers = {};
+      entity.processed = false;
+      entity.retryCount = 0;
+      entity.nextRetry = new Date('2000-01-01');
+      entity.createdAt = new Date();
+
+      (em.findAndCount as jest.Mock).mockResolvedValue([[entity], 1]);
+
+      const result = await storage.listReceived({
+        limit: 10,
+        offset: 0,
+        topic: 'test-topic',
+        due: true,
+      });
+
+      expect(result.total).toBe(1);
+      expect(result.items).toHaveLength(1);
+      expect(em.findAndCount).toHaveBeenCalledWith(
+        CapReceivedEntity,
+        expect.objectContaining({
+          topic: 'test-topic',
+          processed: false,
+          nextRetry: expect.any(Object),
+        }),
+        expect.objectContaining({ limit: 10, offset: 0 }),
+      );
     });
   });
 });

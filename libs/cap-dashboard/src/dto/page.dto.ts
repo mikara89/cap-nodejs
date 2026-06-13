@@ -1,5 +1,5 @@
-import { OutboxItemDto } from './outbox-item.dto';
-import { InboxItemDto } from './inbox-item.dto';
+import { type OutboxItemDto } from './outbox-item.dto';
+import { type InboxItemDto } from './inbox-item.dto';
 
 export class OutboxPageDto {
   items!: OutboxItemDto[];

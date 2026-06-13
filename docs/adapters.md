@@ -63,10 +63,8 @@ The MikroORM adapter provides:
 - `cap_received` inbox entity/table
 - core publish and received storage methods
 - `savePublishWithTx` for transactional outbox persistence
+- dashboard list/find helpers for outbox and inbox records
 - optional initialization through MikroORM schema generation
-
-MVP gap: add efficient dashboard `findPublishById`, `findReceivedById`,
-`listPublish`, and `listReceived` methods.
 
 ## First-Party Transport: Azure Service Bus
 

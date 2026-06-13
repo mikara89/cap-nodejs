@@ -30,6 +30,7 @@ export interface IPublishStorage {
     limit?: number;
     offset?: number;
     topic?: string;
+    onlyUnpublished?: boolean;
   }): Promise<{ items: Array<CapPublishEvent>; total?: number }>;
 }
 

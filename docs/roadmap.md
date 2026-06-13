@@ -20,13 +20,20 @@ Included in MVP:
 
 Remaining MVP gaps:
 
-- Remove and rotate the committed Azure Service Bus secret in the demo app.
-- Finish dashboard `POST /scheduler/flush-outbox`.
-- Add efficient MikroORM dashboard list/find methods.
 - Decide whether `CapHeaders` decorator support is MVP or post-MVP.
-- Clean tracked generated artifacts such as nested `node_modules` and
+- Harden external Azure Service Bus integration coverage.
+- Finish release/version policy for the first public MVP package set.
+- Keep dashboard e2e coverage aligned with the real demo flow.
+
+Recently completed MVP mitigations:
+
+- Removed hardcoded Azure Service Bus credentials from the demo app.
+- Made the demo app run locally with SQLite, in-memory transport, and dashboard.
+- Implemented dashboard `POST /scheduler/flush-outbox`.
+- Added efficient MikroORM dashboard list/find methods.
+- Removed tracked generated artifacts such as nested `node_modules` and
   `tsbuildinfo`.
-- Align package versions and peer dependency ranges before release.
+- Aligned first-party peer dependency ranges for current package versions.
 
 ## Beta
 

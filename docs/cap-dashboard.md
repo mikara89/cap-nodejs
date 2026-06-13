@@ -7,13 +7,9 @@ Package: `@cap/cap-dashboard`
 
 ## Current Status
 
-The dashboard exists and is included in the MVP target, but it is not fully
-complete yet. Known MVP gaps are tracked in [the roadmap](roadmap.md):
-
-- scheduler flush endpoint currently returns a not-implemented response
-- MikroORM storage needs efficient dashboard `find` and `list` methods
-- outbox filtering such as `onlyUnpublished` needs explicit service behavior
-- the UI is functional but still a simple admin surface
+The dashboard exists and is included in the MVP target. It supports listing,
+detail views, retry/mark actions, and manual outbox flushing. The UI is still a
+small admin surface rather than a polished operations console.
 
 ## Registration
 
@@ -80,7 +76,7 @@ All endpoints are mounted under `routePrefix`.
 ### Scheduler
 
 - `POST /scheduler/flush-outbox` - planned MVP endpoint for manual outbox flush.
-  Current implementation returns a not-implemented response.
+  Publishes currently unpublished outbox records with scheduler-like semantics.
 
 ## Response Shapes
 
@@ -106,7 +102,8 @@ The dashboard uses the core storage tokens:
 - `PUBLISH_STORAGE`
 - `RECEIVED_STORAGE`
 
-For MVP-quality operation, adapters should provide these optional methods:
+For efficient operation, production adapters should provide these optional
+methods:
 
 - `findPublishById(id)`
 - `findReceivedById(id)`
@@ -114,7 +111,7 @@ For MVP-quality operation, adapters should provide these optional methods:
 - `listReceived({ limit, offset, topic, due })`
 
 Without these methods, the dashboard falls back to less complete or less
-efficient behavior.
+efficient behavior. The MikroORM adapter provides these helpers.
 
 ## Security Notes
 

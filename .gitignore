@@ -5,6 +5,7 @@
 /libs/**/dist
 # dependencies
 /node_modules
+**/node_modules
 /build
 
 # Logs
@@ -22,6 +23,8 @@ lerna-debug.log*
 # Tests
 /coverage
 /.nyc_output
+*.tsbuildinfo
+*.tgz
 
 # IDEs and editors
 /.idea

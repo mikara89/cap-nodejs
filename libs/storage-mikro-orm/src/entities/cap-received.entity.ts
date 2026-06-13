@@ -1,4 +1,5 @@
 import { Entity, PrimaryKey, Property, Index } from '@mikro-orm/core';
+import type { CapHeaders } from '@cap/cap-nest';
 import { v4 as uuid } from 'uuid';
 
 /**
@@ -22,7 +23,7 @@ export class CapReceivedEntity {
   payload!: Record<string, unknown>;
 
   @Property({ type: 'json', nullable: true })
-  headers?: Record<string, string>;
+  headers?: CapHeaders;
 
   @Property({ type: 'boolean', default: false })
   processed = false;

@@ -1,5 +1,5 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
-import { EntityManager, MikroORM } from '@mikro-orm/core';
+import { EntityManager, FilterQuery, MikroORM } from '@mikro-orm/core';
 import { IPublishStorage, CapPublishEvent } from '@cap/cap-nest';
 import { CapPublishEntity } from '../entities/cap-publish.entity';
 
@@ -106,15 +106,46 @@ export class MikroPublishStorage implements IPublishStorage {
       },
     );
 
-    return entities.map((e) => ({
-      id: e.id,
-      topic: e.topic,
-      occurredAt: e.createdAt.toISOString(),
-      payload: e.payload,
-      headers: e.headers,
-      status: e.status,
-      retryCount: e.retryCount,
-    }));
+    return entities.map(mapPublishEntity);
+  }
+
+  async findPublishById(
+    id: string,
+  ): Promise<CapPublishEvent<unknown> | undefined> {
+    const entity = await this.em.findOne(CapPublishEntity, { id });
+    return entity ? mapPublishEntity(entity) : undefined;
+  }
+
+  async listPublish(opts: {
+    limit?: number;
+    offset?: number;
+    topic?: string;
+    onlyUnpublished?: boolean;
+  }): Promise<{ items: CapPublishEvent<unknown>[]; total: number }> {
+    const where: FilterQuery<CapPublishEntity> = {};
+
+    if (opts.topic) {
+      where.topic = opts.topic;
+    }
+
+    if (opts.onlyUnpublished) {
+      where.$or = [
+        { status: null },
+        { status: 'failed', retryCount: { $lt: 3 } },
+      ];
+    }
+
+    const [entities, total] = await this.em.findAndCount(
+      CapPublishEntity,
+      where,
+      {
+        limit: opts.limit,
+        offset: opts.offset,
+        orderBy: { createdAt: 'DESC' },
+      },
+    );
+
+    return { items: entities.map(mapPublishEntity), total };
   }
 
   async savePublishWithTx(
@@ -137,4 +168,16 @@ export class MikroPublishStorage implements IPublishStorage {
     await em.persistAndFlush(entity);
     return entity.id;
   }
+}
+
+function mapPublishEntity(entity: CapPublishEntity): CapPublishEvent<unknown> {
+  return {
+    id: entity.id,
+    topic: entity.topic,
+    occurredAt: entity.createdAt.toISOString(),
+    payload: entity.payload,
+    headers: entity.headers,
+    status: entity.status,
+    retryCount: entity.retryCount,
+  };
 }

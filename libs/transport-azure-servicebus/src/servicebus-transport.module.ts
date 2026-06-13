@@ -40,15 +40,17 @@ export class ServiceBusTransportModule {
             // In test runs, avoid opening real network connections — return a no-op/dummy client.
             if (process.env.NODE_ENV === 'test') {
               const dummy: Partial<ServiceBusClient> = {
-                createReceiver: () => ({
-                  subscribe: () => ({ close: async () => { } }),
-                  close: async () => { },
-                }) as any,
-                createSender: () => ({
-                  sendMessages: async () => { },
-                  close: async () => { },
-                }) as any,
-                close: async () => { },
+                createReceiver: () =>
+                  ({
+                    subscribe: () => ({ close: async () => {} }),
+                    close: async () => {},
+                  }) as any,
+                createSender: () =>
+                  ({
+                    sendMessages: async () => {},
+                    close: async () => {},
+                  }) as any,
+                close: async () => {},
               };
               return dummy as ServiceBusClient;
             }
@@ -58,7 +60,7 @@ export class ServiceBusTransportModule {
         },
         {
           provide: 'SERVICEBUS_CLIENT_LIFECYCLE',
-          useClass: require('./servicebus-client.lifecycle').ServiceBusClientLifecycle,
+          useClass: ServiceBusClientLifecycle,
         },
         {
           provide: PUBLISHER,

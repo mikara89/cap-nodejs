@@ -42,6 +42,7 @@ export class CapDashboardService {
           limit,
           offset: ((query?.page ?? 1) - 1) * limit,
           topic: query?.topic,
+          onlyUnpublished: toBoolean(query?.onlyUnpublished),
         });
         rows = res.items ?? res;
         const total = res.total ?? rows.length;
@@ -53,17 +54,14 @@ export class CapDashboardService {
         };
       }
     } catch (err) {
-      this.logger.warn(
-        'listPublish adapter method failed, falling back',
-        err as any,
-      );
+      this.logger.warn('listPublish adapter method failed, falling back', err);
     }
 
     // fallback
     try {
       rows = await this.pubStorage.getUnpublished(limit);
     } catch (err) {
-      this.logger.error('Failed to read outbox rows', err as any);
+      this.logger.error('Failed to read outbox rows', err);
       rows = [];
     }
 
@@ -86,7 +84,7 @@ export class CapDashboardService {
         if (rec) return mapPublishToOutboxDto(rec, full);
       }
     } catch (err) {
-      this.logger.warn('findPublishById failed', err as any);
+      this.logger.warn('findPublishById failed', err);
     }
 
     // fallback: scan small batch
@@ -95,12 +93,15 @@ export class CapDashboardService {
       const found = rows.find((r) => r.id === id);
       if (found) return mapPublishToOutboxDto(found, full);
     } catch (err) {
-      this.logger.error('Failed to scan outbox for id', err as any);
+      this.logger.error('Failed to scan outbox for id', err);
     }
     return undefined;
   }
 
-  async retryOutbox(id: string, opts?: RetryOptions): Promise<ActionResultDto> {
+  async retryOutbox(
+    id: string,
+    _opts?: RetryOptions,
+  ): Promise<ActionResultDto> {
     try {
       // fetch record
       const rec =
@@ -151,7 +152,7 @@ export class CapDashboardService {
           limit,
           offset: ((query?.page ?? 1) - 1) * limit,
           topic: query?.topic,
-          due: query?.due,
+          due: toBoolean(query?.due),
         });
         const rows: CapReceivedEvent[] = res.items ?? res;
         return {
@@ -162,20 +163,20 @@ export class CapDashboardService {
         };
       }
     } catch (err) {
-      this.logger.warn('listReceived adapter failed, falling back', err as any);
+      this.logger.warn('listReceived adapter failed, falling back', err);
     }
 
     // fallback: if due requested, use getRetryDue
     let rows: CapReceivedEvent[] = [];
     try {
-      if (query?.due) {
+      if (toBoolean(query?.due)) {
         rows = await this.recStorage.getRetryDue(limit);
       } else {
         // No general listing; return empty list to avoid expensive scans
         rows = [];
       }
     } catch (err) {
-      this.logger.error('Failed to read inbox rows', err as any);
+      this.logger.error('Failed to read inbox rows', err);
       rows = [];
     }
 
@@ -197,7 +198,7 @@ export class CapDashboardService {
         if (rec) return mapReceivedToInboxDto(rec, full);
       }
     } catch (err) {
-      this.logger.warn('findReceivedById failed', err as any);
+      this.logger.warn('findReceivedById failed', err);
     }
 
     try {
@@ -205,13 +206,13 @@ export class CapDashboardService {
       const found = rows.find((r) => r.id === id);
       if (found) return mapReceivedToInboxDto(found, full);
     } catch (err) {
-      this.logger.error('Failed to scan inbox for id', err as any);
+      this.logger.error('Failed to scan inbox for id', err);
     }
 
     return undefined;
   }
 
-  async retryInbox(id: string, opts?: RetryOptions): Promise<ActionResultDto> {
+  async retryInbox(id: string, _opts?: RetryOptions): Promise<ActionResultDto> {
     try {
       // fetch event
       let rec: CapReceivedEvent | undefined;
@@ -244,6 +245,40 @@ export class CapDashboardService {
       return { success: true };
     } catch (err: any) {
       this.logger.error('markInboxProcessed failed', err);
+      return { success: false, message: String(err?.message ?? err) };
+    }
+  }
+
+  async flushOutbox(): Promise<ActionResultDto> {
+    try {
+      if (!this.publisher) {
+        return {
+          success: false,
+          message: 'No publisher available to emit messages',
+        };
+      }
+
+      const rows = await this.pubStorage.getUnpublished(DEFAULT_LIST_LIMIT);
+      let published = 0;
+      let failed = 0;
+
+      for (const rec of rows) {
+        try {
+          await this.publisher.emit(rec.topic, rec.payload);
+          await this.pubStorage.markPublished(rec.id);
+          published++;
+        } catch (err) {
+          failed++;
+          this.logger.warn(`flushOutbox failed for ${rec.id}`, err as Error);
+        }
+      }
+
+      return {
+        success: failed === 0,
+        message: `Flush complete: ${published} published, ${failed} failed`,
+      };
+    } catch (err: any) {
+      this.logger.error('flushOutbox failed', err);
       return { success: false, message: String(err?.message ?? err) };
     }
   }
@@ -283,4 +318,8 @@ function mapReceivedToInboxDto(
         : undefined,
     payload: full ? evt.payload : undefined,
   };
+}
+
+function toBoolean(value: unknown): boolean {
+  return value === true || value === 'true' || value === '1';
 }

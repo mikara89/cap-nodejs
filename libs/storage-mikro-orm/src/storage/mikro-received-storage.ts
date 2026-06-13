@@ -1,5 +1,5 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
-import { EntityManager, MikroORM } from '@mikro-orm/core';
+import { EntityManager, FilterQuery, MikroORM } from '@mikro-orm/core';
 import { IReceivedStorage, CapReceivedEvent } from '@cap/cap-nest';
 import { CapReceivedEntity } from '../entities/cap-received.entity';
 
@@ -120,16 +120,59 @@ export class MikroReceivedStorage implements IReceivedStorage {
       },
     );
 
-    return entities.map((e) => ({
-      id: e.id,
-      topic: e.topic,
-      occurredAt: e.createdAt.toISOString(),
-      group: e.group,
-      payload: e.payload,
-      headers: e.headers,
-      processed: e.processed,
-      retryCount: e.retryCount,
-      nextRetry: e.nextRetry ?? null,
-    }));
+    return entities.map(mapReceivedEntity);
   }
+
+  async findReceivedById(
+    id: string,
+  ): Promise<CapReceivedEvent<unknown> | undefined> {
+    const entity = await this.em.findOne(CapReceivedEntity, { id });
+    return entity ? mapReceivedEntity(entity) : undefined;
+  }
+
+  async listReceived(opts: {
+    limit?: number;
+    offset?: number;
+    topic?: string;
+    due?: boolean;
+  }): Promise<{ items: CapReceivedEvent<unknown>[]; total: number }> {
+    const where: FilterQuery<CapReceivedEntity> = {};
+
+    if (opts.topic) {
+      where.topic = opts.topic;
+    }
+
+    if (opts.due) {
+      where.processed = false;
+      where.nextRetry = { $lte: new Date() };
+    }
+
+    const [entities, total] = await this.em.findAndCount(
+      CapReceivedEntity,
+      where,
+      {
+        limit: opts.limit,
+        offset: opts.offset,
+        orderBy: { createdAt: 'DESC' },
+      },
+    );
+
+    return { items: entities.map(mapReceivedEntity), total };
+  }
+}
+
+function mapReceivedEntity(
+  entity: CapReceivedEntity,
+): CapReceivedEvent<unknown> {
+  return {
+    id: entity.id,
+    topic: entity.topic,
+    occurredAt: entity.createdAt.toISOString(),
+    group: entity.group,
+    payload: entity.payload,
+    headers: entity.headers,
+    processed: entity.processed,
+    retryCount: entity.retryCount,
+    nextRetry: entity.nextRetry ?? null,
+  };
 }

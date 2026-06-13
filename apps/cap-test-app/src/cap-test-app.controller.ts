@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Query } from '@nestjs/common';
 import { CapTestAppService } from './cap-test-app.service';
 import { CapService, withTransactionAndPostCommit } from '@cap/cap-nest';
 import { MikroORM } from '@mikro-orm/core';
@@ -7,6 +7,8 @@ type PostCommitItem = { topic: string; payload: unknown };
 
 @Controller()
 export class CapTestAppController {
+  private shouldFailNextHandler = false;
+
   constructor(
     private readonly capTestAppService: CapTestAppService,
     private readonly cap: CapService,
@@ -18,20 +20,59 @@ export class CapTestAppController {
     return this.capTestAppService.getHello();
   }
 
+  @Get('demo/health')
+  getDemoHealth(): {
+    ok: boolean;
+    transport: 'servicebus' | 'local';
+    dashboardApi: string;
+    dashboardUi: string;
+  } {
+    return {
+      ok: true,
+      transport:
+        process.env.SERVICEBUS_CONNECTION_STRING ||
+        process.env.AZURE_SERVICEBUS_CONNECTION_STRING
+          ? 'servicebus'
+          : 'local',
+      dashboardApi: '/api/cap',
+      dashboardUi: '/cap-dashboard',
+    };
+  }
+
   // Example publish endpoint: /publish?msg=hello
   @Get('publish')
   async publishExample(@Query('msg') msg = 'hello'): Promise<{ ok: boolean }> {
-    return await this.orm.em.transactional(async (em) => {
-      await this.cap.publish('example.topic', { text: msg }, undefined, em);
-      // throw new Error('simulated error to test transaction rollback');
-      return { ok: true };
+    return this.publishDemo(msg);
+  }
+
+  @Post('demo/publish')
+  async publishDemo(@Query('msg') msg = 'hello'): Promise<{ ok: boolean }> {
+    await this.cap.publish('example.topic', {
+      text: msg,
+      fail: this.shouldFailNextHandler,
     });
+    this.shouldFailNextHandler = false;
+    return { ok: true };
+  }
+
+  @Post('demo/fail-next-handler')
+  failNextHandler(): { ok: boolean } {
+    this.shouldFailNextHandler = true;
+    return { ok: true };
   }
 
   // Transactional publish: message is published only after DB commit.
   // Use `?withError=true` to simulate a rollback (message won't be published).
   @Get('publish-tx')
   async publishTransactional(
+    @Query('msg') msg = 'hello',
+    @Query('withError') withError?: string,
+  ): Promise<{ ok: boolean }> {
+    return this.publishDemoTransactional(msg, withError);
+  }
+
+  @Post('demo/publish-transactional')
+  async publishDemoTransactional(
     @Query('msg') msg = 'hello',
     @Query('withError') withError?: string,
   ): Promise<{ ok: boolean }> {
