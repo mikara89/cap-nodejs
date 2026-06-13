@@ -28,7 +28,7 @@ export class RetrySchedulerService implements OnModuleDestroy {
   constructorCleanup(): void {
     const registry = this.schedulerRegistry;
     if (!registry) return;
-    const cleanup = () => {
+    const cleanup = (): void => {
       try {
         const jobs = registry.getCronJobs();
         jobs.forEach((job, name) => {

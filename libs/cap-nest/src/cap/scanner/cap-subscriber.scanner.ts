@@ -55,7 +55,7 @@ export class CapSubscriberScanner implements OnModuleInit {
 
       const { topic, group = '', filter, dto } = meta;
 
-      const pipe = dto ? new CapValidatePipe(dto as new () => unknown) : null;
+      const pipe = dto ? new CapValidatePipe(dto) : null;
 
       // `desc.value` is guaranteed to be a function here (we checked earlier).
       // Type it as a safe callable and call it via `.call(target, ...)` to

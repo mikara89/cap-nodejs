@@ -1,4 +1,11 @@
-import { Controller, DynamicModule, Module, Provider } from '@nestjs/common';
+import {
+  Controller,
+  DynamicModule,
+  InjectionToken,
+  Module,
+  Provider,
+  Type,
+} from '@nestjs/common';
 import { join, resolve } from 'path';
 import { existsSync } from 'fs';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -24,21 +31,14 @@ export class CapDashboardModule {
 
     // Alias the user-provided guard to a stable token our internal guard can inject
     const USER_GUARD_TOKEN = 'CAP_DASHBOARD_USER_GUARD';
-    let providedToken: unknown = opts.guard;
-    if (
-      typeof opts.guard === 'object' &&
-      opts.guard !== null &&
-      'provide' in (opts.guard as any)
-    ) {
-      providedToken = (opts.guard as any).provide;
-    }
+    const providedToken = getProviderToken(opts.guard);
 
     const aliasProvider: Provider = {
       provide: USER_GUARD_TOKEN,
-      useExisting: providedToken as any,
-    } as Provider;
+      useExisting: providedToken,
+    };
 
-    const imports = [] as any[];
+    const imports: DynamicModule[] = [];
     if (opts.serveStatic !== false) {
       // Determine a sensible default static assets path when not provided by the user.
       // We try multiple candidate locations (library source, compiled package, monorepo layout)
@@ -81,7 +81,8 @@ export class CapDashboardModule {
     // If a routePrefix was provided, create a small subclass of the controller
     // and decorate it with @Controller(routePrefix) so all endpoints are rooted
     // under the chosen prefix. Otherwise register the controller as-is.
-    let controllerToRegister: any = CapDashboardController;
+    let controllerToRegister: Type<CapDashboardController> =
+      CapDashboardController;
     let routeBase = opts.routePrefix ?? '';
     if (routeBase && routeBase !== '') {
       // create subclass and apply Controller decorator at runtime
@@ -111,6 +112,22 @@ export class CapDashboardModule {
         CapDashboardGuard,
       ],
       exports: [CapDashboardService],
-    } as DynamicModule;
+    };
   }
+}
+
+function getProviderToken(provider: Provider): InjectionToken {
+  if (hasProviderToken(provider)) {
+    return provider.provide;
+  }
+
+  return provider as InjectionToken;
+}
+
+function hasProviderToken(
+  provider: Provider,
+): provider is Provider & { provide: InjectionToken } {
+  return (
+    typeof provider === 'object' && provider !== null && 'provide' in provider
+  );
 }

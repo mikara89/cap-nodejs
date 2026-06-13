@@ -36,23 +36,23 @@ export class ServiceBusTransportModule {
       providers: [
         {
           provide: 'SERVICEBUS_CLIENT',
-          useFactory: () => {
+          useFactory: (): ServiceBusClient => {
             // In test runs, avoid opening real network connections — return a no-op/dummy client.
             if (process.env.NODE_ENV === 'test') {
-              const dummy: Partial<ServiceBusClient> = {
-                createReceiver: () =>
-                  ({
-                    subscribe: () => ({ close: async () => {} }),
-                    close: async () => {},
-                  }) as any,
-                createSender: () =>
-                  ({
-                    sendMessages: async () => {},
-                    close: async () => {},
-                  }) as any,
-                close: async () => {},
+              const dummy = {
+                createReceiver: () => ({
+                  subscribe: () => ({
+                    close: async (): Promise<void> => {},
+                  }),
+                  close: async (): Promise<void> => {},
+                }),
+                createSender: () => ({
+                  sendMessages: async (): Promise<void> => {},
+                  close: async (): Promise<void> => {},
+                }),
+                close: async (): Promise<void> => {},
               };
-              return dummy as ServiceBusClient;
+              return dummy as unknown as ServiceBusClient;
             }
 
             return new ServiceBusClient(config.connectionString);

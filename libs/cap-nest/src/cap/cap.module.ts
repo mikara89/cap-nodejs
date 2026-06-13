@@ -108,10 +108,10 @@ export class CapModule {
           initialize?: (options?: InitOptions) => Promise<void>;
         };
         const adapters: AdapterWithInit[] = [
-          pubStorage as AdapterWithInit,
-          recStorage as AdapterWithInit,
-          publisher as AdapterWithInit,
-          subscriber as AdapterWithInit,
+          pubStorage,
+          recStorage,
+          publisher,
+          subscriber,
         ];
 
         await Promise.all(
@@ -197,7 +197,7 @@ export class CapModule {
             topic?: string;
             onlyUnpublished?: boolean;
           } = {},
-        ) {
+        ): Promise<{ items: CapPublishEvent<unknown>[]; total: number }> {
           const all = [...this.m.values()];
           let filtered = opts.topic
             ? all.filter((v) => v.topic === opts.topic)
@@ -288,7 +288,7 @@ export class CapModule {
             topic?: string;
             due?: boolean;
           } = {},
-        ) {
+        ): Promise<{ items: CapReceivedEvent<unknown>[]; total: number }> {
           let all = [...this.m.values()];
           if (opts.topic) all = all.filter((r) => r.topic === opts.topic);
           if (opts.due) {
@@ -354,7 +354,7 @@ export class CapModule {
           const factory = f['useFactory'] as (...args: unknown[]) => unknown;
           return factory();
         }
-        return undefined as unknown;
+        return undefined;
       },
       inject: ['CAP_ASYNC_CFG'],
     }));
@@ -387,10 +387,10 @@ export class CapModule {
               initialize?: (options?: InitOptions) => Promise<void>;
             };
             const adapters: AdapterWithInit[] = [
-              pubStorage as AdapterWithInit,
-              recStorage as AdapterWithInit,
-              publisher as AdapterWithInit,
-              subscriber as AdapterWithInit,
+              pubStorage,
+              recStorage,
+              publisher,
+              subscriber,
             ];
 
             await Promise.all(

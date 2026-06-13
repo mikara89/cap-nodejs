@@ -193,8 +193,8 @@ describe('Integration: transport-azure-servicebus', () => {
     const app = moduleRef.createNestApplication();
     await app.init();
 
-    const publisher = moduleRef.get<IPublisher>(PUBLISHER as any);
-    const subscriber = moduleRef.get<ISubscriber>(SUBSCRIBER as any);
+    const publisher = moduleRef.get<IPublisher>(PUBLISHER);
+    const subscriber = moduleRef.get<ISubscriber>(SUBSCRIBER);
 
     let received: unknown = null;
     const receivedPromise = new Promise<unknown>((resolve) => {

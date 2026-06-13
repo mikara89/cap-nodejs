@@ -37,8 +37,8 @@ export class CapDashboardService {
     // Try to use storage.list-like methods if present, otherwise fall back to getUnpublished
     let rows: CapPublishEvent[] = [];
     try {
-      if (typeof (this.pubStorage as any).listPublish === 'function') {
-        const res = await (this.pubStorage as any).listPublish({
+      if (this.pubStorage.listPublish) {
+        const res = await this.pubStorage.listPublish({
           limit,
           offset: ((query?.page ?? 1) - 1) * limit,
           topic: query?.topic,
@@ -79,8 +79,8 @@ export class CapDashboardService {
   ): Promise<OutboxItemDto | undefined> {
     // try adapter-specific finder
     try {
-      if (typeof (this.pubStorage as any).findPublishById === 'function') {
-        const rec = await (this.pubStorage as any).findPublishById(id);
+      if (this.pubStorage.findPublishById) {
+        const rec = await this.pubStorage.findPublishById(id);
         if (rec) return mapPublishToOutboxDto(rec, full);
       }
     } catch (err) {
@@ -104,12 +104,9 @@ export class CapDashboardService {
   ): Promise<ActionResultDto> {
     try {
       // fetch record
-      const rec =
-        typeof (this.pubStorage as any).findPublishById === 'function'
-          ? await (this.pubStorage as any).findPublishById(id)
-          : (await this.pubStorage.getUnpublished(1000)).find(
-              (r) => r.id === id,
-            );
+      const rec = this.pubStorage.findPublishById
+        ? await this.pubStorage.findPublishById(id)
+        : (await this.pubStorage.getUnpublished(1000)).find((r) => r.id === id);
 
       if (!rec)
         return { success: false, message: `publish record ${id} not found` };
@@ -122,14 +119,14 @@ export class CapDashboardService {
       }
 
       // attempt emit
-      await this.publisher.emit(rec.topic, rec.payload as unknown);
+      await this.publisher.emit(rec.topic, rec.payload);
 
       // mark published on success
       await this.pubStorage.markPublished(id);
       return { success: true, message: 'Published successfully' };
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.logger.error('retryOutbox failed', err);
-      return { success: false, message: String(err?.message ?? err) };
+      return { success: false, message: errorMessage(err) };
     }
   }
 
@@ -137,9 +134,9 @@ export class CapDashboardService {
     try {
       await this.pubStorage.markPublished(id);
       return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.logger.error('markOutboxPublished failed', err);
-      return { success: false, message: String(err?.message ?? err) };
+      return { success: false, message: errorMessage(err) };
     }
   }
 
@@ -147,8 +144,8 @@ export class CapDashboardService {
     const limit = query?.limit ?? DEFAULT_LIST_LIMIT;
     // If adapter supports listing, use it
     try {
-      if (typeof (this.recStorage as any).listReceived === 'function') {
-        const res = await (this.recStorage as any).listReceived({
+      if (this.recStorage.listReceived) {
+        const res = await this.recStorage.listReceived({
           limit,
           offset: ((query?.page ?? 1) - 1) * limit,
           topic: query?.topic,
@@ -193,8 +190,8 @@ export class CapDashboardService {
     full = false,
   ): Promise<InboxItemDto | undefined> {
     try {
-      if (typeof (this.recStorage as any).findReceivedById === 'function') {
-        const rec = await (this.recStorage as any).findReceivedById(id);
+      if (this.recStorage.findReceivedById) {
+        const rec = await this.recStorage.findReceivedById(id);
         if (rec) return mapReceivedToInboxDto(rec, full);
       }
     } catch (err) {
@@ -216,8 +213,8 @@ export class CapDashboardService {
     try {
       // fetch event
       let rec: CapReceivedEvent | undefined;
-      if (typeof (this.recStorage as any).findReceivedById === 'function') {
-        rec = await (this.recStorage as any).findReceivedById(id);
+      if (this.recStorage.findReceivedById) {
+        rec = await this.recStorage.findReceivedById(id);
       } else {
         const rows = await this.recStorage.getRetryDue(1000);
         rec = rows.find((r) => r.id === id);
@@ -233,9 +230,9 @@ export class CapDashboardService {
 
       await this.capService.retryReceived(rec);
       return { success: true, message: 'Retry scheduled/executed' };
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.logger.error('retryInbox failed', err);
-      return { success: false, message: String(err?.message ?? err) };
+      return { success: false, message: errorMessage(err) };
     }
   }
 
@@ -243,9 +240,9 @@ export class CapDashboardService {
     try {
       await this.recStorage.markProcessed(id);
       return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.logger.error('markInboxProcessed failed', err);
-      return { success: false, message: String(err?.message ?? err) };
+      return { success: false, message: errorMessage(err) };
     }
   }
 
@@ -277,9 +274,9 @@ export class CapDashboardService {
         success: failed === 0,
         message: `Flush complete: ${published} published, ${failed} failed`,
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.logger.error('flushOutbox failed', err);
-      return { success: false, message: String(err?.message ?? err) };
+      return { success: false, message: errorMessage(err) };
     }
   }
 }
@@ -322,4 +319,8 @@ function mapReceivedToInboxDto(
 
 function toBoolean(value: unknown): boolean {
   return value === true || value === 'true' || value === '1';
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
 }

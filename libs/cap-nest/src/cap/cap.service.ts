@@ -136,6 +136,8 @@ export class CapService {
    *  PUBLIC – SUBSCRIBE  (called by CapSubscriberScanner)
    * ============================================================ */
   subscribe<T>(topic: string, group: string, handler: Handler<T>): void {
+    // HandlerMap stores handlers behind unknown because deliveries are decoded at runtime.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     this.registerHandler(topic, group, handler as Handler<unknown>);
 
     this.subscriber
@@ -196,7 +198,7 @@ export class CapService {
       );
     }
 
-    let realPayload: unknown = payload as unknown;
+    let realPayload: unknown = payload;
     let inferredHeaders: CapHeaders | undefined = undefined;
 
     if (isWrapped(payload)) {

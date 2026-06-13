@@ -24,15 +24,12 @@ export async function withTransactionAndPostCommit<
   const postCommitQueue: Item[] = [];
 
   const runInTx: (fn: (tx: Tx) => Promise<T>) => Promise<T> = (() => {
-    if (typeof runnerOrOrm === 'function')
-      return runnerOrOrm as (fn: (tx: Tx) => Promise<T>) => Promise<T>;
+    if (typeof runnerOrOrm === 'function') return runnerOrOrm;
     const maybeOrm = runnerOrOrm as
       | { em?: { transactional?: (fn: (tx: Tx) => Promise<T>) => Promise<T> } }
       | undefined;
     if (maybeOrm?.em && typeof maybeOrm.em.transactional === 'function') {
-      const transactional = maybeOrm.em.transactional as (
-        fn: (tx: Tx) => Promise<T>,
-      ) => Promise<T>;
+      const transactional = maybeOrm.em.transactional;
       return (fn: (tx: Tx) => Promise<T>) => transactional(fn);
     }
     throw new Error(

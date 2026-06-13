@@ -101,7 +101,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
   });
 
   it('saves and reads publish events via MikroPublishStorage', async () => {
-    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE as any);
+    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE);
     const event = {
       id: uuid(),
       topic: 'int-topic',
@@ -111,7 +111,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
       retryCount: 0,
     };
 
-    const savedId = await storage.savePublish(event as any);
+    const savedId = await storage.savePublish(event);
     expect(savedId).toBeTruthy();
 
     const unpublished = await storage.getUnpublished(10);
@@ -119,7 +119,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
   });
 
   it('transactional save commits when transaction succeeds', async () => {
-    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE as any);
+    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE);
     const orm = app.get(MikroORM);
 
     const event = {
@@ -143,7 +143,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
   });
 
   it('transactional save rolls back on error', async () => {
-    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE as any);
+    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE);
     const orm = app.get(MikroORM);
 
     const event = {
@@ -173,7 +173,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
   });
 
   it('transactional domain change + outbox commit', async () => {
-    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE as any);
+    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE);
     const orm = app.get(MikroORM);
 
     const domain = { id: uuid(), name: 'domain-commit' } as any;
@@ -198,7 +198,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
 
     // verify domain entity and outbox present after commit
     const repo = app.get(MikroORM).em.getRepository('TestDomainEntity' as any);
-    const found = await repo.findOne({ id: domain.id } as any);
+    const found = await repo.findOne({ id: domain.id });
     expect(found).toBeTruthy();
 
     const unpublished = await storage.getUnpublished(10);
@@ -206,7 +206,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
   });
 
   it('transactional domain change + outbox rollback', async () => {
-    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE as any);
+    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE);
     const orm = app.get(MikroORM);
 
     const domain = { id: uuid(), name: 'domain-rollback' } as any;
@@ -235,7 +235,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
 
     // domain entity should not exist
     const repo = app.get(MikroORM).em.getRepository('TestDomainEntity' as any);
-    const found = await repo.findOne({ id: domain.id } as any);
+    const found = await repo.findOne({ id: domain.id });
     expect(found).toBeNull();
 
     const unpublished = await storage.getUnpublished(10);

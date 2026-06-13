@@ -74,7 +74,7 @@ export class MikroPublishStorage implements IPublishStorage {
     const entity = this.em.create(CapPublishEntity, {
       id: event.id,
       topic: event.topic,
-      payload: event.payload as Record<string, unknown>,
+      payload: event.payload,
       headers: event.headers,
       retryCount: event.retryCount || 0,
       status: event.status,
@@ -157,7 +157,7 @@ export class MikroPublishStorage implements IPublishStorage {
     const entity = em.create(CapPublishEntity, {
       id: event.id,
       topic: event.topic,
-      payload: event.payload as Record<string, unknown>,
+      payload: event.payload,
       headers: event.headers,
       retryCount: event.retryCount || 0,
       status: event.status,

@@ -72,7 +72,7 @@ export class MikroReceivedStorage implements IReceivedStorage {
       id: event.id,
       topic: event.topic,
       group: event.group,
-      payload: event.payload as Record<string, unknown>,
+      payload: event.payload,
       headers: event.headers,
       processed: event.processed || false,
       retryCount: event.retryCount || 0,

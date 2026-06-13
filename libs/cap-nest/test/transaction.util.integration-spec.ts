@@ -89,7 +89,7 @@ describe('Integration: withTransactionAndPostCommit (MikroORM + Postgres)', () =
   });
 
   it('commits transactional save and runs afterCommitFn', async () => {
-    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE as any);
+    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE);
     const publisher = { emit: jest.fn().mockResolvedValue(undefined) };
 
     const event = {
@@ -120,7 +120,7 @@ describe('Integration: withTransactionAndPostCommit (MikroORM + Postgres)', () =
   });
 
   it('rolls back transactional save and does not run afterCommitFn', async () => {
-    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE as any);
+    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE);
     const publisher = { emit: jest.fn().mockResolvedValue(undefined) };
 
     const event = {

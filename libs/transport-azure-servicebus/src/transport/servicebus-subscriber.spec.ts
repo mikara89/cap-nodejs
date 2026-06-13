@@ -24,7 +24,7 @@ describe('ServiceBusSubscriber', () => {
 
     // instantiate directly to avoid DI metadata quirks in tests
 
-    subscriber = new ServiceBusSubscriber(mockClient as any, {
+    subscriber = new ServiceBusSubscriber(mockClient, {
       connectionString:
         'Endpoint=sb://local/;SharedAccessKeyName=test;SharedAccessKey=key',
       topicPrefix: 'cap-',
@@ -58,7 +58,7 @@ describe('ServiceBusSubscriber', () => {
         processMessage = (
           handlers as { processMessage: (message: unknown) => Promise<void> }
         ).processMessage;
-        return { close: jest.fn() } as never;
+        return { close: jest.fn() };
       });
 
       await subscriber.consume('topic-x', 'group-y', handler);

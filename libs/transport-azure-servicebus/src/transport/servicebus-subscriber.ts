@@ -273,10 +273,7 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
     receiver.subscribe({
       processMessage: async (msg) => {
         try {
-          await onMessage(
-            msg.body,
-            (msg.applicationProperties ?? {}) as Record<string, unknown>,
-          );
+          await onMessage(msg.body, msg.applicationProperties ?? {});
         } catch (err) {
           this.logger.warn(`Handler error for ${key}`, err as Error);
           throw err;

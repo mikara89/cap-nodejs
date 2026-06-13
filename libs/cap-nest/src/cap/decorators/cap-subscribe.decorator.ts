@@ -44,6 +44,8 @@ export function CapSubscribe<T = unknown>(
   maybeGroup?: string,
 ): MethodDecorator {
   // Support legacy signature  @CapSubscribe('topic','group')
+  // Metadata stores handlers erased to unknown; typed filters are restored by caller usage.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const normalized: CapSubscribeOptions = (
     typeof opts === 'string' ? { topic: opts, group: maybeGroup } : opts
   ) as CapSubscribeOptions;

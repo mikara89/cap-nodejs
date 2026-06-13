@@ -40,7 +40,7 @@ describe('CapModule initialization', () => {
 
     // find CAP_INIT provider and invoke its factory manually
     const initProv = dm.providers?.find(
-      (p: any) => p && p.provide === 'CAP_INIT',
+      (p: any) => p?.provide === 'CAP_INIT',
     ) as any;
     expect(initProv).toBeDefined();
 

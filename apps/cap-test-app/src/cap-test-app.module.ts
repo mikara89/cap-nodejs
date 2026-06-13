@@ -52,13 +52,12 @@ const transportModule = serviceBusTransport ?? localTransport;
   imports: [
     // MikroORM configured to use an in-memory SQLite database for tests
     MikroOrmModule.forRootAsync({
-      useFactory: (): MikroOptions =>
-        ({
-          driver: BetterSqliteDriver,
-          dbName: ':memory:',
-          entities: [CapPublishEntity, CapReceivedEntity],
-          allowGlobalContext: true,
-        }) as unknown as MikroOptions,
+      useFactory: (): MikroOptions => ({
+        driver: BetterSqliteDriver,
+        dbName: ':memory:',
+        entities: [CapPublishEntity, CapReceivedEntity],
+        allowGlobalContext: true,
+      }),
     }),
     // ensure the storage module registers the entities with MikroORM
     MikroStorageModule,
