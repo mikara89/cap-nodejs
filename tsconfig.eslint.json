@@ -1,7 +1,21 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@cap/cap-nest": ["libs/cap-nest/src"],
+      "@cap/cap-nest/*": ["libs/cap-nest/src/*"],
+      "@cap/mikroorm-storage": ["libs/storage-mikro-orm/src"],
+      "@cap/mikroorm-storage/*": ["libs/storage-mikro-orm/src/*"],
+      "@cap/azure-servicebus-transport": [
+        "libs/transport-azure-servicebus/src"
+      ],
+      "@cap/azure-servicebus-transport/*": [
+        "libs/transport-azure-servicebus/src/*"
+      ],
+      "@cap/cap-dashboard": ["libs/cap-dashboard/src"],
+      "@cap/cap-dashboard/*": ["libs/cap-dashboard/src/*"]
+    }
   },
   "include": ["apps/**/*.ts", "libs/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/dist/**", "coverage"]
