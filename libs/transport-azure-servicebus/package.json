@@ -1,6 +1,6 @@
 {
   "name": "@cap/azure-servicebus-transport",
-  "version": "0.5.0",
+  "version": "0.5.1-beta.0",
   "description": "Azure Service Bus transport adapter for CAP NestJS library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

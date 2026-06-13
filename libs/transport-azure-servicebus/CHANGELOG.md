@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.5.1-beta.0](https://github.com/mikara89/cap-nestjs/compare/@cap/azure-servicebus-transport@0.5.0...@cap/azure-servicebus-transport@0.5.1-beta.0) (2026-06-13)
+
+### Bug Fixes
+
+- correct formatting in package.json dependencies ([abde26a](https://github.com/mikara89/cap-nestjs/commit/abde26ae6358d46818e5c808ed8d34aa15e82192))
+- update package.json scripts to use 'prepack' instead of 'prepare' for build commands ([2785ecb](https://github.com/mikara89/cap-nestjs/commit/2785ecb8379feacb73c6ed4f1c87138e606fde65))
+
 # 0.5.0 (2025-11-23)
 
 ### Features
