@@ -20,9 +20,13 @@ contributors, and maintainers.
 
 ## Reporting
 
-TODO before public launch: add the preferred maintainer contact for conduct
-reports. Until then, use GitHub private vulnerability reporting or contact a
-maintainer privately if available.
+For non-sensitive conduct concerns, open a GitHub issue using the conduct
+report template. Keep the report factual and avoid sharing private personal
+information.
+
+Do not use public issues for threats, harassment, private personal information,
+or reports that could put someone at risk. In those cases, contact a maintainer
+privately.
 
 Maintainers may remove comments, close issues, block users, or take other
 reasonable moderation actions to protect the project community.

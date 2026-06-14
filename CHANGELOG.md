@@ -14,6 +14,8 @@ Package-specific changelogs are maintained with each publishable package:
 
 - Added public repository documentation and GitHub community templates for open
   source readiness.
+- Added generated API documentation tooling, compile-checked examples, and a
+  package export-surface audit.
 
 ## 0.7.0-beta.0
 

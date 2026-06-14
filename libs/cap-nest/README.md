@@ -39,6 +39,8 @@ async handleUserCreated(payload: unknown) {
 
 - [Repository overview](../../README.md)
 - [Getting started](../../docs/getting-started.md)
+- [API reference](../../docs/api/README.md)
+- [Package export surface](../../docs/package-exports.md)
 - [Architecture](../../docs/architecture.md)
 - [Adapters](../../docs/adapters.md)
 - [ADRs](../../docs/adr/README.md)

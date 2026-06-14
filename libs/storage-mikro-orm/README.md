@@ -46,6 +46,8 @@ export class AppModule {}
 ## Documentation
 
 - [Repository overview](../../README.md)
+- [API reference](../../docs/api/README.md)
+- [Package export surface](../../docs/package-exports.md)
 - [Adapters](../../docs/adapters.md)
 - [Architecture](../../docs/architecture.md)
 - [Roadmap](../../docs/roadmap.md)

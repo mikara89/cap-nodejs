@@ -31,6 +31,8 @@ dashboard.
 ## Documentation
 
 - [Dashboard guide](../../docs/cap-dashboard.md)
+- [API reference](../../docs/api/README.md)
+- [Package export surface](../../docs/package-exports.md)
 - [Repository overview](../../README.md)
 - [Architecture](../../docs/architecture.md)
 - [Roadmap](../../docs/roadmap.md)

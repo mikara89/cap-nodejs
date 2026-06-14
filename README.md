@@ -204,6 +204,12 @@ Primary exports from `@cap/cap-nest`:
 See the package READMEs and [documentation index](docs/README.md) for adapter
 details.
 
+Additional references:
+
+- [API reference](docs/api/README.md)
+- [Compile-checked examples](examples/README.md)
+- [Package export surface](docs/package-exports.md)
+
 ## Local Development
 
 Install dependencies:
@@ -236,6 +242,13 @@ Verify publish package contents:
 npm run pack:dry-run
 ```
 
+Check examples and generate API docs:
+
+```sh
+npm run examples:check
+npm run docs:api
+```
+
 ## Troubleshooting
 
 - If dashboard routes are accessible without authentication, replace the sample
@@ -254,6 +267,8 @@ npm run pack:dry-run
 - [Architecture](docs/architecture.md)
 - [Adapters](docs/adapters.md)
 - [Dashboard](docs/cap-dashboard.md)
+- [API reference](docs/api/README.md)
+- [Package export surface](docs/package-exports.md)
 - [Roadmap](docs/roadmap.md)
 - [Release checklist](docs/release.md)
 - [ADRs](docs/adr/README.md)

@@ -23,6 +23,18 @@ Build:
 npm run build
 ```
 
+Check compile-only examples:
+
+```powershell
+npm run examples:check
+```
+
+Generate API reference docs:
+
+```powershell
+npm run docs:api
+```
+
 Run lint with auto-fix:
 
 ```powershell
@@ -138,6 +150,10 @@ package contents are verified or published.
 ## Documentation Guidelines
 
 - Update root `README.md` for public positioning or package-map changes.
+- Update `examples/` and run `npm run examples:check` when public usage
+  changes.
+- Regenerate `docs/api/` with `npm run docs:api` when public exports change.
+- Update `docs/package-exports.md` when supported import paths change.
 - Update `docs/architecture.md` when core flows change.
 - Update `docs/adapters.md` when adapter contracts or first-party adapters
   change.
@@ -174,5 +190,4 @@ test(storage): cover retry scheduling
 ## Security Reports
 
 Do not open public issues for vulnerabilities. Follow the process in
-[SECURITY.md](../SECURITY.md). The public launch checklist must replace the
-security contact TODO with a real private reporting path.
+[SECURITY.md](../SECURITY.md).

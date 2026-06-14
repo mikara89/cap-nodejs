@@ -1,0 +1,36 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "declaration": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "outDir": "../.tmp/examples",
+    "paths": {
+      "@cap/cap-nest": ["libs/cap-nest/src"],
+      "@cap/cap-nest/*": ["libs/cap-nest/src/*"],
+      "@cap/mikroorm-storage": ["libs/storage-mikro-orm/src"],
+      "@cap/mikroorm-storage/*": ["libs/storage-mikro-orm/src/*"],
+      "@cap/azure-servicebus-transport": [
+        "libs/transport-azure-servicebus/src"
+      ],
+      "@cap/azure-servicebus-transport/*": [
+        "libs/transport-azure-servicebus/src/*"
+      ],
+      "@cap/nestjs-microservices-transport": [
+        "libs/transport-nestjs-microservices/src"
+      ],
+      "@cap/nestjs-microservices-transport/*": [
+        "libs/transport-nestjs-microservices/src/*"
+      ],
+      "@cap/cap-dashboard": ["libs/cap-dashboard/src"],
+      "@cap/cap-dashboard/*": ["libs/cap-dashboard/src/*"]
+    },
+    "strict": true,
+    "types": ["node"]
+  },
+  "include": ["./**/*.ts"]
+}

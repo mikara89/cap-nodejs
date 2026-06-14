@@ -10,8 +10,23 @@ unless maintainers document additional supported versions.
 
 Please do not report security vulnerabilities in public GitHub issues.
 
-TODO before public launch: configure GitHub private vulnerability reporting or
-add a dedicated security contact email.
+Use GitHub private vulnerability reporting:
+
+1. Open the repository on GitHub.
+2. Go to the **Security** tab.
+3. Choose **Report a vulnerability**.
+4. Submit the report privately with enough detail for maintainers to reproduce
+   and assess the issue.
+
+Repository administrators must enable this before public launch:
+
+1. Open **Settings** for the repository.
+2. Go to **Code security and analysis**.
+3. Enable **Private vulnerability reporting**.
+
+This cannot be enabled from `SECURITY.md`; it is a GitHub repository setting.
+Once enabled, reports create private security advisories visible only to
+maintainers and the reporter.
 
 When reporting, include:
 

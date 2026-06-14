@@ -59,6 +59,18 @@ Build libraries and the demo app:
 npm run build
 ```
 
+Check compile-only examples:
+
+```sh
+npm run examples:check
+```
+
+Generate API reference docs:
+
+```sh
+npm run docs:api
+```
+
 Verify package contents before publishing:
 
 ```sh
@@ -78,6 +90,8 @@ npm run fallow:health
 - Add or update tests when changing behavior.
 - Update docs when changing public APIs, package setup, adapter behavior, or
   dashboard behavior.
+- Regenerate `docs/api/` with `npm run docs:api` when public exports change.
+- Keep `examples/` compile-checked with `npm run examples:check`.
 - Keep public API changes minimal while the beta package line is stabilizing.
 - Avoid committing generated artifacts such as `dist`, `build`, `coverage`,
   nested `node_modules`, logs, cache directories, or tarballs.

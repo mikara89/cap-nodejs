@@ -5,6 +5,15 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
+  "homepage": "https://mikara89.github.io/cap-nestjs/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikara89/cap-nestjs.git",
+    "directory": "libs/transport-nestjs-microservices"
+  },
+  "bugs": {
+    "url": "https://github.com/mikara89/cap-nestjs/issues"
+  },
   "files": [
     "dist",
     "README.md",

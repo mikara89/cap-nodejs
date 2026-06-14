@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "noEmit": true
+  },
+  "include": ["libs/*/src/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "libs/**/dist",
+    "libs/**/*.spec.ts",
+    "libs/**/test/**/*.ts"
+  ]
+}

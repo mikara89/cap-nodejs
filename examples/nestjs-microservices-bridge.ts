@@ -1,0 +1,50 @@
+import { Controller, Inject, Module } from '@nestjs/common';
+import { ClientProxy, ClientsModule, Transport } from '@nestjs/microservices';
+import { CapAdapterModule, CapModule } from '@cap/cap-nest';
+import {
+  CapMicroservicesBridge,
+  NestjsMicroservicesTransportModule,
+} from '@cap/nestjs-microservices-transport';
+
+const ORDERS_CLIENT = 'ORDERS_CLIENT';
+
+@Controller()
+export class OrdersEventsController {
+  constructor(private readonly capBridge: CapMicroservicesBridge) {}
+
+  async handleOrderCreated(message: unknown): Promise<void> {
+    await this.capBridge.dispatch('order.created', 'orders-worker', message);
+  }
+}
+
+export class OrdersPublisher {
+  constructor(@Inject(ORDERS_CLIENT) private readonly client: ClientProxy) {}
+
+  async emitDirectly(): Promise<void> {
+    this.client.emit('order.created', { id: 'o1' });
+  }
+}
+
+const transport = NestjsMicroservicesTransportModule.forRoot({
+  clientToken: ORDERS_CLIENT,
+  publishTimeoutMs: 5000,
+});
+
+@Module({
+  imports: [
+    ClientsModule.register([
+      {
+        name: ORDERS_CLIENT,
+        transport: Transport.TCP,
+      },
+    ]),
+    transport,
+    CapModule.forAdapters(
+      transport as unknown as CapAdapterModule,
+      transport as unknown as CapAdapterModule,
+    ),
+  ],
+  controllers: [OrdersEventsController],
+  providers: [OrdersPublisher],
+})
+export class NestjsMicroservicesBridgeExampleModule {}

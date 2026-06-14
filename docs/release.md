@@ -8,6 +8,9 @@ set should be published as beta or rc before stable graduation.
 
 - Confirm CI is green for the target commit.
 - Confirm there are no committed secrets or local registry credentials.
+- Confirm GitHub private vulnerability reporting is enabled.
+- Confirm GitHub Pages is enabled for the `/docs` folder and the repository
+  About website points to `https://mikara89.github.io/cap-nestjs/`.
 - Run the static checks:
 
 ```powershell

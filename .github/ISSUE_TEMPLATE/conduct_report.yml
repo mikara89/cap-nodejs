@@ -1,0 +1,30 @@
+name: Conduct concern
+description: Report a non-sensitive code of conduct concern.
+title: 'conduct: '
+labels: ['conduct', 'needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template only for non-sensitive conduct concerns. Do not include private personal information, threats, or details that could put someone at risk.
+  - type: textarea
+    id: concern
+    attributes:
+      label: What happened?
+      description: Keep this factual and include links to public project interactions if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What outcome would help?
+      description: Describe the moderation or maintainer action you are requesting.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Public issue safety
+      options:
+        - label: This report does not include private personal information or details that could put someone at risk.
+          required: true
