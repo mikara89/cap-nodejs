@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0-beta.1](https://github.com/mikara89/cap-nestjs/compare/@cap/mikroorm-storage@0.5.1-beta.0...@cap/mikroorm-storage@0.7.0-beta.1) (2026-06-14)
+
+### Features
+
+- add issue templates, contributing guide, and security policy for project structure ([91781b1](https://github.com/mikara89/cap-nestjs/commit/91781b1f1a73969ff1796ead6e229934c47a2c0b))
+- add transport-nestjs-microservices library and integration tests ([25770aa](https://github.com/mikara89/cap-nestjs/commit/25770aa4b80eeec7398958cde562915be3d45ba6))
+- **docs:** add GitHub Pages setup and package export surface documentation ([6342155](https://github.com/mikara89/cap-nestjs/commit/6342155364bee204684bee9960f1814caff2da39))
+
 ## 0.7.0-beta.0 (2026-06-14)
 
 ### Features

@@ -1,6 +1,6 @@
 {
   "name": "@cap/cap-dashboard",
-  "version": "0.7.0-beta.0",
+  "version": "0.7.0-beta.1",
   "description": "Optional dashboard for CAP NestJS outbox and inbox operations",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
