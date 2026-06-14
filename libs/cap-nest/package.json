@@ -4,6 +4,7 @@
   "description": "Cloud Access Pattern (CAP) library for NestJS - reliable message handling with outbox/inbox patterns",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "license": "MIT",
   "files": [
     "dist",
     "README.md",

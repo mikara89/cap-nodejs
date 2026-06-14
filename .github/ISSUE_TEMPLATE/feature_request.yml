@@ -1,0 +1,39 @@
+name: Feature request
+description: Suggest an improvement or new capability.
+title: 'feat: '
+labels: ['enhancement', 'needs-triage']
+body:
+  - type: dropdown
+    id: package
+    attributes:
+      label: Area
+      options:
+        - '@cap/cap-nest'
+        - '@cap/mikroorm-storage'
+        - '@cap/azure-servicebus-transport'
+        - '@cap/nestjs-microservices-transport'
+        - '@cap/cap-dashboard'
+        - Documentation
+        - Tooling
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to do, and what is hard today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the API, behavior, or documentation change you would like.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Include workarounds or related packages if relevant.

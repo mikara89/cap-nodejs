@@ -1,0 +1,71 @@
+name: Bug report
+description: Report a reproducible problem in CAP for NestJS.
+title: 'bug: '
+labels: ['bug', 'needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please include enough detail for maintainers to reproduce it.
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options:
+        - '@cap/cap-nest'
+        - '@cap/mikroorm-storage'
+        - '@cap/azure-servicebus-transport'
+        - '@cap/nestjs-microservices-transport'
+        - '@cap/cap-dashboard'
+        - Repository tooling or docs
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: '0.7.0-beta.0'
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: '22.x'
+    validations:
+      required: true
+  - type: input
+    id: nest
+    attributes:
+      label: NestJS version
+      placeholder: '11.x'
+  - type: textarea
+    id: current
+    attributes:
+      label: What happened?
+      description: Include error messages, logs, or screenshots if useful.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: A minimal reproduction repository is ideal when possible.
+      placeholder: |
+        1. Configure ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Storage adapter, transport adapter, dashboard exposure, and relevant configuration.

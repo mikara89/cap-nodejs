@@ -1,5 +1,8 @@
 # Contributing
 
+Start with the root [CONTRIBUTING.md](../CONTRIBUTING.md) for the short public
+guide. This file adds project-specific workflow and health-check details.
+
 ## Local Workflow
 
 Install dependencies:
@@ -30,6 +33,12 @@ Run lint without modifying files:
 
 ```powershell
 npm run lint:check
+```
+
+Format TypeScript files:
+
+```powershell
+npm run format
 ```
 
 ## Repo Health Checks
@@ -145,3 +154,25 @@ package contents are verified or published.
   as advisory rollout work.
 - Documentation is updated for public API or behavior changes.
 - ADR is added or updated for architecture-level decisions.
+- Package dry-run output is reviewed when package metadata, package files, or
+  public exports changed.
+- Security-sensitive changes are reviewed with [SECURITY.md](../SECURITY.md) in
+  mind, especially dashboard access control and credential handling.
+
+## Commit Messages
+
+Conventional Commit style is recommended because release automation uses Lerna
+with conventional commit support:
+
+```txt
+feat(cap-nest): add subscriber option
+fix(dashboard): handle missing inbox record
+docs: clarify adapter setup
+test(storage): cover retry scheduling
+```
+
+## Security Reports
+
+Do not open public issues for vulnerabilities. Follow the process in
+[SECURITY.md](../SECURITY.md). The public launch checklist must replace the
+security contact TODO with a real private reporting path.

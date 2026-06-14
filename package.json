@@ -1,13 +1,13 @@
 {
   "name": "cap",
   "version": "0.0.1",
-  "description": "",
+  "description": "Monorepo for CAP for NestJS reliable messaging packages.",
   "author": "",
   "private": true,
   "workspaces": [
     "libs/*"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "build": "npm run build:libs && nest build",
     "build:libs": "npm run build:lib:cap-nest && npm run build:lib:cap-dashboard && npm run build:lib:storage && npm run build:lib:transport && npm run build:lib:transport-nestjs-microservices",

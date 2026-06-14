@@ -1,13 +1,13 @@
 # CAP for NestJS
 
-CAP is a NestJS reliability layer for application messaging. It provides an
-outbox/inbox pattern, pluggable storage and transport adapters, retry scheduling,
-and an optional dashboard for inspecting and operating message state.
+CAP is a NestJS reliability layer for application messaging. It adds durable
+outbox/inbox persistence, retry scheduling, pluggable storage and transport
+adapters, and an optional dashboard for inspecting message state.
 
-CAP does not replace NestJS or `@nestjs/microservices`. NestJS gives an
-application structure and transport APIs; `@nestjs/microservices` moves messages
-through brokers; CAP makes those message flows durable by persisting outbox and
-inbox records, retrying failures, and exposing operator visibility.
+CAP does not replace NestJS or `@nestjs/microservices`. NestJS provides the
+application structure and transport APIs; CAP makes message flows more reliable
+by persisting publish and receive records, retrying failures, and exposing
+operator visibility.
 
 ```txt
 NestJS application code
@@ -17,56 +17,68 @@ NestJS application code
           -> Azure Service Bus or NestJS ClientProxy transport
 ```
 
-This repository is a monorepo that contains the core library, first-party
-adapters, a dashboard package, and a test application.
+## Status
 
-## Current Status
+This repository is preparing the first public MVP package set on the
+`0.7.0-beta.0` line. The core messaging path, first-party adapters, dashboard
+auth extension points, header propagation, and release workflow are implemented
+for beta/rc validation before stable graduation.
 
-The project targets the first public MVP package set on the `0.7.0-beta.0`
-line. The core messaging path, first-party adapters, dashboard auth extension
-points, header propagation, and release workflow are implemented for beta/rc
-validation before stable graduation.
+The root workspace package is private. The publishable packages live under
+`libs/*`.
 
 ## Packages
 
-- `@cap/cap-nest` - core NestJS module, abstractions, service, decorators,
-  scanner, scheduler, and in-memory mode.
-- `@cap/mikroorm-storage` - MikroORM storage adapter for outbox and inbox
-  records.
-- `@cap/azure-servicebus-transport` - Azure Service Bus transport adapter.
-- `@cap/nestjs-microservices-transport` - transport adapter that publishes
-  through existing `@nestjs/microservices` `ClientProxy` registrations and
-  exposes an inbound bridge for application-owned `@EventPattern` handlers.
-- `@cap/cap-dashboard` - optional admin REST API and static dashboard UI.
-- `apps/cap-test-app` - demo and integration test application.
+| Package                               | Purpose                                                                                                   |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `@cap/cap-nest`                       | Core NestJS module, service, decorators, scheduler, abstractions, and in-memory mode.                     |
+| `@cap/mikroorm-storage`               | MikroORM storage adapter for outbox and inbox records.                                                    |
+| `@cap/azure-servicebus-transport`     | Azure Service Bus transport adapter.                                                                      |
+| `@cap/nestjs-microservices-transport` | Adapter that publishes through existing NestJS `ClientProxy` registrations and exposes an inbound bridge. |
+| `@cap/cap-dashboard`                  | Optional admin REST API and static dashboard UI.                                                          |
 
-## Quick Start
+`apps/cap-test-app` is a demo and integration test application; it is not a
+published package.
 
-Install dependencies:
+## Requirements
 
-```powershell
-npm install
+- Node.js 22, matching CI.
+- npm, using the committed `package-lock.json`.
+- NestJS 11 for the current beta packages.
+- TypeScript 5.7 or newer for local development.
+
+Adapter-specific requirements:
+
+- `@cap/mikroorm-storage` requires MikroORM 6.
+- `@cap/azure-servicebus-transport` requires Azure Service Bus credentials or
+  an emulator path for external integration testing.
+
+## Installation
+
+Install the core package:
+
+```sh
+npm install @cap/cap-nest
 ```
 
-Run tests:
+For durable storage and Azure Service Bus transport:
 
-```powershell
-npm test
+```sh
+npm install @cap/cap-nest @cap/mikroorm-storage @cap/azure-servicebus-transport
 ```
 
-Build libraries and app:
+For the optional dashboard:
 
-```powershell
-npm run build
+```sh
+npm install @cap/cap-dashboard
 ```
 
-Start the demo app:
+During beta validation, package availability depends on the configured npm
+registry and release channel. See [Release checklist](docs/release.md).
 
-```powershell
-npm run start
-```
+## Basic Usage
 
-For the smallest local setup, use the in-memory bundle:
+The smallest local setup uses the in-memory bundle:
 
 ```ts
 import { Module } from '@nestjs/common';
@@ -78,6 +90,163 @@ import { CapModule } from '@cap/cap-nest';
 export class AppModule {}
 ```
 
+Publish from an injectable:
+
+```ts
+import { Injectable } from '@nestjs/common';
+import { CapService } from '@cap/cap-nest';
+
+@Injectable()
+export class UsersService {
+  constructor(private readonly cap: CapService) {}
+
+  async createUser(): Promise<void> {
+    await this.cap.publish('user.created', {
+      id: 'u1',
+      email: 'alice@example.com',
+    });
+  }
+}
+```
+
+Subscribe with a handler:
+
+```ts
+import { Injectable } from '@nestjs/common';
+import { CapSubscribe } from '@cap/cap-nest';
+
+@Injectable()
+export class MailHandler {
+  @CapSubscribe({ topic: 'user.created', group: 'mail-service' })
+  async handleUserCreated(payload: { id: string; email: string }) {
+    // Send a welcome email.
+  }
+}
+```
+
+## Production-Style Setup
+
+Production applications should use durable storage and an external transport.
+The current first-party production-oriented path combines MikroORM storage with
+Azure Service Bus transport:
+
+```ts
+import { Module } from '@nestjs/common';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { CapAdapterModule, CapModule } from '@cap/cap-nest';
+import {
+  CapPublishEntity,
+  CapReceivedEntity,
+  MikroStorageModule,
+} from '@cap/mikroorm-storage';
+import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
+
+const serviceBusTransport = ServiceBusTransportModule.forRoot({
+  connectionString: process.env.AZURE_SERVICEBUS_CONNECTION_STRING!,
+  topicPrefix: 'cap-',
+  subscriptionPrefix: 'sub-',
+});
+
+@Module({
+  imports: [
+    MikroOrmModule.forRoot({
+      dbName: process.env.DB_NAME,
+      entities: [CapPublishEntity, CapReceivedEntity],
+    }),
+    MikroStorageModule,
+    serviceBusTransport,
+    CapModule.forAdapters(
+      MikroStorageModule,
+      serviceBusTransport as unknown as CapAdapterModule,
+      {
+        createSchema: false,
+        createQueues: false,
+      },
+    ),
+  ],
+})
+export class AppModule {}
+```
+
+Use environment variables or a secret manager for connection strings and
+database credentials. Do not commit real credentials.
+
+## Dashboard
+
+The dashboard is optional and must be protected by an application-owned guard:
+
+```ts
+import { CapDashboardModule } from '@cap/cap-dashboard';
+
+CapDashboardModule.forRoot({
+  guard: {
+    provide: 'CAP_DASHBOARD_GUARD',
+    useValue: { canActivate: () => true },
+  },
+  routePrefix: '/api/cap',
+  uiRoute: '/cap-dashboard',
+});
+```
+
+The sample guard is for local demos only. Replace it with real authentication
+and authorization before exposing dashboard routes.
+
+## API Overview
+
+Primary exports from `@cap/cap-nest`:
+
+- `CapModule` for registering CAP with in-memory or adapter-backed providers.
+- `CapService` for publishing messages.
+- `@CapSubscribe` for registering subscribers.
+- `@CapHeaders` and `CapHeaders` for accessing transport metadata.
+- Storage and transport interfaces/tokens for adapter authors.
+
+See the package READMEs and [documentation index](docs/README.md) for adapter
+details.
+
+## Local Development
+
+Install dependencies:
+
+```sh
+npm install
+```
+
+Run tests:
+
+```sh
+npm test
+```
+
+Run lint checks without modifying files:
+
+```sh
+npm run lint:check
+```
+
+Build libraries and the demo app:
+
+```sh
+npm run build
+```
+
+Verify publish package contents:
+
+```sh
+npm run pack:dry-run
+```
+
+## Troubleshooting
+
+- If dashboard routes are accessible without authentication, replace the sample
+  guard with a real NestJS guard before deploying.
+- If external Service Bus integration tests fail, confirm
+  `SERVICEBUS_CONNECTION_STRING` or an emulator path is available.
+- If package dry-runs fail because npm cannot write to its cache, clear or move
+  the npm cache and rerun the command.
+- Keep automatic schema and broker provisioning disabled in production unless
+  you explicitly want CAP to create those resources.
+
 ## Documentation
 
 - [Documentation index](docs/README.md)
@@ -88,10 +257,14 @@ export class AppModule {}
 - [Roadmap](docs/roadmap.md)
 - [Release checklist](docs/release.md)
 - [ADRs](docs/adr/README.md)
-- [Contributing](docs/contributing.md)
+- [Contributing](CONTRIBUTING.md)
 
-## Architecture Decisions
+## Contributing
 
-Durable architecture decisions are tracked as Architecture Decision Records in
-[`docs/adr`](docs/adr/README.md). Start there when changing core reliability,
-adapter boundaries, dashboard packaging, or transactional behavior.
+Contributions are welcome while the API is maturing. Start with
+[CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks, pull request guidelines,
+and documentation expectations.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
