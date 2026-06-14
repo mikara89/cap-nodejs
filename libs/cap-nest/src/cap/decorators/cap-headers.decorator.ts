@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 
+/** @internal */
 export const CAP_HEADERS_PARAM_METADATA = 'CAP_HEADERS_PARAM_METADATA';
 
 export function CapHeaders(): ParameterDecorator {
@@ -26,6 +27,7 @@ export function CapHeaders(): ParameterDecorator {
   };
 }
 
+/** @internal */
 export function getCapHeadersParamIndex(
   target: object,
   propertyKey: string | symbol | undefined,

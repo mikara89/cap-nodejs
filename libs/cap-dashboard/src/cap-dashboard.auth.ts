@@ -4,6 +4,7 @@ import type { Observable } from 'rxjs';
 
 export const CAP_DASHBOARD_USER_GUARD = 'CAP_DASHBOARD_USER_GUARD';
 export const CAP_DASHBOARD_AUTHORIZER = 'CAP_DASHBOARD_AUTHORIZER';
+/** @internal */
 export const CAP_DASHBOARD_ACCESS_METADATA = 'CAP_DASHBOARD_ACCESS_METADATA';
 
 export type CapDashboardPermission = 'read' | 'admin';

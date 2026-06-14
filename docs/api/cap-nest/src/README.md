@@ -11,7 +11,6 @@
 - [AdapterInitializer](classes/AdapterInitializer.md)
 - [CapModule](classes/CapModule.md)
 - [CapService](classes/CapService.md)
-- [LocalBus](classes/LocalBus.md)
 
 ## Interfaces
 
@@ -40,7 +39,6 @@
 
 ## Variables
 
-- [CAP\_HEADERS\_PARAM\_METADATA](variables/CAP_HEADERS_PARAM_METADATA.md)
 - [CAP\_SUBSCRIBE\_METADATA](variables/CAP_SUBSCRIBE_METADATA.md)
 - [PUBLISH\_STORAGE](variables/PUBLISH_STORAGE.md)
 - [PUBLISHER](variables/PUBLISHER.md)
@@ -51,5 +49,4 @@
 
 - [CapSubscribe](functions/CapSubscribe.md)
 - [discoverSubscriptions](functions/discoverSubscriptions.md)
-- [getCapHeadersParamIndex](functions/getCapHeadersParamIndex.md)
 - [withTransactionAndPostCommit](functions/withTransactionAndPostCommit.md)

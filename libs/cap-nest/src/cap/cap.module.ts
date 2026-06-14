@@ -416,7 +416,7 @@ export class CapModule {
     };
   }
 }
-// simple EventEmitter shared by publisher + subscriber
+/** @internal */
 export class LocalBus implements IPublisher, ISubscriber {
   private readonly listeners = new Map<
     string,

@@ -7,7 +7,7 @@ interface UserCreatedPayload {
 }
 
 @Injectable()
-export class WelcomeEmailHandler {
+class WelcomeEmailHandler {
   @CapSubscribe({ topic: 'user.created', group: 'welcome-email' })
   async handleUserCreated(payload: UserCreatedPayload): Promise<void> {
     await Promise.resolve(payload.email);
@@ -15,7 +15,7 @@ export class WelcomeEmailHandler {
 }
 
 @Injectable()
-export class UsersService {
+class UsersService {
   constructor(private readonly cap: CapService) {}
 
   async createUser(): Promise<void> {
@@ -30,4 +30,4 @@ export class UsersService {
   imports: [CapModule.forInMemory()],
   providers: [UsersService, WelcomeEmailHandler],
 })
-export class InMemoryCapExampleModule {}
+class InMemoryCapExampleModule {}

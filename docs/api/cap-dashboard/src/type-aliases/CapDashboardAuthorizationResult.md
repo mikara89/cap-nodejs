@@ -8,4 +8,4 @@
 
 > **CapDashboardAuthorizationResult** = `boolean` \| `Promise`\<`boolean`\> \| `Observable`\<`boolean`\>
 
-Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:33](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L33)
+Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:34](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L34)

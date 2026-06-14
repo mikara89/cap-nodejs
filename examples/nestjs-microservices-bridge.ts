@@ -9,7 +9,7 @@ import {
 const ORDERS_CLIENT = 'ORDERS_CLIENT';
 
 @Controller()
-export class OrdersEventsController {
+class OrdersEventsController {
   constructor(private readonly capBridge: CapMicroservicesBridge) {}
 
   async handleOrderCreated(message: unknown): Promise<void> {
@@ -17,7 +17,7 @@ export class OrdersEventsController {
   }
 }
 
-export class OrdersPublisher {
+class OrdersPublisher {
   constructor(@Inject(ORDERS_CLIENT) private readonly client: ClientProxy) {}
 
   async emitDirectly(): Promise<void> {
@@ -47,4 +47,4 @@ const transport = NestjsMicroservicesTransportModule.forRoot({
   controllers: [OrdersEventsController],
   providers: [OrdersPublisher],
 })
-export class NestjsMicroservicesBridgeExampleModule {}
+class NestjsMicroservicesBridgeExampleModule {}

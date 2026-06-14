@@ -8,4 +8,4 @@
 
 > **CapDashboardAuthorizerDelegate** = [`CapDashboardAuthorizer`](../interfaces/CapDashboardAuthorizer.md) \| [`CapDashboardAuthorizerFunction`](CapDashboardAuthorizerFunction.md)
 
-Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:48](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L48)
+Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:49](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L49)
