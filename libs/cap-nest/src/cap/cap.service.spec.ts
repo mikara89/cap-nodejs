@@ -62,11 +62,7 @@ describe('CapService (unit)', () => {
     const handlers = subscriber.listeners.get('topic-x|group-1');
     expect(handlers).toBeDefined();
     for (const fn of handlers!) {
-      await fn(
-        { foo: 'bar' },
-        { traceId: 'sub' },
-        { messageId: 'msg-1' },
-      );
+      await fn({ foo: 'bar' }, { traceId: 'sub' }, { messageId: 'msg-1' });
     }
 
     expect(recStore.trySaveReceived).toHaveBeenCalled();
@@ -99,7 +95,8 @@ describe('CapService (unit)', () => {
 
     const handlers = subscriber.listeners.get('topic-retry|group-r');
     expect(handlers).toBeDefined();
-    for (const fn of handlers!) await fn({ z: 9 }, undefined, { messageId: 'm-r' });
+    for (const fn of handlers!)
+      await fn({ z: 9 }, undefined, { messageId: 'm-r' });
 
     expect(recStore.trySaveReceived).toHaveBeenCalled();
     expect(recStore.scheduleRetry).toHaveBeenCalled();

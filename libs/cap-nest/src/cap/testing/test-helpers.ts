@@ -32,13 +32,14 @@ export function createInMemoryPublisher(): IPublisher & {
   }> = [];
   return {
     emitted,
-    async emit(
+    emit(
       topic: string,
       payload: unknown,
       headers?: CapHeaders,
       metadata?: CapPublishMetadata,
-    ) {
+    ): Promise<void> {
       emitted.push({ topic, payload, headers, metadata });
+      return Promise.resolve();
     },
   };
 }
@@ -46,31 +47,20 @@ export function createInMemoryPublisher(): IPublisher & {
 export function createInMemorySubscriber(): ISubscriber & {
   listeners: Map<
     string,
-    Set<
-      (
-        p: unknown,
-        h?: CapHeaders,
-        m?: CapDeliveryMetadata,
-      ) => Promise<void>
-    >
+    Set<(p: unknown, h?: CapHeaders, m?: CapDeliveryMetadata) => Promise<void>>
   >;
 } {
   const listeners = new Map<
     string,
-    Set<
-      (
-        p: unknown,
-        h?: CapHeaders,
-        m?: CapDeliveryMetadata,
-      ) => Promise<void>
-    >
+    Set<(p: unknown, h?: CapHeaders, m?: CapDeliveryMetadata) => Promise<void>>
   >();
   return {
     listeners,
-    async consume(topic, group, onMessage) {
+    consume(topic, group, onMessage): Promise<void> {
       const key = `${topic}|${group}`;
       if (!listeners.has(key)) listeners.set(key, new Set());
       listeners.get(key)?.add(onMessage);
+      return Promise.resolve();
     },
   };
 }
@@ -81,11 +71,11 @@ export function createInMemoryPublishStorage(): IPublishStorage & {
   const store = new Map<string, CapPublishEvent<JsonValue>>();
   return {
     store,
-    async savePublish(e) {
-      store.set(e.id, e as CapPublishEvent<JsonValue>);
-      return e.id;
+    savePublish(e) {
+      store.set(e.id, e);
+      return Promise.resolve(e.id);
     },
-    async claimUnpublished(options: ClaimUnpublishedOptions) {
+    claimUnpublished(options: ClaimUnpublishedOptions) {
       const claimed: CapPublishEvent<JsonValue>[] = [];
       for (const event of store.values()) {
         if (claimed.length >= options.limit) break;
@@ -95,38 +85,46 @@ export function createInMemoryPublishStorage(): IPublishStorage & {
         event.lockedUntil = options.lockUntil;
         claimed.push({ ...event });
       }
-      return claimed;
+      return Promise.resolve(claimed);
     },
-    async markPublished(id, publishedAt = new Date()) {
+    markPublished(id, publishedAt = new Date()) {
       const ev = store.get(id);
-      if (!ev) return;
+      if (!ev) return Promise.resolve();
       ev.status = 'published';
       ev.publishedAt = publishedAt;
       ev.lockedBy = null;
       ev.lockedUntil = null;
+      return Promise.resolve();
     },
-    async markPublishFailed(
+    markPublishFailed(
       id: string,
       error: unknown,
       options: MarkPublishFailedOptions,
-    ) {
+    ): Promise<void> {
       const ev = store.get(id);
-      if (!ev) return;
+      if (!ev) return Promise.resolve();
       ev.retryCount += 1;
-      ev.status = ev.retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
+      ev.status =
+        ev.retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
       ev.nextRetryAt = ev.status === 'dead_letter' ? null : options.nextRetryAt;
       ev.lastError = error instanceof Error ? error.message : String(error);
       ev.lockedBy = null;
       ev.lockedUntil = null;
+      return Promise.resolve();
     },
-    async releaseExpiredClaims(now: Date) {
+    releaseExpiredClaims(now: Date): Promise<void> {
       for (const ev of store.values()) {
-        if (ev.status === 'processing' && ev.lockedUntil && ev.lockedUntil <= now) {
+        if (
+          ev.status === 'processing' &&
+          ev.lockedUntil &&
+          ev.lockedUntil <= now
+        ) {
           ev.status = 'failed';
           ev.lockedBy = null;
           ev.lockedUntil = null;
         }
       }
+      return Promise.resolve();
     },
   };
 }
@@ -138,46 +136,55 @@ export function createInMemoryReceivedStorage(): IReceivedStorage & {
   const dedupe = new Map<string, string>();
   return {
     store,
-    async trySaveReceived<T extends JsonValue = JsonValue>(
+    trySaveReceived<T extends JsonValue = JsonValue>(
       e: CapReceivedEvent<T>,
     ): Promise<TrySaveReceivedResult<T>> {
       const existingId = dedupe.get(e.dedupeKey);
       if (existingId) {
-        return {
+        return Promise.resolve({
           inserted: false,
           id: existingId,
           event: store.get(existingId) as CapReceivedEvent<T>,
-        };
+        });
       }
-      store.set(e.id, e as CapReceivedEvent<JsonValue>);
+      store.set(e.id, e);
       dedupe.set(e.dedupeKey, e.id);
-      return { inserted: true, id: e.id, event: e };
+      return Promise.resolve({ inserted: true, id: e.id, event: e });
     },
-    async markProcessed(id: string) {
+    markProcessed(id: string): Promise<void> {
       const ev = store.get(id);
       if (ev) ev.processed = true;
+      return Promise.resolve();
     },
-    async getRetryDue(limit: number) {
+    getRetryDue(limit: number): Promise<CapReceivedEvent<JsonValue>[]> {
       const now = Date.now();
-      return [...store.values()]
-        .filter(
-          (r) => !r.processed && r.nextRetry && r.nextRetry.getTime() <= now,
-        )
-        .slice(0, limit);
+      return Promise.resolve(
+        [...store.values()]
+          .filter(
+            (r) => !r.processed && r.nextRetry && r.nextRetry.getTime() <= now,
+          )
+          .slice(0, limit),
+      );
     },
-    async scheduleRetry(id: string, retryCount: number, nextRetry: Date) {
+    scheduleRetry(
+      id: string,
+      retryCount: number,
+      nextRetry: Date,
+    ): Promise<void> {
       const ev = store.get(id);
       if (ev) {
         ev.retryCount = retryCount;
         ev.nextRetry = nextRetry;
       }
+      return Promise.resolve();
     },
   };
 }
 
 function isClaimable(event: CapPublishEvent, now: Date): boolean {
   if (event.status === 'pending') return true;
-  if (event.status === 'failed') return !event.nextRetryAt || event.nextRetryAt <= now;
+  if (event.status === 'failed')
+    return !event.nextRetryAt || event.nextRetryAt <= now;
   if (event.status === 'processing') {
     return Boolean(event.lockedUntil && event.lockedUntil <= now);
   }

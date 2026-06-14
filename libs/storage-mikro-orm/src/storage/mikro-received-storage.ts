@@ -36,7 +36,10 @@ export class MikroReceivedStorage implements IReceivedStorage {
         await schemaGen.createSchema();
       }
     } catch (err) {
-      this.logger.warn('initialize() failed for MikroReceivedStorage', err as Error);
+      this.logger.warn(
+        'initialize() failed for MikroReceivedStorage',
+        err as Error,
+      );
     }
   }
 
@@ -63,7 +66,7 @@ export class MikroReceivedStorage implements IReceivedStorage {
       group: event.group,
       messageId: event.messageId,
       dedupeKey: event.dedupeKey,
-      payload: event.payload as JsonValue,
+      payload: event.payload,
       headers: event.headers,
       processed: event.processed || false,
       retryCount: event.retryCount || 0,

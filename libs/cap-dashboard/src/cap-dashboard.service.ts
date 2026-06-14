@@ -108,7 +108,10 @@ export class CapDashboardService {
         return { success: false, message: `publish record ${id} not found` };
       }
       if (!this.publisher) {
-        return { success: false, message: 'No publisher available to emit message' };
+        return {
+          success: false,
+          message: 'No publisher available to emit message',
+        };
       }
 
       await this.publisher.emit(rec.topic, rec.payload, rec.headers, {
@@ -146,7 +149,9 @@ export class CapDashboardService {
           due: toBoolean(query?.due),
         });
         return {
-          items: res.items.map((r) => mapReceivedToInboxDto(r, false, this.options)),
+          items: res.items.map((r) =>
+            mapReceivedToInboxDto(r, false, this.options),
+          ),
           total: res.total ?? res.items.length,
           page: query?.page ?? 1,
           limit,
@@ -181,7 +186,10 @@ export class CapDashboardService {
         return { success: false, message: `received record ${id} not found` };
       }
       if (!this.capService) {
-        return { success: false, message: 'CapService not available to retry handler' };
+        return {
+          success: false,
+          message: 'CapService not available to retry handler',
+        };
       }
 
       await this.capService.retryReceived(rec);
@@ -209,7 +217,10 @@ export class CapDashboardService {
 
     try {
       if (!this.publisher) {
-        return { success: false, message: 'No publisher available to emit messages' };
+        return {
+          success: false,
+          message: 'No publisher available to emit messages',
+        };
       }
 
       const now = new Date();
@@ -253,7 +264,10 @@ export class CapDashboardService {
 
   private resolveLimit(query: Pick<ListQueryDto, 'limit'> | undefined): number {
     const requested = query?.limit ?? DEFAULT_LIST_LIMIT;
-    return Math.min(Math.max(Number(requested) || DEFAULT_LIST_LIMIT, 1), this.options.maxPageSize);
+    return Math.min(
+      Math.max(Number(requested) || DEFAULT_LIST_LIMIT, 1),
+      this.options.maxPageSize,
+    );
   }
 }
 
@@ -262,7 +276,10 @@ function mapPublishToOutboxDto(
   full: boolean,
   options: CapDashboardServiceOptions,
 ): OutboxItemDto {
-  const redactedPayload = redactPayload(evt.payload, options.redact.payloadPaths);
+  const redactedPayload = redactPayload(
+    evt.payload,
+    options.redact.payloadPaths,
+  );
   const redactedHeaders = redactHeaders(evt.headers, options.redact.headers);
 
   return {
@@ -285,7 +302,10 @@ function mapReceivedToInboxDto(
   full: boolean,
   options: CapDashboardServiceOptions,
 ): InboxItemDto {
-  const redactedPayload = redactPayload(evt.payload, options.redact.payloadPaths);
+  const redactedPayload = redactPayload(
+    evt.payload,
+    options.redact.payloadPaths,
+  );
   const redactedHeaders = redactHeaders(evt.headers, options.redact.headers);
 
   return {
@@ -305,10 +325,7 @@ function mapReceivedToInboxDto(
   };
 }
 
-function redactHeaders(
-  headers: unknown,
-  sensitiveHeaders: string[],
-): unknown {
+function redactHeaders(headers: unknown, sensitiveHeaders: string[]): unknown {
   if (!headers || typeof headers !== 'object' || Array.isArray(headers)) {
     return headers;
   }

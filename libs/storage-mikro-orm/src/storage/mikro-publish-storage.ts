@@ -9,6 +9,22 @@ import {
 } from '@mikara89/cap-nest';
 import { CapPublishEntity } from '../entities/cap-publish.entity';
 
+type PublishEntityData = {
+  id: string;
+  topic: string;
+  payload: JsonValue;
+  headers: CapPublishEvent<JsonValue>['headers'];
+  retryCount: number;
+  status: CapPublishEvent<JsonValue>['status'];
+  nextRetryAt: Date | null;
+  lastError: string | null;
+  lockedBy: string | null;
+  lockedUntil: Date | null;
+  publishedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 @Injectable()
 export class MikroPublishStorage implements IPublishStorage {
   private readonly logger = new Logger(MikroPublishStorage.name);
@@ -37,7 +53,10 @@ export class MikroPublishStorage implements IPublishStorage {
         await schemaGen.createSchema();
       }
     } catch (err) {
-      this.logger.warn('initialize() failed for MikroPublishStorage', err as Error);
+      this.logger.warn(
+        'initialize() failed for MikroPublishStorage',
+        err as Error,
+      );
     }
   }
 
@@ -167,13 +186,18 @@ function claimableWhere(now: Date): FilterQuery<CapPublishEntity> {
   return {
     $or: [
       { status: 'pending' },
-      { status: 'failed', $or: [{ nextRetryAt: null }, { nextRetryAt: { $lte: now } }] },
+      {
+        status: 'failed',
+        $or: [{ nextRetryAt: null }, { nextRetryAt: { $lte: now } }],
+      },
       { status: 'processing', lockedUntil: { $lte: now } },
     ],
   };
 }
 
-function mapPublishToEntity(event: CapPublishEvent<JsonValue>) {
+function mapPublishToEntity(
+  event: CapPublishEvent<JsonValue>,
+): PublishEntityData {
   return {
     id: event.id,
     topic: event.topic,
@@ -191,7 +215,9 @@ function mapPublishToEntity(event: CapPublishEvent<JsonValue>) {
   };
 }
 
-function mapPublishEntity(entity: CapPublishEntity): CapPublishEvent<JsonValue> {
+function mapPublishEntity(
+  entity: CapPublishEntity,
+): CapPublishEvent<JsonValue> {
   return {
     id: entity.id,
     topic: entity.topic,

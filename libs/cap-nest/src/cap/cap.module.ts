@@ -1,8 +1,7 @@
-import {
+import { Global, Module } from '@nestjs/common';
+import type {
   DynamicModule,
-  Global,
   InjectionToken,
-  Module,
   OptionalFactoryDependency,
   Provider,
   Type,
@@ -33,7 +32,7 @@ import {
 import type { CapHeaders } from './models/cap-headers.type';
 import type { InitOptions } from './abstractions/initializer.interface';
 import { CapPublishEvent } from './models/cap-publish-event';
-import { JsonValue } from './models/json-value.type';
+import type { JsonValue } from './models/json-value.type';
 import {
   CAP_MODULE_OPTIONS,
   CAP_SCHEDULER_OPTIONS,
@@ -49,9 +48,14 @@ export interface CapModuleAsyncOptions {
   imports?: CapModuleOptions['imports'];
   useExisting?: Type<CapModuleFactory>;
   useClass?: Type<CapModuleFactory>;
-  useFactory?: (...args: unknown[]) => Promise<CapModuleOptions> | CapModuleOptions;
+  useFactory?: (
+    ...args: unknown[]
+  ) => Promise<CapModuleOptions> | CapModuleOptions;
   inject?: (InjectionToken | OptionalFactoryDependency)[];
 }
+
+type CapModuleImport = NonNullable<CapModuleOptions['imports']>[number];
+type CapModuleExport = Exclude<CapModuleImport, Promise<unknown>>;
 
 @Global()
 @Module({})
@@ -80,7 +84,7 @@ export class CapModule {
         initProvider,
         ...CapSchedulerModule.attach(!schedulerDisabled).providers,
       ],
-      exports: [CapService, ...((opts.imports ?? []) as Array<any>)],
+      exports: [CapService, ...exportableImports(opts.imports)],
     };
   }
 
@@ -91,7 +95,10 @@ export class CapModule {
 
     return {
       module: CapModule,
-      imports: [...(opts.imports ?? []), ...CapSchedulerModule.attach(true).imports],
+      imports: [
+        ...(opts.imports ?? []),
+        ...CapSchedulerModule.attach(true).imports,
+      ],
       providers: [
         ...(opts.useClass && !opts.useExisting ? [opts.useClass] : []),
         asyncOptionsProvider,
@@ -101,11 +108,13 @@ export class CapModule {
         initProvider,
         ...CapSchedulerModule.attach(true).providers,
       ],
-      exports: [CapService, ...((opts.imports ?? []) as Array<any>)],
+      exports: [CapService, ...exportableImports(opts.imports)],
     };
   }
 
-  static forInMemory(options: Omit<CapModuleOptions, 'imports'> = {}): DynamicModule {
+  static forInMemory(
+    options: Omit<CapModuleOptions, 'imports'> = {},
+  ): DynamicModule {
     return this.forRoot({
       ...options,
       imports: [createInMemoryAdaptersModule()],
@@ -131,14 +140,16 @@ export class LocalBus implements IPublisher, ISubscriber {
         Array.from(handlers).map((fn) =>
           fn(payload, headers, {
             messageId: metadata?.messageId,
-            dedupeKey: metadata?.messageId ? `${topic}|${metadata.messageId}` : undefined,
+            dedupeKey: metadata?.messageId
+              ? `${topic}|${metadata.messageId}`
+              : undefined,
           }),
         ),
       );
     }
   }
 
-  async consume(
+  consume(
     topic: string,
     _group: string,
     on: (
@@ -149,6 +160,7 @@ export class LocalBus implements IPublisher, ISubscriber {
   ): Promise<void> {
     if (!this.listeners.has(topic)) this.listeners.set(topic, new Set());
     this.listeners.get(topic)?.add(on);
+    return Promise.resolve();
   }
 }
 
@@ -177,10 +189,21 @@ function createAsyncOptionsProvider(opts: CapModuleAsyncOptions): Provider {
   };
 }
 
+function exportableImports(
+  imports: CapModuleOptions['imports'],
+): CapModuleExport[] {
+  return (imports ?? []).filter(
+    (moduleImport): moduleImport is CapModuleExport =>
+      !(moduleImport instanceof Promise),
+  );
+}
+
 function createSchedulerOptionsProvider(): Provider {
   return {
     provide: CAP_SCHEDULER_OPTIONS,
-    useFactory: (options: CapModuleOptions = {}): ResolvedCapSchedulerOptions => {
+    useFactory: (
+      options: CapModuleOptions = {},
+    ): ResolvedCapSchedulerOptions => {
       const scheduler = options.scheduler ?? {};
       return {
         batchSize: scheduler.batchSize ?? 200,
@@ -209,8 +232,9 @@ function createInitProvider(): Provider {
       const init = options.init;
       if (!init) return;
 
-      const adapters: Array<{ initialize?: (options?: InitOptions) => Promise<void> }> =
-        [pubStorage, recStorage, publisher, subscriber];
+      const adapters: Array<{
+        initialize?: (options?: InitOptions) => Promise<void>;
+      }> = [pubStorage, recStorage, publisher, subscriber];
 
       await Promise.all(
         adapters.map(async (adapter) => {
@@ -234,12 +258,14 @@ function createInMemoryAdaptersModule(): DynamicModule {
   class InMemPublishStorage implements IPublishStorage {
     private readonly m = new Map<string, CapPublishEvent<JsonValue>>();
 
-    async savePublish<T = JsonValue>(e: CapPublishEvent<T>): Promise<string> {
-      this.m.set(e.id, e as CapPublishEvent<JsonValue>);
-      return e.id;
+    savePublish<T extends JsonValue = JsonValue>(
+      e: CapPublishEvent<T>,
+    ): Promise<string> {
+      this.m.set(e.id, e);
+      return Promise.resolve(e.id);
     }
 
-    async claimUnpublished(
+    claimUnpublished(
       options: ClaimUnpublishedOptions,
     ): Promise<CapPublishEvent<JsonValue>[]> {
       const claimed: CapPublishEvent<JsonValue>[] = [];
@@ -251,25 +277,26 @@ function createInMemoryAdaptersModule(): DynamicModule {
         event.lockedUntil = options.lockUntil;
         claimed.push({ ...event });
       }
-      return claimed;
+      return Promise.resolve(claimed);
     }
 
-    async markPublished(id: string, publishedAt = new Date()): Promise<void> {
+    markPublished(id: string, publishedAt = new Date()): Promise<void> {
       const event = this.m.get(id);
-      if (!event) return;
+      if (!event) return Promise.resolve();
       event.status = 'published';
       event.publishedAt = publishedAt;
       event.lockedBy = null;
       event.lockedUntil = null;
+      return Promise.resolve();
     }
 
-    async markPublishFailed(
+    markPublishFailed(
       id: string,
       error: unknown,
       options: MarkPublishFailedOptions,
     ): Promise<void> {
       const event = this.m.get(id);
-      if (!event) return;
+      if (!event) return Promise.resolve();
       const nextRetryCount = event.retryCount + 1;
       event.retryCount = nextRetryCount;
       event.status =
@@ -279,9 +306,10 @@ function createInMemoryAdaptersModule(): DynamicModule {
       event.lastError = error instanceof Error ? error.message : String(error);
       event.lockedBy = null;
       event.lockedUntil = null;
+      return Promise.resolve();
     }
 
-    async releaseExpiredClaims(now: Date): Promise<void> {
+    releaseExpiredClaims(now: Date): Promise<void> {
       for (const event of this.m.values()) {
         if (
           event.status === 'processing' &&
@@ -293,16 +321,17 @@ function createInMemoryAdaptersModule(): DynamicModule {
           event.lockedUntil = null;
         }
       }
+      return Promise.resolve();
     }
 
-    async findPublishById(
+    findPublishById(
       id: string,
     ): Promise<CapPublishEvent<JsonValue> | undefined> {
       const event = this.m.get(id);
-      return event ? { ...event } : undefined;
+      return Promise.resolve(event ? { ...event } : undefined);
     }
 
-    async listPublish(
+    listPublish(
       opts: {
         limit?: number;
         offset?: number;
@@ -317,10 +346,10 @@ function createInMemoryAdaptersModule(): DynamicModule {
       }
       const total = filtered.length;
       const offset = opts.offset ?? 0;
-      return {
+      return Promise.resolve({
         items: filtered.slice(offset, offset + (opts.limit ?? total)),
         total,
-      };
+      });
     }
   }
 
@@ -328,57 +357,63 @@ function createInMemoryAdaptersModule(): DynamicModule {
     private readonly m = new Map<string, CapReceivedEvent<JsonValue>>();
     private readonly dedupe = new Map<string, string>();
 
-    async trySaveReceived<T extends JsonValue = JsonValue>(
+    trySaveReceived<T extends JsonValue = JsonValue>(
       e: CapReceivedEvent<T>,
     ): Promise<TrySaveReceivedResult<T>> {
       const existingId = this.dedupe.get(e.dedupeKey);
       if (existingId) {
         const existing = this.m.get(existingId) as CapReceivedEvent<T>;
-        return { inserted: false, id: existingId, event: existing };
+        return Promise.resolve({
+          inserted: false,
+          id: existingId,
+          event: existing,
+        });
       }
 
-      this.m.set(e.id, e as CapReceivedEvent<JsonValue>);
+      this.m.set(e.id, e);
       this.dedupe.set(e.dedupeKey, e.id);
-      return { inserted: true, id: e.id, event: e };
+      return Promise.resolve({ inserted: true, id: e.id, event: e });
     }
 
-    async markProcessed(id: string): Promise<void> {
+    markProcessed(id: string): Promise<void> {
       const event = this.m.get(id);
       if (event) event.processed = true;
+      return Promise.resolve();
     }
 
-    async getRetryDue(limit: number): Promise<CapReceivedEvent<JsonValue>[]> {
+    getRetryDue(limit: number): Promise<CapReceivedEvent<JsonValue>[]> {
       const now = Date.now();
-      return [...this.m.values()]
-        .filter(
-          (rec) =>
-            !rec.processed &&
-            rec.nextRetry &&
-            rec.nextRetry.getTime() <= now,
-        )
-        .slice(0, limit)
-        .map((rec) => ({ ...rec }));
+      return Promise.resolve(
+        [...this.m.values()]
+          .filter(
+            (rec) =>
+              !rec.processed && rec.nextRetry && rec.nextRetry.getTime() <= now,
+          )
+          .slice(0, limit)
+          .map((rec) => ({ ...rec })),
+      );
     }
 
-    async scheduleRetry(
+    scheduleRetry(
       id: string,
       retryCount: number,
       nextRetry: Date,
     ): Promise<void> {
       const event = this.m.get(id);
-      if (!event) return;
+      if (!event) return Promise.resolve();
       event.retryCount = retryCount;
       event.nextRetry = nextRetry;
+      return Promise.resolve();
     }
 
-    async findReceivedById(
+    findReceivedById(
       id: string,
     ): Promise<CapReceivedEvent<JsonValue> | undefined> {
       const event = this.m.get(id);
-      return event ? { ...event } : undefined;
+      return Promise.resolve(event ? { ...event } : undefined);
     }
 
-    async listReceived(
+    listReceived(
       opts: {
         limit?: number;
         offset?: number;
@@ -396,7 +431,10 @@ function createInMemoryAdaptersModule(): DynamicModule {
       }
       const total = all.length;
       const offset = opts.offset ?? 0;
-      return { items: all.slice(offset, offset + (opts.limit ?? total)), total };
+      return Promise.resolve({
+        items: all.slice(offset, offset + (opts.limit ?? total)),
+        total,
+      });
     }
   }
 

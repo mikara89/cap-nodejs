@@ -7,6 +7,7 @@ import {
   PUBLISH_STORAGE,
   RECEIVED_STORAGE,
   ITransactionalPublishStorage,
+  TrySaveReceivedResult,
 } from './abstractions/storage.interface';
 import {
   IPublisher,
@@ -90,7 +91,9 @@ export class CapService {
     group: string,
     handler: Handler<T>,
   ): void {
-    this.registerHandler(topic, group, handler as Handler<unknown>);
+    this.registerHandler(topic, group, (payload, headers) =>
+      handler(payload as T, headers),
+    );
 
     this.subscriber
       .consume(topic, group, async (msg, headers, metadata) => {
@@ -127,7 +130,9 @@ export class CapService {
     await this.tryHandle(rec, handler);
   }
 
-  private async emitPersistedEvent(evt: CapPublishEvent<JsonValue>): Promise<void> {
+  private async emitPersistedEvent(
+    evt: CapPublishEvent<JsonValue>,
+  ): Promise<void> {
     try {
       const headers = withCapMessageId(evt.headers, evt.id);
       await this.publisher.emit(evt.topic, evt.payload, headers, {
@@ -160,7 +165,7 @@ export class CapService {
     payload: T,
     headers?: CapHeaders,
     metadata?: CapDeliveryMetadata,
-  ) {
+  ): Promise<TrySaveReceivedResult<JsonValue>> {
     const unwrapped = unwrapMessage(payload, headers);
     const messageId =
       metadata?.messageId ??

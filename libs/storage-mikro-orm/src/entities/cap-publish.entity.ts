@@ -1,5 +1,9 @@
 import { Entity, PrimaryKey, Property, Index } from '@mikro-orm/core';
-import type { CapHeaders, CapPublishStatus, JsonValue } from '@mikara89/cap-nest';
+import type {
+  CapHeaders,
+  CapPublishStatus,
+  JsonValue,
+} from '@mikara89/cap-nest';
 import { v4 as uuid } from 'uuid';
 
 /**

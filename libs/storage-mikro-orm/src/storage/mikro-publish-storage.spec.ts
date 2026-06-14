@@ -18,7 +18,7 @@ describe('MikroPublishStorage', () => {
       find: jest.fn(),
       findAndCount: jest.fn(),
       flush: jest.fn(),
-      transactional: jest.fn(async (fn) => fn(mockEm)),
+      transactional: jest.fn((fn) => Promise.resolve(fn(mockEm))),
     };
 
     const moduleRef = await Test.createTestingModule({

@@ -1,4 +1,4 @@
-import { ModuleMetadata } from '@nestjs/common';
+import type { ModuleMetadata } from '@nestjs/common';
 import type { InitOptions } from './abstractions/initializer.interface';
 
 export const CAP_MODULE_OPTIONS = Symbol('CAP_MODULE_OPTIONS');

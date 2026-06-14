@@ -1,4 +1,4 @@
-import { DynamicModule } from '@nestjs/common';
+import type { DynamicModule, Provider } from '@nestjs/common';
 import { CapModule } from './cap.module';
 import { PUBLISHER, SUBSCRIBER } from './abstractions/transport.interface';
 import {
@@ -10,10 +10,10 @@ describe('CapModule initialization', () => {
   it('calls initialize() on adapters when init options provided', async () => {
     const initOptions = { createSchema: true, createQueues: true };
 
-    const pubStorage = { initialize: jest.fn(async () => undefined) };
-    const recStorage = { initialize: jest.fn(async () => undefined) };
-    const publisher = { initialize: jest.fn(async () => undefined) };
-    const subscriber = { initialize: jest.fn(async () => undefined) };
+    const pubStorage = { initialize: jest.fn(() => Promise.resolve()) };
+    const recStorage = { initialize: jest.fn(() => Promise.resolve()) };
+    const publisher = { initialize: jest.fn(() => Promise.resolve()) };
+    const subscriber = { initialize: jest.fn(() => Promise.resolve()) };
 
     const adaptersModule: DynamicModule = {
       module: class TestAdaptersModule {},
@@ -32,9 +32,22 @@ describe('CapModule initialization', () => {
     });
 
     const initProv = dm.providers?.find(
-      (p: any) => p?.provide === 'CAP_INIT',
-    ) as any;
+      (
+        p,
+      ): p is Provider & {
+        provide: string;
+        useFactory?: (...args: unknown[]) => Promise<void>;
+      } =>
+        typeof p === 'object' &&
+        p !== null &&
+        'provide' in p &&
+        p.provide === 'CAP_INIT',
+    );
     expect(initProv).toBeDefined();
+
+    if (!initProv) {
+      throw new Error('CAP_INIT provider not found');
+    }
 
     await initProv.useFactory?.(
       { init: initOptions },

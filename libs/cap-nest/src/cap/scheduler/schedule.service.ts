@@ -37,7 +37,9 @@ export class RetrySchedulerService implements OnModuleDestroy {
     @Optional() private readonly schedulerRegistry?: SchedulerRegistry,
   ) {}
 
-  @Cron(CronExpression.EVERY_30_SECONDS, { name: `${CAP_JOB_PREFIX}flush-outbox` })
+  @Cron(CronExpression.EVERY_30_SECONDS, {
+    name: `${CAP_JOB_PREFIX}flush-outbox`,
+  })
   async flushOutbox(): Promise<void> {
     if (this.options.disabled) return;
 
@@ -70,7 +72,9 @@ export class RetrySchedulerService implements OnModuleDestroy {
         });
 
         const message = err instanceof Error ? err.message : String(err);
-        this.log.error(`outbox #${evt.id} emit failed (${evt.topic}): ${message}`);
+        this.log.error(
+          `outbox #${evt.id} emit failed (${evt.topic}): ${message}`,
+        );
       }
     }
   }
@@ -102,7 +106,9 @@ export class RetrySchedulerService implements OnModuleDestroy {
           schedulerRegistry.deleteCronJob(name);
           this.log.debug(`Stopped and removed CAP cron job: ${name}`);
         } catch (err) {
-          this.log.warn(`Failed to stop/delete CAP cron job ${name}: ${String(err)}`);
+          this.log.warn(
+            `Failed to stop/delete CAP cron job ${name}: ${String(err)}`,
+          );
         }
       });
     } catch {

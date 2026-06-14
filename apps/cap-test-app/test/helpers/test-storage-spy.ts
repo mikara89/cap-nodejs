@@ -105,7 +105,7 @@ export class TestStorageSpy implements IPublishStorage, IReceivedStorage {
   trySaveReceived<T extends JsonValue = JsonValue>(
     evt: CapReceivedEvent<T>,
   ): Promise<TrySaveReceivedResult<T>> {
-    this.trySaveReceivedCalls.push(evt as CapReceivedEvent);
+    this.trySaveReceivedCalls.push(evt);
     const existingId = this.receivedDedupe.get(evt.dedupeKey);
     if (existingId) {
       return Promise.resolve({
@@ -114,7 +114,7 @@ export class TestStorageSpy implements IPublishStorage, IReceivedStorage {
         event: this.receivedEvents.get(existingId) as CapReceivedEvent<T>,
       });
     }
-    this.receivedEvents.set(evt.id, evt as CapReceivedEvent<JsonValue>);
+    this.receivedEvents.set(evt.id, evt);
     this.receivedDedupe.set(evt.dedupeKey, evt.id);
     return Promise.resolve({ inserted: true, id: evt.id, event: evt });
   }

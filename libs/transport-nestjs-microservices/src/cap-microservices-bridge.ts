@@ -65,11 +65,7 @@ function unwrapMessage(
     };
   }
 
-  if (
-    message &&
-    typeof message === 'object' &&
-    'payload' in message
-  ) {
+  if (message && typeof message === 'object' && 'payload' in message) {
     const wrapped = message as {
       payload: unknown;
       headers?: CapHeaders;

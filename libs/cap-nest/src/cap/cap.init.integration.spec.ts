@@ -1,4 +1,4 @@
-import { DynamicModule } from '@nestjs/common';
+import type { DynamicModule } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { CapModule } from './cap.module';
 import { PUBLISHER, SUBSCRIBER } from './abstractions/transport.interface';
@@ -11,10 +11,10 @@ describe('CapModule bootstrap integration', () => {
   it('invokes initialize() on adapters during Nest bootstrap', async () => {
     const initOptions = { createSchema: true, createQueues: true };
 
-    const pubStore = { initialize: jest.fn(async () => undefined) };
-    const recStore = { initialize: jest.fn(async () => undefined) };
-    const publisher = { initialize: jest.fn(async () => undefined) };
-    const subscriber = { initialize: jest.fn(async () => undefined) };
+    const pubStore = { initialize: jest.fn(() => Promise.resolve()) };
+    const recStore = { initialize: jest.fn(() => Promise.resolve()) };
+    const publisher = { initialize: jest.fn(() => Promise.resolve()) };
+    const subscriber = { initialize: jest.fn(() => Promise.resolve()) };
 
     const adaptersModule: DynamicModule = {
       module: class TestAdaptersModule {},

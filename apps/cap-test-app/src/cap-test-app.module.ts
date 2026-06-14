@@ -5,12 +5,7 @@ import type { Options as MikroOptions } from '@mikro-orm/core';
 import { BetterSqliteDriver } from '@mikro-orm/better-sqlite';
 import { CapTestAppController } from './cap-test-app.controller';
 import { CapTestAppService } from './cap-test-app.service';
-import {
-  CapModule,
-  LocalBus,
-  PUBLISHER,
-  SUBSCRIBER,
-} from '@mikara89/cap-nest';
+import { CapModule, LocalBus, PUBLISHER, SUBSCRIBER } from '@mikara89/cap-nest';
 import { CapExampleHandler } from './cap-example.handler';
 import {
   MikroStorageModule,

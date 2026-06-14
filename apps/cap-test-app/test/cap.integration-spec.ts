@@ -1,5 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing';
-import { DynamicModule, type INestApplication } from '@nestjs/common';
+import type { DynamicModule, INestApplication } from '@nestjs/common';
 import {
   CapModule,
   CapService,

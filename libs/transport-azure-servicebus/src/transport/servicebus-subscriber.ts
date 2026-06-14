@@ -335,9 +335,7 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
               (msg.applicationProperties ?? {}) as CapHeaders,
               {
                 messageId,
-                dedupeKey: messageId
-                  ? `${target.key}|${messageId}`
-                  : undefined,
+                dedupeKey: messageId ? `${target.key}|${messageId}` : undefined,
               },
             );
           } catch (err) {
@@ -376,5 +374,7 @@ function normalizeMessageId(
   messageId: string | number | Buffer | undefined,
 ): string | undefined {
   if (messageId === undefined) return undefined;
-  return Buffer.isBuffer(messageId) ? messageId.toString('utf8') : String(messageId);
+  return Buffer.isBuffer(messageId)
+    ? messageId.toString('utf8')
+    : String(messageId);
 }
