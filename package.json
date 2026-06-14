@@ -23,7 +23,7 @@
     "build:libs:lerna": "npx lerna run build --stream",
     "release": "npx lerna publish --conventional-commits --yes",
     "build:lib:cap-nest": "cd libs/cap-nest && tsc -p tsconfig.lib.json",
-    "build:lib:cap-dashboard": "npm run build --workspace @cap/cap-dashboard",
+    "build:lib:cap-dashboard": "npm run build --workspace @mikara89/cap-dashboard",
     "build:lib:storage": "cd libs/storage-mikro-orm && tsc -p tsconfig.lib.json",
     "build:lib:transport": "cd libs/transport-azure-servicebus && tsc -p tsconfig.lib.json",
     "build:lib:transport-nestjs-microservices": "cd libs/transport-nestjs-microservices && tsc -p tsconfig.lib.json",
@@ -44,7 +44,7 @@
     "lint:check": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "docs:api": "typedoc",
     "examples:check": "tsc -p examples/tsconfig.json --noEmit",
-    "pack:dry-run": "npm pack --dry-run --workspace @cap/cap-nest && npm pack --dry-run --workspace @cap/cap-dashboard && npm pack --dry-run --workspace @cap/mikroorm-storage && npm pack --dry-run --workspace @cap/azure-servicebus-transport && npm pack --dry-run --workspace @cap/nestjs-microservices-transport",
+    "pack:dry-run": "npm pack --dry-run --workspace @mikara89/cap-nest && npm pack --dry-run --workspace @mikara89/cap-dashboard && npm pack --dry-run --workspace @mikara89/mikroorm-storage && npm pack --dry-run --workspace @mikara89/azure-servicebus-transport && npm pack --dry-run --workspace @mikara89/nestjs-microservices-transport",
     "test:integration:servicebus": "node tools/run-servicebus-integration.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -126,11 +126,11 @@
       "<rootDir>/apps/"
     ],
     "moduleNameMapper": {
-      "^@cap/cap-nest(|/.*)$": "<rootDir>/libs/cap-nest/src/$1",
-      "^@cap/mikroorm-storage(|/.*)$": "<rootDir>/libs/storage-mikro-orm/src/$1",
-      "^@cap/azure-servicebus-transport(|/.*)$": "<rootDir>/libs/transport-azure-servicebus/src/$1",
-      "^@cap/nestjs-microservices-transport(|/.*)$": "<rootDir>/libs/transport-nestjs-microservices/src/$1",
-      "^@cap/cap-dashboard(|/.*)$": "<rootDir>/libs/cap-dashboard/src/$1"
+      "^@mikara89/cap-nest(|/.*)$": "<rootDir>/libs/cap-nest/src/$1",
+      "^@mikara89/mikroorm-storage(|/.*)$": "<rootDir>/libs/storage-mikro-orm/src/$1",
+      "^@mikara89/azure-servicebus-transport(|/.*)$": "<rootDir>/libs/transport-azure-servicebus/src/$1",
+      "^@mikara89/nestjs-microservices-transport(|/.*)$": "<rootDir>/libs/transport-nestjs-microservices/src/$1",
+      "^@mikara89/cap-dashboard(|/.*)$": "<rootDir>/libs/cap-dashboard/src/$1"
     }
   }
 }

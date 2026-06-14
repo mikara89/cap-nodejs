@@ -1,4 +1,4 @@
-# @cap/cap-nest
+# @mikara89/cap-nest
 
 Core NestJS package for CAP reliable messaging.
 
@@ -16,7 +16,7 @@ This package provides:
 
 ```ts
 import { Module } from '@nestjs/common';
-import { CapModule } from '@cap/cap-nest';
+import { CapModule } from '@mikara89/cap-nest';
 
 @Module({
   imports: [CapModule.forInMemory()],

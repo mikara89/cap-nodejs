@@ -9,8 +9,8 @@ import {
   MikroStorageModule,
   CapPublishEntity,
   CapReceivedEntity,
-} from '@cap/mikroorm-storage';
-import { PUBLISH_STORAGE, type IPublishStorage } from '@cap/cap-nest';
+} from '@mikara89/mikroorm-storage';
+import { PUBLISH_STORAGE, type IPublishStorage } from '@mikara89/cap-nest';
 import { type INestApplication } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 

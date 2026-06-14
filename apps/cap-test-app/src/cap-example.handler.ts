@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CapSubscribe, CapHeaders } from '@cap/cap-nest';
+import { CapSubscribe, CapHeaders } from '@mikara89/cap-nest';
 
 @Injectable()
 export class CapExampleHandler {

@@ -1,4 +1,4 @@
-# @cap/azure-servicebus-transport
+# @mikara89/azure-servicebus-transport
 
 Azure Service Bus transport adapter for CAP.
 
@@ -14,7 +14,7 @@ This package provides:
 ## Usage Shape
 
 ```ts
-import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
+import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
 
 const serviceBusTransport = ServiceBusTransportModule.forRoot({
   connectionString: process.env.AZURE_SERVICEBUS_CONNECTION_STRING!,

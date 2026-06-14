@@ -58,7 +58,7 @@ header values: `string`, `number`, `boolean`, and `Date`.
 
 ## First-Party Storage: MikroORM
 
-Package: `@cap/mikroorm-storage`
+Package: `@mikara89/mikroorm-storage`
 
 The MikroORM adapter provides:
 
@@ -71,7 +71,7 @@ The MikroORM adapter provides:
 
 ## First-Party Transport: Azure Service Bus
 
-Package: `@cap/azure-servicebus-transport`
+Package: `@mikara89/azure-servicebus-transport`
 
 The Azure Service Bus adapter provides:
 
@@ -94,7 +94,7 @@ Do not commit real connection strings.
 
 ## First-Party Transport: NestJS Microservices
 
-Package: `@cap/nestjs-microservices-transport`
+Package: `@mikara89/nestjs-microservices-transport`
 
 This adapter lets applications reuse existing `@nestjs/microservices`
 `ClientProxy` registrations while CAP keeps durable

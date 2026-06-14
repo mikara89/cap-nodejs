@@ -136,7 +136,7 @@ export class CapModule {
 
   /* --------------------------------------------------------------
    * 2.b  MID-LEVEL helper – accept two adapter modules
-   *      (e.g. @cap/storage-typeorm & @cap/transport-rabbit)
+   *      (e.g. @mikara89/storage-typeorm & @mikara89/transport-rabbit)
    * ------------------------------------------------------------ */
   static forAdapters(
     storageModule: CapAdapterModule,

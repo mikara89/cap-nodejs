@@ -11,7 +11,7 @@ import {
   LocalBus,
   PUBLISHER,
   SUBSCRIBER,
-} from '@cap/cap-nest';
+} from '@mikara89/cap-nest';
 import { CapExampleHandler } from './cap-example.handler';
 import {
   MikroStorageModule,
@@ -19,8 +19,8 @@ import {
   CapReceivedEntity,
 } from '../../../libs/storage-mikro-orm/src';
 // Note: schema creation is handled via CapModule init options.
-import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
-import { CapDashboardModule } from '@cap/cap-dashboard';
+import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
+import { CapDashboardModule } from '@mikara89/cap-dashboard';
 
 const serviceBusConnectionString =
   process.env.SERVICEBUS_CONNECTION_STRING ??

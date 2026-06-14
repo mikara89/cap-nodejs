@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import { EntityManager } from '@mikro-orm/core';
 import { MikroReceivedStorage } from './mikro-received-storage';
 import { CapReceivedEntity } from '../entities/cap-received.entity';
-import { type CapReceivedEvent } from '@cap/cap-nest';
+import { type CapReceivedEvent } from '@mikara89/cap-nest';
 
 describe('MikroReceivedStorage', () => {
   let storage: MikroReceivedStorage;

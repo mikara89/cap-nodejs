@@ -21,34 +21,34 @@
       "jest"
     ],
     "paths": {
-      "@cap/cap-nest": [
+      "@mikara89/cap-nest": [
         "./libs/cap-nest/dist"
       ],
-      "@cap/cap-nest/*": [
+      "@mikara89/cap-nest/*": [
         "./libs/cap-nest/dist/*"
       ],
-      "@cap/mikroorm-storage": [
+      "@mikara89/mikroorm-storage": [
         "./libs/storage-mikro-orm/dist"
       ],
-      "@cap/mikroorm-storage/*": [
+      "@mikara89/mikroorm-storage/*": [
         "./libs/storage-mikro-orm/dist/*"
       ],
-      "@cap/azure-servicebus-transport": [
+      "@mikara89/azure-servicebus-transport": [
         "./libs/transport-azure-servicebus/dist"
       ],
-      "@cap/azure-servicebus-transport/*": [
+      "@mikara89/azure-servicebus-transport/*": [
         "./libs/transport-azure-servicebus/dist/*"
       ],
-      "@cap/nestjs-microservices-transport": [
+      "@mikara89/nestjs-microservices-transport": [
         "./libs/transport-nestjs-microservices/dist"
       ],
-      "@cap/nestjs-microservices-transport/*": [
+      "@mikara89/nestjs-microservices-transport/*": [
         "./libs/transport-nestjs-microservices/dist/*"
       ],
-      "@cap/cap-dashboard": [
+      "@mikara89/cap-dashboard": [
         "./libs/cap-dashboard/dist"
       ],
-      "@cap/cap-dashboard/*": [
+      "@mikara89/cap-dashboard/*": [
         "./libs/cap-dashboard/dist/*"
       ]
     }

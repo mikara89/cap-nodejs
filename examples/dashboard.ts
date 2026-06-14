@@ -4,8 +4,8 @@ import {
   Injectable,
   Module,
 } from '@nestjs/common';
-import { CapModule } from '@cap/cap-nest';
-import { CapDashboardModule } from '@cap/cap-dashboard';
+import { CapModule } from '@mikara89/cap-nest';
+import { CapDashboardModule } from '@mikara89/cap-dashboard';
 
 @Injectable()
 export class LocalOnlyDashboardGuard implements CanActivate {

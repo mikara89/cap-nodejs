@@ -1,5 +1,5 @@
 {
-  "name": "@cap/nestjs-microservices-transport",
+  "name": "@mikara89/nestjs-microservices-transport",
   "version": "0.7.0-beta.1",
   "description": "NestJS ClientProxy transport adapter for CAP NestJS library",
   "main": "dist/index.js",
@@ -19,6 +19,9 @@
     "README.md",
     "CHANGELOG.md"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.lib.json",
     "prepack": "npm run build",
@@ -26,7 +29,7 @@
     "lint": "eslint \"src/**/*.ts\" --fix"
   },
   "peerDependencies": {
-    "@cap/cap-nest": "^0.7.0-beta.0",
+    "@mikara89/cap-nest": "^0.7.0-beta.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/microservices": "^11.0.0",
@@ -34,7 +37,7 @@
     "rxjs": "^7.8.0"
   },
   "devDependencies": {
-    "@cap/cap-nest": "file:../cap-nest",
+    "@mikara89/cap-nest": "file:../cap-nest",
     "@types/node": "^22.0.0",
     "typescript": "^5.7.0"
   }

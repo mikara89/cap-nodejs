@@ -1,4 +1,4 @@
-# @cap/mikroorm-storage
+# @mikara89/mikroorm-storage
 
 MikroORM storage adapter for CAP.
 
@@ -14,12 +14,12 @@ This package provides durable outbox and inbox persistence through:
 
 ```ts
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { CapModule, CapAdapterModule } from '@cap/cap-nest';
+import { CapModule, CapAdapterModule } from '@mikara89/cap-nest';
 import {
   MikroStorageModule,
   CapPublishEntity,
   CapReceivedEntity,
-} from '@cap/mikroorm-storage';
+} from '@mikara89/mikroorm-storage';
 
 @Module({
   imports: [

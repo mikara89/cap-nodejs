@@ -92,7 +92,7 @@ Review duplicated logic:
 npm run fallow:dupes
 ```
 
-The boundary policy follows the package architecture: `@cap/cap-nest` is the
+The boundary policy follows the package architecture: `@mikara89/cap-nest` is the
 core package; storage, transport, and dashboard packages depend inward on core;
 the test application may compose all packages. Treat first-run findings as
 triage input unless they are obvious safe cleanups.

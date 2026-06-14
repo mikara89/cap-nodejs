@@ -1,8 +1,9 @@
 # Release Checklist
 
 Releases are manual or tag-triggered. CI validates the repository; the release
-workflow is the only workflow that publishes packages. The first MVP package
-set should be published as beta or rc before stable graduation.
+workflow is the only workflow that publishes packages. Packages are published to
+GitHub Packages at `https://npm.pkg.github.com`. The first MVP package set
+should be published as beta or rc before stable graduation.
 
 ## Before Release
 
@@ -11,6 +12,10 @@ set should be published as beta or rc before stable graduation.
 - Confirm GitHub private vulnerability reporting is enabled.
 - Confirm GitHub Pages is enabled for the `/docs` folder and the repository
   About website points to `https://mikara89.github.io/cap-nestjs/`.
+- Confirm the GitHub Packages namespace is ready. The current package names use
+  the `@mikara89` npm scope, matching the current repository owner.
+- Confirm Actions has `packages: write` permission and the repository setting
+  allows GitHub Actions to write packages.
 - Run the static checks:
 
 ```powershell
@@ -50,10 +55,29 @@ The release workflow:
 - installs with `npm ci`
 - builds libraries
 - verifies package contents
-- publishes with Lerna using the configured npm registry secret
+- publishes with Lerna to GitHub Packages
+- authenticates with the workflow `GITHUB_TOKEN`; no `NPM_TOKEN` secret is
+  required for this repository-owned package release
 
 ## After Release
 
-- Verify packages are available in the target registry.
+- Verify packages are available in GitHub Packages.
+- Set package visibility/access in GitHub Packages after the first publish.
 - Verify generated changelogs and tags are correct.
 - Update `docs/roadmap.md` if release scope changes MVP/Beta/v1 status.
+
+## Installing From GitHub Packages
+
+Consumers need npm configured for the package scope:
+
+```powershell
+npm config set @mikara89:registry https://npm.pkg.github.com
+```
+
+GitHub Packages may require authentication for installs, including public
+packages. If npm returns `401` or `403`, authenticate with a GitHub personal
+access token that has `read:packages` access:
+
+```powershell
+npm login --scope=@mikara89 --auth-type=legacy --registry=https://npm.pkg.github.com
+```

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { firstValueFrom, timeout } from 'rxjs';
-import type { CapHeaders, IPublisher } from '@cap/cap-nest';
+import type { CapHeaders, IPublisher } from '@mikara89/cap-nest';
 import type { CapClientProxyLike } from './client-proxy.interface';
 import type { NestjsMicroservicesTransportConfig } from './nestjs-microservices.config';
 

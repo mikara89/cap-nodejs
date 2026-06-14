@@ -12,8 +12,8 @@
     },
     "testTimeout": 120000,
     "moduleNameMapper": {
-        "^@cap/cap-nest(|/.*)$": "<rootDir>/../../../libs/cap-nest/src/$1",
-        "^@cap/mikroorm-storage(|/.*)$": "<rootDir>/../../../libs/storage-mikro-orm/src/$1",
-        "^@cap/azure-servicebus-transport(|/.*)$": "<rootDir>/../../../libs/transport-azure-servicebus/src/$1"
+        "^@mikara89/cap-nest(|/.*)$": "<rootDir>/../../../libs/cap-nest/src/$1",
+        "^@mikara89/mikroorm-storage(|/.*)$": "<rootDir>/../../../libs/storage-mikro-orm/src/$1",
+        "^@mikara89/azure-servicebus-transport(|/.*)$": "<rootDir>/../../../libs/transport-azure-servicebus/src/$1"
     }
 }

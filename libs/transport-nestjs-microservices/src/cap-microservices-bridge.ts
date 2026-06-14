@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { CapHeaders, ISubscriber } from '@cap/cap-nest';
+import type { CapHeaders, ISubscriber } from '@mikara89/cap-nest';
 
 type MessageHandler = (payload: unknown, headers?: CapHeaders) => Promise<void>;
 

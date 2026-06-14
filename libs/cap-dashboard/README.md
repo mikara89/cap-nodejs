@@ -1,4 +1,4 @@
-# @cap/cap-dashboard
+# @mikara89/cap-dashboard
 
 Optional dashboard package for CAP outbox and inbox operations.
 
@@ -13,7 +13,7 @@ This package provides:
 ## Usage Shape
 
 ```ts
-import { CapDashboardModule } from '@cap/cap-dashboard';
+import { CapDashboardModule } from '@mikara89/cap-dashboard';
 
 CapDashboardModule.forRoot({
   guard: {

@@ -13,7 +13,7 @@ security belongs to the host application.
 ## Decision
 
 CAP ships dashboard functionality as a separate optional package,
-`@cap/cap-dashboard`. Applications opt in by importing `CapDashboardModule` and
+`@mikara89/cap-dashboard`. Applications opt in by importing `CapDashboardModule` and
 must provide a NestJS guard.
 
 ## Consequences

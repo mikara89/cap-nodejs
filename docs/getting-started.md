@@ -9,7 +9,7 @@ It keeps outbox/inbox records in memory and uses an in-process bus.
 
 ```ts
 import { Module } from '@nestjs/common';
-import { CapModule } from '@cap/cap-nest';
+import { CapModule } from '@mikara89/cap-nest';
 
 @Module({
   imports: [CapModule.forInMemory()],
@@ -21,7 +21,7 @@ Publish from any injectable that receives `CapService`:
 
 ```ts
 import { Injectable } from '@nestjs/common';
-import { CapService } from '@cap/cap-nest';
+import { CapService } from '@mikara89/cap-nest';
 
 @Injectable()
 export class UsersService {
@@ -44,7 +44,7 @@ import {
   CapHeaders as CapHeadersParam,
   CapSubscribe,
   type CapHeaders,
-} from '@cap/cap-nest';
+} from '@mikara89/cap-nest';
 
 @Injectable()
 export class MailHandler {
@@ -66,13 +66,13 @@ first-party packages are MikroORM storage and Azure Service Bus transport.
 ```ts
 import { Module } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { CapModule, CapAdapterModule } from '@cap/cap-nest';
+import { CapModule, CapAdapterModule } from '@mikara89/cap-nest';
 import {
   MikroStorageModule,
   CapPublishEntity,
   CapReceivedEntity,
-} from '@cap/mikroorm-storage';
-import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
+} from '@mikara89/mikroorm-storage';
+import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
 
 const serviceBusTransport = ServiceBusTransportModule.forRoot({
   connectionString: process.env.AZURE_SERVICEBUS_CONNECTION_STRING!,
@@ -109,7 +109,7 @@ strings or database credentials.
 The dashboard is optional and must be protected by a guard.
 
 ```ts
-import { CapDashboardModule } from '@cap/cap-dashboard';
+import { CapDashboardModule } from '@mikara89/cap-dashboard';
 
 @Module({
   imports: [

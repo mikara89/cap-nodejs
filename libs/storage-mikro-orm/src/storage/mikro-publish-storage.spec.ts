@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import { EntityManager } from '@mikro-orm/core';
 import { MikroPublishStorage } from './mikro-publish-storage';
 import { CapPublishEntity } from '../entities/cap-publish.entity';
-import { type CapPublishEvent } from '@cap/cap-nest';
+import { type CapPublishEvent } from '@mikara89/cap-nest';
 
 describe('MikroPublishStorage', () => {
   let storage: MikroPublishStorage;

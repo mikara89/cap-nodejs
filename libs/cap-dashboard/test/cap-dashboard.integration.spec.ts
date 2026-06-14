@@ -1,14 +1,14 @@
 import { Test } from '@nestjs/testing';
-import { CapModule } from '@cap/cap-nest';
+import { CapModule } from '@mikara89/cap-nest';
 import { CapDashboardModule } from '../src/cap-dashboard.module';
 import { CapDashboardController } from '../src/cap-dashboard.controller';
 import { CapDashboardAssetsController } from '../src/cap-dashboard-assets.controller';
 import { CapDashboardService } from '../src/cap-dashboard.service';
 import { CapDashboardGuard } from '../src/guards/cap-dashboard.guard';
-import { PUBLISH_STORAGE, RECEIVED_STORAGE } from '@cap/cap-nest';
-import type { IPublishStorage, IReceivedStorage } from '@cap/cap-nest';
-import type { CapPublishEvent } from '@cap/cap-nest';
-import type { CapReceivedEvent } from '@cap/cap-nest';
+import { PUBLISH_STORAGE, RECEIVED_STORAGE } from '@mikara89/cap-nest';
+import type { IPublishStorage, IReceivedStorage } from '@mikara89/cap-nest';
+import type { CapPublishEvent } from '@mikara89/cap-nest';
+import type { CapReceivedEvent } from '@mikara89/cap-nest';
 import { Reflector } from '@nestjs/core';
 
 describe('CapDashboard integration (in-memory)', () => {

@@ -3,7 +3,7 @@ import {
   type IReceivedStorage,
   type CapPublishEvent,
   type CapReceivedEvent,
-} from '@cap/cap-nest';
+} from '@mikara89/cap-nest';
 
 /**
  * In-memory storage implementation with spy capabilities for testing.

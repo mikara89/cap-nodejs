@@ -3,13 +3,13 @@ import {
   ServiceBusAdministrationClient,
   ServiceBusClient,
 } from '@azure/service-bus';
-import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
+import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
 import {
   PUBLISHER,
   SUBSCRIBER,
   type IPublisher,
   type ISubscriber,
-} from '@cap/cap-nest';
+} from '@mikara89/cap-nest';
 import { v4 as uuid } from 'uuid';
 
 describe('Integration: transport-azure-servicebus', () => {

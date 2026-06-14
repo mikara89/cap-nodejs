@@ -1,5 +1,5 @@
 import { Module, Injectable } from '@nestjs/common';
-import { CapSubscribe } from '@cap/cap-nest';
+import { CapSubscribe } from '@mikara89/cap-nest';
 import { UserCreatedDto, OrderPlacedDto } from './test-messages';
 
 /**

@@ -3,7 +3,7 @@
 The dashboard package provides an optional admin surface for CAP outbox and
 inbox records. It includes REST endpoints and a lightweight static UI.
 
-Package: `@cap/cap-dashboard`
+Package: `@mikara89/cap-dashboard`
 
 ## Current Status
 
@@ -17,8 +17,8 @@ Register the dashboard after CAP core storage and transport are available.
 
 ```ts
 import { Module } from '@nestjs/common';
-import { CapModule } from '@cap/cap-nest';
-import { CapDashboardModule } from '@cap/cap-dashboard';
+import { CapModule } from '@mikara89/cap-nest';
+import { CapDashboardModule } from '@mikara89/cap-dashboard';
 
 @Module({
   imports: [

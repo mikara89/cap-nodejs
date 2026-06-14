@@ -1,5 +1,5 @@
 import { Injectable, Module } from '@nestjs/common';
-import { CapModule, CapService, CapSubscribe } from '@cap/cap-nest';
+import { CapModule, CapService, CapSubscribe } from '@mikara89/cap-nest';
 
 interface UserCreatedPayload {
   id: string;

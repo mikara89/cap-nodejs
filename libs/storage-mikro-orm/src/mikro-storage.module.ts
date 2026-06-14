@@ -1,6 +1,6 @@
 import { ClassProvider, Module } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { PUBLISH_STORAGE, RECEIVED_STORAGE } from '@cap/cap-nest';
+import { PUBLISH_STORAGE, RECEIVED_STORAGE } from '@mikara89/cap-nest';
 import { CapPublishEntity } from './entities/cap-publish.entity';
 import { CapReceivedEntity } from './entities/cap-received.entity';
 import { MikroPublishStorage } from './storage/mikro-publish-storage';
@@ -11,8 +11,8 @@ import { MikroReceivedStorage } from './storage/mikro-received-storage';
  *
  * Usage:
  * ```ts
- * import { CapModule } from '@cap/cap-nest';
- * import { MikroStorageModule } from '@cap/mikroorm-storage';
+ * import { CapModule } from '@mikara89/cap-nest';
+ * import { MikroStorageModule } from '@mikara89/mikroorm-storage';
  *
  * @Module({
  *   imports: [

@@ -2,7 +2,7 @@ import {
   type CapHeaders,
   type IPublisher,
   type ISubscriber,
-} from '@cap/cap-nest';
+} from '@mikara89/cap-nest';
 
 type MessageHandler = (payload: unknown, headers?: CapHeaders) => Promise<void>;
 

@@ -69,7 +69,13 @@ export class CapDashboardModule {
       );
       // installed package fallback
       candidates.push(
-        join(process.cwd(), 'node_modules', '@cap', 'cap-dashboard', 'public'),
+        join(
+          process.cwd(),
+          'node_modules',
+          '@mikara89',
+          'cap-dashboard',
+          'public',
+        ),
       );
 
       const found = candidates.find((p) => !!p && existsSync(p));

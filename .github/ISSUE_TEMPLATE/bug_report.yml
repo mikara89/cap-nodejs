@@ -12,11 +12,11 @@ body:
     attributes:
       label: Package
       options:
-        - '@cap/cap-nest'
-        - '@cap/mikroorm-storage'
-        - '@cap/azure-servicebus-transport'
-        - '@cap/nestjs-microservices-transport'
-        - '@cap/cap-dashboard'
+        - '@mikara89/cap-nest'
+        - '@mikara89/mikroorm-storage'
+        - '@mikara89/azure-servicebus-transport'
+        - '@mikara89/nestjs-microservices-transport'
+        - '@mikara89/cap-dashboard'
         - Repository tooling or docs
         - Not sure
     validations:

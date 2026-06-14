@@ -12,8 +12,8 @@ NestJS module providing MikroORM-based storage adapters for CAP.
 
 Usage:
 ```ts
-import { CapModule } from '@cap/cap-nest';
-import { MikroStorageModule } from '@cap/mikroorm-storage';
+import { CapModule } from '@mikara89/cap-nest';
+import { MikroStorageModule } from '@mikara89/mikroorm-storage';
 
 @Module({
   imports: [

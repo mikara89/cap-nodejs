@@ -12,8 +12,8 @@ NestJS module providing Azure Service Bus transport adapters for CAP.
 
 Usage:
 ```ts
-import { CapModule } from '@cap/cap-nest';
-import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
+import { CapModule } from '@mikara89/cap-nest';
+import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
 
 @Module({
   imports: [

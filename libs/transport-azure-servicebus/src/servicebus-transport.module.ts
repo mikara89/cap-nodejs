@@ -1,7 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ServiceBusClient } from '@azure/service-bus';
 import { ServiceBusClientLifecycle } from './servicebus-client.lifecycle';
-import { PUBLISHER, SUBSCRIBER } from '@cap/cap-nest';
+import { PUBLISHER, SUBSCRIBER } from '@mikara89/cap-nest';
 import { ServiceBusPublisher } from './transport/servicebus-publisher';
 import { ServiceBusSubscriber } from './transport/servicebus-subscriber';
 import { ServiceBusConfig } from './servicebus.config';
@@ -11,8 +11,8 @@ import { ServiceBusConfig } from './servicebus.config';
  *
  * Usage:
  * ```ts
- * import { CapModule } from '@cap/cap-nest';
- * import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
+ * import { CapModule } from '@mikara89/cap-nest';
+ * import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
  *
  * @Module({
  *   imports: [

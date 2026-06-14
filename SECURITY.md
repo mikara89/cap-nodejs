@@ -40,7 +40,7 @@ When reporting, include:
 
 - Do not commit Service Bus connection strings, database credentials, npm
   tokens, or local registry credentials.
-- Protect `@cap/cap-dashboard` with a production NestJS guard before exposing
+- Protect `@mikara89/cap-dashboard` with a production NestJS guard before exposing
   it outside local development.
 - Treat dashboard retry, mark, and flush routes as privileged admin actions.
 - Prefer migrations and infrastructure tooling for production schema and broker

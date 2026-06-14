@@ -1,6 +1,6 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { EntityManager, FilterQuery, MikroORM } from '@mikro-orm/core';
-import { IReceivedStorage, CapReceivedEvent } from '@cap/cap-nest';
+import { IReceivedStorage, CapReceivedEvent } from '@mikara89/cap-nest';
 import { CapReceivedEntity } from '../entities/cap-received.entity';
 
 /**

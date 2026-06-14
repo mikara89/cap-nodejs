@@ -4,17 +4,17 @@ import {
   RECEIVED_STORAGE,
   IPublishStorage,
   IReceivedStorage,
-} from '@cap/cap-nest';
-import { CapService } from '@cap/cap-nest';
-import { IPublisher, PUBLISHER } from '@cap/cap-nest';
+} from '@mikara89/cap-nest';
+import { CapService } from '@mikara89/cap-nest';
+import { IPublisher, PUBLISHER } from '@mikara89/cap-nest';
 import { ListQueryDto } from './dto/list-query.dto';
 import { OutboxPageDto } from './dto/page.dto';
 import { OutboxItemDto } from './dto/outbox-item.dto';
 import { InboxPageDto } from './dto/page.dto';
 import { InboxItemDto } from './dto/inbox-item.dto';
 import { ActionResultDto } from './dto/action-result.dto';
-import { CapPublishEvent } from '@cap/cap-nest';
-import { CapReceivedEvent } from '@cap/cap-nest';
+import { CapPublishEvent } from '@mikara89/cap-nest';
+import { CapReceivedEvent } from '@mikara89/cap-nest';
 
 const DEFAULT_LIST_LIMIT = 50;
 

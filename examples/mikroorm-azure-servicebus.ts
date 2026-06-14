@@ -1,12 +1,12 @@
 import { DynamicModule, Module, Type } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { CapAdapterModule, CapModule } from '@cap/cap-nest';
+import { CapAdapterModule, CapModule } from '@mikara89/cap-nest';
 import {
   CapPublishEntity,
   CapReceivedEntity,
   MikroStorageModule,
-} from '@cap/mikroorm-storage';
-import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
+} from '@mikara89/mikroorm-storage';
+import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
 
 type NestImport = DynamicModule | Promise<DynamicModule> | Type<unknown>;
 

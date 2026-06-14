@@ -1,10 +1,10 @@
 import { Controller, Inject, Module } from '@nestjs/common';
 import { ClientProxy, ClientsModule, Transport } from '@nestjs/microservices';
-import { CapAdapterModule, CapModule } from '@cap/cap-nest';
+import { CapAdapterModule, CapModule } from '@mikara89/cap-nest';
 import {
   CapMicroservicesBridge,
   NestjsMicroservicesTransportModule,
-} from '@cap/nestjs-microservices-transport';
+} from '@mikara89/nestjs-microservices-transport';
 
 const ORDERS_CLIENT = 'ORDERS_CLIENT';
 

@@ -1,5 +1,5 @@
 {
-  "name": "@cap/mikroorm-storage",
+  "name": "@mikara89/mikroorm-storage",
   "version": "0.7.0-beta.1",
   "description": "MikroORM storage adapter for CAP NestJS library",
   "main": "dist/index.js",
@@ -19,6 +19,9 @@
     "README.md",
     "CHANGELOG.md"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.lib.json",
     "prepack": "npm run build",
@@ -29,7 +32,7 @@
     "uuid": "^11.0.0"
   },
   "peerDependencies": {
-    "@cap/cap-nest": "^0.7.0-beta.0",
+    "@mikara89/cap-nest": "^0.7.0-beta.0",
     "@mikro-orm/core": "^6.0.0",
     "@mikro-orm/nestjs": "^6.0.0",
     "@nestjs/common": "^11.0.0",
@@ -37,7 +40,7 @@
     "reflect-metadata": "^0.2.0"
   },
   "devDependencies": {
-    "@cap/cap-nest": "file:../cap-nest",
+    "@mikara89/cap-nest": "file:../cap-nest",
     "@types/node": "^22.0.0",
     "@types/uuid": "^10.0.0",
     "typescript": "^5.7.0"

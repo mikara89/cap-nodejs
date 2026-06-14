@@ -3,24 +3,24 @@
   "compilerOptions": {
     "noEmit": true,
     "paths": {
-      "@cap/cap-nest": ["libs/cap-nest/src"],
-      "@cap/cap-nest/*": ["libs/cap-nest/src/*"],
-      "@cap/mikroorm-storage": ["libs/storage-mikro-orm/src"],
-      "@cap/mikroorm-storage/*": ["libs/storage-mikro-orm/src/*"],
-      "@cap/azure-servicebus-transport": [
+      "@mikara89/cap-nest": ["libs/cap-nest/src"],
+      "@mikara89/cap-nest/*": ["libs/cap-nest/src/*"],
+      "@mikara89/mikroorm-storage": ["libs/storage-mikro-orm/src"],
+      "@mikara89/mikroorm-storage/*": ["libs/storage-mikro-orm/src/*"],
+      "@mikara89/azure-servicebus-transport": [
         "libs/transport-azure-servicebus/src"
       ],
-      "@cap/azure-servicebus-transport/*": [
+      "@mikara89/azure-servicebus-transport/*": [
         "libs/transport-azure-servicebus/src/*"
       ],
-      "@cap/nestjs-microservices-transport": [
+      "@mikara89/nestjs-microservices-transport": [
         "libs/transport-nestjs-microservices/src"
       ],
-      "@cap/nestjs-microservices-transport/*": [
+      "@mikara89/nestjs-microservices-transport/*": [
         "libs/transport-nestjs-microservices/src/*"
       ],
-      "@cap/cap-dashboard": ["libs/cap-dashboard/src"],
-      "@cap/cap-dashboard/*": ["libs/cap-dashboard/src/*"]
+      "@mikara89/cap-dashboard": ["libs/cap-dashboard/src"],
+      "@mikara89/cap-dashboard/*": ["libs/cap-dashboard/src/*"]
     }
   },
   "include": ["apps/**/*.ts", "libs/**/*.ts", "test/**/*.ts"],

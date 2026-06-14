@@ -31,11 +31,11 @@ The root workspace package is private. The publishable packages live under
 
 | Package                               | Purpose                                                                                                   |
 | ------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `@cap/cap-nest`                       | Core NestJS module, service, decorators, scheduler, abstractions, and in-memory mode.                     |
-| `@cap/mikroorm-storage`               | MikroORM storage adapter for outbox and inbox records.                                                    |
-| `@cap/azure-servicebus-transport`     | Azure Service Bus transport adapter.                                                                      |
-| `@cap/nestjs-microservices-transport` | Adapter that publishes through existing NestJS `ClientProxy` registrations and exposes an inbound bridge. |
-| `@cap/cap-dashboard`                  | Optional admin REST API and static dashboard UI.                                                          |
+| `@mikara89/cap-nest`                       | Core NestJS module, service, decorators, scheduler, abstractions, and in-memory mode.                     |
+| `@mikara89/mikroorm-storage`               | MikroORM storage adapter for outbox and inbox records.                                                    |
+| `@mikara89/azure-servicebus-transport`     | Azure Service Bus transport adapter.                                                                      |
+| `@mikara89/nestjs-microservices-transport` | Adapter that publishes through existing NestJS `ClientProxy` registrations and exposes an inbound bridge. |
+| `@mikara89/cap-dashboard`                  | Optional admin REST API and static dashboard UI.                                                          |
 
 `apps/cap-test-app` is a demo and integration test application; it is not a
 published package.
@@ -49,32 +49,41 @@ published package.
 
 Adapter-specific requirements:
 
-- `@cap/mikroorm-storage` requires MikroORM 6.
-- `@cap/azure-servicebus-transport` requires Azure Service Bus credentials or
+- `@mikara89/mikroorm-storage` requires MikroORM 6.
+- `@mikara89/azure-servicebus-transport` requires Azure Service Bus credentials or
   an emulator path for external integration testing.
 
 ## Installation
 
+Packages are published to GitHub Packages. Configure npm for the package scope
+before installing:
+
+```sh
+npm config set @mikara89:registry https://npm.pkg.github.com
+```
+
 Install the core package:
 
 ```sh
-npm install @cap/cap-nest
+npm install @mikara89/cap-nest
 ```
 
 For durable storage and Azure Service Bus transport:
 
 ```sh
-npm install @cap/cap-nest @cap/mikroorm-storage @cap/azure-servicebus-transport
+npm install @mikara89/cap-nest @mikara89/mikroorm-storage @mikara89/azure-servicebus-transport
 ```
 
 For the optional dashboard:
 
 ```sh
-npm install @cap/cap-dashboard
+npm install @mikara89/cap-dashboard
 ```
 
-During beta validation, package availability depends on the configured npm
-registry and release channel. See [Release checklist](docs/release.md).
+During beta validation, package availability depends on the GitHub Packages
+visibility and release channel. GitHub Packages may require npm authentication
+with a GitHub personal access token for installs. See
+[Release checklist](docs/release.md).
 
 ## Basic Usage
 
@@ -82,7 +91,7 @@ The smallest local setup uses the in-memory bundle:
 
 ```ts
 import { Module } from '@nestjs/common';
-import { CapModule } from '@cap/cap-nest';
+import { CapModule } from '@mikara89/cap-nest';
 
 @Module({
   imports: [CapModule.forInMemory()],
@@ -94,7 +103,7 @@ Publish from an injectable:
 
 ```ts
 import { Injectable } from '@nestjs/common';
-import { CapService } from '@cap/cap-nest';
+import { CapService } from '@mikara89/cap-nest';
 
 @Injectable()
 export class UsersService {
@@ -113,7 +122,7 @@ Subscribe with a handler:
 
 ```ts
 import { Injectable } from '@nestjs/common';
-import { CapSubscribe } from '@cap/cap-nest';
+import { CapSubscribe } from '@mikara89/cap-nest';
 
 @Injectable()
 export class MailHandler {
@@ -133,13 +142,13 @@ Azure Service Bus transport:
 ```ts
 import { Module } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { CapAdapterModule, CapModule } from '@cap/cap-nest';
+import { CapAdapterModule, CapModule } from '@mikara89/cap-nest';
 import {
   CapPublishEntity,
   CapReceivedEntity,
   MikroStorageModule,
-} from '@cap/mikroorm-storage';
-import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
+} from '@mikara89/mikroorm-storage';
+import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
 
 const serviceBusTransport = ServiceBusTransportModule.forRoot({
   connectionString: process.env.AZURE_SERVICEBUS_CONNECTION_STRING!,
@@ -176,7 +185,7 @@ database credentials. Do not commit real credentials.
 The dashboard is optional and must be protected by an application-owned guard:
 
 ```ts
-import { CapDashboardModule } from '@cap/cap-dashboard';
+import { CapDashboardModule } from '@mikara89/cap-dashboard';
 
 CapDashboardModule.forRoot({
   guard: {
@@ -193,7 +202,7 @@ and authorization before exposing dashboard routes.
 
 ## API Overview
 
-Primary exports from `@cap/cap-nest`:
+Primary exports from `@mikara89/cap-nest`:
 
 - `CapModule` for registering CAP with in-memory or adapter-backed providers.
 - `CapService` for publishing messages.

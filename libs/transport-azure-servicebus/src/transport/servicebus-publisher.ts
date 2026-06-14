@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, Inject } from '@nestjs/common';
 import { ServiceBusClient, ServiceBusSender } from '@azure/service-bus';
-import { IPublisher, type CapHeaders } from '@cap/cap-nest';
+import { IPublisher, type CapHeaders } from '@mikara89/cap-nest';
 import { ServiceBusConfig } from '../servicebus.config';
 
 /**

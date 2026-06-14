@@ -1,6 +1,6 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { EntityManager, FilterQuery, MikroORM } from '@mikro-orm/core';
-import { IPublishStorage, CapPublishEvent } from '@cap/cap-nest';
+import { IPublishStorage, CapPublishEvent } from '@mikara89/cap-nest';
 import { CapPublishEntity } from '../entities/cap-publish.entity';
 
 /**

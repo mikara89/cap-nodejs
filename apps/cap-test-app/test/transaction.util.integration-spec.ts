@@ -4,13 +4,13 @@ import { MikroORM } from '@mikro-orm/core';
 import { type INestApplication } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 
-import { withTransactionAndPostCommit } from '@cap/cap-nest';
+import { withTransactionAndPostCommit } from '@mikara89/cap-nest';
 import {
   MikroStorageModule,
   CapPublishEntity,
   CapReceivedEntity,
-} from '@cap/mikroorm-storage';
-import { PUBLISH_STORAGE, type IPublishStorage } from '@cap/cap-nest';
+} from '@mikara89/mikroorm-storage';
+import { PUBLISH_STORAGE, type IPublishStorage } from '@mikara89/cap-nest';
 
 type StoppableContainer = {
   stop(): Promise<unknown>;

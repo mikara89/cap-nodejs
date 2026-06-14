@@ -1,5 +1,5 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { PUBLISHER, SUBSCRIBER } from '@cap/cap-nest';
+import { PUBLISHER, SUBSCRIBER } from '@mikara89/cap-nest';
 import { CapMicroservicesBridge } from './cap-microservices-bridge';
 import {
   CAP_NESTJS_MICROSERVICES_CLIENT,

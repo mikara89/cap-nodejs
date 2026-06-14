@@ -1,4 +1,4 @@
-# @cap/nestjs-microservices-transport
+# @mikara89/nestjs-microservices-transport
 
 NestJS `ClientProxy` transport adapter for CAP.
 
@@ -9,7 +9,7 @@ visibility.
 ## Usage Shape
 
 ```ts
-import { NestjsMicroservicesTransportModule } from '@cap/nestjs-microservices-transport';
+import { NestjsMicroservicesTransportModule } from '@mikara89/nestjs-microservices-transport';
 
 const transport = NestjsMicroservicesTransportModule.forRoot({
   clientToken: 'ORDERS_CLIENT',

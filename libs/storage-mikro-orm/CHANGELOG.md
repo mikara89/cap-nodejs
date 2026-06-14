@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-# [0.7.0-beta.1](https://github.com/mikara89/cap-nestjs/compare/@cap/mikroorm-storage@0.5.1-beta.0...@cap/mikroorm-storage@0.7.0-beta.1) (2026-06-14)
+# [0.7.0-beta.1](https://github.com/mikara89/cap-nestjs/compare/@mikara89/mikroorm-storage@0.5.1-beta.0...@mikara89/mikroorm-storage@0.7.0-beta.1) (2026-06-14)
 
 ### Features
 
@@ -17,7 +17,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 - align package version and peer range with the MVP beta package set
 
-## [0.5.1-beta.0](https://github.com/mikara89/cap-nestjs/compare/@cap/mikroorm-storage@0.5.0...@cap/mikroorm-storage@0.5.1-beta.0) (2026-06-13)
+## [0.5.1-beta.0](https://github.com/mikara89/cap-nestjs/compare/@mikara89/mikroorm-storage@0.5.0...@mikara89/mikroorm-storage@0.5.1-beta.0) (2026-06-13)
 
 ### Bug Fixes
 

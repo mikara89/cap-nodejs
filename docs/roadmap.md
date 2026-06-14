@@ -14,7 +14,7 @@ Included in MVP:
 - Retry scheduler for unpublished outbox records and due inbox retries.
 - MikroORM storage adapter.
 - Azure Service Bus transport adapter.
-- NestJS microservices transport adapter: `@cap/nestjs-microservices-transport`
+- NestJS microservices transport adapter: `@mikara89/nestjs-microservices-transport`
   for applications that already use `@nestjs/microservices` `ClientProxy`
   registrations.
 - Dashboard REST API and static UI for inspection and admin actions.
@@ -27,7 +27,7 @@ MVP closure status:
   read through `@CapHeaders()` or the second handler argument.
 - External Azure Service Bus coverage is split into an explicit integration
   gate: `npm run test:integration:servicebus`.
-- `@cap/nestjs-microservices-transport` is implemented with documented
+- `@mikara89/nestjs-microservices-transport` is implemented with documented
   `ClientProxy.emit()` acknowledgment limitations.
 - Dashboard authentication remains application-owned, with an operation-aware
   authorizer hook for read versus admin actions.

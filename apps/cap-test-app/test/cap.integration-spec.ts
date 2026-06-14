@@ -7,7 +7,7 @@ import {
   RECEIVED_STORAGE,
   PUBLISHER,
   SUBSCRIBER,
-} from '@cap/cap-nest';
+} from '@mikara89/cap-nest';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TestStorageSpy } from './helpers/test-storage-spy';
 import { TestTransportSpy } from './helpers/test-transport-spy';

@@ -1,5 +1,5 @@
 {
-  "name": "@cap/cap-nest",
+  "name": "@mikara89/cap-nest",
   "version": "0.7.0-beta.1",
   "description": "Cloud Access Pattern (CAP) library for NestJS - reliable message handling with outbox/inbox patterns",
   "main": "dist/index.js",
@@ -19,6 +19,9 @@
     "README.md",
     "CHANGELOG.md"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.lib.json",
     "prepack": "npm run build",

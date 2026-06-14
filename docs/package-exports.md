@@ -9,20 +9,20 @@ package `exports` maps.
 Use package-root imports:
 
 ```ts
-import { CapModule, CapService, CapSubscribe } from '@cap/cap-nest';
-import { MikroStorageModule } from '@cap/mikroorm-storage';
-import { ServiceBusTransportModule } from '@cap/azure-servicebus-transport';
-import { NestjsMicroservicesTransportModule } from '@cap/nestjs-microservices-transport';
-import { CapDashboardModule } from '@cap/cap-dashboard';
+import { CapModule, CapService, CapSubscribe } from '@mikara89/cap-nest';
+import { MikroStorageModule } from '@mikara89/mikroorm-storage';
+import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
+import { NestjsMicroservicesTransportModule } from '@mikara89/nestjs-microservices-transport';
+import { CapDashboardModule } from '@mikara89/cap-dashboard';
 ```
 
 The supported package roots are:
 
-- `@cap/cap-nest`
-- `@cap/mikroorm-storage`
-- `@cap/azure-servicebus-transport`
-- `@cap/nestjs-microservices-transport`
-- `@cap/cap-dashboard`
+- `@mikara89/cap-nest`
+- `@mikara89/mikroorm-storage`
+- `@mikara89/azure-servicebus-transport`
+- `@mikara89/nestjs-microservices-transport`
+- `@mikara89/cap-dashboard`
 
 ## Unsupported Deep Imports
 
@@ -30,7 +30,7 @@ Imports from package internals are not part of the public API:
 
 ```ts
 // Avoid: internal path, not covered by compatibility guarantees.
-import { CapService } from '@cap/cap-nest/dist/cap/cap.service';
+import { CapService } from '@mikara89/cap-nest/dist/cap/cap.service';
 ```
 
 Internal folder layout can change during beta without a compatibility guarantee.
@@ -46,5 +46,5 @@ on deep imports.
 The likely future shape is:
 
 - root `.` export for every package;
-- optional `./testing` export for `@cap/cap-nest` only if testing helpers are
+- optional `./testing` export for `@mikara89/cap-nest` only if testing helpers are
   intentionally supported for consumers.

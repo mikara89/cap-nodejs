@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Query } from '@nestjs/common';
 import { CapTestAppService } from './cap-test-app.service';
-import { CapService, withTransactionAndPostCommit } from '@cap/cap-nest';
+import { CapService, withTransactionAndPostCommit } from '@mikara89/cap-nest';
 import { MikroORM } from '@mikro-orm/core';
 
 type PostCommitItem = { topic: string; payload: unknown };

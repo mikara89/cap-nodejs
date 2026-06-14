@@ -6,7 +6,7 @@ import {
   ServiceBusAdministrationClient,
 } from '@azure/service-bus';
 import { ServiceBusConfig } from '../servicebus.config';
-import { ISubscriber, type CapHeaders } from '@cap/cap-nest';
+import { ISubscriber, type CapHeaders } from '@mikara89/cap-nest';
 
 type CapMessageHandler = (
   payload: unknown,
