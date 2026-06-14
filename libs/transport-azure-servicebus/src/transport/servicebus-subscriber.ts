@@ -8,6 +8,20 @@ import {
 import { ServiceBusConfig } from '../servicebus.config';
 import { ISubscriber, type CapHeaders } from '@cap/cap-nest';
 
+type CapMessageHandler = (
+  payload: unknown,
+  properties?: CapHeaders,
+) => Promise<void>;
+
+interface SubscriptionTarget {
+  resourceName: string;
+  subscriptionName?: string;
+  defaultSubscriptionName: string;
+  key: string;
+  isQueueMode: boolean;
+  maxConcurrentCalls: number;
+}
+
 @Injectable()
 export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
   private readonly logger = new Logger(ServiceBusSubscriber.name);
@@ -30,9 +44,7 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
       const cfg = configOrTopicPrefix;
       this.topicPrefix = cfg?.topicPrefix ?? 'cap-';
       this.subscriptionPrefix = cfg?.subscriptionPrefix ?? 'sub-';
-      // keep admin client creation for initialize() when requested
       if (cfg) {
-        // stash the config so initialize() and consume() can access it
         this._config = cfg;
       }
     }
@@ -46,11 +58,8 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
       return Promise.resolve();
     this.createQueues = Boolean(options.autoInit ?? options.createQueues);
     try {
-      // Log received init options for debugging
       this.logger.debug(`ServiceBusSubscriber.initialize() options`, options);
 
-      // If we have the transport config available from construction, build
-      // the admin client now so consume() can create topics/subscriptions.
       const cfg: ServiceBusConfig | undefined = this._config;
       if (cfg?.connectionString) {
         try {
@@ -69,7 +78,7 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
         }
       } else {
         this.logger.log(
-          'ServiceBusSubscriber.initialize() called — no connection string available for admin ops',
+          'ServiceBusSubscriber.initialize() called - no connection string available for admin ops',
         );
       }
     } catch (err) {
@@ -83,8 +92,31 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
   async consume(
     topic: string,
     group: string,
-    onMessage: (payload: unknown, properties?: CapHeaders) => Promise<void>,
+    onMessage: CapMessageHandler,
   ): Promise<void> {
+    const target = this.resolveSubscriptionTarget(topic, group);
+
+    if (this.receivers.has(target.key)) {
+      this.logger.warn(`Subscriber already exists for ${target.key}`);
+      return;
+    }
+
+    this.logger.debug(
+      `Provisioning check for ${target.key} (createQueues=${this.createQueues})`,
+    );
+
+    const provisionedTarget = await this.provisionTarget(target);
+    const receiver = this.createReceiver(provisionedTarget);
+    this.subscribeReceiver(provisionedTarget, receiver, onMessage);
+
+    this.receivers.set(target.key, receiver);
+    this.logger.log(`subscribed to ${target.key}`);
+  }
+
+  private resolveSubscriptionTarget(
+    topic: string,
+    group: string,
+  ): SubscriptionTarget {
     const cfg: ServiceBusConfig | undefined = this._config;
     const isQueueMode = cfg?.mode === 'queue';
     const queuePrefix: string = cfg?.queuePrefix ?? this.topicPrefix;
@@ -98,15 +130,46 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
       ? resourceName
       : `${resourceName}/${subscriptionName}`;
 
-    if (this.receivers.has(key)) {
-      this.logger.warn(`Subscriber already exists for ${key}`);
-      return;
+    return {
+      resourceName,
+      subscriptionName,
+      defaultSubscriptionName,
+      key,
+      isQueueMode,
+      maxConcurrentCalls: cfg?.maxConcurrentCalls ?? 1,
+    };
+  }
+
+  private async provisionTarget(
+    target: SubscriptionTarget,
+  ): Promise<SubscriptionTarget> {
+    this.ensureAdminClient();
+
+    const admin = this.admin;
+    if (admin && this.createQueues) {
+      try {
+        return target.isQueueMode
+          ? await this.provisionQueueTarget(admin, target)
+          : await this.provisionTopicSubscriptionTarget(admin, target);
+      } catch (err) {
+        this.logger.warn(
+          'Provisioning checks encountered an error',
+          err as Error,
+        );
+        return target;
+      }
     }
 
-    this.logger.debug(
-      `Provisioning check for ${key} (createQueues=${this.createQueues})`,
-    );
-    // If admin client wasn't created during initialize(), try to build it lazily
+    if (!this.createQueues) {
+      this.logger.debug('createQueues not enabled; skipping provisioning');
+    } else {
+      this.logger.debug('No admin client available; skipping provisioning');
+    }
+
+    return target;
+  }
+
+  private ensureAdminClient(): void {
     if (!this.admin && this.createQueues) {
       const storedCfg = this._config;
       if (storedCfg?.connectionString) {
@@ -130,143 +193,133 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
         );
       }
     }
+  }
 
-    let actualIsQueue = isQueueMode;
-    let actualSubscriptionName = subscriptionName;
+  private async provisionQueueTarget(
+    admin: ServiceBusAdministrationClient,
+    target: SubscriptionTarget,
+  ): Promise<SubscriptionTarget> {
+    this.logger.debug(`Checking queue ${target.resourceName}`);
+    try {
+      await admin.getQueue(target.resourceName);
+      this.logger.debug(`Queue ${target.resourceName} already exists`);
+      return target;
+    } catch {
+      this.logger.debug(
+        `Queue ${target.resourceName} not found; checking for topic with same name`,
+      );
+      return this.provisionQueueFallback(admin, target);
+    }
+  }
 
-    if (this.admin && this.createQueues) {
+  private async provisionQueueFallback(
+    admin: ServiceBusAdministrationClient,
+    target: SubscriptionTarget,
+  ): Promise<SubscriptionTarget> {
+    try {
+      await admin.getTopic(target.resourceName);
+      this.logger.log(
+        `A topic named ${target.resourceName} exists; will attach via subscription instead of queue`,
+      );
+
+      const topicTarget = {
+        ...target,
+        isQueueMode: false,
+        subscriptionName: target.defaultSubscriptionName,
+      };
+      await this.ensureSubscription(admin, topicTarget);
+      return topicTarget;
+    } catch {
+      this.logger.log(
+        `No topic found named ${target.resourceName}; attempting to create queue`,
+      );
       try {
-        if (isQueueMode) {
-          this.logger.debug(`Checking queue ${resourceName}`);
-          try {
-            await this.admin.getQueue(resourceName);
-            this.logger.debug(`Queue ${resourceName} already exists`);
-          } catch {
-            this.logger.debug(
-              `Queue ${resourceName} not found; checking for topic with same name`,
-            );
-            // If a topic exists with the same name, fall back to topic+subscription
-            try {
-              await this.admin.getTopic(resourceName);
-              this.logger.log(
-                `A topic named ${resourceName} exists; will attach via subscription instead of queue`,
-              );
-              actualIsQueue = false;
-              actualSubscriptionName = this.subscriptionPrefix + group;
-              // ensure the subscription exists
-              try {
-                await this.admin.getSubscription(
-                  resourceName,
-                  actualSubscriptionName,
-                );
-                this.logger.debug(
-                  `Subscription ${actualSubscriptionName} for ${resourceName} already exists`,
-                );
-              } catch {
-                this.logger.log(
-                  `Subscription ${actualSubscriptionName} for ${resourceName} not found, attempting to create`,
-                );
-                try {
-                  await this.admin.createSubscription(
-                    resourceName,
-                    actualSubscriptionName,
-                  );
-                  this.logger.log(
-                    `Created subscription ${actualSubscriptionName} for ${resourceName}`,
-                  );
-                } catch (createSubErr) {
-                  this.logger.warn(
-                    `Failed creating subscription ${actualSubscriptionName} for ${resourceName}`,
-                    createSubErr as Error,
-                  );
-                }
-              }
-            } catch {
-              // No topic exists either — attempt to create a queue
-              this.logger.log(
-                `No topic found named ${resourceName}; attempting to create queue`,
-              );
-              try {
-                await this.admin.createQueue(resourceName);
-                this.logger.log(`Created queue ${resourceName}`);
-              } catch (createQueueErr) {
-                this.logger.warn(
-                  `Failed creating queue ${resourceName}`,
-                  createQueueErr as Error,
-                );
-              }
-            }
-          }
-        } else {
-          // Topic + subscription
-          this.logger.debug(`Checking topic ${resourceName}`);
-          try {
-            await this.admin.getTopic(resourceName);
-            this.logger.debug(`Topic ${resourceName} already exists`);
-          } catch {
-            this.logger.log(
-              `Topic ${resourceName} not found, attempting to create`,
-            );
-            try {
-              await this.admin.createTopic(resourceName);
-              this.logger.log(`Created topic ${resourceName}`);
-            } catch (e) {
-              this.logger.warn(
-                `Failed creating topic ${resourceName}`,
-                e as Error,
-              );
-            }
-          }
+        await admin.createQueue(target.resourceName);
+        this.logger.log(`Created queue ${target.resourceName}`);
+      } catch (createQueueErr) {
+        this.logger.warn(
+          `Failed creating queue ${target.resourceName}`,
+          createQueueErr as Error,
+        );
+      }
+      return target;
+    }
+  }
 
-          // Subscription
-          const subName = subscriptionName ?? defaultSubscriptionName;
-          this.logger.debug(
-            `Checking subscription ${subName} for topic ${resourceName}`,
-          );
-          try {
-            await this.admin.getSubscription(resourceName, subName);
-            this.logger.debug(
-              `Subscription ${subName} for ${resourceName} already exists`,
-            );
-          } catch {
-            this.logger.log(
-              `Subscription ${subName} for ${resourceName} not found, attempting to create`,
-            );
-            try {
-              await this.admin.createSubscription(resourceName, subName);
-              this.logger.log(
-                `Created subscription ${subName} for ${resourceName}`,
-              );
-            } catch (e) {
-              this.logger.warn(
-                `Failed creating subscription ${subName} for ${resourceName}`,
-                e as Error,
-              );
-            }
-          }
-        }
+  private async provisionTopicSubscriptionTarget(
+    admin: ServiceBusAdministrationClient,
+    target: SubscriptionTarget,
+  ): Promise<SubscriptionTarget> {
+    await this.ensureTopic(admin, target.resourceName);
+    await this.ensureSubscription(admin, target);
+    return target;
+  }
+
+  private async ensureTopic(
+    admin: ServiceBusAdministrationClient,
+    resourceName: string,
+  ): Promise<void> {
+    this.logger.debug(`Checking topic ${resourceName}`);
+    try {
+      await admin.getTopic(resourceName);
+      this.logger.debug(`Topic ${resourceName} already exists`);
+    } catch {
+      this.logger.log(`Topic ${resourceName} not found, attempting to create`);
+      try {
+        await admin.createTopic(resourceName);
+        this.logger.log(`Created topic ${resourceName}`);
+      } catch (err) {
+        this.logger.warn(`Failed creating topic ${resourceName}`, err as Error);
+      }
+    }
+  }
+
+  private async ensureSubscription(
+    admin: ServiceBusAdministrationClient,
+    target: SubscriptionTarget,
+  ): Promise<void> {
+    const subName = target.subscriptionName ?? target.defaultSubscriptionName;
+    this.logger.debug(
+      `Checking subscription ${subName} for topic ${target.resourceName}`,
+    );
+    try {
+      await admin.getSubscription(target.resourceName, subName);
+      this.logger.debug(
+        `Subscription ${subName} for ${target.resourceName} already exists`,
+      );
+    } catch {
+      this.logger.log(
+        `Subscription ${subName} for ${target.resourceName} not found, attempting to create`,
+      );
+      try {
+        await admin.createSubscription(target.resourceName, subName);
+        this.logger.log(
+          `Created subscription ${subName} for ${target.resourceName}`,
+        );
       } catch (err) {
         this.logger.warn(
-          'Provisioning checks encountered an error',
+          `Failed creating subscription ${subName} for ${target.resourceName}`,
           err as Error,
         );
       }
-    } else if (!this.createQueues) {
-      this.logger.debug('createQueues not enabled; skipping provisioning');
-    } else {
-      this.logger.debug('No admin client available; skipping provisioning');
+    }
+  }
+
+  private createReceiver(target: SubscriptionTarget): ServiceBusReceiver {
+    if (target.isQueueMode) {
+      return this.client.createReceiver(target.resourceName);
     }
 
-    // create receiver and subscribe — use the actual resolved mode (queue or topic/sub)
-    let receiver: ServiceBusReceiver;
-    if (actualIsQueue) {
-      receiver = this.client.createReceiver(resourceName);
-    } else {
-      const finalSubscription =
-        actualSubscriptionName ?? defaultSubscriptionName;
-      receiver = this.client.createReceiver(resourceName, finalSubscription);
-    }
+    const finalSubscription =
+      target.subscriptionName ?? target.defaultSubscriptionName;
+    return this.client.createReceiver(target.resourceName, finalSubscription);
+  }
 
+  private subscribeReceiver(
+    target: SubscriptionTarget,
+    receiver: ServiceBusReceiver,
+    onMessage: CapMessageHandler,
+  ): void {
     receiver.subscribe(
       {
         processMessage: async (msg) => {
@@ -276,25 +329,22 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
               (msg.applicationProperties ?? {}) as CapHeaders,
             );
           } catch (err) {
-            this.logger.warn(`Handler error for ${key}`, err as Error);
+            this.logger.warn(`Handler error for ${target.key}`, err as Error);
             throw err;
           }
         },
         processError: (args: ProcessErrorArgs) => {
           this.logger.error(
-            `Error from ${key}: ${args.error?.message}`,
+            `Error from ${target.key}: ${args.error?.message}`,
             args.error,
           );
           return Promise.resolve();
         },
       },
       {
-        maxConcurrentCalls: cfg?.maxConcurrentCalls ?? 1,
+        maxConcurrentCalls: target.maxConcurrentCalls,
       },
     );
-
-    this.receivers.set(key, receiver);
-    this.logger.log(`subscribed to ${key}`);
   }
 
   async onModuleDestroy(): Promise<void> {
