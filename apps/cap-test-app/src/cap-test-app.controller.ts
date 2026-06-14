@@ -1,9 +1,13 @@
 import { Controller, Get, Post, Query } from '@nestjs/common';
 import { CapTestAppService } from './cap-test-app.service';
-import { CapService, withTransactionAndPostCommit } from '@mikara89/cap-nest';
+import {
+  CapService,
+  JsonValue,
+  withTransactionAndPostCommit,
+} from '@mikara89/cap-nest';
 import { MikroORM } from '@mikro-orm/core';
 
-type PostCommitItem = { topic: string; payload: unknown };
+type PostCommitItem = { topic: string; payload: JsonValue };
 
 @Controller()
 export class CapTestAppController {
@@ -93,7 +97,7 @@ export class CapTestAppController {
       },
       async (items: PostCommitItem[]) => {
         for (const it of items) {
-          await this.cap.publish(it.topic, it.payload, { tx: 'true' });
+          await this.cap.publish(it.topic, it.payload);
         }
       },
     );

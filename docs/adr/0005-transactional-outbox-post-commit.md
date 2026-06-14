@@ -21,8 +21,8 @@ or application-level post-commit handling.
 ## Consequences
 
 - Storage adapters can opt into transaction-aware outbox writes.
-- Transports can opt into `emitWithTx` only when they can provide safe
-  transaction coordination.
+- `publish(..., { tx })` defers broker emission by default; `immediate: true`
+  is explicit and non-atomic.
 - The recommended production pattern is to persist the outbox record inside the
   domain transaction and publish after commit.
 - Applications may use `withTransactionAndPostCommit` for explicit post-commit

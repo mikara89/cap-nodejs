@@ -1,5 +1,5 @@
-import { Entity, PrimaryKey, Property, Index } from '@mikro-orm/core';
-import type { CapHeaders } from '@mikara89/cap-nest';
+import { Entity, PrimaryKey, Property, Index, Unique } from '@mikro-orm/core';
+import type { CapHeaders, JsonValue } from '@mikara89/cap-nest';
 import { v4 as uuid } from 'uuid';
 
 /**
@@ -9,6 +9,7 @@ import { v4 as uuid } from 'uuid';
 @Entity({ tableName: 'cap_received' })
 @Index({ properties: ['processed', 'nextRetry'] })
 @Index({ properties: ['topic', 'group'] })
+@Unique({ properties: ['topic', 'group', 'messageId'] })
 export class CapReceivedEntity {
   @PrimaryKey({ type: 'uuid' })
   id: string = uuid();
@@ -19,8 +20,14 @@ export class CapReceivedEntity {
   @Property({ type: 'string', length: 255 })
   group!: string;
 
+  @Property({ type: 'string', length: 255 })
+  messageId!: string;
+
+  @Property({ type: 'string', length: 768 })
+  dedupeKey!: string;
+
   @Property({ type: 'json' })
-  payload!: Record<string, unknown>;
+  payload!: JsonValue;
 
   @Property({ type: 'json', nullable: true })
   headers?: CapHeaders;

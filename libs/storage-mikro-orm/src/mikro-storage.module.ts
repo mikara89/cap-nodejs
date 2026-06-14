@@ -17,7 +17,7 @@ import { MikroReceivedStorage } from './storage/mikro-received-storage';
  * @Module({
  *   imports: [
  *     MikroOrmModule.forRoot({ ... }),
- *     CapModule.forAdapters(MikroStorageModule, transportModule),
+ *     CapModule.forRoot({ imports: [MikroStorageModule, transportModule] }),
  *   ],
  * })
  * export class AppModule {}

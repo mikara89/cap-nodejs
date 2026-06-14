@@ -66,7 +66,7 @@ first-party packages are MikroORM storage and Azure Service Bus transport.
 ```ts
 import { Module } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { CapModule, CapAdapterModule } from '@mikara89/cap-nest';
+import { CapModule } from '@mikara89/cap-nest';
 import {
   MikroStorageModule,
   CapPublishEntity,
@@ -88,14 +88,13 @@ const serviceBusTransport = ServiceBusTransportModule.forRoot({
     }),
     MikroStorageModule,
     serviceBusTransport,
-    CapModule.forAdapters(
-      MikroStorageModule,
-      serviceBusTransport as unknown as CapAdapterModule,
-      {
+    CapModule.forRoot({
+      imports: [MikroStorageModule, serviceBusTransport],
+      init: {
         createSchema: false,
         createQueues: false,
       },
-    ),
+    }),
   ],
 })
 export class AppModule {}

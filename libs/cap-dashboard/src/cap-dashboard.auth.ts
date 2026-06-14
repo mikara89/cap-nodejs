@@ -4,6 +4,7 @@ import type { Observable } from 'rxjs';
 
 export const CAP_DASHBOARD_USER_GUARD = 'CAP_DASHBOARD_USER_GUARD';
 export const CAP_DASHBOARD_AUTHORIZER = 'CAP_DASHBOARD_AUTHORIZER';
+export const CAP_DASHBOARD_OPTIONS = 'CAP_DASHBOARD_OPTIONS';
 /** @internal */
 export const CAP_DASHBOARD_ACCESS_METADATA = 'CAP_DASHBOARD_ACCESS_METADATA';
 
@@ -13,10 +14,12 @@ export type CapDashboardAction =
   | 'ui.view'
   | 'outbox.list'
   | 'outbox.get'
+  | 'outbox.fullPayload'
   | 'outbox.retry'
   | 'outbox.markPublished'
   | 'inbox.list'
   | 'inbox.get'
+  | 'inbox.fullPayload'
   | 'inbox.retry'
   | 'inbox.markProcessed'
   | 'scheduler.flushOutbox';

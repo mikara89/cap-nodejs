@@ -1,6 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { firstValueFrom, timeout } from 'rxjs';
-import type { CapHeaders, IPublisher } from '@mikara89/cap-nest';
+import type {
+  CapHeaders,
+  CapPublishMetadata,
+  IPublisher,
+} from '@mikara89/cap-nest';
 import type { CapClientProxyLike } from './client-proxy.interface';
 import type { NestjsMicroservicesTransportConfig } from './nestjs-microservices.config';
 
@@ -22,9 +26,11 @@ export class CapMicroservicesPublisher implements IPublisher {
     topic: string,
     payload: unknown,
     headers?: CapHeaders,
+    metadata?: CapPublishMetadata,
   ): Promise<void> {
     const pattern = this.config.patternFactory?.(topic) ?? topic;
-    const message = headers ? { payload, headers } : payload;
+    const message =
+      headers || metadata ? { payload, headers, metadata } : payload;
     const result = this.client.emit(pattern, message);
     const publishTimeoutMs = this.config.publishTimeoutMs;
 

@@ -1,6 +1,6 @@
 import { Controller, Inject, Module } from '@nestjs/common';
 import { ClientProxy, ClientsModule, Transport } from '@nestjs/microservices';
-import { CapAdapterModule, CapModule } from '@mikara89/cap-nest';
+import { CapModule } from '@mikara89/cap-nest';
 import {
   CapMicroservicesBridge,
   NestjsMicroservicesTransportModule,
@@ -39,10 +39,9 @@ const transport = NestjsMicroservicesTransportModule.forRoot({
       },
     ]),
     transport,
-    CapModule.forAdapters(
-      transport as unknown as CapAdapterModule,
-      transport as unknown as CapAdapterModule,
-    ),
+    CapModule.forRoot({
+      imports: [transport],
+    }),
   ],
   controllers: [OrdersEventsController],
   providers: [OrdersPublisher],

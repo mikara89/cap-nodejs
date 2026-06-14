@@ -50,6 +50,7 @@ describe('CapDashboard integration (in-memory)', () => {
       payload: { name: 'Alice' },
       headers: { traceId: 'trace-1' },
       retryCount: 0,
+      status: 'pending',
     };
 
     const evt2: CapPublishEvent = {
@@ -79,6 +80,8 @@ describe('CapDashboard integration (in-memory)', () => {
       id: 'r-1',
       topic: 'user.created',
       group: 'default',
+      messageId: 'message-r-1',
+      dedupeKey: 'user.created|default|message-r-1',
       occurredAt: new Date().toISOString(),
       payload: { name: 'Bob' },
       headers: { traceId: 'trace-2' },
@@ -87,7 +90,7 @@ describe('CapDashboard integration (in-memory)', () => {
       nextRetry: new Date(Date.now() - 1000),
     };
 
-    await recStore.saveReceived(rec);
+    await recStore.trySaveReceived(rec);
 
     const page = await svc.listInbox({ page: 1, limit: 10, due: true });
     expect(page.items.length).toBeGreaterThanOrEqual(1);
@@ -106,6 +109,7 @@ describe('CapDashboard integration (in-memory)', () => {
       payload: { foo: 'bar' },
       headers: { traceId: 'retry' },
       retryCount: 0,
+      status: 'pending',
     };
     await pubStore.savePublish(evt);
 
@@ -122,13 +126,15 @@ describe('CapDashboard integration (in-memory)', () => {
       id: 'r-retry',
       topic: 'no.handler',
       group: 'g1',
+      messageId: 'message-r-retry',
+      dedupeKey: 'no.handler|g1|message-r-retry',
       occurredAt: new Date().toISOString(),
       payload: { x: 1 },
       retryCount: 0,
       processed: false,
       nextRetry: null,
     };
-    await recStore.saveReceived(rec);
+    await recStore.trySaveReceived(rec);
 
     const res = await svc.retryInbox('r-retry');
     expect(res.success).toBeTruthy();

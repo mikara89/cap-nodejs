@@ -11,7 +11,11 @@ describe('CapMicroservicesBridge', () => {
       headers: { traceId: 'abc' },
     });
 
-    expect(handler).toHaveBeenCalledWith({ id: 1 }, { traceId: 'abc' });
+    expect(handler).toHaveBeenCalledWith(
+      { id: 1 },
+      { traceId: 'abc' },
+      undefined,
+    );
   });
 
   it('ignores groups without registered handlers', async () => {

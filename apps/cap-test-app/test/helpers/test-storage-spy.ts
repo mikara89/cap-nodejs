@@ -1,24 +1,29 @@
 import {
+  type ClaimUnpublishedOptions,
   type IPublishStorage,
   type IReceivedStorage,
+  type MarkPublishFailedOptions,
   type CapPublishEvent,
   type CapReceivedEvent,
+  type TrySaveReceivedResult,
+  type JsonValue,
 } from '@mikara89/cap-nest';
 
-/**
- * In-memory storage implementation with spy capabilities for testing.
- * Tracks all method calls and provides access to internal state.
- */
 export class TestStorageSpy implements IPublishStorage, IReceivedStorage {
-  // Internal storage
-  private publishEvents = new Map<string, CapPublishEvent>();
-  private receivedEvents = new Map<string, CapReceivedEvent>();
+  private publishEvents = new Map<string, CapPublishEvent<JsonValue>>();
+  private receivedEvents = new Map<string, CapReceivedEvent<JsonValue>>();
+  private receivedDedupe = new Map<string, string>();
 
-  // Spy tracking
   public savePublishCalls: CapPublishEvent[] = [];
-  public saveReceivedCalls: CapReceivedEvent[] = [];
-  public getUnpublishedCalls = 0;
+  public trySaveReceivedCalls: CapReceivedEvent[] = [];
+  public claimUnpublishedCalls: ClaimUnpublishedOptions[] = [];
   public markPublishedCalls: string[] = [];
+  public markPublishFailedCalls: Array<{
+    id: string;
+    error: unknown;
+    options: MarkPublishFailedOptions;
+  }> = [];
+  public releaseExpiredClaimsCalls: Date[] = [];
   public getRetryDueCalls = 0;
   public markProcessedCalls: string[] = [];
   public scheduleRetryCalls: Array<{
@@ -27,37 +32,91 @@ export class TestStorageSpy implements IPublishStorage, IReceivedStorage {
     nextRetry: Date;
   }> = [];
 
-  // --- IPublishStorage ---
-
-  savePublish<T = unknown>(evt: CapPublishEvent<T>): Promise<string> {
-    this.savePublishCalls.push(evt);
-    this.publishEvents.set(evt.id, { ...evt });
-    return Promise.resolve(evt.id); // Return the message ID
+  savePublish<T = JsonValue>(evt: CapPublishEvent<T>): Promise<string> {
+    this.savePublishCalls.push(evt as CapPublishEvent);
+    this.publishEvents.set(evt.id, evt as CapPublishEvent<JsonValue>);
+    return Promise.resolve(evt.id);
   }
 
-  getUnpublished(limit: number): Promise<CapPublishEvent[]> {
-    this.getUnpublishedCalls++;
-    const unpublished = Array.from(this.publishEvents.values())
-      .filter((e) => e.status !== 'published')
-      .slice(0, limit);
-    return Promise.resolve(unpublished);
+  claimUnpublished(
+    options: ClaimUnpublishedOptions,
+  ): Promise<CapPublishEvent[]> {
+    this.claimUnpublishedCalls.push(options);
+    const claimed: CapPublishEvent[] = [];
+    for (const event of this.publishEvents.values()) {
+      if (claimed.length >= options.limit) break;
+      if (!this.isClaimable(event, options.now)) continue;
+      event.status = 'processing';
+      event.lockedBy = options.lockedBy;
+      event.lockedUntil = options.lockUntil;
+      claimed.push({ ...event });
+    }
+    return Promise.resolve(claimed);
   }
 
-  markPublished(id: string): Promise<void> {
+  markPublished(id: string, publishedAt = new Date()): Promise<void> {
     this.markPublishedCalls.push(id);
     const event = this.publishEvents.get(id);
     if (event) {
       event.status = 'published';
+      event.publishedAt = publishedAt;
+      event.lockedBy = null;
+      event.lockedUntil = null;
     }
     return Promise.resolve();
   }
 
-  // --- IReceivedStorage ---
+  markPublishFailed(
+    id: string,
+    error: unknown,
+    options: MarkPublishFailedOptions,
+  ): Promise<void> {
+    this.markPublishFailedCalls.push({ id, error, options });
+    const event = this.publishEvents.get(id);
+    if (event) {
+      event.retryCount += 1;
+      event.status =
+        event.retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
+      event.nextRetryAt =
+        event.status === 'dead_letter' ? null : options.nextRetryAt;
+      event.lastError = error instanceof Error ? error.message : String(error);
+      event.lockedBy = null;
+      event.lockedUntil = null;
+    }
+    return Promise.resolve();
+  }
 
-  saveReceived<T = unknown>(evt: CapReceivedEvent<T>): Promise<string> {
-    this.saveReceivedCalls.push(evt);
-    this.receivedEvents.set(evt.id, { ...evt });
-    return Promise.resolve(evt.id); // Return the message ID
+  releaseExpiredClaims(now: Date): Promise<void> {
+    this.releaseExpiredClaimsCalls.push(now);
+    for (const event of this.publishEvents.values()) {
+      if (
+        event.status === 'processing' &&
+        event.lockedUntil &&
+        event.lockedUntil <= now
+      ) {
+        event.status = 'failed';
+        event.lockedBy = null;
+        event.lockedUntil = null;
+      }
+    }
+    return Promise.resolve();
+  }
+
+  trySaveReceived<T extends JsonValue = JsonValue>(
+    evt: CapReceivedEvent<T>,
+  ): Promise<TrySaveReceivedResult<T>> {
+    this.trySaveReceivedCalls.push(evt as CapReceivedEvent);
+    const existingId = this.receivedDedupe.get(evt.dedupeKey);
+    if (existingId) {
+      return Promise.resolve({
+        inserted: false,
+        id: existingId,
+        event: this.receivedEvents.get(existingId) as CapReceivedEvent<T>,
+      });
+    }
+    this.receivedEvents.set(evt.id, evt as CapReceivedEvent<JsonValue>);
+    this.receivedDedupe.set(evt.dedupeKey, evt.id);
+    return Promise.resolve({ inserted: true, id: evt.id, event: evt });
   }
 
   getRetryDue(limit: number): Promise<CapReceivedEvent[]> {
@@ -72,9 +131,7 @@ export class TestStorageSpy implements IPublishStorage, IReceivedStorage {
   markProcessed(id: string): Promise<void> {
     this.markProcessedCalls.push(id);
     const event = this.receivedEvents.get(id);
-    if (event) {
-      event.processed = true;
-    }
+    if (event) event.processed = true;
     return Promise.resolve();
   }
 
@@ -91,8 +148,6 @@ export class TestStorageSpy implements IPublishStorage, IReceivedStorage {
     }
     return Promise.resolve();
   }
-
-  // --- Test helpers ---
 
   getPublishEvent(id: string): CapPublishEvent | undefined {
     return this.publishEvents.get(id);
@@ -113,12 +168,26 @@ export class TestStorageSpy implements IPublishStorage, IReceivedStorage {
   reset(): void {
     this.publishEvents.clear();
     this.receivedEvents.clear();
+    this.receivedDedupe.clear();
     this.savePublishCalls = [];
-    this.saveReceivedCalls = [];
-    this.getUnpublishedCalls = 0;
+    this.trySaveReceivedCalls = [];
+    this.claimUnpublishedCalls = [];
     this.markPublishedCalls = [];
+    this.markPublishFailedCalls = [];
+    this.releaseExpiredClaimsCalls = [];
     this.getRetryDueCalls = 0;
     this.markProcessedCalls = [];
     this.scheduleRetryCalls = [];
+  }
+
+  private isClaimable(event: CapPublishEvent, now: Date): boolean {
+    if (event.status === 'pending') return true;
+    if (event.status === 'failed') {
+      return !event.nextRetryAt || event.nextRetryAt <= now;
+    }
+    if (event.status === 'processing') {
+      return Boolean(event.lockedUntil && event.lockedUntil <= now);
+    }
+    return false;
   }
 }

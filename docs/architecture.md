@@ -45,13 +45,13 @@ sequenceDiagram
   participant Outbox
   participant Publisher
 
-  App->>CapService: publish(topic, payload, headers?)
+  App->>CapService: publish(topic, payload, options?)
   CapService->>Outbox: savePublish(event)
-  CapService->>Publisher: emit(topic, payload, headers?)
+  CapService->>Publisher: emit(topic, payload, headers?, { messageId })
   alt emit succeeds
     CapService->>Outbox: markPublished(id)
   else emit fails
-    CapService-->>Outbox: leave row unpublished
+    CapService-->>Outbox: markPublishFailed(id, error, nextRetryAt)
   end
 ```
 
@@ -72,8 +72,8 @@ sequenceDiagram
   Nest->>Scanner: onModuleInit
   Scanner->>CapService: subscribe(topic, group, handler)
   CapService->>Subscriber: consume(topic, group, callback)
-  Subscriber->>CapService: callback(payload, headers?)
-  CapService->>Inbox: saveReceived(event)
+  Subscriber->>CapService: callback(payload, headers?, metadata?)
+  CapService->>Inbox: trySaveReceived(event)
   CapService->>Handler: invoke(payload, headers?)
   alt handler succeeds
     CapService->>Inbox: markProcessed(id)
@@ -96,21 +96,22 @@ The scheduler is registered by `CapModule` and performs two periodic jobs:
 - outbox flush every 30 seconds
 - inbox retry every minute
 
-Outbox retries read unpublished rows and emit them again. Inbox retries read
-due unprocessed rows and re-run the registered handler. Handler retry timing
-uses exponential backoff with jitter.
+Outbox retries claim eligible rows with a lease before emitting them. Failed
+emits increment retry state and eventually move rows to `dead_letter`. Inbox
+retries read due unprocessed rows and re-run the registered handler. Handler
+retry timing uses exponential backoff with jitter.
 
 ## Transactions
 
-`CapService.publish(topic, payload, headers?, tx?)` supports optional
+`CapService.publish(topic, payload, { headers, tx, immediate }?)` supports
 transaction-aware behavior:
 
 - If storage implements `savePublishWithTx` and `tx` is provided, the outbox row
   is persisted with that transaction/context.
-- If the publisher implements `emitWithTx`, CAP delegates to that method with
-  payload and headers.
-- If `tx` is provided but the publisher is not transaction-aware, CAP leaves the
-  row unpublished so the scheduler can emit after commit.
+- If `tx` is provided and `immediate` is not `true`, CAP does not emit to the
+  broker immediately. The scheduler publishes the row after the DB commit.
+- If `immediate: true` is provided, CAP emits immediately and marks published on
+  success. This is intentionally non-atomic across DB and broker.
 
 Recommended production behavior is deferred publication: persist the outbox row
 inside the same database transaction as the domain change, then emit after the

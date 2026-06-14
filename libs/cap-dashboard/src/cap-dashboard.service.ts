@@ -1,41 +1,65 @@
 import { Inject, Injectable, Optional, Logger } from '@nestjs/common';
 import {
-  PUBLISH_STORAGE,
-  RECEIVED_STORAGE,
+  CapReceivedEvent,
+  CapService,
   IPublishStorage,
+  IPublisher,
   IReceivedStorage,
+  PUBLISH_STORAGE,
+  PUBLISHER,
+  RECEIVED_STORAGE,
 } from '@mikara89/cap-nest';
-import { CapService } from '@mikara89/cap-nest';
-import { IPublisher, PUBLISHER } from '@mikara89/cap-nest';
+import { CapPublishEvent } from '@mikara89/cap-nest';
 import { ListQueryDto } from './dto/list-query.dto';
 import { OutboxPageDto } from './dto/page.dto';
 import { OutboxItemDto } from './dto/outbox-item.dto';
 import { InboxPageDto } from './dto/page.dto';
 import { InboxItemDto } from './dto/inbox-item.dto';
 import { ActionResultDto } from './dto/action-result.dto';
-import { CapPublishEvent } from '@mikara89/cap-nest';
-import { CapReceivedEvent } from '@mikara89/cap-nest';
+import { CAP_DASHBOARD_OPTIONS } from './cap-dashboard.auth';
 
 const DEFAULT_LIST_LIMIT = 50;
+const DASHBOARD_LOCK_OWNER = 'cap-dashboard';
 
 export interface RetryOptions {
   force?: boolean;
 }
 
+export interface CapDashboardServiceOptions {
+  readOnly: boolean;
+  maxPageSize: number;
+  redact: {
+    headers: string[];
+    payloadPaths: string[];
+  };
+}
+
 @Injectable()
 export class CapDashboardService {
   private readonly logger = new Logger(CapDashboardService.name);
+
   constructor(
     @Inject(PUBLISH_STORAGE) private readonly pubStorage: IPublishStorage,
     @Inject(RECEIVED_STORAGE) private readonly recStorage: IReceivedStorage,
     @Optional() private readonly capService?: CapService,
     @Optional() @Inject(PUBLISHER) private readonly publisher?: IPublisher,
+    @Optional()
+    @Inject(CAP_DASHBOARD_OPTIONS)
+    private readonly options: CapDashboardServiceOptions = {
+      readOnly: false,
+      maxPageSize: 100,
+      redact: {
+        headers: ['authorization', 'cookie', 'x-api-key'],
+        payloadPaths: [],
+      },
+    },
   ) {}
 
   async listOutbox(query: ListQueryDto): Promise<OutboxPageDto> {
-    const limit = query?.limit ?? DEFAULT_LIST_LIMIT;
-    // Try to use storage.list-like methods if present, otherwise fall back to getUnpublished
+    const limit = this.resolveLimit(query);
     let rows: CapPublishEvent[] = [];
+    let total = 0;
+
     try {
       if (this.pubStorage.listPublish) {
         const res = await this.pubStorage.listPublish({
@@ -44,30 +68,16 @@ export class CapDashboardService {
           topic: query?.topic,
           onlyUnpublished: toBoolean(query?.onlyUnpublished),
         });
-        rows = res.items ?? res;
-        const total = res.total ?? rows.length;
-        return {
-          items: rows.map((r) => mapPublishToOutboxDto(r)),
-          total,
-          page: query?.page ?? 1,
-          limit,
-        };
+        rows = res.items;
+        total = res.total ?? rows.length;
       }
     } catch (err) {
-      this.logger.warn('listPublish adapter method failed, falling back', err);
-    }
-
-    // fallback
-    try {
-      rows = await this.pubStorage.getUnpublished(limit);
-    } catch (err) {
-      this.logger.error('Failed to read outbox rows', err);
-      rows = [];
+      this.logger.warn('listPublish adapter method failed', err);
     }
 
     return {
-      items: rows.map((r) => mapPublishToOutboxDto(r)),
-      total: rows.length,
+      items: rows.map((r) => mapPublishToOutboxDto(r, false, this.options)),
+      total,
       page: query?.page ?? 1,
       limit,
     };
@@ -77,52 +87,34 @@ export class CapDashboardService {
     id: string,
     full = false,
   ): Promise<OutboxItemDto | undefined> {
-    // try adapter-specific finder
     try {
-      if (this.pubStorage.findPublishById) {
-        const rec = await this.pubStorage.findPublishById(id);
-        if (rec) return mapPublishToOutboxDto(rec, full);
-      }
+      const rec = await this.pubStorage.findPublishById?.(id);
+      return rec ? mapPublishToOutboxDto(rec, full, this.options) : undefined;
     } catch (err) {
       this.logger.warn('findPublishById failed', err);
+      return undefined;
     }
-
-    // fallback: scan small batch
-    try {
-      const rows = await this.pubStorage.getUnpublished(1000);
-      const found = rows.find((r) => r.id === id);
-      if (found) return mapPublishToOutboxDto(found, full);
-    } catch (err) {
-      this.logger.error('Failed to scan outbox for id', err);
-    }
-    return undefined;
   }
 
   async retryOutbox(
     id: string,
     _opts?: RetryOptions,
   ): Promise<ActionResultDto> {
+    if (this.options.readOnly) return readOnlyResult();
+
     try {
-      // fetch record
-      const rec = this.pubStorage.findPublishById
-        ? await this.pubStorage.findPublishById(id)
-        : (await this.pubStorage.getUnpublished(1000)).find((r) => r.id === id);
-
-      if (!rec)
+      const rec = await this.pubStorage.findPublishById?.(id);
+      if (!rec) {
         return { success: false, message: `publish record ${id} not found` };
-
+      }
       if (!this.publisher) {
-        return {
-          success: false,
-          message: 'No publisher available to emit message',
-        };
+        return { success: false, message: 'No publisher available to emit message' };
       }
 
-      // attempt emit
-      await this.publisher.emit(rec.topic, rec.payload, rec.headers);
-
-      // mark published on success
-      await this.pubStorage.markPublished(id);
+      await this.publisher.emit(rec.topic, rec.payload, rec.headers, {
+        messageId: rec.id,
+      });
+      await this.pubStorage.markPublished(id, new Date());
       return { success: true, message: 'Published successfully' };
     } catch (err: unknown) {
       this.logger.error('retryOutbox failed', err);
@@ -131,8 +123,10 @@ export class CapDashboardService {
   }
 
   async markOutboxPublished(id: string): Promise<ActionResultDto> {
+    if (this.options.readOnly) return readOnlyResult();
+
     try {
-      await this.pubStorage.markPublished(id);
+      await this.pubStorage.markPublished(id, new Date());
       return { success: true };
     } catch (err: unknown) {
       this.logger.error('markOutboxPublished failed', err);
@@ -141,8 +135,8 @@ export class CapDashboardService {
   }
 
   async listInbox(query: ListQueryDto): Promise<InboxPageDto> {
-    const limit = query?.limit ?? DEFAULT_LIST_LIMIT;
-    // If adapter supports listing, use it
+    const limit = this.resolveLimit(query);
+
     try {
       if (this.recStorage.listReceived) {
         const res = await this.recStorage.listReceived({
@@ -151,38 +145,18 @@ export class CapDashboardService {
           topic: query?.topic,
           due: toBoolean(query?.due),
         });
-        const rows: CapReceivedEvent[] = res.items ?? res;
         return {
-          items: rows.map((r) => mapReceivedToInboxDto(r)),
-          total: res.total ?? rows.length,
+          items: res.items.map((r) => mapReceivedToInboxDto(r, false, this.options)),
+          total: res.total ?? res.items.length,
           page: query?.page ?? 1,
           limit,
         };
       }
     } catch (err) {
-      this.logger.warn('listReceived adapter failed, falling back', err);
+      this.logger.warn('listReceived adapter failed', err);
     }
 
-    // fallback: if due requested, use getRetryDue
-    let rows: CapReceivedEvent[] = [];
-    try {
-      if (toBoolean(query?.due)) {
-        rows = await this.recStorage.getRetryDue(limit);
-      } else {
-        // No general listing; return empty list to avoid expensive scans
-        rows = [];
-      }
-    } catch (err) {
-      this.logger.error('Failed to read inbox rows', err);
-      rows = [];
-    }
-
-    return {
-      items: rows.map((r) => mapReceivedToInboxDto(r)),
-      total: rows.length,
-      page: query?.page ?? 1,
-      limit,
-    };
+    return { items: [], total: 0, page: query?.page ?? 1, limit };
   }
 
   async getInboxById(
@@ -190,43 +164,25 @@ export class CapDashboardService {
     full = false,
   ): Promise<InboxItemDto | undefined> {
     try {
-      if (this.recStorage.findReceivedById) {
-        const rec = await this.recStorage.findReceivedById(id);
-        if (rec) return mapReceivedToInboxDto(rec, full);
-      }
+      const rec = await this.recStorage.findReceivedById?.(id);
+      return rec ? mapReceivedToInboxDto(rec, full, this.options) : undefined;
     } catch (err) {
       this.logger.warn('findReceivedById failed', err);
+      return undefined;
     }
-
-    try {
-      const rows = await this.recStorage.getRetryDue(1000);
-      const found = rows.find((r) => r.id === id);
-      if (found) return mapReceivedToInboxDto(found, full);
-    } catch (err) {
-      this.logger.error('Failed to scan inbox for id', err);
-    }
-
-    return undefined;
   }
 
   async retryInbox(id: string, _opts?: RetryOptions): Promise<ActionResultDto> {
-    try {
-      // fetch event
-      let rec: CapReceivedEvent | undefined;
-      if (this.recStorage.findReceivedById) {
-        rec = await this.recStorage.findReceivedById(id);
-      } else {
-        const rows = await this.recStorage.getRetryDue(1000);
-        rec = rows.find((r) => r.id === id);
-      }
+    if (this.options.readOnly) return readOnlyResult();
 
-      if (!rec)
+    try {
+      const rec = await this.recStorage.findReceivedById?.(id);
+      if (!rec) {
         return { success: false, message: `received record ${id} not found` };
-      if (!this.capService)
-        return {
-          success: false,
-          message: 'CapService not available to retry handler',
-        };
+      }
+      if (!this.capService) {
+        return { success: false, message: 'CapService not available to retry handler' };
+      }
 
       await this.capService.retryReceived(rec);
       return { success: true, message: 'Retry scheduled/executed' };
@@ -237,6 +193,8 @@ export class CapDashboardService {
   }
 
   async markInboxProcessed(id: string): Promise<ActionResultDto> {
+    if (this.options.readOnly) return readOnlyResult();
+
     try {
       await this.recStorage.markProcessed(id);
       return { success: true };
@@ -247,25 +205,38 @@ export class CapDashboardService {
   }
 
   async flushOutbox(): Promise<ActionResultDto> {
+    if (this.options.readOnly) return readOnlyResult();
+
     try {
       if (!this.publisher) {
-        return {
-          success: false,
-          message: 'No publisher available to emit messages',
-        };
+        return { success: false, message: 'No publisher available to emit messages' };
       }
 
-      const rows = await this.pubStorage.getUnpublished(DEFAULT_LIST_LIMIT);
+      const now = new Date();
+      await this.pubStorage.releaseExpiredClaims(now);
+      const rows = await this.pubStorage.claimUnpublished({
+        limit: this.resolveLimit({ limit: DEFAULT_LIST_LIMIT }),
+        lockedBy: DASHBOARD_LOCK_OWNER,
+        lockUntil: new Date(now.getTime() + 30_000),
+        now,
+      });
       let published = 0;
       let failed = 0;
 
       for (const rec of rows) {
         try {
-          await this.publisher.emit(rec.topic, rec.payload, rec.headers);
-          await this.pubStorage.markPublished(rec.id);
+          await this.publisher.emit(rec.topic, rec.payload, rec.headers, {
+            messageId: rec.id,
+          });
+          await this.pubStorage.markPublished(rec.id, new Date());
           published++;
         } catch (err) {
           failed++;
+          await this.pubStorage.markPublishFailed(rec.id, err, {
+            maxRetries: 3,
+            nextRetryAt: new Date(Date.now() + 1000),
+            now: new Date(),
+          });
           this.logger.warn(`flushOutbox failed for ${rec.id}`, err as Error);
         }
       }
@@ -279,12 +250,21 @@ export class CapDashboardService {
       return { success: false, message: errorMessage(err) };
     }
   }
+
+  private resolveLimit(query: Pick<ListQueryDto, 'limit'> | undefined): number {
+    const requested = query?.limit ?? DEFAULT_LIST_LIMIT;
+    return Math.min(Math.max(Number(requested) || DEFAULT_LIST_LIMIT, 1), this.options.maxPageSize);
+  }
 }
 
 function mapPublishToOutboxDto(
   evt: CapPublishEvent,
-  full = false,
+  full: boolean,
+  options: CapDashboardServiceOptions,
 ): OutboxItemDto {
+  const redactedPayload = redactPayload(evt.payload, options.redact.payloadPaths);
+  const redactedHeaders = redactHeaders(evt.headers, options.redact.headers);
+
   return {
     id: evt.id,
     topic: evt.topic,
@@ -292,31 +272,76 @@ function mapPublishToOutboxDto(
     retryCount: evt.retryCount,
     occurredAt: evt.occurredAt ? new Date(evt.occurredAt) : new Date(),
     payloadPreview:
-      !full && evt.payload
-        ? String(JSON.stringify(evt.payload)).slice(0, 300)
+      !full && redactedPayload
+        ? String(JSON.stringify(redactedPayload)).slice(0, 300)
         : undefined,
-    payload: full ? evt.payload : undefined,
-    headers: full ? evt.headers : undefined,
+    payload: full ? redactedPayload : undefined,
+    headers: full ? redactedHeaders : undefined,
   };
 }
 
 function mapReceivedToInboxDto(
   evt: CapReceivedEvent,
-  full = false,
+  full: boolean,
+  options: CapDashboardServiceOptions,
 ): InboxItemDto {
+  const redactedPayload = redactPayload(evt.payload, options.redact.payloadPaths);
+  const redactedHeaders = redactHeaders(evt.headers, options.redact.headers);
+
   return {
     id: evt.id,
     topic: evt.topic,
+    messageId: evt.messageId,
+    dedupeKey: evt.dedupeKey,
     processed: evt.processed,
     retryCount: evt.retryCount,
     nextRetry: evt.nextRetry ?? undefined,
     payloadPreview:
-      !full && evt.payload
-        ? String(JSON.stringify(evt.payload)).slice(0, 300)
+      !full && redactedPayload
+        ? String(JSON.stringify(redactedPayload)).slice(0, 300)
         : undefined,
-    payload: full ? evt.payload : undefined,
-    headers: full ? evt.headers : undefined,
+    payload: full ? redactedPayload : undefined,
+    headers: full ? redactedHeaders : undefined,
   };
+}
+
+function redactHeaders(
+  headers: unknown,
+  sensitiveHeaders: string[],
+): unknown {
+  if (!headers || typeof headers !== 'object' || Array.isArray(headers)) {
+    return headers;
+  }
+  const sensitive = new Set(sensitiveHeaders.map((h) => h.toLowerCase()));
+  return Object.fromEntries(
+    Object.entries(headers as Record<string, unknown>).map(([key, value]) => [
+      key,
+      sensitive.has(key.toLowerCase()) ? '[redacted]' : value,
+    ]),
+  );
+}
+
+function redactPayload(payload: unknown, paths: string[]): unknown {
+  if (!paths.length || !payload || typeof payload !== 'object') return payload;
+  const clone = structuredCloneSafe(payload);
+  for (const path of paths) redactPath(clone, path.split('.'));
+  return clone;
+}
+
+function redactPath(target: unknown, parts: string[]): void {
+  if (!target || typeof target !== 'object' || !parts.length) return;
+  const record = target as Record<string, unknown>;
+  const [head, ...tail] = parts;
+  if (!(head in record)) return;
+  if (!tail.length) {
+    record[head] = '[redacted]';
+    return;
+  }
+  redactPath(record[head], tail);
+}
+
+function structuredCloneSafe(value: unknown): unknown {
+  return JSON.parse(JSON.stringify(value)) as unknown;
 }
 
 function toBoolean(value: unknown): boolean {
@@ -325,4 +350,8 @@ function toBoolean(value: unknown): boolean {
 
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
+}
+
+function readOnlyResult(): ActionResultDto {
+  return { success: false, message: 'Dashboard is read-only' };
 }

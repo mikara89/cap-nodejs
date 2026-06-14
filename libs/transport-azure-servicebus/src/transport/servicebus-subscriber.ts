@@ -6,11 +6,16 @@ import {
   ServiceBusAdministrationClient,
 } from '@azure/service-bus';
 import { ServiceBusConfig } from '../servicebus.config';
-import { ISubscriber, type CapHeaders } from '@mikara89/cap-nest';
+import {
+  ISubscriber,
+  type CapDeliveryMetadata,
+  type CapHeaders,
+} from '@mikara89/cap-nest';
 
 type CapMessageHandler = (
   payload: unknown,
   properties?: CapHeaders,
+  metadata?: CapDeliveryMetadata,
 ) => Promise<void>;
 
 interface SubscriptionTarget {
@@ -324,9 +329,16 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
       {
         processMessage: async (msg) => {
           try {
+            const messageId = normalizeMessageId(msg.messageId);
             await onMessage(
               msg.body,
               (msg.applicationProperties ?? {}) as CapHeaders,
+              {
+                messageId,
+                dedupeKey: messageId
+                  ? `${target.key}|${messageId}`
+                  : undefined,
+              },
             );
           } catch (err) {
             this.logger.warn(`Handler error for ${target.key}`, err as Error);
@@ -358,4 +370,11 @@ export class ServiceBusSubscriber implements ISubscriber, OnModuleDestroy {
     }
     this.receivers.clear();
   }
+}
+
+function normalizeMessageId(
+  messageId: string | number | Buffer | undefined,
+): string | undefined {
+  if (messageId === undefined) return undefined;
+  return Buffer.isBuffer(messageId) ? messageId.toString('utf8') : String(messageId);
 }

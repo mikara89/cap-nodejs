@@ -1,15 +1,17 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { EntityManager, FilterQuery, MikroORM } from '@mikro-orm/core';
-import { IReceivedStorage, CapReceivedEvent } from '@mikara89/cap-nest';
+import {
+  CapReceivedEvent,
+  IReceivedStorage,
+  JsonValue,
+  TrySaveReceivedResult,
+} from '@mikara89/cap-nest';
 import { CapReceivedEntity } from '../entities/cap-received.entity';
 
-/**
- * MikroORM implementation of IReceivedStorage.
- * Persists inbox events and manages retry scheduling.
- */
 @Injectable()
 export class MikroReceivedStorage implements IReceivedStorage {
   private readonly logger = new Logger(MikroReceivedStorage.name);
+
   constructor(
     private readonly em: EntityManager,
     @Optional() private readonly orm?: MikroORM,
@@ -19,60 +21,49 @@ export class MikroReceivedStorage implements IReceivedStorage {
     autoInit?: boolean;
     createSchema?: boolean;
   }): Promise<void> {
-    if (!(options && (options.autoInit || options.createSchema)))
-      return Promise.resolve();
+    if (!(options && (options.autoInit || options.createSchema))) return;
 
     try {
-      // Prefer MikroORM instance schema generator when available
-      if (this.orm) {
-        const schemaGen = (
-          this.orm as unknown as {
+      const schemaGen =
+        this.orm?.getSchemaGenerator?.() ??
+        (
+          this.em as unknown as {
             getSchemaGenerator?: () => { createSchema?: () => Promise<void> };
           }
         ).getSchemaGenerator?.();
-        if (schemaGen?.createSchema) {
-          this.logger.log(
-            'Creating DB schema via MikroORM schema generator (orm)',
-          );
-          await schemaGen.createSchema();
-          return;
-        }
-      }
 
-      const emWithSchema = this.em as unknown as {
-        getSchemaGenerator?: () => { createSchema?: () => Promise<void> };
-      };
-      const getSchemaGenerator = emWithSchema.getSchemaGenerator;
-      if (typeof getSchemaGenerator === 'function') {
-        const schemaGen = getSchemaGenerator.call(this.em) as
-          | { createSchema?: () => Promise<void> }
-          | undefined;
-        if (schemaGen?.createSchema) {
-          this.logger.log(
-            'Creating DB schema via MikroORM schema generator (em)',
-          );
-          await schemaGen.createSchema();
-          return;
-        }
+      if (schemaGen?.createSchema) {
+        await schemaGen.createSchema();
       }
-
-      this.logger.log(
-        'Init requested but no schema generator available; skipping',
-      );
     } catch (err) {
-      this.logger.warn(
-        'initialize() failed for MikroReceivedStorage',
-        err as Error,
-      );
+      this.logger.warn('initialize() failed for MikroReceivedStorage', err as Error);
     }
   }
 
-  async saveReceived(event: CapReceivedEvent<unknown>): Promise<string> {
+  async trySaveReceived<T extends JsonValue = JsonValue>(
+    event: CapReceivedEvent<T>,
+  ): Promise<TrySaveReceivedResult<T>> {
+    const existing = await this.em.findOne(CapReceivedEntity, {
+      topic: event.topic,
+      group: event.group,
+      messageId: event.messageId,
+    });
+
+    if (existing) {
+      return {
+        inserted: false,
+        id: existing.id,
+        event: mapReceivedEntity(existing) as CapReceivedEvent<T>,
+      };
+    }
+
     const entity = this.em.create(CapReceivedEntity, {
       id: event.id,
       topic: event.topic,
       group: event.group,
-      payload: event.payload,
+      messageId: event.messageId,
+      dedupeKey: event.dedupeKey,
+      payload: event.payload as JsonValue,
       headers: event.headers,
       processed: event.processed || false,
       retryCount: event.retryCount || 0,
@@ -81,16 +72,31 @@ export class MikroReceivedStorage implements IReceivedStorage {
       updatedAt: new Date(),
     });
 
-    await this.em.persistAndFlush(entity);
-    return entity.id;
+    try {
+      await this.em.persistAndFlush(entity);
+      return { inserted: true, id: entity.id, event };
+    } catch (err) {
+      const duplicate = await this.em.findOne(CapReceivedEntity, {
+        topic: event.topic,
+        group: event.group,
+        messageId: event.messageId,
+      });
+      if (duplicate) {
+        return {
+          inserted: false,
+          id: duplicate.id,
+          event: mapReceivedEntity(duplicate) as CapReceivedEvent<T>,
+        };
+      }
+      throw err;
+    }
   }
 
   async markProcessed(id: string): Promise<void> {
     const entity = await this.em.findOne(CapReceivedEntity, { id });
-    if (entity) {
-      entity.processed = true;
-      await this.em.flush();
-    }
+    if (!entity) return;
+    entity.processed = true;
+    await this.em.flush();
   }
 
   async scheduleRetry(
@@ -99,14 +105,13 @@ export class MikroReceivedStorage implements IReceivedStorage {
     nextRetry: Date,
   ): Promise<void> {
     const entity = await this.em.findOne(CapReceivedEntity, { id });
-    if (entity) {
-      entity.retryCount = retryCount;
-      entity.nextRetry = nextRetry;
-      await this.em.flush();
-    }
+    if (!entity) return;
+    entity.retryCount = retryCount;
+    entity.nextRetry = nextRetry;
+    await this.em.flush();
   }
 
-  async getRetryDue(limit: number): Promise<CapReceivedEvent[]> {
+  async getRetryDue(limit: number): Promise<CapReceivedEvent<JsonValue>[]> {
     const now = new Date();
     const entities = await this.em.find(
       CapReceivedEntity,
@@ -125,7 +130,7 @@ export class MikroReceivedStorage implements IReceivedStorage {
 
   async findReceivedById(
     id: string,
-  ): Promise<CapReceivedEvent<unknown> | undefined> {
+  ): Promise<CapReceivedEvent<JsonValue> | undefined> {
     const entity = await this.em.findOne(CapReceivedEntity, { id });
     return entity ? mapReceivedEntity(entity) : undefined;
   }
@@ -135,13 +140,10 @@ export class MikroReceivedStorage implements IReceivedStorage {
     offset?: number;
     topic?: string;
     due?: boolean;
-  }): Promise<{ items: CapReceivedEvent<unknown>[]; total: number }> {
+  }): Promise<{ items: CapReceivedEvent<JsonValue>[]; total: number }> {
     const where: FilterQuery<CapReceivedEntity> = {};
 
-    if (opts.topic) {
-      where.topic = opts.topic;
-    }
-
+    if (opts.topic) where.topic = opts.topic;
     if (opts.due) {
       where.processed = false;
       where.nextRetry = { $lte: new Date() };
@@ -163,12 +165,14 @@ export class MikroReceivedStorage implements IReceivedStorage {
 
 function mapReceivedEntity(
   entity: CapReceivedEntity,
-): CapReceivedEvent<unknown> {
+): CapReceivedEvent<JsonValue> {
   return {
     id: entity.id,
     topic: entity.topic,
     occurredAt: entity.createdAt.toISOString(),
     group: entity.group,
+    messageId: entity.messageId,
+    dedupeKey: entity.dedupeKey,
     payload: entity.payload,
     headers: entity.headers,
     processed: entity.processed,

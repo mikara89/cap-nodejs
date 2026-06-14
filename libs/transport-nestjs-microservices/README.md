@@ -17,8 +17,8 @@ const transport = NestjsMicroservicesTransportModule.forRoot({
 });
 ```
 
-Register the returned dynamic module with `CapModule.forAdapters(...)` alongside
-a storage adapter.
+Register the returned dynamic module with `CapModule.forRoot({ imports })`
+alongside a storage adapter.
 
 For inbound messages, wire your Nest microservice handler to the CAP bridge:
 

@@ -14,14 +14,23 @@ import { CapDashboardGuard } from './guards/cap-dashboard.guard';
 import { CapDashboardAssetsController } from './cap-dashboard-assets.controller';
 import {
   CAP_DASHBOARD_AUTHORIZER,
+  CAP_DASHBOARD_OPTIONS,
   CAP_DASHBOARD_USER_GUARD,
 } from './cap-dashboard.auth';
+
+export interface CapDashboardRedactionOptions {
+  headers?: string[];
+  payloadPaths?: string[];
+}
 
 export interface CapDashboardModuleOptions {
   routePrefix?: string; // default '/api/cap'
   guard: Provider; // REQUIRED
   authorizer?: Provider;
   pageSizeDefault?: number;
+  readOnly?: boolean;
+  maxPageSize?: number;
+  redact?: CapDashboardRedactionOptions;
   serveStatic?: boolean; // default true
   staticAssetsPath?: string; // default './public'
   uiRoute?: string; // default '/cap-dashboard'
@@ -29,6 +38,10 @@ export interface CapDashboardModuleOptions {
 
 @Module({})
 export class CapDashboardModule {
+  static register(opts: CapDashboardModuleOptions): DynamicModule {
+    return this.forRoot(opts);
+  }
+
   static forRoot(opts: CapDashboardModuleOptions): DynamicModule {
     if (!opts?.guard) {
       throw new Error('CapDashboardModule.forRoot requires a `guard` provider');
@@ -122,6 +135,21 @@ export class CapDashboardModule {
         // alias it to a stable token our internal guard can inject
         aliasProvider,
         ...extraProviders,
+        {
+          provide: CAP_DASHBOARD_OPTIONS,
+          useValue: {
+            readOnly: opts.readOnly ?? false,
+            maxPageSize: opts.maxPageSize ?? opts.pageSizeDefault ?? 100,
+            redact: {
+              headers: opts.redact?.headers ?? [
+                'authorization',
+                'cookie',
+                'x-api-key',
+              ],
+              payloadPaths: opts.redact?.payloadPaths ?? [],
+            },
+          },
+        },
         CapDashboardService,
         CapDashboardGuard,
       ],

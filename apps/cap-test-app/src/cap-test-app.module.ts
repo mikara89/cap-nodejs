@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
 // path utilities are no longer required here; CapDashboardModule will resolve defaults
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import type { Options as MikroOptions } from '@mikro-orm/core';
@@ -7,7 +7,6 @@ import { CapTestAppController } from './cap-test-app.controller';
 import { CapTestAppService } from './cap-test-app.service';
 import {
   CapModule,
-  CapAdapterModule,
   LocalBus,
   PUBLISHER,
   SUBSCRIBER,
@@ -28,11 +27,15 @@ const serviceBusConnectionString =
 
 const useServiceBus = Boolean(serviceBusConnectionString);
 
-const localTransport: CapAdapterModule = {
+class LocalTransportModule {}
+
+const localTransport: DynamicModule = {
+  module: LocalTransportModule,
   providers: [
     { provide: PUBLISHER, useClass: LocalBus },
     { provide: SUBSCRIBER, useExisting: PUBLISHER },
   ],
+  exports: [PUBLISHER, SUBSCRIBER],
 };
 
 const serviceBusTransport = useServiceBus
@@ -46,7 +49,7 @@ const serviceBusTransport = useServiceBus
     })
   : undefined;
 
-const transportModule = serviceBusTransport ?? localTransport;
+const transportModule: DynamicModule = serviceBusTransport ?? localTransport;
 
 @Module({
   imports: [
@@ -63,16 +66,14 @@ const transportModule = serviceBusTransport ?? localTransport;
     MikroStorageModule,
     // register CAP using the Mikro storage adapter and in-memory transport
 
-    ...(serviceBusTransport ? [serviceBusTransport] : []),
-    CapModule.forAdapters(
-      MikroStorageModule,
-      transportModule as unknown as CapAdapterModule,
-      {
+    CapModule.forRoot({
+      imports: [MikroStorageModule, transportModule],
+      init: {
         autoInit: false,
         createQueues: useServiceBus && process.env.CAP_CREATE_QUEUES === 'true',
         createSchema: true,
       },
-    ),
+    }),
     CapDashboardModule.forRoot({
       guard: {
         provide: 'CAP_DASHBOARD_DEMO_GUARD',

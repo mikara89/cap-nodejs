@@ -1,7 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import type { CapHeaders, ISubscriber } from '@mikara89/cap-nest';
+import type {
+  CapDeliveryMetadata,
+  CapHeaders,
+  ISubscriber,
+} from '@mikara89/cap-nest';
 
-type MessageHandler = (payload: unknown, headers?: CapHeaders) => Promise<void>;
+type MessageHandler = (
+  payload: unknown,
+  headers?: CapHeaders,
+  metadata?: CapDeliveryMetadata,
+) => Promise<void>;
 
 @Injectable()
 export class CapMicroservicesBridge implements ISubscriber {
@@ -26,14 +34,15 @@ export class CapMicroservicesBridge implements ISubscriber {
     group: string,
     message: unknown,
     headers?: CapHeaders,
+    metadata?: CapDeliveryMetadata,
   ): Promise<void> {
-    const resolved = unwrapMessage(message, headers);
+    const resolved = unwrapMessage(message, headers, metadata);
     const handlers = this.handlers.get(this.getKey(topic, group));
     if (!handlers?.size) return;
 
     await Promise.all(
       [...handlers].map((handler) =>
-        handler(resolved.payload, resolved.headers),
+        handler(resolved.payload, resolved.headers, resolved.metadata),
       ),
     );
   }
@@ -46,20 +55,32 @@ export class CapMicroservicesBridge implements ISubscriber {
 function unwrapMessage(
   message: unknown,
   explicitHeaders?: CapHeaders,
-): { payload: unknown; headers?: CapHeaders } {
+  explicitMetadata?: CapDeliveryMetadata,
+): { payload: unknown; headers?: CapHeaders; metadata?: CapDeliveryMetadata } {
   if (explicitHeaders) {
-    return { payload: message, headers: explicitHeaders };
+    return {
+      payload: message,
+      headers: explicitHeaders,
+      metadata: explicitMetadata,
+    };
   }
 
   if (
     message &&
     typeof message === 'object' &&
-    'payload' in message &&
-    'headers' in message
+    'payload' in message
   ) {
-    const wrapped = message as { payload: unknown; headers?: CapHeaders };
-    return { payload: wrapped.payload, headers: wrapped.headers };
+    const wrapped = message as {
+      payload: unknown;
+      headers?: CapHeaders;
+      metadata?: CapDeliveryMetadata;
+    };
+    return {
+      payload: wrapped.payload,
+      headers: wrapped.headers,
+      metadata: wrapped.metadata ?? explicitMetadata,
+    };
   }
 
-  return { payload: message };
+  return { payload: message, metadata: explicitMetadata };
 }

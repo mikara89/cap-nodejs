@@ -1,12 +1,19 @@
 import { type CapBaseMessage } from './cap-base-message';
+import { type JsonValue } from './json-value.type';
 
 /**
  * Message as observed on the subscriber side, AFTER persistence.
  */
-export interface CapReceivedEvent<T = unknown> extends CapBaseMessage<T> {
+export interface CapReceivedEvent<T = JsonValue> extends CapBaseMessage<T> {
   //   nextRetry: Date;
   /** Consumer-group (queue) that received the delivery */
   group: string;
+
+  /** Broker/source message id used for inbox deduplication. */
+  messageId: string;
+
+  /** Stable dedupe key; defaults to `${topic}|${group}|${messageId}`. */
+  dedupeKey: string;
 
   /** How many handler attempts so far */
   retryCount: number;

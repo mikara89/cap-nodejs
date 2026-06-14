@@ -1,5 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing';
-import { type INestApplication } from '@nestjs/common';
+import { DynamicModule, type INestApplication } from '@nestjs/common';
 import {
   CapModule,
   CapService,
@@ -35,18 +35,22 @@ describe('CAP Integration Tests', () => {
     storage = new TestStorageSpy();
     transport = new TestTransportSpy();
 
+    const adaptersModule: DynamicModule = {
+      module: class CapTestAdaptersModule {},
+      providers: [
+        { provide: PUBLISH_STORAGE, useValue: storage },
+        { provide: RECEIVED_STORAGE, useValue: storage },
+        { provide: PUBLISHER, useValue: transport },
+        { provide: SUBSCRIBER, useValue: transport },
+      ],
+      exports: [PUBLISH_STORAGE, RECEIVED_STORAGE, PUBLISHER, SUBSCRIBER],
+    };
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         ScheduleModule.forRoot(),
         CapModule.forRoot({
-          storage: [
-            { provide: PUBLISH_STORAGE, useValue: storage },
-            { provide: RECEIVED_STORAGE, useValue: storage },
-          ],
-          transport: [
-            { provide: PUBLISHER, useValue: transport },
-            { provide: SUBSCRIBER, useValue: transport },
-          ],
+          imports: [adaptersModule],
         }),
         TestHandlersModule,
       ],
@@ -159,10 +163,10 @@ describe('CAP Integration Tests', () => {
 
       await capService.publish('order.placed', payload);
 
-      await waitForCondition(() => storage.saveReceivedCalls.length > 0);
+      await waitForCondition(() => storage.trySaveReceivedCalls.length > 0);
 
-      expect(storage.saveReceivedCalls).toHaveLength(1);
-      expect(storage.saveReceivedCalls[0].topic).toBe('order.placed');
+      expect(storage.trySaveReceivedCalls).toHaveLength(1);
+      expect(storage.trySaveReceivedCalls[0].topic).toBe('order.placed');
     });
 
     it('should mark message as processed after successful handler execution', async () => {
@@ -306,7 +310,7 @@ describe('CAP Integration Tests', () => {
     it('should handle errors in message handlers gracefully', async () => {
       await capService.publish('error.test', { data: 'error-test' });
 
-      await waitForCondition(() => storage.saveReceivedCalls.length > 0);
+      await waitForCondition(() => storage.trySaveReceivedCalls.length > 0);
 
       // Handler threw error, so retry should be scheduled
       await waitForCondition(() => storage.scheduleRetryCalls.length > 0);
@@ -369,8 +373,8 @@ describe('CAP Integration Tests', () => {
       expect(outboxEvent?.status).toBe('published');
 
       // 5. Verify inbox storage (both handlers receive the message)
-      await waitForCondition(() => storage.saveReceivedCalls.length > 0);
-      expect(storage.saveReceivedCalls.length).toBeGreaterThanOrEqual(1);
+      await waitForCondition(() => storage.trySaveReceivedCalls.length > 0);
+      expect(storage.trySaveReceivedCalls.length).toBeGreaterThanOrEqual(1);
 
       // 6. Verify handler execution
       await waitForCondition(() => testHandler.userCreatedCalls.length > 0);

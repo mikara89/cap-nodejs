@@ -1,10 +1,11 @@
 import { type CapHeaders } from './cap-headers.type';
+import { type JsonValue } from './json-value.type';
 
 /**
  * Core shape every CAP message shares – NEVER mutate these fields in-place;
  * keep messages immutable.
  */
-export interface CapBaseMessage<T = unknown> {
+export interface CapBaseMessage<T = JsonValue> {
   /** Globally unique ID (UUID v4 recommended) */
   id: string;
 

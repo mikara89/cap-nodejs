@@ -16,7 +16,7 @@ import { ServiceBusConfig } from './servicebus.config';
  *
  * @Module({
  *   imports: [
- *     CapModule.forAdapters(
+ *     CapModule.forRoot({
  *       storageModule,
  *       ServiceBusTransportModule.forRoot({
  *         connectionString: process.env.AZURE_SERVICEBUS_CONNECTION_STRING!,

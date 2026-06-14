@@ -1,5 +1,10 @@
-// src/cap/scheduler/schedule.service.ts
-import { Injectable, Inject, Logger, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  Logger,
+  OnModuleDestroy,
+  Optional,
+} from '@nestjs/common';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 
 import {
@@ -10,6 +15,13 @@ import {
 } from '../abstractions/storage.interface';
 import { PUBLISHER, IPublisher } from '../abstractions/transport.interface';
 import { CapService } from '../cap.service';
+import {
+  CAP_SCHEDULER_OPTIONS,
+  ResolvedCapSchedulerOptions,
+} from '../cap.options';
+import { expJitter } from './backoff.util';
+
+export const CAP_JOB_PREFIX = 'cap-nest:';
 
 @Injectable()
 export class RetrySchedulerService implements OnModuleDestroy {
@@ -20,74 +32,54 @@ export class RetrySchedulerService implements OnModuleDestroy {
     @Inject(PUBLISHER) private readonly publisher: IPublisher,
     @Inject(RECEIVED_STORAGE) private readonly recStore: IReceivedStorage,
     private readonly cap: CapService,
-    private readonly schedulerRegistry?: SchedulerRegistry,
-  ) {
-    this.constructorCleanup();
-  }
+    @Inject(CAP_SCHEDULER_OPTIONS)
+    private readonly options: ResolvedCapSchedulerOptions,
+    @Optional() private readonly schedulerRegistry?: SchedulerRegistry,
+  ) {}
 
-  constructorCleanup(): void {
-    const registry = this.schedulerRegistry;
-    if (!registry) return;
-    const cleanup = (): void => {
-      try {
-        const jobs = registry.getCronJobs();
-        jobs.forEach((job, name) => {
-          try {
-            void job.stop();
-            registry.deleteCronJob(name);
-            this.log.debug(
-              `Stopped and removed cron job (process cleanup): ${name}`,
-            );
-          } catch {
-            // ignore
-          }
-        });
-      } catch {
-        // ignore
-      }
-    };
-    process.once('beforeExit', cleanup);
-  }
-
-  /** every 30 s flush the outbox */
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_30_SECONDS, { name: `${CAP_JOB_PREFIX}flush-outbox` })
   async flushOutbox(): Promise<void> {
-    const batch = await this.pubStore.getUnpublished(200);
+    if (this.options.disabled) return;
+
+    const now = new Date();
+    await this.pubStore.releaseExpiredClaims(now);
+
+    const batch = await this.pubStore.claimUnpublished({
+      limit: this.options.batchSize,
+      lockedBy: this.options.instanceId,
+      lockUntil: new Date(now.getTime() + this.options.leaseMs),
+      now,
+    });
+
     if (batch.length) {
       this.log.verbose(`Outbox flush - attempting ${batch.length} msg(s)`);
     }
 
     for (const evt of batch) {
       try {
-        await this.publisher.emit(evt.topic, evt.payload, evt.headers);
-        await this.pubStore.markPublished(evt.id);
-        this.log.debug(`✓ outbox #${evt.id} published`);
+        await this.publisher.emit(evt.topic, evt.payload, evt.headers, {
+          messageId: evt.id,
+        });
+        await this.pubStore.markPublished(evt.id, new Date());
+        this.log.debug(`published outbox #${evt.id}`);
       } catch (err) {
-        // Leave the record untouched; next run will retry.
-        const baseLogMessage = `✗ outbox #${evt.id} emit failed (${evt.topic})`;
+        await this.pubStore.markPublishFailed(evt.id, err, {
+          maxRetries: this.options.maxRetries,
+          nextRetryAt: new Date(Date.now() + expJitter(evt.retryCount)),
+          now: new Date(),
+        });
 
-        if (err instanceof Error) {
-          this.log.error(`${baseLogMessage}: ${err.message}`);
-          // err.stack includes the error message and provides more context.
-          // Fallback if err.stack is undefined.
-          this.log.debug(
-            `Stack trace for #${evt.id}: ${err.stack ?? 'Stack trace not available'}`,
-          );
-        } else {
-          const unknownErrorAsString = String(err);
-          this.log.error(`${baseLogMessage}: ${unknownErrorAsString}`);
-          // For non-Error types, the string representation is often the best detail available.
-          this.log.debug(
-            `Error details for #${evt.id} (non-Error type): ${unknownErrorAsString}`,
-          );
-        }
+        const message = err instanceof Error ? err.message : String(err);
+        this.log.error(`outbox #${evt.id} emit failed (${evt.topic}): ${message}`);
       }
     }
   }
-  /** every minute retry failed *inbox* messages */
-  @Cron(CronExpression.EVERY_MINUTE)
+
+  @Cron(CronExpression.EVERY_MINUTE, { name: `${CAP_JOB_PREFIX}retry-inbox` })
   async retryInbox(): Promise<void> {
-    const batch = await this.recStore.getRetryDue(200);
+    if (this.options.disabled) return;
+
+    const batch = await this.recStore.getRetryDue(this.options.batchSize);
     if (!batch.length) return;
 
     this.log.verbose(`Inbox retry - ${batch.length} message(s)`);
@@ -96,26 +88,25 @@ export class RetrySchedulerService implements OnModuleDestroy {
       await this.cap.retryReceived(rec);
     }
   }
+
   onModuleDestroy(): void {
+    const schedulerRegistry = this.schedulerRegistry;
+    if (!schedulerRegistry) return;
+
     try {
-      const schedulerRegistry = this.schedulerRegistry;
-      if (!schedulerRegistry) return;
       const jobs = schedulerRegistry.getCronJobs();
       jobs.forEach((job, name) => {
+        if (!name.startsWith(CAP_JOB_PREFIX)) return;
         try {
           void job.stop();
           schedulerRegistry.deleteCronJob(name);
-          this.log.debug(`Stopped and removed cron job: ${name}`);
+          this.log.debug(`Stopped and removed CAP cron job: ${name}`);
         } catch (err) {
-          this.log.warn(
-            `Failed to stop/delete cron job ${name}: ${String(err)}`,
-          );
+          this.log.warn(`Failed to stop/delete CAP cron job ${name}: ${String(err)}`);
         }
       });
     } catch {
-      this.log.debug(
-        'No cron jobs to clean up or failed to access scheduler registry',
-      );
+      this.log.debug('No CAP cron jobs to clean up or registry unavailable');
     }
   }
 }

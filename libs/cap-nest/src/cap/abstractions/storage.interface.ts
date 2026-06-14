@@ -1,26 +1,60 @@
 import { type CapPublishEvent } from '../models/cap-publish-event';
-import { CapReceivedEvent } from '../models/cap-received-event';
+import { type CapReceivedEvent } from '../models/cap-received-event';
+import { type JsonValue } from '../models/json-value.type';
 import type { InitOptions } from './initializer.interface';
 
-/** IoC tokens – easier than string literals */
+/** IoC tokens - easier than string literals */
 export const PUBLISH_STORAGE = Symbol('CAP_PUBLISH_STORAGE');
 export const RECEIVED_STORAGE = Symbol('CAP_RECEIVED_STORAGE');
 
+export interface ClaimUnpublishedOptions {
+  limit: number;
+  lockedBy: string;
+  lockUntil: Date;
+  now: Date;
+}
+
+export interface MarkPublishFailedOptions {
+  maxRetries: number;
+  nextRetryAt: Date;
+  now: Date;
+}
+
+export interface TrySaveReceivedResult<T extends JsonValue = JsonValue> {
+  inserted: boolean;
+  id: string;
+  event: CapReceivedEvent<T>;
+}
+
 /*------------------------------------------------------------------
- | Outbox  ▸ messages we PRODUCE
+ | Outbox - messages we PRODUCE
  *-----------------------------------------------------------------*/
 export interface IPublishStorage {
-  /** Insert a fresh record and return its DB id */
-  savePublish<T = unknown>(evt: CapPublishEvent<T>): Promise<string>;
+  /** Insert a fresh outbox record and return its DB id */
+  savePublish<T extends JsonValue = JsonValue>(
+    evt: CapPublishEvent<T>,
+  ): Promise<string>;
 
   /** Optional one-time initialization: create schema/tables if needed */
   initialize?(options?: InitOptions): Promise<void>;
 
-  /** Mark record as successfully emitted to the broker */
-  markPublished(id: string): Promise<void>;
+  /** Atomically claim ready rows for one dispatcher instance. */
+  claimUnpublished(
+    options: ClaimUnpublishedOptions,
+  ): Promise<Array<CapPublishEvent>>;
 
-  /** Fetch N unpublished rows – used by retry-scheduler */
-  getUnpublished(limit: number): Promise<Array<CapPublishEvent>>;
+  /** Mark record as successfully emitted to the broker. */
+  markPublished(id: string, publishedAt?: Date): Promise<void>;
+
+  /** Mark record as retryable failed, or dead-letter when retry limit is exceeded. */
+  markPublishFailed(
+    id: string,
+    error: unknown,
+    options: MarkPublishFailedOptions,
+  ): Promise<void>;
+
+  /** Release processing rows whose lease has expired. */
+  releaseExpiredClaims(now: Date): Promise<void>;
 
   /** Optional: find a published record by id (dashboard helpers) */
   findPublishById?(id: string): Promise<CapPublishEvent | undefined>;
@@ -35,26 +69,26 @@ export interface IPublishStorage {
 }
 
 /*------------------------------------------------------------------
- | Optional transactional extension                                     
+ | Optional transactional extension
  *-----------------------------------------------------------------*/
-/**
- * Optional interface for storages that can persist an outbox record
- * inside an existing transaction/context. Adapters that support
- * transactions (e.g. MikroORM) can implement this to opt-in.
- */
 export interface ITransactionalPublishStorage extends IPublishStorage {
-  savePublishWithTx<T = unknown>(
+  savePublishWithTx<T extends JsonValue = JsonValue>(
     evt: CapPublishEvent<T>,
     tx: unknown,
   ): Promise<string>;
 }
 
 /*------------------------------------------------------------------
- | Inbox  ▸ messages we CONSUME
+ | Inbox - messages we CONSUME
  *-----------------------------------------------------------------*/
 export interface IReceivedStorage {
-  /** Persist a delivery; return record id */
-  saveReceived<T = unknown>(evt: CapReceivedEvent<T>): Promise<string>;
+  /**
+   * Persist a delivery if its dedupe identity has not been seen.
+   * Duplicate deliveries return inserted=false and must not re-run handlers.
+   */
+  trySaveReceived<T extends JsonValue = JsonValue>(
+    evt: CapReceivedEvent<T>,
+  ): Promise<TrySaveReceivedResult<T>>;
 
   /** Optional one-time initialization: create schema/tables if needed */
   initialize?(options?: InitOptions): Promise<void>;
@@ -64,15 +98,12 @@ export interface IReceivedStorage {
 
   /**
    * Return records that are not yet processed and
-   * whose nextRetry timestamp <= now.  Scheduler uses this.
+   * whose nextRetry timestamp <= now. Scheduler uses this.
    */
   getRetryDue(limit: number): Promise<Array<CapReceivedEvent>>;
 
   /**
    * Schedule a retry for a given event.
-   * @param id - The ID of the event to retry.
-   * @param retryCount - The number of retry attempts made so far.
-   * @param nextRetry - The next scheduled retry time.
    */
   scheduleRetry(id: string, retryCount: number, nextRetry: Date): Promise<void>;
 
@@ -87,4 +118,5 @@ export interface IReceivedStorage {
     due?: boolean;
   }): Promise<{ items: Array<CapReceivedEvent>; total?: number }>;
 }
+
 export { CapReceivedEvent };

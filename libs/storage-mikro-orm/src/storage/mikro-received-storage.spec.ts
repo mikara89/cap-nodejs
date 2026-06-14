@@ -31,169 +31,140 @@ describe('MikroReceivedStorage', () => {
     em = moduleRef.get(EntityManager);
   });
 
-  describe('saveReceived', () => {
-    it('should persist a received event', async () => {
-      const event: CapReceivedEvent = {
+  it('inserts a received event on first delivery', async () => {
+    const event = receivedEvent();
+    (em.findOne as jest.Mock).mockResolvedValue(null);
+
+    const result = await storage.trySaveReceived(event);
+
+    expect(result.inserted).toBe(true);
+    expect(em.persistAndFlush).toHaveBeenCalledWith(
+      expect.objectContaining({
         id: 'test-id',
         topic: 'test-topic',
-        occurredAt: new Date().toISOString(),
         group: 'test-group',
+        messageId: 'message-1',
+        dedupeKey: 'test-topic|test-group|message-1',
         payload: { foo: 'bar' },
-        headers: { 'x-trace': '123' },
+      }),
+    );
+  });
+
+  it('returns inserted=false for duplicate deliveries', async () => {
+    const existing = receivedEntity();
+    (em.findOne as jest.Mock).mockResolvedValue(existing);
+
+    const result = await storage.trySaveReceived(receivedEvent());
+
+    expect(result.inserted).toBe(false);
+    expect(result.id).toBe('test-id');
+    expect(em.persistAndFlush).not.toHaveBeenCalled();
+  });
+
+  it('marks processed', async () => {
+    const entity = receivedEntity({ processed: false });
+    (em.findOne as jest.Mock).mockResolvedValue(entity);
+
+    await storage.markProcessed('test-id');
+
+    expect(entity.processed).toBe(true);
+    expect(em.flush).toHaveBeenCalled();
+  });
+
+  it('schedules retry', async () => {
+    const entity = receivedEntity({ retryCount: 1 });
+    (em.findOne as jest.Mock).mockResolvedValue(entity);
+
+    const nextRetry = new Date('2025-01-02');
+    await storage.scheduleRetry('test-id', 2, nextRetry);
+
+    expect(entity.retryCount).toBe(2);
+    expect(entity.nextRetry).toEqual(nextRetry);
+    expect(em.flush).toHaveBeenCalled();
+  });
+
+  it('returns retry-due events', async () => {
+    const entity = receivedEntity({
+      processed: false,
+      retryCount: 1,
+      nextRetry: new Date('2000-01-01'),
+    });
+    (em.find as jest.Mock).mockResolvedValue([entity]);
+
+    const result = await storage.getRetryDue(10);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      id: 'test-id',
+      topic: 'test-topic',
+      group: 'test-group',
+      messageId: 'message-1',
+    });
+  });
+
+  it('finds and lists received events for dashboard helpers', async () => {
+    const entity = receivedEntity();
+    (em.findOne as jest.Mock).mockResolvedValue(entity);
+    (em.findAndCount as jest.Mock).mockResolvedValue([[entity], 1]);
+
+    await expect(storage.findReceivedById('test-id')).resolves.toMatchObject({
+      id: 'test-id',
+      topic: 'test-topic',
+      group: 'test-group',
+      messageId: 'message-1',
+    });
+
+    const result = await storage.listReceived({
+      limit: 10,
+      offset: 0,
+      topic: 'test-topic',
+      due: true,
+    });
+
+    expect(result.total).toBe(1);
+    expect(result.items).toHaveLength(1);
+    expect(em.findAndCount).toHaveBeenCalledWith(
+      CapReceivedEntity,
+      expect.objectContaining({
+        topic: 'test-topic',
         processed: false,
-        retryCount: 0,
-        nextRetry: new Date(),
-      };
-
-      await storage.saveReceived(event);
-
-      expect(em.persistAndFlush).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'test-id',
-          topic: 'test-topic',
-          group: 'test-group',
-          payload: { foo: 'bar' },
-          headers: { 'x-trace': '123' },
-          processed: false,
-          retryCount: 0,
-        }),
-      );
-    });
-  });
-
-  describe('markProcessed', () => {
-    it('should update processed flag and flush', async () => {
-      const entity = new CapReceivedEntity();
-      entity.id = 'test-id';
-      entity.processed = false;
-
-      (em.findOne as jest.Mock).mockResolvedValue(entity);
-
-      await storage.markProcessed('test-id');
-
-      expect(entity.processed).toBe(true);
-      expect(em.flush).toHaveBeenCalled();
-    });
-
-    it('should do nothing if event not found', async () => {
-      (em.findOne as jest.Mock).mockResolvedValue(null);
-
-      await storage.markProcessed('missing-id');
-
-      expect(em.flush).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('scheduleRetry', () => {
-    it('should increment retry count and update nextRetry', async () => {
-      const entity = new CapReceivedEntity();
-      entity.id = 'test-id';
-      entity.retryCount = 1;
-      entity.nextRetry = new Date('2025-01-01');
-
-      (em.findOne as jest.Mock).mockResolvedValue(entity);
-
-      const nextRetry = new Date('2025-01-02');
-      await storage.scheduleRetry('test-id', 2, nextRetry);
-
-      expect(entity.retryCount).toBe(2);
-      expect(entity.nextRetry).toEqual(nextRetry);
-      expect(em.flush).toHaveBeenCalled();
-    });
-
-    it('should do nothing if event not found', async () => {
-      (em.findOne as jest.Mock).mockResolvedValue(null);
-
-      await storage.scheduleRetry('missing-id', 1, new Date());
-
-      expect(em.flush).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('getRetryDue', () => {
-    it('should return unprocessed events with nextRetry in the past', async () => {
-      const entity = new CapReceivedEntity();
-      entity.id = 'test-id';
-      entity.topic = 'test-topic';
-      entity.group = 'test-group';
-      entity.payload = { foo: 'bar' };
-      entity.headers = {};
-      entity.processed = false;
-      entity.retryCount = 1;
-      entity.nextRetry = new Date('2000-01-01');
-      entity.createdAt = new Date();
-
-      (em.find as jest.Mock).mockResolvedValue([entity]);
-
-      const result = await storage.getRetryDue(10);
-
-      expect(result).toHaveLength(1);
-      expect(result[0]).toMatchObject({
-        id: 'test-id',
-        topic: 'test-topic',
-        group: 'test-group',
-        payload: { foo: 'bar' },
-        processed: false,
-        retryCount: 1,
-      });
-    });
-  });
-
-  describe('dashboard helpers', () => {
-    it('should find a received event by id', async () => {
-      const entity = new CapReceivedEntity();
-      entity.id = 'test-id';
-      entity.topic = 'test-topic';
-      entity.group = 'test-group';
-      entity.payload = { foo: 'bar' };
-      entity.headers = {};
-      entity.processed = false;
-      entity.retryCount = 0;
-      entity.createdAt = new Date();
-
-      (em.findOne as jest.Mock).mockResolvedValue(entity);
-
-      const result = await storage.findReceivedById('test-id');
-
-      expect(result).toMatchObject({
-        id: 'test-id',
-        topic: 'test-topic',
-        group: 'test-group',
-      });
-    });
-
-    it('should list received events with filters', async () => {
-      const entity = new CapReceivedEntity();
-      entity.id = 'test-id';
-      entity.topic = 'test-topic';
-      entity.group = 'test-group';
-      entity.payload = { foo: 'bar' };
-      entity.headers = {};
-      entity.processed = false;
-      entity.retryCount = 0;
-      entity.nextRetry = new Date('2000-01-01');
-      entity.createdAt = new Date();
-
-      (em.findAndCount as jest.Mock).mockResolvedValue([[entity], 1]);
-
-      const result = await storage.listReceived({
-        limit: 10,
-        offset: 0,
-        topic: 'test-topic',
-        due: true,
-      });
-
-      expect(result.total).toBe(1);
-      expect(result.items).toHaveLength(1);
-      expect(em.findAndCount).toHaveBeenCalledWith(
-        CapReceivedEntity,
-        expect.objectContaining({
-          topic: 'test-topic',
-          processed: false,
-          nextRetry: expect.any(Object),
-        }),
-        expect.objectContaining({ limit: 10, offset: 0 }),
-      );
-    });
+        nextRetry: expect.any(Object),
+      }),
+      expect.objectContaining({ limit: 10, offset: 0 }),
+    );
   });
 });
+
+function receivedEvent(): CapReceivedEvent {
+  return {
+    id: 'test-id',
+    topic: 'test-topic',
+    occurredAt: new Date().toISOString(),
+    group: 'test-group',
+    messageId: 'message-1',
+    dedupeKey: 'test-topic|test-group|message-1',
+    payload: { foo: 'bar' },
+    headers: { 'x-trace': '123' },
+    processed: false,
+    retryCount: 0,
+    nextRetry: new Date(),
+  };
+}
+
+function receivedEntity(
+  overrides: Partial<CapReceivedEntity> = {},
+): CapReceivedEntity {
+  const entity = new CapReceivedEntity();
+  entity.id = 'test-id';
+  entity.topic = 'test-topic';
+  entity.group = 'test-group';
+  entity.messageId = 'message-1';
+  entity.dedupeKey = 'test-topic|test-group|message-1';
+  entity.payload = { foo: 'bar' };
+  entity.headers = {};
+  entity.processed = false;
+  entity.retryCount = 0;
+  entity.createdAt = new Date();
+  Object.assign(entity, overrides);
+  return entity;
+}

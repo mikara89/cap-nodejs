@@ -178,6 +178,10 @@ describe('ServiceBusSubscriber', () => {
       expect(handler).toHaveBeenCalledWith(
         { foo: 'bar' },
         { 'x-trace': '456' },
+        {
+          messageId: 'msg-123',
+          dedupeKey: 'cap-topic-x/sub-group-y|msg-123',
+        },
       );
     });
 

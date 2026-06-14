@@ -99,6 +99,7 @@ describe('Integration: withTransactionAndPostCommit (MikroORM + Postgres)', () =
       payload: { hello: 'world' },
       headers: {},
       retryCount: 0,
+      status: 'pending',
     };
 
     await withTransactionAndPostCommit(
@@ -114,8 +115,8 @@ describe('Integration: withTransactionAndPostCommit (MikroORM + Postgres)', () =
     );
 
     // storage should have the saved event
-    const unpublished = await storage.getUnpublished(10);
-    expect(unpublished.some((e) => e.topic === event.topic)).toBe(true);
+    const saved = await storage.findPublishById?.(event.id);
+    expect(saved?.topic).toBe(event.topic);
     expect(publisher.emit.mock.calls.length).toBeGreaterThan(0);
   });
 
@@ -130,6 +131,7 @@ describe('Integration: withTransactionAndPostCommit (MikroORM + Postgres)', () =
       payload: { hello: 'rollback' },
       headers: {},
       retryCount: 0,
+      status: 'pending',
     };
 
     let savedId: string | null = null;
@@ -151,8 +153,8 @@ describe('Integration: withTransactionAndPostCommit (MikroORM + Postgres)', () =
     }
 
     expect(savedId).toBeTruthy();
-    const unpublished = await storage.getUnpublished(10);
-    expect(unpublished.some((e) => e.topic === event.topic)).toBe(false);
+    const saved = await storage.findPublishById?.(event.id);
+    expect(saved).toBeUndefined();
     expect(publisher.emit.mock.calls.length).toBe(0);
   });
 });

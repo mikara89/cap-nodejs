@@ -1,6 +1,6 @@
 import { DynamicModule, Module, Type } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { CapAdapterModule, CapModule } from '@mikara89/cap-nest';
+import { CapModule } from '@mikara89/cap-nest';
 import {
   CapPublishEntity,
   CapReceivedEntity,
@@ -24,14 +24,13 @@ export function createProductionCapImports(): NestImport[] {
     }),
     MikroStorageModule,
     serviceBusTransport,
-    CapModule.forAdapters(
-      MikroStorageModule,
-      serviceBusTransport as unknown as CapAdapterModule,
-      {
+    CapModule.forRoot({
+      imports: [MikroStorageModule, serviceBusTransport],
+      init: {
         createSchema: false,
         createQueues: false,
       },
-    ),
+    }),
   ];
 }
 

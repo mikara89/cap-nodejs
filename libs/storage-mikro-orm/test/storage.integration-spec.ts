@@ -109,13 +109,14 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
       payload: { hello: 'world' },
       headers: { test: '1' },
       retryCount: 0,
+      status: 'pending',
     };
 
     const savedId = await storage.savePublish(event);
     expect(savedId).toBeTruthy();
 
-    const unpublished = await storage.getUnpublished(10);
-    expect(unpublished.some((e) => e.id === savedId)).toBe(true);
+    const saved = await storage.findPublishById?.(savedId);
+    expect(saved?.id).toBe(savedId);
   });
 
   it('transactional save commits when transaction succeeds', async () => {
@@ -129,6 +130,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
       payload: { foo: 'bar' },
       headers: {},
       retryCount: 0,
+      status: 'pending',
     };
 
     // run inside a MikroORM transaction and commit
@@ -138,8 +140,8 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
 
     expect(savedId).toBeTruthy();
 
-    const unpublished = await storage.getUnpublished(10);
-    expect(unpublished.some((e) => e.id === savedId)).toBe(true);
+    const saved = await storage.findPublishById?.(savedId);
+    expect(saved?.id).toBe(savedId);
   });
 
   it('transactional save rolls back on error', async () => {
@@ -153,6 +155,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
       payload: { should: 'rollback' },
       headers: {},
       retryCount: 0,
+      status: 'pending',
     };
 
     let savedId: string | null = null;
@@ -167,9 +170,8 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
     }
 
     expect(savedId).toBeTruthy();
-    const unpublished = await storage.getUnpublished(10);
-    // record should NOT be present because transaction rolled back
-    expect(unpublished.some((e) => e.id === savedId)).toBe(false);
+    const saved = await storage.findPublishById?.(savedId ?? '');
+    expect(saved).toBeUndefined();
   });
 
   it('transactional domain change + outbox commit', async () => {
@@ -184,6 +186,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
       payload: { ok: true },
       headers: {},
       retryCount: 0,
+      status: 'pending',
     };
 
     const saved = await orm.em.transactional(async (em) => {
@@ -201,8 +204,8 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
     const found = await repo.findOne({ id: domain.id });
     expect(found).toBeTruthy();
 
-    const unpublished = await storage.getUnpublished(10);
-    expect(unpublished.some((e) => e.id === saved)).toBe(true);
+    const outbox = await storage.findPublishById?.(saved);
+    expect(outbox?.id).toBe(saved);
   });
 
   it('transactional domain change + outbox rollback', async () => {
@@ -217,6 +220,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
       payload: { ok: false },
       headers: {},
       retryCount: 0,
+      status: 'pending',
     };
 
     let savedId: string | null = null;
@@ -238,7 +242,7 @@ describe('Integration: storage-mikro-orm (Postgres via Testcontainers)', () => {
     const found = await repo.findOne({ id: domain.id });
     expect(found).toBeNull();
 
-    const unpublished = await storage.getUnpublished(10);
-    expect(unpublished.some((e) => e.id === savedId)).toBe(false);
+    const outbox = await storage.findPublishById?.(savedId ?? '');
+    expect(outbox).toBeUndefined();
   });
 });

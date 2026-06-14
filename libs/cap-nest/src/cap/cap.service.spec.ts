@@ -9,7 +9,6 @@ import {
 
 describe('CapService (unit)', () => {
   let cap: CapService;
-
   let pubStore: ReturnType<typeof createInMemoryPublishStorage>;
   let recStore: ReturnType<typeof createInMemoryReceivedStorage>;
   let publisher: ReturnType<typeof createInMemoryPublisher>;
@@ -18,64 +17,77 @@ describe('CapService (unit)', () => {
   beforeEach(() => {
     pubStore = createInMemoryPublishStorage();
     recStore = createInMemoryReceivedStorage();
-
     publisher = createInMemoryPublisher();
     subscriber = createInMemorySubscriber();
 
-    // create spies on important methods to assert calls in tests
     jest.spyOn(publisher, 'emit');
     jest.spyOn(pubStore, 'savePublish');
     jest.spyOn(pubStore, 'markPublished');
-    jest.spyOn(recStore, 'saveReceived');
+    jest.spyOn(pubStore, 'markPublishFailed');
+    jest.spyOn(recStore, 'trySaveReceived');
     jest.spyOn(recStore, 'markProcessed');
     jest.spyOn(recStore, 'scheduleRetry');
 
     cap = new CapService(pubStore, recStore, publisher, subscriber);
   });
 
-  it('publish - success marks published', async () => {
-    await cap.publish('t1', { a: 1 }, { traceId: 'abc' });
+  it('publish - success marks published and forwards cap message id', async () => {
+    await cap.publish('t1', { a: 1 }, { headers: { traceId: 'abc' } });
 
     expect(pubStore.savePublish).toHaveBeenCalled();
     const emitCall = (publisher.emit as jest.Mock).mock.calls[0];
     expect(emitCall[0]).toBe('t1');
     expect(emitCall[1]).toEqual({ a: 1 });
-    expect(emitCall[2]).toEqual({ traceId: 'abc' });
+    expect(emitCall[2]).toMatchObject({ traceId: 'abc' });
+    expect(emitCall[2]['cap-message-id']).toEqual(expect.any(String));
+    expect(emitCall[3]).toEqual({ messageId: emitCall[2]['cap-message-id'] });
     expect(pubStore.markPublished).toHaveBeenCalled();
   });
 
-  it('publish - transport failure leaves unpublished', async () => {
+  it('publish - transport failure marks publish failed', async () => {
     (publisher.emit as jest.Mock).mockRejectedValueOnce(new Error('boom'));
 
     await cap.publish('t2', { b: 2 });
 
     expect(pubStore.savePublish).toHaveBeenCalled();
-    const emitCall2 = (publisher.emit as jest.Mock).mock.calls[0];
-    expect(emitCall2[0]).toBe('t2');
-    expect(emitCall2[1]).toEqual({ b: 2 });
     expect(pubStore.markPublished).not.toHaveBeenCalled();
+    expect(pubStore.markPublishFailed).toHaveBeenCalled();
   });
 
   it('subscribe - handler processed successfully and persisted', async () => {
-    const handler = jest.fn(async () => {
-      // simulate processing
-      return Promise.resolve();
-    });
+    const handler = jest.fn(async () => undefined);
 
-    // attach a handler using cap.subscribe
     cap.subscribe('topic-x', 'group-1', handler);
 
-    // trigger the subscriber's onMessage
     const handlers = subscriber.listeners.get('topic-x|group-1');
     expect(handlers).toBeDefined();
-    for (const fn of handlers!) await fn({ foo: 'bar' }, { traceId: 'sub' });
+    for (const fn of handlers!) {
+      await fn(
+        { foo: 'bar' },
+        { traceId: 'sub' },
+        { messageId: 'msg-1' },
+      );
+    }
 
-    // persisted and processed
-    expect(recStore.saveReceived).toHaveBeenCalled();
+    expect(recStore.trySaveReceived).toHaveBeenCalled();
     expect(recStore.markProcessed).toHaveBeenCalled();
-    const handlerCall = (handler as jest.Mock).mock.calls[0];
-    expect(handlerCall[0]).toEqual({ foo: 'bar' });
-    expect(handlerCall[1]).toEqual({ traceId: 'sub' });
+    expect(handler).toHaveBeenCalledWith({ foo: 'bar' }, { traceId: 'sub' });
+  });
+
+  it('subscribe - duplicate delivery is persisted once and skipped', async () => {
+    const handler = jest.fn(async () => undefined);
+
+    cap.subscribe('topic-x', 'group-1', handler);
+
+    const handlers = subscriber.listeners.get('topic-x|group-1');
+    expect(handlers).toBeDefined();
+    for (const fn of handlers!) {
+      await fn({ foo: 'bar' }, undefined, { messageId: 'dup-1' });
+      await fn({ foo: 'bar' }, undefined, { messageId: 'dup-1' });
+    }
+
+    expect(recStore.trySaveReceived).toHaveBeenCalledTimes(2);
+    expect(handler).toHaveBeenCalledTimes(1);
   });
 
   it('subscribe - handler failure schedules retry', async () => {
@@ -85,31 +97,29 @@ describe('CapService (unit)', () => {
 
     cap.subscribe('topic-retry', 'group-r', handler);
 
-    const handlers2 = subscriber.listeners.get('topic-retry|group-r');
-    expect(handlers2).toBeDefined();
-    for (const fn of handlers2!) await fn({ z: 9 });
+    const handlers = subscriber.listeners.get('topic-retry|group-r');
+    expect(handlers).toBeDefined();
+    for (const fn of handlers!) await fn({ z: 9 }, undefined, { messageId: 'm-r' });
 
-    expect(recStore.saveReceived).toHaveBeenCalled();
-    // after failure, scheduleRetry should be called
+    expect(recStore.trySaveReceived).toHaveBeenCalled();
     expect(recStore.scheduleRetry).toHaveBeenCalled();
-    const scheduleSpy = recStore.scheduleRetry as jest.Mock;
-    const args = scheduleSpy.mock.calls[0];
-    // args: id, retryCount, nextRetry(Date)
+    const args = (recStore.scheduleRetry as jest.Mock).mock.calls[0];
     expect(typeof args[0]).toBe('string');
     expect(args[1]).toBe(1);
     expect(args[2] instanceof Date).toBe(true);
   });
 
-  it('publish - uses transactional save when tx provided and storage supports it', async () => {
+  it('publish - tx without immediate only stores outbox row', async () => {
     const tx = { em: 'fake-tx' };
     const transactionalPubStore: any = {
       savePublish: jest.fn(),
       savePublishWithTx: jest.fn().mockResolvedValue('tx-id-1'),
       markPublished: jest.fn(),
-      getUnpublished: jest.fn(),
+      markPublishFailed: jest.fn(),
+      claimUnpublished: jest.fn(),
+      releaseExpiredClaims: jest.fn(),
     };
 
-    // keep the same recStore/publisher/subscriber
     cap = new CapService(
       transactionalPubStore,
       recStore,
@@ -117,9 +127,10 @@ describe('CapService (unit)', () => {
       subscriber,
     );
 
-    await cap.publish('t-tx', { tx: true }, undefined, tx);
+    await cap.publish('t-tx', { tx: true }, { tx });
 
     expect(transactionalPubStore.savePublishWithTx).toHaveBeenCalled();
     expect(transactionalPubStore.savePublish).not.toHaveBeenCalled();
+    expect(publisher.emit).not.toHaveBeenCalled();
   });
 });

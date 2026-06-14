@@ -1,145 +1,185 @@
 import {
+  type CapDeliveryMetadata,
+  type CapPublishMetadata,
   type IPublisher,
   type ISubscriber,
 } from '../abstractions/transport.interface';
 import {
+  type ClaimUnpublishedOptions,
   type IPublishStorage,
   type IReceivedStorage,
+  type MarkPublishFailedOptions,
+  type TrySaveReceivedResult,
 } from '../abstractions/storage.interface';
 import { type CapPublishEvent } from '../models/cap-publish-event';
 import { type CapReceivedEvent } from '../models/cap-received-event';
 import { type CapHeaders } from '../models/cap-headers.type';
+import { type JsonValue } from '../models/json-value.type';
 
-// Typed in-memory spy implementations for tests
 export function createInMemoryPublisher(): IPublisher & {
   emitted: Array<{
     topic: string;
     payload: unknown;
     headers?: CapHeaders;
-    tx?: unknown;
+    metadata?: CapPublishMetadata;
   }>;
 } {
   const emitted: Array<{
     topic: string;
     payload: unknown;
     headers?: CapHeaders;
-    tx?: unknown;
+    metadata?: CapPublishMetadata;
   }> = [];
-  const pub: IPublisher & {
-    emitted: Array<{
-      topic: string;
-      payload: unknown;
-      headers?: CapHeaders;
-      tx?: unknown;
-    }>;
-  } = {
+  return {
     emitted,
     async emit(
       topic: string,
       payload: unknown,
       headers?: CapHeaders,
-      tx?: unknown,
+      metadata?: CapPublishMetadata,
     ) {
-      emitted.push({ topic, payload, headers, tx });
-      return Promise.resolve();
+      emitted.push({ topic, payload, headers, metadata });
     },
   };
-  return pub;
 }
 
 export function createInMemorySubscriber(): ISubscriber & {
-  listeners: Map<string, Set<(p: unknown, h?: CapHeaders) => Promise<void>>>;
+  listeners: Map<
+    string,
+    Set<
+      (
+        p: unknown,
+        h?: CapHeaders,
+        m?: CapDeliveryMetadata,
+      ) => Promise<void>
+    >
+  >;
 } {
   const listeners = new Map<
     string,
-    Set<(p: unknown, h?: CapHeaders) => Promise<void>>
+    Set<
+      (
+        p: unknown,
+        h?: CapHeaders,
+        m?: CapDeliveryMetadata,
+      ) => Promise<void>
+    >
   >();
-  const sub: ISubscriber & {
-    listeners: Map<string, Set<(p: unknown, h?: CapHeaders) => Promise<void>>>;
-  } = {
+  return {
     listeners,
-    async consume(
-      topic: string,
-      group: string,
-      onMessage: (payload: unknown, headers?: CapHeaders) => Promise<void>,
-    ) {
+    async consume(topic, group, onMessage) {
       const key = `${topic}|${group}`;
       if (!listeners.has(key)) listeners.set(key, new Set());
-      const topicListeners = listeners.get(key);
-      if (!topicListeners)
-        throw new Error('InMemorySubscriber: topicListeners missing');
-      topicListeners.add(onMessage);
-      return Promise.resolve();
+      listeners.get(key)?.add(onMessage);
     },
   };
-  return sub;
 }
 
 export function createInMemoryPublishStorage(): IPublishStorage & {
-  store: Map<string, CapPublishEvent<unknown>>;
+  store: Map<string, CapPublishEvent<JsonValue>>;
 } {
-  const store = new Map<string, CapPublishEvent<unknown>>();
-  const st: IPublishStorage & { store: Map<string, CapPublishEvent<unknown>> } =
-    {
-      store,
-      savePublish(e: CapPublishEvent<unknown>) {
-        store.set(e.id, e);
-        return Promise.resolve(e.id);
-      },
-      markPublished(id: string) {
-        const ev = store.get(id);
-        if (ev) ev.status = 'published';
-        return Promise.resolve();
-      },
-      getUnpublished(limit: number) {
-        return Promise.resolve(
-          [...store.values()]
-            .filter(
-              (v) =>
-                v.status === undefined ||
-                (v.status === 'failed' && v.retryCount < 3),
-            )
-            .slice(0, limit),
-        );
-      },
-    };
-  return st;
+  const store = new Map<string, CapPublishEvent<JsonValue>>();
+  return {
+    store,
+    async savePublish(e) {
+      store.set(e.id, e as CapPublishEvent<JsonValue>);
+      return e.id;
+    },
+    async claimUnpublished(options: ClaimUnpublishedOptions) {
+      const claimed: CapPublishEvent<JsonValue>[] = [];
+      for (const event of store.values()) {
+        if (claimed.length >= options.limit) break;
+        if (!isClaimable(event, options.now)) continue;
+        event.status = 'processing';
+        event.lockedBy = options.lockedBy;
+        event.lockedUntil = options.lockUntil;
+        claimed.push({ ...event });
+      }
+      return claimed;
+    },
+    async markPublished(id, publishedAt = new Date()) {
+      const ev = store.get(id);
+      if (!ev) return;
+      ev.status = 'published';
+      ev.publishedAt = publishedAt;
+      ev.lockedBy = null;
+      ev.lockedUntil = null;
+    },
+    async markPublishFailed(
+      id: string,
+      error: unknown,
+      options: MarkPublishFailedOptions,
+    ) {
+      const ev = store.get(id);
+      if (!ev) return;
+      ev.retryCount += 1;
+      ev.status = ev.retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
+      ev.nextRetryAt = ev.status === 'dead_letter' ? null : options.nextRetryAt;
+      ev.lastError = error instanceof Error ? error.message : String(error);
+      ev.lockedBy = null;
+      ev.lockedUntil = null;
+    },
+    async releaseExpiredClaims(now: Date) {
+      for (const ev of store.values()) {
+        if (ev.status === 'processing' && ev.lockedUntil && ev.lockedUntil <= now) {
+          ev.status = 'failed';
+          ev.lockedBy = null;
+          ev.lockedUntil = null;
+        }
+      }
+    },
+  };
 }
 
 export function createInMemoryReceivedStorage(): IReceivedStorage & {
-  store: Map<string, CapReceivedEvent<unknown>>;
+  store: Map<string, CapReceivedEvent<JsonValue>>;
 } {
-  const store = new Map<string, CapReceivedEvent<unknown>>();
-  const st: IReceivedStorage & {
-    store: Map<string, CapReceivedEvent<unknown>>;
-  } = {
+  const store = new Map<string, CapReceivedEvent<JsonValue>>();
+  const dedupe = new Map<string, string>();
+  return {
     store,
-    saveReceived(e: CapReceivedEvent<unknown>) {
-      store.set(e.id, e);
-      return Promise.resolve(e.id);
+    async trySaveReceived<T extends JsonValue = JsonValue>(
+      e: CapReceivedEvent<T>,
+    ): Promise<TrySaveReceivedResult<T>> {
+      const existingId = dedupe.get(e.dedupeKey);
+      if (existingId) {
+        return {
+          inserted: false,
+          id: existingId,
+          event: store.get(existingId) as CapReceivedEvent<T>,
+        };
+      }
+      store.set(e.id, e as CapReceivedEvent<JsonValue>);
+      dedupe.set(e.dedupeKey, e.id);
+      return { inserted: true, id: e.id, event: e };
     },
-    markProcessed(id: string) {
+    async markProcessed(id: string) {
       const ev = store.get(id);
       if (ev) ev.processed = true;
-      return Promise.resolve();
     },
-    getRetryDue(limit: number) {
+    async getRetryDue(limit: number) {
       const now = Date.now();
-      const list = [...store.values()]
+      return [...store.values()]
         .filter(
           (r) => !r.processed && r.nextRetry && r.nextRetry.getTime() <= now,
         )
         .slice(0, limit);
-      return Promise.resolve(list);
     },
-    scheduleRetry(id: string, retryCount: number, nextRetry: Date) {
+    async scheduleRetry(id: string, retryCount: number, nextRetry: Date) {
       const ev = store.get(id);
       if (ev) {
         ev.retryCount = retryCount;
         ev.nextRetry = nextRetry;
       }
-      return Promise.resolve();
     },
   };
-  return st;
+}
+
+function isClaimable(event: CapPublishEvent, now: Date): boolean {
+  if (event.status === 'pending') return true;
+  if (event.status === 'failed') return !event.nextRetryAt || event.nextRetryAt <= now;
+  if (event.status === 'processing') {
+    return Boolean(event.lockedUntil && event.lockedUntil <= now);
+  }
+  return false;
 }

@@ -14,7 +14,7 @@ This package provides durable outbox and inbox persistence through:
 
 ```ts
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { CapModule, CapAdapterModule } from '@mikara89/cap-nest';
+import { CapModule } from '@mikara89/cap-nest';
 import {
   MikroStorageModule,
   CapPublishEntity,
@@ -28,10 +28,10 @@ import {
       entities: [CapPublishEntity, CapReceivedEntity],
     }),
     MikroStorageModule,
-    CapModule.forAdapters(
-      MikroStorageModule,
-      transportModule as unknown as CapAdapterModule,
-    ),
+    transportModule,
+    CapModule.forRoot({
+      imports: [MikroStorageModule, transportModule],
+    }),
   ],
 })
 export class AppModule {}
@@ -41,7 +41,7 @@ export class AppModule {}
 
 - Manage production schemas through migrations or infrastructure tooling.
 - `savePublishWithTx` is available for transactional outbox persistence.
-- Dashboard list/find helpers are an MVP gap.
+- Dashboard list/find helpers are included for outbox and inbox records.
 
 ## Documentation
 
