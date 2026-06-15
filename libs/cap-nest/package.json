@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-nest",
-  "version": "0.7.0-beta.3",
+  "version": "0.7.0",
   "description": "Cloud Access Pattern (CAP) library for NestJS - reliable message handling with outbox/inbox patterns",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
