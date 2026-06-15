@@ -30,13 +30,14 @@ describe('Integration: transport-azure-servicebus', () => {
       emulatorContainer?: any;
       sqlEdgeContainer?: any;
     }> {
-      // load dynamically to avoid static typing mismatches
-      // use dynamic import (allowed in async function)
+      // Load lazily to avoid static typing mismatches.
       let tc: any;
       try {
         tc = await import('testcontainers');
-      } catch {
-        throw new Error('testcontainers not available');
+      } catch (_err) {
+        throw new Error(
+          `testcontainers not available: ${_err instanceof Error ? _err.message : String(_err)}`,
+        );
       }
 
       let networkLocal: any = null;
