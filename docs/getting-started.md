@@ -63,6 +63,11 @@ export class MailHandler {
 Production apps should provide durable storage and an external transport. The
 first-party packages are MikroORM storage and Azure Service Bus transport.
 
+> Warning: multi-instance durable outbox dispatch requires a lock-capable
+> MikroORM SQL driver such as PostgreSQL or MySQL, or a custom storage adapter
+> with equivalent claim safety. SQLite and other local/non-locking drivers are
+> supported only for demos, development, and single-process tests.
+
 ```ts
 import { Module } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';

@@ -359,10 +359,17 @@ function createInMemoryAdaptersModule(): DynamicModule {
     private readonly m = new Map<string, CapReceivedEvent<JsonValue>>();
     private readonly dedupe = new Map<string, string>();
 
+    private dedupeIdentity(
+      e: Pick<CapReceivedEvent, 'group' | 'dedupeKey'>,
+    ): string {
+      return `${e.group}|${e.dedupeKey}`;
+    }
+
     trySaveReceived<T extends JsonValue = JsonValue>(
       e: CapReceivedEvent<T>,
     ): Promise<TrySaveReceivedResult<T>> {
-      const existingId = this.dedupe.get(e.dedupeKey);
+      const dedupeIdentity = this.dedupeIdentity(e);
+      const existingId = this.dedupe.get(dedupeIdentity);
       if (existingId) {
         const existing = this.m.get(existingId) as CapReceivedEvent<T>;
         return Promise.resolve({
@@ -373,7 +380,7 @@ function createInMemoryAdaptersModule(): DynamicModule {
       }
 
       this.m.set(e.id, e);
-      this.dedupe.set(e.dedupeKey, e.id);
+      this.dedupe.set(dedupeIdentity, e.id);
       return Promise.resolve({ inserted: true, id: e.id, event: e });
     }
 

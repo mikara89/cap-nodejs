@@ -98,8 +98,10 @@ The scheduler is registered by `CapModule` and performs two periodic jobs:
 
 Outbox retries claim eligible rows with a lease before emitting them. The
 MikroORM storage adapter uses pessimistic partial write locking for production
-claim safety on lock-capable SQL drivers. Failed emits increment retry state
-and eventually move rows to `dead_letter`.
+claim safety on lock-capable SQL drivers. SQLite and other local/non-locking
+drivers use a fallback intended only for demos, development, and single-process
+tests; they are not supported for multi-instance durable dispatch. Failed emits
+increment retry state and eventually move rows to `dead_letter`.
 
 Inbox retries read due `failed` rows and re-run the registered handler. Handler
 failures increment retry state, store `lastError`, and eventually move rows to

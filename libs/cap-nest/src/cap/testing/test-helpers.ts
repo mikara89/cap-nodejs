@@ -135,12 +135,16 @@ export function createInMemoryReceivedStorage(): IReceivedStorage & {
 } {
   const store = new Map<string, CapReceivedEvent<JsonValue>>();
   const dedupe = new Map<string, string>();
+  const dedupeIdentity = (
+    event: Pick<CapReceivedEvent, 'group' | 'dedupeKey'>,
+  ): string => `${event.group}|${event.dedupeKey}`;
   return {
     store,
     trySaveReceived<T extends JsonValue = JsonValue>(
       e: CapReceivedEvent<T>,
     ): Promise<TrySaveReceivedResult<T>> {
-      const existingId = dedupe.get(e.dedupeKey);
+      const identity = dedupeIdentity(e);
+      const existingId = dedupe.get(identity);
       if (existingId) {
         return Promise.resolve({
           inserted: false,
@@ -149,7 +153,7 @@ export function createInMemoryReceivedStorage(): IReceivedStorage & {
         });
       }
       store.set(e.id, e);
-      dedupe.set(e.dedupeKey, e.id);
+      dedupe.set(identity, e.id);
       return Promise.resolve({ inserted: true, id: e.id, event: e });
     },
     markProcessed(id: string): Promise<void> {
