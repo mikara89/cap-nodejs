@@ -4,6 +4,7 @@ import {
   CapReceivedEvent,
   IReceivedStorage,
   JsonValue,
+  MarkReceivedFailedOptions,
   TrySaveReceivedResult,
 } from '@mikara89/cap-nest';
 import { CapReceivedEntity } from '../entities/cap-received.entity';
@@ -47,9 +48,8 @@ export class MikroReceivedStorage implements IReceivedStorage {
     event: CapReceivedEvent<T>,
   ): Promise<TrySaveReceivedResult<T>> {
     const existing = await this.em.findOne(CapReceivedEntity, {
-      topic: event.topic,
       group: event.group,
-      messageId: event.messageId,
+      dedupeKey: event.dedupeKey,
     });
 
     if (existing) {
@@ -70,7 +70,10 @@ export class MikroReceivedStorage implements IReceivedStorage {
       headers: event.headers,
       processed: event.processed || false,
       retryCount: event.retryCount || 0,
+      status: event.status ?? (event.processed ? 'processed' : 'pending'),
+      lastError: event.lastError ?? null,
       nextRetry: event.nextRetry ?? undefined,
+      processedAt: event.processedAt ?? null,
       createdAt: new Date(event.occurredAt),
       updatedAt: new Date(),
     });
@@ -80,9 +83,8 @@ export class MikroReceivedStorage implements IReceivedStorage {
       return { inserted: true, id: entity.id, event };
     } catch (err) {
       const duplicate = await this.em.findOne(CapReceivedEntity, {
-        topic: event.topic,
         group: event.group,
-        messageId: event.messageId,
+        dedupeKey: event.dedupeKey,
       });
       if (duplicate) {
         return {
@@ -98,19 +100,27 @@ export class MikroReceivedStorage implements IReceivedStorage {
   async markProcessed(id: string): Promise<void> {
     const entity = await this.em.findOne(CapReceivedEntity, { id });
     if (!entity) return;
+    entity.status = 'processed';
     entity.processed = true;
+    entity.processedAt = new Date();
+    entity.nextRetry = undefined;
     await this.em.flush();
   }
 
-  async scheduleRetry(
+  async markReceivedFailed(
     id: string,
-    retryCount: number,
-    nextRetry: Date,
+    error: unknown,
+    options: MarkReceivedFailedOptions,
   ): Promise<void> {
     const entity = await this.em.findOne(CapReceivedEntity, { id });
     if (!entity) return;
+    const retryCount = entity.retryCount + 1;
     entity.retryCount = retryCount;
-    entity.nextRetry = nextRetry;
+    entity.status = retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
+    entity.nextRetry =
+      entity.status === 'dead_letter' ? undefined : options.nextRetryAt;
+    entity.lastError = error instanceof Error ? error.message : String(error);
+    entity.updatedAt = options.now;
     await this.em.flush();
   }
 
@@ -119,7 +129,7 @@ export class MikroReceivedStorage implements IReceivedStorage {
     const entities = await this.em.find(
       CapReceivedEntity,
       {
-        processed: false,
+        status: 'failed',
         nextRetry: { $lte: now },
       },
       {
@@ -148,7 +158,7 @@ export class MikroReceivedStorage implements IReceivedStorage {
 
     if (opts.topic) where.topic = opts.topic;
     if (opts.due) {
-      where.processed = false;
+      where.status = 'failed';
       where.nextRetry = { $lte: new Date() };
     }
 
@@ -178,7 +188,10 @@ function mapReceivedEntity(
     dedupeKey: entity.dedupeKey,
     payload: entity.payload,
     headers: entity.headers,
+    status: entity.status,
+    lastError: entity.lastError ?? null,
     processed: entity.processed,
+    processedAt: entity.processedAt ?? null,
     retryCount: entity.retryCount,
     nextRetry: entity.nextRetry ?? null,
   };

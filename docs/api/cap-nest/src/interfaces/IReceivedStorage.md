@@ -1,6 +1,6 @@
 [**CAP for NestJS API**](../../../README.md)
 
-***
+---
 
 [CAP for NestJS API](../../../README.md) / [cap-nest/src](../README.md) / IReceivedStorage
 
@@ -28,7 +28,7 @@ Optional: find a received record by id (dashboard helpers)
 
 `Promise`\<[`CapReceivedEvent`](CapReceivedEvent.md)\<`unknown`\> \| `undefined`\>
 
-***
+---
 
 ### getRetryDue()
 
@@ -36,8 +36,7 @@ Optional: find a received record by id (dashboard helpers)
 
 Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:69](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L69)
 
-Return records that are not yet processed and
-whose nextRetry timestamp <= now.  Scheduler uses this.
+Return failed records whose nextRetry timestamp <= now. Scheduler uses this.
 
 #### Parameters
 
@@ -49,7 +48,7 @@ whose nextRetry timestamp <= now.  Scheduler uses this.
 
 `Promise`\<[`CapReceivedEvent`](CapReceivedEvent.md)\<`unknown`\>[]\>
 
-***
+---
 
 ### initialize()?
 
@@ -69,7 +68,7 @@ Optional one-time initialization: create schema/tables if needed
 
 `Promise`\<`void`\>
 
-***
+---
 
 ### listReceived()?
 
@@ -103,7 +102,7 @@ Optional: paginated listing for dashboards and admin UIs
 
 `Promise`\<\{ `items`: [`CapReceivedEvent`](CapReceivedEvent.md)\<`unknown`\>[]; `total?`: `number`; \}\>
 
-***
+---
 
 ### markProcessed()
 
@@ -123,15 +122,16 @@ Mark processed=true
 
 `Promise`\<`void`\>
 
-***
+---
 
-### saveReceived()
+### trySaveReceived()
 
-> **saveReceived**\<`T`\>(`evt`): `Promise`\<`string`\>
+> **trySaveReceived**\<`T`\>(`evt`): `Promise`\<[`TrySaveReceivedResult`](TrySaveReceivedResult.md)\<`T`\>\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:57](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L57)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts)
 
-Persist a delivery; return record id
+Persist a delivery if its dedupe identity has not been seen.
+Duplicate deliveries return inserted=false and must not re-run handlers.
 
 #### Type Parameters
 
@@ -147,17 +147,17 @@ Persist a delivery; return record id
 
 #### Returns
 
-`Promise`\<`string`\>
+`Promise`\<[`TrySaveReceivedResult`](TrySaveReceivedResult.md)\<`T`\>\>
 
-***
+---
 
-### scheduleRetry()
+### markReceivedFailed()
 
-> **scheduleRetry**(`id`, `retryCount`, `nextRetry`): `Promise`\<`void`\>
+> **markReceivedFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:77](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L77)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts)
 
-Schedule a retry for a given event.
+Mark inbox processing failed, or dead-letter when retry limit is exceeded.
 
 #### Parameters
 
@@ -167,17 +167,13 @@ Schedule a retry for a given event.
 
 The ID of the event to retry.
 
-##### retryCount
+##### error
 
-`number`
+`unknown`
 
-The number of retry attempts made so far.
+##### options
 
-##### nextRetry
-
-`Date`
-
-The next scheduled retry time.
+[`MarkReceivedFailedOptions`](MarkReceivedFailedOptions.md)
 
 #### Returns
 

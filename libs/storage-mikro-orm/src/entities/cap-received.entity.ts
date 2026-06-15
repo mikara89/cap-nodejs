@@ -1,5 +1,9 @@
 import { Entity, PrimaryKey, Property, Index, Unique } from '@mikro-orm/core';
-import type { CapHeaders, JsonValue } from '@mikara89/cap-nest';
+import type {
+  CapHeaders,
+  CapReceivedStatus,
+  JsonValue,
+} from '@mikara89/cap-nest';
 import { v4 as uuid } from 'uuid';
 
 /**
@@ -7,9 +11,9 @@ import { v4 as uuid } from 'uuid';
  * Stores incoming messages for processing and retry logic.
  */
 @Entity({ tableName: 'cap_received' })
-@Index({ properties: ['processed', 'nextRetry'] })
+@Index({ properties: ['status', 'nextRetry'] })
 @Index({ properties: ['topic', 'group'] })
-@Unique({ properties: ['topic', 'group', 'messageId'] })
+@Unique({ properties: ['group', 'dedupeKey'] })
 export class CapReceivedEntity {
   @PrimaryKey({ type: 'uuid' })
   id: string = uuid();
@@ -38,8 +42,17 @@ export class CapReceivedEntity {
   @Property({ type: 'number', default: 0 })
   retryCount = 0;
 
+  @Property({ type: 'string', length: 32, default: 'pending' })
+  status: CapReceivedStatus = 'pending';
+
+  @Property({ type: 'string', nullable: true })
+  lastError?: string | null;
+
   @Property({ type: 'datetime', nullable: true })
   nextRetry?: Date;
+
+  @Property({ type: 'datetime', nullable: true })
+  processedAt?: Date | null;
 
   @Property({ type: 'datetime' })
   createdAt: Date = new Date();

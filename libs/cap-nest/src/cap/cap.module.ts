@@ -18,6 +18,7 @@ import {
   IReceivedStorage,
   CapReceivedEvent,
   ClaimUnpublishedOptions,
+  MarkReceivedFailedOptions,
   MarkPublishFailedOptions,
   TrySaveReceivedResult,
 } from './abstractions/storage.interface';
@@ -209,6 +210,7 @@ function createSchedulerOptionsProvider(): Provider {
         batchSize: scheduler.batchSize ?? 200,
         leaseMs: scheduler.leaseMs ?? 30_000,
         maxRetries: scheduler.maxRetries ?? 3,
+        maxInboxRetries: scheduler.maxInboxRetries ?? scheduler.maxRetries ?? 3,
         instanceId:
           scheduler.instanceId ??
           `cap-${process.pid}-${randomUUID().slice(0, 8)}`,
@@ -377,7 +379,12 @@ function createInMemoryAdaptersModule(): DynamicModule {
 
     markProcessed(id: string): Promise<void> {
       const event = this.m.get(id);
-      if (event) event.processed = true;
+      if (event) {
+        event.status = 'processed';
+        event.processed = true;
+        event.processedAt = new Date();
+        event.nextRetry = null;
+      }
       return Promise.resolve();
     }
 
@@ -387,22 +394,29 @@ function createInMemoryAdaptersModule(): DynamicModule {
         [...this.m.values()]
           .filter(
             (rec) =>
-              !rec.processed && rec.nextRetry && rec.nextRetry.getTime() <= now,
+              rec.status === 'failed' &&
+              rec.nextRetry &&
+              rec.nextRetry.getTime() <= now,
           )
           .slice(0, limit)
           .map((rec) => ({ ...rec })),
       );
     }
 
-    scheduleRetry(
+    markReceivedFailed(
       id: string,
-      retryCount: number,
-      nextRetry: Date,
+      error: unknown,
+      options: MarkReceivedFailedOptions,
     ): Promise<void> {
       const event = this.m.get(id);
       if (!event) return Promise.resolve();
+      const retryCount = event.retryCount + 1;
       event.retryCount = retryCount;
-      event.nextRetry = nextRetry;
+      event.status =
+        retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
+      event.nextRetry =
+        event.status === 'dead_letter' ? null : options.nextRetryAt;
+      event.lastError = error instanceof Error ? error.message : String(error);
       return Promise.resolve();
     }
 
@@ -426,7 +440,10 @@ function createInMemoryAdaptersModule(): DynamicModule {
       if (opts.due) {
         const now = Date.now();
         all = all.filter(
-          (r) => !r.processed && r.nextRetry && r.nextRetry.getTime() <= now,
+          (r) =>
+            r.status === 'failed' &&
+            r.nextRetry &&
+            r.nextRetry.getTime() <= now,
         );
       }
       const total = all.length;

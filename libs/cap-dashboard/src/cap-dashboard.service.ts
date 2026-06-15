@@ -8,6 +8,9 @@ import {
   PUBLISH_STORAGE,
   PUBLISHER,
   RECEIVED_STORAGE,
+  CAP_SCHEDULER_OPTIONS,
+  ResolvedCapSchedulerOptions,
+  withCapMessageId,
 } from '@mikara89/cap-nest';
 import { CapPublishEvent } from '@mikara89/cap-nest';
 import { ListQueryDto } from './dto/list-query.dto';
@@ -20,6 +23,14 @@ import { CAP_DASHBOARD_OPTIONS } from './cap-dashboard.auth';
 
 const DEFAULT_LIST_LIMIT = 50;
 const DASHBOARD_LOCK_OWNER = 'cap-dashboard';
+const DEFAULT_RETRY_OPTIONS: ResolvedCapSchedulerOptions = {
+  batchSize: 200,
+  leaseMs: 30_000,
+  maxRetries: 3,
+  maxInboxRetries: 3,
+  instanceId: DASHBOARD_LOCK_OWNER,
+  disabled: false,
+};
 
 export interface RetryOptions {
   force?: boolean;
@@ -53,6 +64,9 @@ export class CapDashboardService {
         payloadPaths: [],
       },
     },
+    @Optional()
+    @Inject(CAP_SCHEDULER_OPTIONS)
+    private readonly schedulerOptions: ResolvedCapSchedulerOptions = DEFAULT_RETRY_OPTIONS,
   ) {}
 
   async listOutbox(query: ListQueryDto): Promise<OutboxPageDto> {
@@ -114,7 +128,8 @@ export class CapDashboardService {
         };
       }
 
-      await this.publisher.emit(rec.topic, rec.payload, rec.headers, {
+      const headers = withCapMessageId(rec.headers, rec.id);
+      await this.publisher.emit(rec.topic, rec.payload, headers, {
         messageId: rec.id,
       });
       await this.pubStorage.markPublished(id, new Date());
@@ -236,7 +251,8 @@ export class CapDashboardService {
 
       for (const rec of rows) {
         try {
-          await this.publisher.emit(rec.topic, rec.payload, rec.headers, {
+          const headers = withCapMessageId(rec.headers, rec.id);
+          await this.publisher.emit(rec.topic, rec.payload, headers, {
             messageId: rec.id,
           });
           await this.pubStorage.markPublished(rec.id, new Date());
@@ -244,7 +260,7 @@ export class CapDashboardService {
         } catch (err) {
           failed++;
           await this.pubStorage.markPublishFailed(rec.id, err, {
-            maxRetries: 3,
+            maxRetries: this.schedulerOptions.maxRetries,
             nextRetryAt: new Date(Date.now() + 1000),
             now: new Date(),
           });
@@ -313,9 +329,12 @@ function mapReceivedToInboxDto(
     topic: evt.topic,
     messageId: evt.messageId,
     dedupeKey: evt.dedupeKey,
+    status: evt.status,
     processed: evt.processed,
     retryCount: evt.retryCount,
+    lastError: evt.lastError ?? null,
     nextRetry: evt.nextRetry ?? undefined,
+    processedAt: evt.processedAt ?? null,
     payloadPreview:
       !full && redactedPayload
         ? String(JSON.stringify(redactedPayload)).slice(0, 300)

@@ -8,6 +8,7 @@ import {
   type ClaimUnpublishedOptions,
   type IPublishStorage,
   type IReceivedStorage,
+  type MarkReceivedFailedOptions,
   type MarkPublishFailedOptions,
   type TrySaveReceivedResult,
 } from '../abstractions/storage.interface';
@@ -153,7 +154,12 @@ export function createInMemoryReceivedStorage(): IReceivedStorage & {
     },
     markProcessed(id: string): Promise<void> {
       const ev = store.get(id);
-      if (ev) ev.processed = true;
+      if (ev) {
+        ev.status = 'processed';
+        ev.processed = true;
+        ev.processedAt = new Date();
+        ev.nextRetry = null;
+      }
       return Promise.resolve();
     },
     getRetryDue(limit: number): Promise<CapReceivedEvent<JsonValue>[]> {
@@ -161,20 +167,26 @@ export function createInMemoryReceivedStorage(): IReceivedStorage & {
       return Promise.resolve(
         [...store.values()]
           .filter(
-            (r) => !r.processed && r.nextRetry && r.nextRetry.getTime() <= now,
+            (r) =>
+              r.status === 'failed' &&
+              r.nextRetry &&
+              r.nextRetry.getTime() <= now,
           )
           .slice(0, limit),
       );
     },
-    scheduleRetry(
+    markReceivedFailed(
       id: string,
-      retryCount: number,
-      nextRetry: Date,
+      error: unknown,
+      options: MarkReceivedFailedOptions,
     ): Promise<void> {
       const ev = store.get(id);
       if (ev) {
-        ev.retryCount = retryCount;
-        ev.nextRetry = nextRetry;
+        ev.retryCount += 1;
+        ev.status =
+          ev.retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
+        ev.nextRetry = ev.status === 'dead_letter' ? null : options.nextRetryAt;
+        ev.lastError = error instanceof Error ? error.message : String(error);
       }
       return Promise.resolve();
     },

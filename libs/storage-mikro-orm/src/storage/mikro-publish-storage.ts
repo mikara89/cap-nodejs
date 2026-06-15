@@ -1,5 +1,10 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
-import { EntityManager, FilterQuery, MikroORM } from '@mikro-orm/core';
+import {
+  EntityManager,
+  FilterQuery,
+  LockMode,
+  MikroORM,
+} from '@mikro-orm/core';
 import {
   CapPublishEvent,
   ClaimUnpublishedOptions,
@@ -86,6 +91,7 @@ export class MikroPublishStorage implements IPublishStorage {
         {
           limit: options.limit,
           orderBy: { createdAt: 'ASC' },
+          lockMode: LockMode.PESSIMISTIC_PARTIAL_WRITE,
         },
       );
 

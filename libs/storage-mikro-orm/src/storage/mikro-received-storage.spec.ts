@@ -38,6 +38,10 @@ describe('MikroReceivedStorage', () => {
     const result = await storage.trySaveReceived(event);
 
     expect(result.inserted).toBe(true);
+    expect(em.findOne).toHaveBeenCalledWith(CapReceivedEntity, {
+      group: 'test-group',
+      dedupeKey: 'test-topic|test-group|message-1',
+    });
     expect(em.persistAndFlush).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'test-id',
@@ -58,7 +62,46 @@ describe('MikroReceivedStorage', () => {
 
     expect(result.inserted).toBe(false);
     expect(result.id).toBe('test-id');
+    expect(em.findOne).toHaveBeenCalledWith(CapReceivedEntity, {
+      group: 'test-group',
+      dedupeKey: 'test-topic|test-group|message-1',
+    });
     expect(em.persistAndFlush).not.toHaveBeenCalled();
+  });
+
+  it('dedupes by group and dedupeKey even when messageId differs', async () => {
+    const existing = receivedEntity({ messageId: 'message-1' });
+    (em.findOne as jest.Mock).mockResolvedValue(existing);
+
+    const result = await storage.trySaveReceived(
+      receivedEvent({ messageId: 'message-2' }),
+    );
+
+    expect(result.inserted).toBe(false);
+    expect(em.findOne).toHaveBeenCalledWith(CapReceivedEntity, {
+      group: 'test-group',
+      dedupeKey: 'test-topic|test-group|message-1',
+    });
+  });
+
+  it('uses group and dedupeKey in duplicate catch lookup', async () => {
+    const existing = receivedEntity({ messageId: 'message-1' });
+    (em.findOne as jest.Mock)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(existing);
+    (em.persistAndFlush as jest.Mock).mockRejectedValueOnce(
+      new Error('unique'),
+    );
+
+    const result = await storage.trySaveReceived(
+      receivedEvent({ messageId: 'message-2' }),
+    );
+
+    expect(result.inserted).toBe(false);
+    expect(em.findOne).toHaveBeenNthCalledWith(2, CapReceivedEntity, {
+      group: 'test-group',
+      dedupeKey: 'test-topic|test-group|message-1',
+    });
   });
 
   it('marks processed', async () => {
@@ -68,24 +111,50 @@ describe('MikroReceivedStorage', () => {
     await storage.markProcessed('test-id');
 
     expect(entity.processed).toBe(true);
+    expect(entity.status).toBe('processed');
+    expect(entity.processedAt).toEqual(expect.any(Date));
+    expect(entity.nextRetry).toBeUndefined();
     expect(em.flush).toHaveBeenCalled();
   });
 
-  it('schedules retry', async () => {
+  it('marks retryable handler failures', async () => {
     const entity = receivedEntity({ retryCount: 1 });
     (em.findOne as jest.Mock).mockResolvedValue(entity);
 
     const nextRetry = new Date('2025-01-02');
-    await storage.scheduleRetry('test-id', 2, nextRetry);
+    await storage.markReceivedFailed('test-id', new Error('handler'), {
+      maxRetries: 3,
+      nextRetryAt: nextRetry,
+      now: new Date('2025-01-01'),
+    });
 
     expect(entity.retryCount).toBe(2);
+    expect(entity.status).toBe('failed');
     expect(entity.nextRetry).toEqual(nextRetry);
+    expect(entity.lastError).toBe('handler');
     expect(em.flush).toHaveBeenCalled();
+  });
+
+  it('dead-letters handler failures when max retries is reached', async () => {
+    const entity = receivedEntity({ retryCount: 2 });
+    (em.findOne as jest.Mock).mockResolvedValue(entity);
+
+    await storage.markReceivedFailed('test-id', 'boom', {
+      maxRetries: 3,
+      nextRetryAt: new Date('2025-01-02'),
+      now: new Date('2025-01-01'),
+    });
+
+    expect(entity.retryCount).toBe(3);
+    expect(entity.status).toBe('dead_letter');
+    expect(entity.nextRetry).toBeUndefined();
+    expect(entity.lastError).toBe('boom');
   });
 
   it('returns retry-due events', async () => {
     const entity = receivedEntity({
       processed: false,
+      status: 'failed',
       retryCount: 1,
       nextRetry: new Date('2000-01-01'),
     });
@@ -127,7 +196,7 @@ describe('MikroReceivedStorage', () => {
       CapReceivedEntity,
       expect.objectContaining({
         topic: 'test-topic',
-        processed: false,
+        status: 'failed',
         nextRetry: expect.any(Object),
       }),
       expect.objectContaining({ limit: 10, offset: 0 }),
@@ -135,7 +204,9 @@ describe('MikroReceivedStorage', () => {
   });
 });
 
-function receivedEvent(): CapReceivedEvent {
+function receivedEvent(
+  overrides: Partial<CapReceivedEvent> = {},
+): CapReceivedEvent {
   return {
     id: 'test-id',
     topic: 'test-topic',
@@ -147,7 +218,9 @@ function receivedEvent(): CapReceivedEvent {
     headers: { 'x-trace': '123' },
     processed: false,
     retryCount: 0,
+    status: 'pending',
     nextRetry: new Date(),
+    ...overrides,
   };
 }
 
@@ -164,6 +237,7 @@ function receivedEntity(
   entity.headers = {};
   entity.processed = false;
   entity.retryCount = 0;
+  entity.status = 'pending';
   entity.createdAt = new Date();
   Object.assign(entity, overrides);
   return entity;

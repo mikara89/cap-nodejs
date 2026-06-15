@@ -8,6 +8,7 @@ export interface CapSchedulerOptions {
   batchSize?: number;
   leaseMs?: number;
   maxRetries?: number;
+  maxInboxRetries?: number;
   instanceId?: string;
   disabled?: boolean;
 }
@@ -16,6 +17,7 @@ export interface ResolvedCapSchedulerOptions {
   batchSize: number;
   leaseMs: number;
   maxRetries: number;
+  maxInboxRetries: number;
   instanceId: string;
   disabled: boolean;
 }

@@ -29,8 +29,8 @@ The root workspace package is private. The publishable packages live under
 
 ## Packages
 
-| Package                               | Purpose                                                                                                   |
-| ------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Package                                    | Purpose                                                                                                   |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
 | `@mikara89/cap-nest`                       | Core NestJS module, service, decorators, scheduler, abstractions, and in-memory mode.                     |
 | `@mikara89/mikroorm-storage`               | MikroORM storage adapter for outbox and inbox records.                                                    |
 | `@mikara89/azure-servicebus-transport`     | Azure Service Bus transport adapter.                                                                      |
@@ -267,6 +267,10 @@ npm run docs:api
   the npm cache and rerun the command.
 - Keep automatic schema and broker provisioning disabled in production unless
   you explicitly want CAP to create those resources.
+- Durable MikroORM inbox deduplication uses `(group, dedupeKey)`, and outbox
+  claiming relies on pessimistic partial write locking. Existing beta
+  databases need a migration for new inbox status/dead-letter fields and the
+  dedupe index change.
 
 ## Documentation
 

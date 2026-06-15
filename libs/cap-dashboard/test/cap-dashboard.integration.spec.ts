@@ -6,7 +6,9 @@ import { CapDashboardAssetsController } from '../src/cap-dashboard-assets.contro
 import { CapDashboardService } from '../src/cap-dashboard.service';
 import { CapDashboardGuard } from '../src/guards/cap-dashboard.guard';
 import { PUBLISH_STORAGE, RECEIVED_STORAGE } from '@mikara89/cap-nest';
+import { PUBLISHER } from '@mikara89/cap-nest';
 import type { IPublishStorage, IReceivedStorage } from '@mikara89/cap-nest';
+import type { IPublisher } from '@mikara89/cap-nest';
 import type { CapPublishEvent } from '@mikara89/cap-nest';
 import type { CapReceivedEvent } from '@mikara89/cap-nest';
 import { Reflector } from '@nestjs/core';
@@ -16,6 +18,8 @@ describe('CapDashboard integration (in-memory)', () => {
   let svc: CapDashboardService;
   let pubStore: IPublishStorage;
   let recStore: IReceivedStorage;
+  let publisher: IPublisher;
+  let publisherEmitSpy: jest.SpiedFunction<IPublisher['emit']>;
 
   beforeAll(async () => {
     const mockGuardProvider = {
@@ -36,6 +40,8 @@ describe('CapDashboard integration (in-memory)', () => {
     svc = moduleRef.get(CapDashboardService);
     pubStore = moduleRef.get(PUBLISH_STORAGE);
     recStore = moduleRef.get(RECEIVED_STORAGE);
+    publisher = moduleRef.get(PUBLISHER);
+    publisherEmitSpy = jest.spyOn(publisher, 'emit');
   });
 
   afterAll(async () => {
@@ -86,6 +92,7 @@ describe('CapDashboard integration (in-memory)', () => {
       payload: { name: 'Bob' },
       headers: { traceId: 'trace-2' },
       retryCount: 1,
+      status: 'failed',
       processed: false,
       nextRetry: new Date(Date.now() - 1000),
     };
@@ -115,6 +122,12 @@ describe('CapDashboard integration (in-memory)', () => {
 
     const res = await svc.retryOutbox('p-retry');
     expect(res.success).toBeTruthy();
+    expect(publisherEmitSpy).toHaveBeenCalledWith(
+      'test.retry',
+      { foo: 'bar' },
+      { traceId: 'retry', 'cap-message-id': 'p-retry' },
+      { messageId: 'p-retry' },
+    );
 
     const found = await (pubStore as any).findPublishById('p-retry');
     expect(found).toBeDefined();
@@ -131,6 +144,7 @@ describe('CapDashboard integration (in-memory)', () => {
       occurredAt: new Date().toISOString(),
       payload: { x: 1 },
       retryCount: 0,
+      status: 'pending',
       processed: false,
       nextRetry: null,
     };

@@ -3,6 +3,7 @@ import {
   type IPublishStorage,
   type IReceivedStorage,
   type MarkPublishFailedOptions,
+  type MarkReceivedFailedOptions,
   type CapPublishEvent,
   type CapReceivedEvent,
   type TrySaveReceivedResult,
@@ -26,10 +27,10 @@ export class TestStorageSpy implements IPublishStorage, IReceivedStorage {
   public releaseExpiredClaimsCalls: Date[] = [];
   public getRetryDueCalls = 0;
   public markProcessedCalls: string[] = [];
-  public scheduleRetryCalls: Array<{
+  public markReceivedFailedCalls: Array<{
     id: string;
-    retryCount: number;
-    nextRetry: Date;
+    error: unknown;
+    options: MarkReceivedFailedOptions;
   }> = [];
 
   savePublish<T = JsonValue>(evt: CapPublishEvent<T>): Promise<string> {
@@ -123,7 +124,7 @@ export class TestStorageSpy implements IPublishStorage, IReceivedStorage {
     this.getRetryDueCalls++;
     const now = new Date();
     const due = Array.from(this.receivedEvents.values())
-      .filter((e) => !e.processed && e.nextRetry && e.nextRetry <= now)
+      .filter((e) => e.status === 'failed' && e.nextRetry && e.nextRetry <= now)
       .slice(0, limit);
     return Promise.resolve(due);
   }
@@ -131,20 +132,29 @@ export class TestStorageSpy implements IPublishStorage, IReceivedStorage {
   markProcessed(id: string): Promise<void> {
     this.markProcessedCalls.push(id);
     const event = this.receivedEvents.get(id);
-    if (event) event.processed = true;
+    if (event) {
+      event.status = 'processed';
+      event.processed = true;
+      event.processedAt = new Date();
+      event.nextRetry = null;
+    }
     return Promise.resolve();
   }
 
-  scheduleRetry(
+  markReceivedFailed(
     id: string,
-    retryCount: number,
-    nextRetry: Date,
+    error: unknown,
+    options: MarkReceivedFailedOptions,
   ): Promise<void> {
-    this.scheduleRetryCalls.push({ id, retryCount, nextRetry });
+    this.markReceivedFailedCalls.push({ id, error, options });
     const event = this.receivedEvents.get(id);
     if (event) {
-      event.retryCount = retryCount;
-      event.nextRetry = nextRetry;
+      event.retryCount += 1;
+      event.status =
+        event.retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
+      event.nextRetry =
+        event.status === 'dead_letter' ? null : options.nextRetryAt;
+      event.lastError = error instanceof Error ? error.message : String(error);
     }
     return Promise.resolve();
   }
@@ -177,7 +187,7 @@ export class TestStorageSpy implements IPublishStorage, IReceivedStorage {
     this.releaseExpiredClaimsCalls = [];
     this.getRetryDueCalls = 0;
     this.markProcessedCalls = [];
-    this.scheduleRetryCalls = [];
+    this.markReceivedFailedCalls = [];
   }
 
   private isClaimable(event: CapPublishEvent, now: Date): boolean {

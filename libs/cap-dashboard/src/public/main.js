@@ -38,16 +38,28 @@
 
   function statusFor(item) {
     if (activeTab === 'outbox') {
-      if (item.status === 'published') return { label: 'Published', tone: 'success' };
+      if (item.status === 'published')
+        return { label: 'Published', tone: 'success' };
       if (item.status === 'failed') return { label: 'Failed', tone: 'failed' };
       return { label: item.status || 'Pending', tone: 'pending' };
     }
-    if (item.processed) return { label: 'Processed', tone: 'success' };
-    return { label: 'Pending', tone: 'pending' };
+    if (item.status === 'processed' || item.processed) {
+      return { label: 'Processed', tone: 'success' };
+    }
+    if (item.status === 'failed' || item.status === 'dead_letter') {
+      return { label: item.status, tone: 'failed' };
+    }
+    return { label: item.status || 'Pending', tone: 'pending' };
   }
 
   function itemTime(item) {
-    return item.occurredAt || item.createdAt || item.updatedAt || item.nextRetry || '';
+    return (
+      item.occurredAt ||
+      item.createdAt ||
+      item.updatedAt ||
+      item.nextRetry ||
+      ''
+    );
   }
 
   function getPreview(item) {
@@ -70,7 +82,10 @@
   async function fetchList() {
     const topic = $('filter-topic').value.trim();
     const mode = $('filter-mode').value || 'all';
-    const qs = new URLSearchParams({ page: String(page), limit: String(limit) });
+    const qs = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
     if (topic) qs.set('topic', topic);
     if (mode === 'due') {
       if (activeTab === 'inbox') qs.set('due', 'true');
@@ -96,7 +111,8 @@
       $('list-title').textContent = activeTab === 'outbox' ? 'Outbox' : 'Inbox';
       if (!selectedId) clearDetail();
     } catch (err) {
-      $('list').innerHTML = `<div class="empty">Error: ${escapeHtml(err.message)}</div>`;
+      $('list').innerHTML =
+        `<div class="empty">Error: ${escapeHtml(err.message)}</div>`;
       renderSummary([], 0);
     }
   }
@@ -160,7 +176,9 @@
     const pages = Math.max(1, Math.ceil((total || 0) / currentLimit));
     const start = total === 0 ? 0 : (current - 1) * currentLimit + 1;
     const end = Math.min(total, current * currentLimit);
-    $('list-range').textContent = total ? `${start}-${end} of ${total}` : '0 messages';
+    $('list-range').textContent = total
+      ? `${start}-${end} of ${total}`
+      : '0 messages';
     $('pagination').innerHTML = `
       <span>Page ${current} of ${pages}</span>
       <span class="pagination-controls">
@@ -196,7 +214,8 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
       renderDetail(await res.json());
     } catch (err) {
-      $('detail').innerHTML = `<div class="empty">Error: ${escapeHtml(err.message)}</div>`;
+      $('detail').innerHTML =
+        `<div class="empty">Error: ${escapeHtml(err.message)}</div>`;
     }
   }
 
@@ -208,7 +227,8 @@
 
     const status = statusFor(item);
     const payload = item.payload || item;
-    $('detail-status').innerHTML = `<span class="badge ${status.tone}">${escapeHtml(status.label)}</span>`;
+    $('detail-status').innerHTML =
+      `<span class="badge ${status.tone}">${escapeHtml(status.label)}</span>`;
     $('detail').innerHTML = `
       <div class="detail-grid">
         <div class="detail-field">
@@ -230,7 +250,8 @@
       </div>
       <pre class="payload-block">${escapeHtml(JSON.stringify(payload, null, 2))}</pre>`;
 
-    const markLabel = activeTab === 'outbox' ? 'Mark Published' : 'Mark Processed';
+    const markLabel =
+      activeTab === 'outbox' ? 'Mark Published' : 'Mark Processed';
     $('detail-actions').innerHTML = `
       <button class="button primary" id="action-retry" type="button">Retry</button>
       <button class="button" id="action-mark" type="button">${markLabel}</button>`;
@@ -243,7 +264,8 @@
   }
 
   async function doAction(action, id) {
-    const markPath = activeTab === 'outbox' ? 'mark-published' : 'mark-processed';
+    const markPath =
+      activeTab === 'outbox' ? 'mark-published' : 'mark-processed';
     const path = action === 'retry' ? 'retry' : markPath;
     const url = `${API_BASE}/${activeTab}/${id}/${path}`;
     try {

@@ -78,7 +78,7 @@ sequenceDiagram
   alt handler succeeds
     CapService->>Inbox: markProcessed(id)
   else handler fails
-    CapService->>Inbox: scheduleRetry(id, retryCount, nextRetry)
+    CapService->>Inbox: markReceivedFailed(id, error, retry options)
   end
 ```
 
@@ -96,10 +96,15 @@ The scheduler is registered by `CapModule` and performs two periodic jobs:
 - outbox flush every 30 seconds
 - inbox retry every minute
 
-Outbox retries claim eligible rows with a lease before emitting them. Failed
-emits increment retry state and eventually move rows to `dead_letter`. Inbox
-retries read due unprocessed rows and re-run the registered handler. Handler
-retry timing uses exponential backoff with jitter.
+Outbox retries claim eligible rows with a lease before emitting them. The
+MikroORM storage adapter uses pessimistic partial write locking for production
+claim safety on lock-capable SQL drivers. Failed emits increment retry state
+and eventually move rows to `dead_letter`.
+
+Inbox retries read due `failed` rows and re-run the registered handler. Handler
+failures increment retry state, store `lastError`, and eventually move rows to
+`dead_letter` once `scheduler.maxInboxRetries` is reached. Handler retry timing
+uses exponential backoff with jitter.
 
 ## Transactions
 

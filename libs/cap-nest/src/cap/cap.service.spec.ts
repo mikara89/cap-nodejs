@@ -8,6 +8,14 @@ import {
 } from './testing/test-helpers';
 
 describe('CapService (unit)', () => {
+  const schedulerOptions = {
+    batchSize: 200,
+    leaseMs: 30_000,
+    maxRetries: 7,
+    maxInboxRetries: 2,
+    instanceId: 'test-instance',
+    disabled: false,
+  };
   let cap: CapService;
   let pubStore: ReturnType<typeof createInMemoryPublishStorage>;
   let recStore: ReturnType<typeof createInMemoryReceivedStorage>;
@@ -26,9 +34,15 @@ describe('CapService (unit)', () => {
     jest.spyOn(pubStore, 'markPublishFailed');
     jest.spyOn(recStore, 'trySaveReceived');
     jest.spyOn(recStore, 'markProcessed');
-    jest.spyOn(recStore, 'scheduleRetry');
+    jest.spyOn(recStore, 'markReceivedFailed');
 
-    cap = new CapService(pubStore, recStore, publisher, subscriber);
+    cap = new CapService(
+      pubStore,
+      recStore,
+      publisher,
+      subscriber,
+      schedulerOptions,
+    );
   });
 
   it('publish - success marks published and forwards cap message id', async () => {
@@ -51,7 +65,11 @@ describe('CapService (unit)', () => {
 
     expect(pubStore.savePublish).toHaveBeenCalled();
     expect(pubStore.markPublished).not.toHaveBeenCalled();
-    expect(pubStore.markPublishFailed).toHaveBeenCalled();
+    expect(pubStore.markPublishFailed).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(Error),
+      expect.objectContaining({ maxRetries: 7 }),
+    );
   });
 
   it('subscribe - handler processed successfully and persisted', async () => {
@@ -86,7 +104,7 @@ describe('CapService (unit)', () => {
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
-  it('subscribe - handler failure schedules retry', async () => {
+  it('subscribe - handler failure marks received failed', async () => {
     const handler = jest.fn(async () => {
       throw new Error('handler fail');
     });
@@ -99,11 +117,12 @@ describe('CapService (unit)', () => {
       await fn({ z: 9 }, undefined, { messageId: 'm-r' });
 
     expect(recStore.trySaveReceived).toHaveBeenCalled();
-    expect(recStore.scheduleRetry).toHaveBeenCalled();
-    const args = (recStore.scheduleRetry as jest.Mock).mock.calls[0];
+    expect(recStore.markReceivedFailed).toHaveBeenCalled();
+    const args = (recStore.markReceivedFailed as jest.Mock).mock.calls[0];
     expect(typeof args[0]).toBe('string');
-    expect(args[1]).toBe(1);
-    expect(args[2] instanceof Date).toBe(true);
+    expect(args[1]).toEqual(expect.any(Error));
+    expect(args[2]).toMatchObject({ maxRetries: 2 });
+    expect(args[2].nextRetryAt instanceof Date).toBe(true);
   });
 
   it('publish - tx without immediate only stores outbox row', async () => {
@@ -122,6 +141,7 @@ describe('CapService (unit)', () => {
       recStore,
       publisher,
       subscriber,
+      schedulerOptions,
     );
 
     await cap.publish('t-tx', { tx: true }, { tx });

@@ -20,6 +20,12 @@ export interface MarkPublishFailedOptions {
   now: Date;
 }
 
+export interface MarkReceivedFailedOptions {
+  maxRetries: number;
+  nextRetryAt: Date;
+  now: Date;
+}
+
 export interface TrySaveReceivedResult<T extends JsonValue = JsonValue> {
   inserted: boolean;
   id: string;
@@ -102,10 +108,12 @@ export interface IReceivedStorage {
    */
   getRetryDue(limit: number): Promise<Array<CapReceivedEvent>>;
 
-  /**
-   * Schedule a retry for a given event.
-   */
-  scheduleRetry(id: string, retryCount: number, nextRetry: Date): Promise<void>;
+  /** Mark inbox processing failed, or dead-letter when retry limit is exceeded. */
+  markReceivedFailed(
+    id: string,
+    error: unknown,
+    options: MarkReceivedFailedOptions,
+  ): Promise<void>;
 
   /** Optional: find a received record by id (dashboard helpers) */
   findReceivedById?(id: string): Promise<CapReceivedEvent | undefined>;

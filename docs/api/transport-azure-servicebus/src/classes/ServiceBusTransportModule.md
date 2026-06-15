@@ -1,6 +1,6 @@
 [**CAP for NestJS API**](../../../README.md)
 
-***
+---
 
 [CAP for NestJS API](../../../README.md) / [transport-azure-servicebus/src](../README.md) / ServiceBusTransportModule
 
@@ -11,19 +11,23 @@ Defined in: [transport-azure-servicebus/src/servicebus-transport.module.ts:32](h
 NestJS module providing Azure Service Bus transport adapters for CAP.
 
 Usage:
+
 ```ts
 import { CapModule } from '@mikara89/cap-nest';
 import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
 
+const serviceBusTransport = ServiceBusTransportModule.forRoot({
+  connectionString: process.env.AZURE_SERVICEBUS_CONNECTION_STRING!,
+  topicPrefix: 'cap-',
+});
+
 @Module({
   imports: [
-    CapModule.forAdapters(
-      storageModule,
-      ServiceBusTransportModule.forRoot({
-        connectionString: process.env.AZURE_SERVICEBUS_CONNECTION_STRING!,
-        topicPrefix: 'cap-',
-      }),
-    ),
+    storageModule,
+    serviceBusTransport,
+    CapModule.forRoot({
+      imports: [storageModule, serviceBusTransport],
+    }),
   ],
 })
 export class AppModule {}

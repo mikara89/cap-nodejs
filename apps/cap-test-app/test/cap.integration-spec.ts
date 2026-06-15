@@ -188,7 +188,7 @@ describe('CAP Integration Tests', () => {
       expect(receivedEvent?.processed).toBe(true);
     });
 
-    it('should schedule retry when handler fails', async () => {
+    it('should mark received failed when handler fails', async () => {
       const payload: UserCreatedDto = {
         userId: 'user-fail',
         email: 'fail@example.com',
@@ -199,16 +199,18 @@ describe('CAP Integration Tests', () => {
 
       await capService.publish('user.created', payload);
 
-      await waitForCondition(() => storage.scheduleRetryCalls.length > 0);
+      await waitForCondition(() => storage.markReceivedFailedCalls.length > 0);
 
-      expect(storage.scheduleRetryCalls).toHaveLength(1);
-      expect(storage.scheduleRetryCalls[0].retryCount).toBe(1);
-      expect(storage.scheduleRetryCalls[0].nextRetry).toBeDefined();
+      expect(storage.markReceivedFailedCalls).toHaveLength(1);
+      expect(
+        storage.markReceivedFailedCalls[0].options.nextRetryAt,
+      ).toBeDefined();
 
-      // The event was scheduled for retry
-      const retryCall = storage.scheduleRetryCalls[0];
+      // The event was marked failed and scheduled for retry
+      const retryCall = storage.markReceivedFailedCalls[0];
       expect(retryCall.id).toBeDefined();
-      expect(retryCall.retryCount).toBe(1);
+      expect(storage.getReceivedEvent(retryCall.id)?.retryCount).toBe(1);
+      expect(storage.getReceivedEvent(retryCall.id)?.status).toBe('failed');
     });
   });
 
@@ -275,12 +277,16 @@ describe('CAP Integration Tests', () => {
 
       await capService.publish('user.created', payload);
 
-      await waitForCondition(() => storage.scheduleRetryCalls.length > 0);
+      await waitForCondition(() => storage.markReceivedFailedCalls.length > 0);
 
-      expect(storage.scheduleRetryCalls[0].retryCount).toBe(1);
+      const failedEvent = storage.getReceivedEvent(
+        storage.markReceivedFailedCalls[0].id,
+      );
+      expect(failedEvent?.retryCount).toBe(1);
 
       // Verify exponential backoff is working
-      const firstRetryTime = storage.scheduleRetryCalls[0].nextRetry;
+      const firstRetryTime =
+        storage.markReceivedFailedCalls[0].options.nextRetryAt;
       expect(firstRetryTime.getTime()).toBeGreaterThan(Date.now());
     });
 
@@ -295,13 +301,15 @@ describe('CAP Integration Tests', () => {
 
       await capService.publish('user.created', payload);
 
-      await waitForCondition(() => storage.scheduleRetryCalls.length > 0);
+      await waitForCondition(() => storage.markReceivedFailedCalls.length > 0);
 
-      const firstRetry = storage.scheduleRetryCalls[0];
-      expect(firstRetry.nextRetry.getTime()).toBeGreaterThan(Date.now());
+      const firstRetry = storage.markReceivedFailedCalls[0];
+      expect(firstRetry.options.nextRetryAt.getTime()).toBeGreaterThan(
+        Date.now(),
+      );
 
       // The retry should be scheduled in the future (exponential backoff)
-      const delayMs = firstRetry.nextRetry.getTime() - Date.now();
+      const delayMs = firstRetry.options.nextRetryAt.getTime() - Date.now();
       expect(delayMs).toBeGreaterThan(0);
     });
   });
@@ -313,9 +321,9 @@ describe('CAP Integration Tests', () => {
       await waitForCondition(() => storage.trySaveReceivedCalls.length > 0);
 
       // Handler threw error, so retry should be scheduled
-      await waitForCondition(() => storage.scheduleRetryCalls.length > 0);
+      await waitForCondition(() => storage.markReceivedFailedCalls.length > 0);
 
-      expect(storage.scheduleRetryCalls).toHaveLength(1);
+      expect(storage.markReceivedFailedCalls).toHaveLength(1);
       expect(storage.markProcessedCalls).toHaveLength(0);
     });
 
@@ -343,8 +351,8 @@ describe('CAP Integration Tests', () => {
       expect(testHandler.orderPlacedCalls).toHaveLength(1);
 
       // User handler failed and scheduled retry
-      await waitForCondition(() => storage.scheduleRetryCalls.length > 0);
-      expect(storage.scheduleRetryCalls.length).toBeGreaterThan(0);
+      await waitForCondition(() => storage.markReceivedFailedCalls.length > 0);
+      expect(storage.markReceivedFailedCalls.length).toBeGreaterThan(0);
     });
   });
 

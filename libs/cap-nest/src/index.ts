@@ -15,4 +15,5 @@ export * from './cap/models/cap-publish-event';
 export * from './cap/models/cap-received-event';
 export type { JsonPrimitive, JsonValue } from './cap/models/json-value.type';
 export type { CapHeaders, CapHeaderValue } from './cap/models/cap-headers.type';
+export * from './cap/utils/cap-message-id.util';
 export * from './cap/utils/transaction.util';

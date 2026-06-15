@@ -1,6 +1,6 @@
 [**CAP for NestJS API**](../../README.md)
 
-***
+---
 
 [CAP for NestJS API](../../README.md) / cap-nest/src
 
@@ -14,8 +14,6 @@
 
 ## Interfaces
 
-- [CapAdapterModule](interfaces/CapAdapterModule.md)
-- [CapAsyncProviders](interfaces/CapAsyncProviders.md)
 - [CapBaseMessage](interfaces/CapBaseMessage.md)
 - [CapModuleAsyncOptions](interfaces/CapModuleAsyncOptions.md)
 - [CapModuleFactory](interfaces/CapModuleFactory.md)
@@ -29,8 +27,9 @@
 - [IPublishStorage](interfaces/IPublishStorage.md)
 - [IReceivedStorage](interfaces/IReceivedStorage.md)
 - [ISubscriber](interfaces/ISubscriber.md)
-- [ITransactionalPublisher](interfaces/ITransactionalPublisher.md)
 - [ITransactionalPublishStorage](interfaces/ITransactionalPublishStorage.md)
+- [MarkReceivedFailedOptions](interfaces/MarkReceivedFailedOptions.md)
+- [TrySaveReceivedResult](interfaces/TrySaveReceivedResult.md)
 
 ## Type Aliases
 
@@ -39,10 +38,10 @@
 
 ## Variables
 
-- [CAP\_SUBSCRIBE\_METADATA](variables/CAP_SUBSCRIBE_METADATA.md)
-- [PUBLISH\_STORAGE](variables/PUBLISH_STORAGE.md)
+- [CAP_SUBSCRIBE_METADATA](variables/CAP_SUBSCRIBE_METADATA.md)
+- [PUBLISH_STORAGE](variables/PUBLISH_STORAGE.md)
 - [PUBLISHER](variables/PUBLISHER.md)
-- [RECEIVED\_STORAGE](variables/RECEIVED_STORAGE.md)
+- [RECEIVED_STORAGE](variables/RECEIVED_STORAGE.md)
 - [SUBSCRIBER](variables/SUBSCRIBER.md)
 
 ## Functions

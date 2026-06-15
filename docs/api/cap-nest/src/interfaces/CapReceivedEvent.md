@@ -1,6 +1,6 @@
 [**CAP for NestJS API**](../../../README.md)
 
-***
+---
 
 [CAP for NestJS API](../../../README.md) / [cap-nest/src](../README.md) / CapReceivedEvent
 
@@ -30,7 +30,24 @@ Defined in: [cap-nest/src/cap/models/cap-received-event.ts:9](https://github.com
 
 Consumer-group (queue) that received the delivery
 
-***
+---
+
+### messageId
+
+> **messageId**: `string`
+
+Broker/source message id used for tracing the delivery.
+
+---
+
+### dedupeKey
+
+> **dedupeKey**: `string`
+
+Stable inbox idempotency key; first-party durable storage deduplicates by group
+and dedupeKey.
+
+---
 
 ### headers?
 
@@ -44,7 +61,7 @@ Optional key/value headers (trace-id, saga-id, etc.).
 
 [`CapBaseMessage`](CapBaseMessage.md).[`headers`](CapBaseMessage.md#headers)
 
-***
+---
 
 ### id
 
@@ -58,7 +75,7 @@ Globally unique ID (UUID v4 recommended)
 
 [`CapBaseMessage`](CapBaseMessage.md).[`id`](CapBaseMessage.md#id)
 
-***
+---
 
 ### nextRetry
 
@@ -67,10 +84,18 @@ Globally unique ID (UUID v4 recommended)
 Defined in: [cap-nest/src/cap/models/cap-received-event.ts:22](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L22)
 
 When this message becomes eligible for the next retry.
- • `null`  – first attempt still pending
- • Date    – retry after that instant
+• `null` – first attempt still pending
+• Date – retry after that instant
 
-***
+---
+
+### lastError?
+
+> `optional` **lastError?**: `string` \| `null`
+
+Last handler error message, if processing failed.
+
+---
 
 ### occurredAt
 
@@ -84,7 +109,7 @@ UTC ISO string set by publisher (not the DB timestamp)
 
 [`CapBaseMessage`](CapBaseMessage.md).[`occurredAt`](CapBaseMessage.md#occurredat)
 
-***
+---
 
 ### payload
 
@@ -92,13 +117,13 @@ UTC ISO string set by publisher (not the DB timestamp)
 
 Defined in: [cap-nest/src/cap/models/cap-base-message.ts:18](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L18)
 
-User-defined payload.  Keep it serialisable.
+User-defined payload. Keep it serialisable.
 
 #### Inherited from
 
 [`CapBaseMessage`](CapBaseMessage.md).[`payload`](CapBaseMessage.md#payload)
 
-***
+---
 
 ### processed
 
@@ -108,7 +133,15 @@ Defined in: [cap-nest/src/cap/models/cap-received-event.ts:15](https://github.co
 
 true when handler completed successfully
 
-***
+---
+
+### processedAt?
+
+> `optional` **processedAt?**: `Date` \| `null`
+
+When the handler completed successfully.
+
+---
 
 ### retryCount
 
@@ -118,7 +151,15 @@ Defined in: [cap-nest/src/cap/models/cap-received-event.ts:12](https://github.co
 
 How many handler attempts so far
 
-***
+---
+
+### status
+
+> **status**: `"pending"` \| `"processing"` \| `"processed"` \| `"failed"` \| `"dead_letter"`
+
+Current inbox processing state.
+
+---
 
 ### topic
 

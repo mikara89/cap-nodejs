@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import {
   IPublishStorage,
   IReceivedStorage,
+  MarkReceivedFailedOptions,
   PUBLISH_STORAGE,
   RECEIVED_STORAGE,
   ITransactionalPublishStorage,
@@ -21,10 +22,27 @@ import { CapPublishEvent } from './models/cap-publish-event';
 import { CapReceivedEvent } from './models/cap-received-event';
 import { JsonValue } from './models/json-value.type';
 import { expJitter } from './scheduler/backoff.util';
+import {
+  CAP_SCHEDULER_OPTIONS,
+  ResolvedCapSchedulerOptions,
+} from './cap.options';
+import {
+  CAP_MESSAGE_ID_HEADER,
+  withCapMessageId,
+} from './utils/cap-message-id.util';
 
 type Handler<T = unknown> = (payload: T, headers?: CapHeaders) => Promise<void>;
 
 type HandlerMap = Map<string, Map<string, Handler<unknown>>>;
+
+const DEFAULT_SCHEDULER_OPTIONS: ResolvedCapSchedulerOptions = {
+  batchSize: 200,
+  leaseMs: 30_000,
+  maxRetries: 3,
+  maxInboxRetries: 3,
+  instanceId: 'cap-service-default',
+  disabled: false,
+};
 
 export interface CapPublishOptions {
   headers?: CapHeaders;
@@ -42,6 +60,8 @@ export class CapService {
     @Inject(RECEIVED_STORAGE) private readonly recStore: IReceivedStorage,
     @Inject(PUBLISHER) private readonly publisher: IPublisher,
     @Inject(SUBSCRIBER) private readonly subscriber: ISubscriber,
+    @Inject(CAP_SCHEDULER_OPTIONS)
+    private readonly schedulerOptions: ResolvedCapSchedulerOptions = DEFAULT_SCHEDULER_OPTIONS,
   ) {}
 
   async publish<T = JsonValue>(
@@ -142,7 +162,7 @@ export class CapService {
       this.log.debug(`published #${evt.id} ${evt.topic}`);
     } catch (err) {
       await this.pubStore.markPublishFailed(evt.id, err, {
-        maxRetries: 3,
+        maxRetries: this.schedulerOptions.maxRetries,
         nextRetryAt: new Date(Date.now() + expJitter(evt.retryCount)),
         now: new Date(),
       });
@@ -169,7 +189,7 @@ export class CapService {
     const unwrapped = unwrapMessage(payload, headers);
     const messageId =
       metadata?.messageId ??
-      getHeaderString(unwrapped.headers, 'cap-message-id') ??
+      getHeaderString(unwrapped.headers, CAP_MESSAGE_ID_HEADER) ??
       randomUUID();
     const dedupeKey =
       metadata?.dedupeKey ?? `${topic}|${group}|${String(messageId)}`;
@@ -184,7 +204,10 @@ export class CapService {
       payload: unwrapped.payload,
       headers: unwrapped.headers,
       retryCount: 0,
+      status: 'pending',
       processed: false,
+      lastError: null,
+      processedAt: null,
       nextRetry: null,
     };
 
@@ -198,13 +221,26 @@ export class CapService {
     try {
       await handler(rec.payload, rec.headers);
       await this.recStore.markProcessed(rec.id);
+      rec.status = 'processed';
+      rec.processed = true;
+      rec.processedAt = new Date();
+      rec.nextRetry = null;
       this.log.debug(`processed #${rec.id} (${rec.topic}|${rec.group})`);
     } catch (err) {
+      const nextRetryCount = rec.retryCount + 1;
       const nextDelay = expJitter(rec.retryCount);
       const nextTime = new Date(Date.now() + nextDelay);
-      await this.recStore.scheduleRetry(rec.id, rec.retryCount + 1, nextTime);
-      rec.retryCount += 1;
-      rec.nextRetry = nextTime;
+      const failureOptions: MarkReceivedFailedOptions = {
+        maxRetries: this.schedulerOptions.maxInboxRetries,
+        nextRetryAt: nextTime,
+        now: new Date(),
+      };
+      await this.recStore.markReceivedFailed(rec.id, err, failureOptions);
+      rec.retryCount = nextRetryCount;
+      rec.status =
+        rec.retryCount >= failureOptions.maxRetries ? 'dead_letter' : 'failed';
+      rec.nextRetry = rec.status === 'dead_letter' ? null : nextTime;
+      rec.lastError = err instanceof Error ? err.message : String(err);
 
       this.log.error(
         `handler failed #${rec.id}; retry ${rec.retryCount} at ${nextTime.toISOString()}`,
@@ -212,13 +248,6 @@ export class CapService {
       );
     }
   }
-}
-
-function withCapMessageId(
-  headers: CapHeaders | undefined,
-  messageId: string,
-): CapHeaders {
-  return { ...(headers ?? {}), 'cap-message-id': messageId };
 }
 
 function getHeaderString(

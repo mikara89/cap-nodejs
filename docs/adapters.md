@@ -39,11 +39,12 @@ dispatch:
 - optional dashboard helpers: `findPublishById`, `listPublish`
 - optional transaction helper: `savePublishWithTx`
 
-`IReceivedStorage` stores inbox records with broker-message deduplication:
+`IReceivedStorage` stores inbox records with dedupe-key idempotency and
+dead-letter-aware retry state:
 
 - `trySaveReceived(event)` returning `{ inserted, id, event }`
 - `markProcessed(id)`
-- `scheduleRetry(id, retryCount, nextRetry)`
+- `markReceivedFailed(id, error, { maxRetries, nextRetryAt, now })`
 - `getRetryDue(limit)`
 - optional `initialize(options)`
 - optional dashboard helpers: `findReceivedById`, `listReceived`
@@ -61,7 +62,9 @@ dispatch:
 - optional `initialize(options)`
 
 Subscriber metadata should include a stable `messageId` when the broker exposes
-one. CAP uses it for inbox deduplication.
+one. If a transport can provide a stronger idempotency identity, it should pass
+`dedupeKey`; CAP stores `messageId` for traceability but first-party durable
+storage deduplicates by consumer group and `dedupeKey`.
 
 Headers are CAP transport metadata. First-party transports preserve primitive
 header values: `string`, `number`, `boolean`, and `Date`.
@@ -73,10 +76,17 @@ Package: `@mikara89/mikroorm-storage`
 The MikroORM adapter provides:
 
 - `cap_publish` outbox entity/table with retry, lease, and dead-letter state
-- `cap_received` inbox entity/table with unique `(topic, group, messageId)`
+- lock-based outbox claiming; production use requires a MikroORM SQL driver
+  that supports pessimistic partial write locking, or a custom storage adapter
+- `cap_received` inbox entity/table with unique `(group, dedupeKey)`
+- inbox retry/dead-letter state with `status`, `lastError`, and `processedAt`
 - `savePublishWithTx` for transactional outbox persistence
 - dashboard list/find helpers for outbox and inbox records
 - optional initialization through MikroORM schema generation
+
+Existing databases need a migration when upgrading to this shape: add the new
+inbox state columns and replace the old `(topic, group, messageId)` unique
+index with `(group, dedupeKey)`.
 
 ## First-Party Transport: Azure Service Bus
 
@@ -106,8 +116,8 @@ portable durable broker acknowledgment.
 
 - Bind and export the CAP Symbol tokens, not string literals.
 - Implement claim/lease outbox dispatch atomically for production stores.
-- Enforce inbox idempotency with a stable broker message id.
+- Enforce inbox idempotency with a stable `dedupeKey`.
 - Preserve payload and headers without transport-specific coupling.
-- Return due inbox retries only when `processed = false` and `nextRetry <= now`.
+- Return due inbox retries only when `status = failed` and `nextRetry <= now`.
 - Provide dashboard list/find helpers for production adapters.
 - Document resource naming, provisioning, and failure semantics.

@@ -1,6 +1,6 @@
 [**CAP for NestJS API**](../../../README.md)
 
-***
+---
 
 [CAP for NestJS API](../../../README.md) / [storage-mikro-orm/src](../README.md) / MikroReceivedStorage
 
@@ -9,7 +9,7 @@
 Defined in: [storage-mikro-orm/src/storage/mikro-received-storage.ts:11](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/storage/mikro-received-storage.ts#L11)
 
 MikroORM implementation of IReceivedStorage.
-Persists inbox events and manages retry scheduling.
+Persists inbox events, deduplicates by group/dedupeKey, and manages retry/dead-letter state.
 
 ## Implements
 
@@ -59,7 +59,7 @@ Defined in: [storage-mikro-orm/src/storage/mikro-received-storage.ts:126](https:
 
 `IReceivedStorage.findReceivedById`
 
-***
+---
 
 ### getRetryDue()
 
@@ -81,7 +81,7 @@ Defined in: [storage-mikro-orm/src/storage/mikro-received-storage.ts:109](https:
 
 `IReceivedStorage.getRetryDue`
 
-***
+---
 
 ### initialize()?
 
@@ -109,7 +109,7 @@ Defined in: [storage-mikro-orm/src/storage/mikro-received-storage.ts:18](https:/
 
 `IReceivedStorage.initialize`
 
-***
+---
 
 ### listReceived()
 
@@ -145,7 +145,7 @@ Defined in: [storage-mikro-orm/src/storage/mikro-received-storage.ts:133](https:
 
 `IReceivedStorage.listReceived`
 
-***
+---
 
 ### markProcessed()
 
@@ -167,11 +167,11 @@ Defined in: [storage-mikro-orm/src/storage/mikro-received-storage.ts:88](https:/
 
 `IReceivedStorage.markProcessed`
 
-***
+---
 
-### saveReceived()
+### trySaveReceived()
 
-> **saveReceived**(`event`): `Promise`\<`string`\>
+> **trySaveReceived**(`event`): `Promise`\<`TrySaveReceivedResult`\>
 
 Defined in: [storage-mikro-orm/src/storage/mikro-received-storage.ts:70](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/storage/mikro-received-storage.ts#L70)
 
@@ -183,17 +183,17 @@ Defined in: [storage-mikro-orm/src/storage/mikro-received-storage.ts:70](https:/
 
 #### Returns
 
-`Promise`\<`string`\>
+`Promise`\<`TrySaveReceivedResult`\>
 
 #### Implementation of
 
-`IReceivedStorage.saveReceived`
+`IReceivedStorage.trySaveReceived`
 
-***
+---
 
-### scheduleRetry()
+### markReceivedFailed()
 
-> **scheduleRetry**(`id`, `retryCount`, `nextRetry`): `Promise`\<`void`\>
+> **markReceivedFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
 Defined in: [storage-mikro-orm/src/storage/mikro-received-storage.ts:96](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/storage/mikro-received-storage.ts#L96)
 
@@ -203,13 +203,13 @@ Defined in: [storage-mikro-orm/src/storage/mikro-received-storage.ts:96](https:/
 
 `string`
 
-##### retryCount
+##### error
 
-`number`
+`unknown`
 
-##### nextRetry
+##### options
 
-`Date`
+`MarkReceivedFailedOptions`
 
 #### Returns
 
@@ -217,4 +217,4 @@ Defined in: [storage-mikro-orm/src/storage/mikro-received-storage.ts:96](https:/
 
 #### Implementation of
 
-`IReceivedStorage.scheduleRetry`
+`IReceivedStorage.markReceivedFailed`

@@ -19,6 +19,7 @@ import {
   CAP_SCHEDULER_OPTIONS,
   ResolvedCapSchedulerOptions,
 } from '../cap.options';
+import { withCapMessageId } from '../utils/cap-message-id.util';
 import { expJitter } from './backoff.util';
 
 export const CAP_JOB_PREFIX = 'cap-nest:';
@@ -59,7 +60,8 @@ export class RetrySchedulerService implements OnModuleDestroy {
 
     for (const evt of batch) {
       try {
-        await this.publisher.emit(evt.topic, evt.payload, evt.headers, {
+        const headers = withCapMessageId(evt.headers, evt.id);
+        await this.publisher.emit(evt.topic, evt.payload, headers, {
           messageId: evt.id,
         });
         await this.pubStore.markPublished(evt.id, new Date());

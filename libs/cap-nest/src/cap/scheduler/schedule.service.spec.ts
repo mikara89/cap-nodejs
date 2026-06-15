@@ -5,11 +5,13 @@ import {
   createInMemoryPublisher,
   createInMemoryReceivedStorage,
 } from '../testing/test-helpers';
+import type { CapReceivedEvent } from '../models/cap-received-event';
 
 const schedulerOptions = {
   batchSize: 200,
   leaseMs: 30_000,
   maxRetries: 3,
+  maxInboxRetries: 3,
   instanceId: 'test-instance',
   disabled: false,
 };
@@ -67,7 +69,7 @@ describe('RetrySchedulerService', () => {
     expect(publisher.emit).toHaveBeenCalledWith(
       't',
       { a: 1 },
-      { traceId: 'abc' },
+      { traceId: 'abc', 'cap-message-id': '1' },
       { messageId: '1' },
     );
     expect(pubStore.markPublished).toHaveBeenCalledWith('1', expect.any(Date));
@@ -95,7 +97,7 @@ describe('RetrySchedulerService', () => {
   });
 
   it('retryInbox calls cap.retryReceived for due messages', async () => {
-    const rec = {
+    const rec: CapReceivedEvent = {
       id: 'r1',
       topic: 'x',
       group: 'g',
@@ -104,6 +106,7 @@ describe('RetrySchedulerService', () => {
       occurredAt: new Date().toISOString(),
       payload: {},
       retryCount: 1,
+      status: 'failed',
       processed: false,
       nextRetry: new Date(Date.now() - 1),
     };

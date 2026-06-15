@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { Test } from '@nestjs/testing';
-import { EntityManager } from '@mikro-orm/core';
+import { EntityManager, LockMode } from '@mikro-orm/core';
 import { MikroPublishStorage } from './mikro-publish-storage';
 import { CapPublishEntity } from '../entities/cap-publish.entity';
 import { type CapPublishEvent } from '@mikara89/cap-nest';
@@ -73,6 +73,13 @@ describe('MikroPublishStorage', () => {
     expect(entity.lockedBy).toBe('worker-1');
     expect(entity.lockedUntil).toBe(lockUntil);
     expect(em.flush).toHaveBeenCalled();
+    expect(em.find).toHaveBeenCalledWith(
+      CapPublishEntity,
+      expect.any(Object),
+      expect.objectContaining({
+        lockMode: LockMode.PESSIMISTIC_PARTIAL_WRITE,
+      }),
+    );
     expect(result[0]).toMatchObject({ id: 'test-id', status: 'processing' });
   });
 
