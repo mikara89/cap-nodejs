@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0-beta.3](https://github.com/mikara89/cap-nestjs/compare/@mikara89/cap-nest@0.7.0-beta.2...@mikara89/cap-nest@0.7.0-beta.3) (2026-06-15)
+
+### Features
+
+- add warnings for multi-instance durable outbox dispatch requirements in documentation and improve deduplication logic in storage ([29f2f22](https://github.com/mikara89/cap-nestjs/commit/29f2f223327ca912dfbf134639c23feaab1c9fa9))
+- enhance documentation on multi-instance durable dispatch and header injection ([7d94b97](https://github.com/mikara89/cap-nestjs/commit/7d94b974f3b24be09b7f89e412bc5316a3d26736))
+- enhance inbox item processing with status tracking and error handling ([0e344be](https://github.com/mikara89/cap-nestjs/commit/0e344be60ebec7c0dc25c288753a17fa0a9417da))
+
 # 0.7.0-beta.2 (2026-06-14)
 
 ### Bug Fixes

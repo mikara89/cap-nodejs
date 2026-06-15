@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/nestjs-microservices-transport",
-  "version": "0.7.0-beta.2",
+  "version": "0.7.0-beta.3",
   "description": "NestJS ClientProxy transport adapter for CAP NestJS library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

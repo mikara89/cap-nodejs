@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0-beta.3](https://github.com/mikara89/cap-nestjs/compare/@mikara89/mikroorm-storage@0.7.0-beta.2...@mikara89/mikroorm-storage@0.7.0-beta.3) (2026-06-15)
+
+### Features
+
+- enhance documentation on multi-instance durable dispatch and header injection ([7d94b97](https://github.com/mikara89/cap-nestjs/commit/7d94b974f3b24be09b7f89e412bc5316a3d26736))
+- enhance inbox item processing with status tracking and error handling ([0e344be](https://github.com/mikara89/cap-nestjs/commit/0e344be60ebec7c0dc25c288753a17fa0a9417da))
+- implement dynamic claim options for entity retrieval based on driver support ([e4458ec](https://github.com/mikara89/cap-nestjs/commit/e4458eca28bea9a617e3d482f18df769f31de1c6))
+- update MikroORM adapter documentation and improve multi-instance support ([a4e7586](https://github.com/mikara89/cap-nestjs/commit/a4e7586a39cad35d1c467ff61a48914a5e4d86cf))
+
 # 0.7.0-beta.2 (2026-06-14)
 
 ### Bug Fixes
