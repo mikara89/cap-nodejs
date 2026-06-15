@@ -83,6 +83,35 @@ describe('MikroPublishStorage', () => {
     expect(result[0]).toMatchObject({ id: 'test-id', status: 'processing' });
   });
 
+  it('does not request skip-locked claim mode for SQLite drivers', async () => {
+    const entity = publishEntity({ status: 'pending' });
+    (em.find as jest.Mock).mockResolvedValue([entity]);
+    (
+      em as unknown as {
+        getDriver: () => {
+          getPlatform: () => { constructor: { name: string } };
+        };
+      }
+    ).getDriver = () => ({
+      getPlatform: () => ({ constructor: { name: 'BetterSqlitePlatform' } }),
+    });
+
+    await storage.claimUnpublished({
+      limit: 10,
+      lockedBy: 'worker-1',
+      lockUntil: new Date(Date.now() + 30_000),
+      now: new Date(),
+    });
+
+    expect(em.find).toHaveBeenCalledWith(
+      CapPublishEntity,
+      expect.any(Object),
+      expect.not.objectContaining({
+        lockMode: LockMode.PESSIMISTIC_PARTIAL_WRITE,
+      }),
+    );
+  });
+
   it('marks published and clears lease fields', async () => {
     const entity = publishEntity({ status: 'processing' });
     entity.lockedBy = 'worker';

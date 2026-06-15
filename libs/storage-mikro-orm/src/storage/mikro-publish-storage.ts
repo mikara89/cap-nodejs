@@ -88,11 +88,7 @@ export class MikroPublishStorage implements IPublishStorage {
       const entities = await em.find(
         CapPublishEntity,
         claimableWhere(options.now),
-        {
-          limit: options.limit,
-          orderBy: { createdAt: 'ASC' },
-          lockMode: LockMode.PESSIMISTIC_PARTIAL_WRITE,
-        },
+        claimFindOptions(em, options.limit),
       );
 
       for (const entity of entities) {
@@ -186,6 +182,48 @@ export class MikroPublishStorage implements IPublishStorage {
 
     return { items: entities.map(mapPublishEntity), total };
   }
+}
+
+function claimFindOptions(
+  em: EntityManager,
+  limit: number,
+):
+  | {
+      limit: number;
+      orderBy: { createdAt: 'ASC' };
+    }
+  | {
+      limit: number;
+      orderBy: { createdAt: 'ASC' };
+      lockMode: LockMode.PESSIMISTIC_PARTIAL_WRITE;
+    } {
+  const options = {
+    limit,
+    orderBy: { createdAt: 'ASC' as const },
+  };
+
+  if (!supportsSkipLocked(em)) return options;
+
+  return {
+    ...options,
+    lockMode: LockMode.PESSIMISTIC_PARTIAL_WRITE,
+  };
+}
+
+function supportsSkipLocked(em: EntityManager): boolean {
+  const maybeDriver = (
+    em as unknown as {
+      getDriver?: () => {
+        getPlatform?: () => { constructor?: { name?: string } };
+      };
+    }
+  ).getDriver?.();
+  const platformName = maybeDriver
+    ?.getPlatform?.()
+    ?.constructor?.name?.toLowerCase();
+
+  if (!platformName) return true;
+  return platformName.includes('postgres') || platformName.includes('mysql');
 }
 
 function claimableWhere(now: Date): FilterQuery<CapPublishEntity> {
