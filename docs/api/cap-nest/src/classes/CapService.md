@@ -6,15 +6,15 @@
 
 # Class: CapService
 
-Defined in: [cap-nest/src/cap/cap.service.ts:40](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L40)
+Defined in: [cap-nest/src/cap/cap.service.ts:54](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L54)
 
 ## Constructors
 
 ### Constructor
 
-> **new CapService**(`pubStore`, `recStore`, `publisher`, `subscriber`): `CapService`
+> **new CapService**(`pubStore`, `recStore`, `publisher`, `subscriber`, `schedulerOptions?`): `CapService`
 
-Defined in: [cap-nest/src/cap/cap.service.ts:49](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L49)
+Defined in: [cap-nest/src/cap/cap.service.ts:58](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L58)
 
 #### Parameters
 
@@ -34,6 +34,10 @@ Defined in: [cap-nest/src/cap/cap.service.ts:49](https://github.com/mikara89/cap
 
 [`ISubscriber`](../interfaces/ISubscriber.md)
 
+##### schedulerOptions?
+
+[`ResolvedCapSchedulerOptions`](../interfaces/ResolvedCapSchedulerOptions.md) = `DEFAULT_SCHEDULER_OPTIONS`
+
 #### Returns
 
 `CapService`
@@ -42,15 +46,15 @@ Defined in: [cap-nest/src/cap/cap.service.ts:49](https://github.com/mikara89/cap
 
 ### publish()
 
-> **publish**\<`T`\>(`topic`, `payload`, `headers?`, `tx?`): `Promise`\<`void`\>
+> **publish**\<`T`\>(`topic`, `payload`, `options?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/cap.service.ts:62](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L62)
+Defined in: [cap-nest/src/cap/cap.service.ts:67](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L67)
 
 #### Type Parameters
 
 ##### T
 
-`T`
+`T` = [`JsonValue`](../type-aliases/JsonValue.md)
 
 #### Parameters
 
@@ -62,13 +66,9 @@ Defined in: [cap-nest/src/cap/cap.service.ts:62](https://github.com/mikara89/cap
 
 `T`
 
-##### headers?
+##### options?
 
-[`CapHeaders`](../type-aliases/CapHeaders.md)
-
-##### tx?
-
-`unknown`
+[`CapPublishOptions`](../interfaces/CapPublishOptions.md) = `{}`
 
 #### Returns
 
@@ -80,7 +80,7 @@ Defined in: [cap-nest/src/cap/cap.service.ts:62](https://github.com/mikara89/cap
 
 > **retryReceived**(`rec`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/cap.service.ts:162](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L162)
+Defined in: [cap-nest/src/cap/cap.service.ts:142](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L142)
 
 #### Parameters
 
@@ -98,13 +98,13 @@ Defined in: [cap-nest/src/cap/cap.service.ts:162](https://github.com/mikara89/ca
 
 > **subscribe**\<`T`\>(`topic`, `group`, `handler`): `void`
 
-Defined in: [cap-nest/src/cap/cap.service.ts:139](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L139)
+Defined in: [cap-nest/src/cap/cap.service.ts:109](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L109)
 
 #### Type Parameters
 
 ##### T
 
-`T`
+`T` = `unknown`
 
 #### Parameters
 

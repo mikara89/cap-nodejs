@@ -6,7 +6,7 @@
 
 # Interface: CapBaseMessage\<T\>
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:7](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L7)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:8](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L8)
 
 Core shape every CAP message shares – NEVER mutate these fields in-place;
 keep messages immutable.
@@ -20,7 +20,7 @@ keep messages immutable.
 
 ### T
 
-`T` = `unknown`
+`T` = [`JsonValue`](../type-aliases/JsonValue.md)
 
 ## Properties
 
@@ -28,7 +28,7 @@ keep messages immutable.
 
 > `optional` **headers?**: [`CapHeaders`](../type-aliases/CapHeaders.md)
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:21](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L21)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:22](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L22)
 
 Optional key/value headers (trace-id, saga-id, etc.).
 
@@ -38,7 +38,7 @@ Optional key/value headers (trace-id, saga-id, etc.).
 
 > **id**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:9](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L9)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:10](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L10)
 
 Globally unique ID (UUID v4 recommended)
 
@@ -48,7 +48,7 @@ Globally unique ID (UUID v4 recommended)
 
 > **occurredAt**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:15](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L15)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:16](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L16)
 
 UTC ISO string set by publisher (not the DB timestamp)
 
@@ -58,7 +58,7 @@ UTC ISO string set by publisher (not the DB timestamp)
 
 > **payload**: `T`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:18](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L18)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:19](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L19)
 
 User-defined payload.  Keep it serialisable.
 
@@ -68,6 +68,6 @@ User-defined payload.  Keep it serialisable.
 
 > **topic**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:12](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L12)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:13](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L13)
 
 Logical topic / exchange name, e.g. `user.created`

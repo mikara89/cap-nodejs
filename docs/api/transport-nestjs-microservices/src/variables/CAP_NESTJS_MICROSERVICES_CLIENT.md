@@ -8,4 +8,4 @@
 
 > `const` **CAP\_NESTJS\_MICROSERVICES\_CLIENT**: `"CAP_NESTJS_MICROSERVICES_CLIENT"` = `'CAP_NESTJS_MICROSERVICES_CLIENT'`
 
-Defined in: [transport-nestjs-microservices/src/cap-microservices-publisher.ts:7](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-publisher.ts#L7)
+Defined in: [transport-nestjs-microservices/src/cap-microservices-publisher.ts:11](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-publisher.ts#L11)

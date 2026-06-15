@@ -6,7 +6,7 @@
 
 # Interface: ISubscriber
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:16](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L16)
+Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:27](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L27)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:16](https://gi
 
 > **consume**(`topic`, `group`, `onMessage`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:17](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L17)
+Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:28](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L28)
 
 #### Parameters
 
@@ -28,7 +28,7 @@ Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:17](https://gi
 
 ##### onMessage
 
-(`payload`, `headers?`) => `Promise`\<`void`\>
+(`payload`, `headers?`, `metadata?`) => `Promise`\<`void`\>
 
 #### Returns
 
@@ -40,7 +40,7 @@ Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:17](https://gi
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:23](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L23)
+Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:38](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L38)
 
 Optional one-time initialization: create queues/topics if needed
 

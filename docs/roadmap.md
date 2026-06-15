@@ -31,7 +31,7 @@ MVP closure status:
   `ClientProxy.emit()` acknowledgment limitations.
 - Dashboard authentication remains application-owned, with an operation-aware
   authorizer hook for read versus admin actions.
-- The first public package set is aligned on `0.7.0-beta.0` and released
+- The first public package set is aligned on `0.7.0-beta.2` and released
   through beta/rc validation before stable graduation.
 
 Recently completed MVP mitigations:

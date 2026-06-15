@@ -19,8 +19,8 @@ NestJS application code
 
 ## Status
 
-This repository is preparing the first public MVP package set on the
-`0.7.0-beta.0` line. The core messaging path, first-party adapters, dashboard
+This repository is validating the public MVP package set on the
+`0.7.0-beta.2` line. The core messaging path, first-party adapters, dashboard
 auth extension points, header propagation, and release workflow are implemented
 for beta/rc validation before stable graduation.
 

@@ -1,6 +1,6 @@
 [**CAP for NestJS API**](../../../README.md)
 
----
+***
 
 [CAP for NestJS API](../../../README.md) / [storage-mikro-orm/src](../README.md) / MikroStorageModule
 
@@ -11,7 +11,6 @@ Defined in: [storage-mikro-orm/src/mikro-storage.module.ts:40](https://github.co
 NestJS module providing MikroORM-based storage adapters for CAP.
 
 Usage:
-
 ```ts
 import { CapModule } from '@mikara89/cap-nest';
 import { MikroStorageModule } from '@mikara89/mikroorm-storage';
@@ -19,11 +18,7 @@ import { MikroStorageModule } from '@mikara89/mikroorm-storage';
 @Module({
   imports: [
     MikroOrmModule.forRoot({ ... }),
-    MikroStorageModule,
-    transportModule,
-    CapModule.forRoot({
-      imports: [MikroStorageModule, transportModule],
-    }),
+    CapModule.forRoot({ imports: [MikroStorageModule, transportModule] }),
   ],
 })
 export class AppModule {}

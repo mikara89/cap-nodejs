@@ -6,7 +6,7 @@
 
 # Class: ServiceBusSubscriber
 
-Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:26](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L26)
+Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:31](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L31)
 
 ## Implements
 
@@ -19,7 +19,7 @@ Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:2
 
 > **new ServiceBusSubscriber**(`client`, `configOrTopicPrefix?`, `subscriptionPrefix?`): `ServiceBusSubscriber`
 
-Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:35](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L35)
+Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:40](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L40)
 
 #### Parameters
 
@@ -45,7 +45,7 @@ Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:3
 
 > **consume**(`topic`, `group`, `onMessage`): `Promise`\<`void`\>
 
-Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:92](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L92)
+Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:97](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L97)
 
 #### Parameters
 
@@ -75,7 +75,7 @@ Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:9
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:53](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L53)
+Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:58](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L58)
 
 #### Parameters
 
@@ -103,7 +103,7 @@ Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:5
 
 > **onModuleDestroy**(): `Promise`\<`void`\>
 
-Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:350](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L350)
+Defined in: [transport-azure-servicebus/src/transport/servicebus-subscriber.ts:360](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L360)
 
 #### Returns
 

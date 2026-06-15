@@ -1,20 +1,20 @@
 [**CAP for NestJS API**](../../../README.md)
 
----
+***
 
 [CAP for NestJS API](../../../README.md) / [cap-nest/src](../README.md) / IReceivedStorage
 
 # Interface: IReceivedStorage
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:55](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L55)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:90](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L90)
 
 ## Methods
 
 ### findReceivedById()?
 
-> `optional` **findReceivedById**(`id`): `Promise`\<[`CapReceivedEvent`](CapReceivedEvent.md)\<`unknown`\> \| `undefined`\>
+> `optional` **findReceivedById**(`id`): `Promise`\<[`CapReceivedEvent`](CapReceivedEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:80](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L80)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:119](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L119)
 
 Optional: find a received record by id (dashboard helpers)
 
@@ -26,17 +26,18 @@ Optional: find a received record by id (dashboard helpers)
 
 #### Returns
 
-`Promise`\<[`CapReceivedEvent`](CapReceivedEvent.md)\<`unknown`\> \| `undefined`\>
+`Promise`\<[`CapReceivedEvent`](CapReceivedEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\> \| `undefined`\>
 
----
+***
 
 ### getRetryDue()
 
-> **getRetryDue**(`limit`): `Promise`\<[`CapReceivedEvent`](CapReceivedEvent.md)\<`unknown`\>[]\>
+> **getRetryDue**(`limit`): `Promise`\<[`CapReceivedEvent`](CapReceivedEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:69](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L69)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:109](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L109)
 
-Return failed records whose nextRetry timestamp <= now. Scheduler uses this.
+Return records that are not yet processed and
+whose nextRetry timestamp <= now. Scheduler uses this.
 
 #### Parameters
 
@@ -46,15 +47,15 @@ Return failed records whose nextRetry timestamp <= now. Scheduler uses this.
 
 #### Returns
 
-`Promise`\<[`CapReceivedEvent`](CapReceivedEvent.md)\<`unknown`\>[]\>
+`Promise`\<[`CapReceivedEvent`](CapReceivedEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]\>
 
----
+***
 
 ### initialize()?
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:60](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L60)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:100](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L100)
 
 Optional one-time initialization: create schema/tables if needed
 
@@ -68,13 +69,13 @@ Optional one-time initialization: create schema/tables if needed
 
 `Promise`\<`void`\>
 
----
+***
 
 ### listReceived()?
 
-> `optional` **listReceived**(`opts`): `Promise`\<\{ `items`: [`CapReceivedEvent`](CapReceivedEvent.md)\<`unknown`\>[]; `total?`: `number`; \}\>
+> `optional` **listReceived**(`opts`): `Promise`\<\{ `items`: [`CapReceivedEvent`](CapReceivedEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]; `total?`: `number`; \}\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:83](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L83)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:122](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L122)
 
 Optional: paginated listing for dashboards and admin UIs
 
@@ -100,15 +101,15 @@ Optional: paginated listing for dashboards and admin UIs
 
 #### Returns
 
-`Promise`\<\{ `items`: [`CapReceivedEvent`](CapReceivedEvent.md)\<`unknown`\>[]; `total?`: `number`; \}\>
+`Promise`\<\{ `items`: [`CapReceivedEvent`](CapReceivedEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]; `total?`: `number`; \}\>
 
----
+***
 
 ### markProcessed()
 
 > **markProcessed**(`id`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:63](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L63)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:103](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L103)
 
 Mark processed=true
 
@@ -122,40 +123,13 @@ Mark processed=true
 
 `Promise`\<`void`\>
 
----
-
-### trySaveReceived()
-
-> **trySaveReceived**\<`T`\>(`evt`): `Promise`\<[`TrySaveReceivedResult`](TrySaveReceivedResult.md)\<`T`\>\>
-
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts)
-
-Persist a delivery if its dedupe identity has not been seen.
-Duplicate deliveries return inserted=false and must not re-run handlers.
-
-#### Type Parameters
-
-##### T
-
-`T` = `unknown`
-
-#### Parameters
-
-##### evt
-
-[`CapReceivedEvent`](CapReceivedEvent.md)\<`T`\>
-
-#### Returns
-
-`Promise`\<[`TrySaveReceivedResult`](TrySaveReceivedResult.md)\<`T`\>\>
-
----
+***
 
 ### markReceivedFailed()
 
 > **markReceivedFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:112](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L112)
 
 Mark inbox processing failed, or dead-letter when retry limit is exceeded.
 
@@ -164,8 +138,6 @@ Mark inbox processing failed, or dead-letter when retry limit is exceeded.
 ##### id
 
 `string`
-
-The ID of the event to retry.
 
 ##### error
 
@@ -178,3 +150,30 @@ The ID of the event to retry.
 #### Returns
 
 `Promise`\<`void`\>
+
+***
+
+### trySaveReceived()
+
+> **trySaveReceived**\<`T`\>(`evt`): `Promise`\<[`TrySaveReceivedResult`](TrySaveReceivedResult.md)\<`T`\>\>
+
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:95](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L95)
+
+Persist a delivery if its dedupe identity has not been seen.
+Duplicate deliveries return inserted=false and must not re-run handlers.
+
+#### Type Parameters
+
+##### T
+
+`T` *extends* [`JsonValue`](../type-aliases/JsonValue.md) = [`JsonValue`](../type-aliases/JsonValue.md)
+
+#### Parameters
+
+##### evt
+
+[`CapReceivedEvent`](CapReceivedEvent.md)\<`T`\>
+
+#### Returns
+
+`Promise`\<[`TrySaveReceivedResult`](TrySaveReceivedResult.md)\<`T`\>\>

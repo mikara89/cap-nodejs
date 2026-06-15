@@ -8,4 +8,4 @@
 
 > **CapDashboardPermission** = `"read"` \| `"admin"`
 
-Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:10](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L10)
+Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:11](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L11)

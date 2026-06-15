@@ -6,7 +6,7 @@
 
 # Class: CapMicroservicesPublisher
 
-Defined in: [transport-nestjs-microservices/src/cap-microservices-publisher.ts:13](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-publisher.ts#L13)
+Defined in: [transport-nestjs-microservices/src/cap-microservices-publisher.ts:17](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-publisher.ts#L17)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [transport-nestjs-microservices/src/cap-microservices-publisher.ts:1
 
 > **new CapMicroservicesPublisher**(`client`, `config`): `CapMicroservicesPublisher`
 
-Defined in: [transport-nestjs-microservices/src/cap-microservices-publisher.ts:14](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-publisher.ts#L14)
+Defined in: [transport-nestjs-microservices/src/cap-microservices-publisher.ts:18](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-publisher.ts#L18)
 
 #### Parameters
 
@@ -38,9 +38,9 @@ Defined in: [transport-nestjs-microservices/src/cap-microservices-publisher.ts:1
 
 ### emit()
 
-> **emit**(`topic`, `payload`, `headers?`): `Promise`\<`void`\>
+> **emit**(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: [transport-nestjs-microservices/src/cap-microservices-publisher.ts:21](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-publisher.ts#L21)
+Defined in: [transport-nestjs-microservices/src/cap-microservices-publisher.ts:25](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-publisher.ts#L25)
 
 #### Parameters
 
@@ -55,6 +55,10 @@ Defined in: [transport-nestjs-microservices/src/cap-microservices-publisher.ts:2
 ##### headers?
 
 `CapHeaders`
+
+##### metadata?
+
+`CapPublishMetadata`
 
 #### Returns
 

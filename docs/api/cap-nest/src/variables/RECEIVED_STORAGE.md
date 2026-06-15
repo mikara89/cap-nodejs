@@ -8,4 +8,4 @@
 
 > `const` **RECEIVED\_STORAGE**: *typeof* `RECEIVED_STORAGE`
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:7](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L7)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:8](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L8)

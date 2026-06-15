@@ -1,52 +1,52 @@
 [**CAP for NestJS API**](../../../README.md)
 
----
+***
 
 [CAP for NestJS API](../../../README.md) / [cap-nest/src](../README.md) / CapModuleAsyncOptions
 
 # Interface: CapModuleAsyncOptions
 
-Defined in: [cap-nest/src/cap/cap.module.ts:79](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L79)
+Defined in: [cap-nest/src/cap/cap.module.ts:48](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L48)
 
 ## Properties
 
 ### imports?
 
-> `optional` **imports?**: `DynamicModule`[]
+> `optional` **imports?**: (`Type`\<`any`\> \| `ForwardReference`\<`any`\> \| `DynamicModule` \| `Promise`\<`DynamicModule`\>)[]
 
-Defined in: [cap-nest/src/cap/cap.module.ts:80](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L80)
+Defined in: [cap-nest/src/cap/cap.module.ts:49](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L49)
 
----
+***
 
 ### inject?
 
 > `optional` **inject?**: (`InjectionToken` \| `OptionalFactoryDependency`)[]
 
-Defined in: [cap-nest/src/cap/cap.module.ts:86](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L86)
+Defined in: [cap-nest/src/cap/cap.module.ts:55](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L55)
 
----
+***
 
 ### useClass?
 
 > `optional` **useClass?**: `Type`\<[`CapModuleFactory`](CapModuleFactory.md)\>
 
-Defined in: [cap-nest/src/cap/cap.module.ts:82](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L82)
+Defined in: [cap-nest/src/cap/cap.module.ts:51](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L51)
 
----
+***
 
 ### useExisting?
 
 > `optional` **useExisting?**: `Type`\<[`CapModuleFactory`](CapModuleFactory.md)\>
 
-Defined in: [cap-nest/src/cap/cap.module.ts:81](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L81)
+Defined in: [cap-nest/src/cap/cap.module.ts:50](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L50)
 
----
+***
 
 ### useFactory?
 
 > `optional` **useFactory?**: (...`args`) => [`CapModuleOptions`](CapModuleOptions.md) \| `Promise`\<[`CapModuleOptions`](CapModuleOptions.md)\>
 
-Defined in: [cap-nest/src/cap/cap.module.ts:83](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L83)
+Defined in: [cap-nest/src/cap/cap.module.ts:52](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L52)
 
 #### Parameters
 

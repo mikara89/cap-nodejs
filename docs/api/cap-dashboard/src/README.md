@@ -24,6 +24,8 @@
 - [CapDashboardAuthorizationContext](interfaces/CapDashboardAuthorizationContext.md)
 - [CapDashboardAuthorizer](interfaces/CapDashboardAuthorizer.md)
 - [CapDashboardModuleOptions](interfaces/CapDashboardModuleOptions.md)
+- [CapDashboardRedactionOptions](interfaces/CapDashboardRedactionOptions.md)
+- [CapDashboardServiceOptions](interfaces/CapDashboardServiceOptions.md)
 - [RetryOptions](interfaces/RetryOptions.md)
 
 ## Type Aliases
@@ -37,6 +39,7 @@
 ## Variables
 
 - [CAP\_DASHBOARD\_AUTHORIZER](variables/CAP_DASHBOARD_AUTHORIZER.md)
+- [CAP\_DASHBOARD\_OPTIONS](variables/CAP_DASHBOARD_OPTIONS.md)
 - [CAP\_DASHBOARD\_USER\_GUARD](variables/CAP_DASHBOARD_USER_GUARD.md)
 
 ## Functions

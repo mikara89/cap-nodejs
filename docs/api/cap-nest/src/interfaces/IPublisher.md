@@ -6,15 +6,15 @@
 
 # Interface: IPublisher
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:6](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L6)
+Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:16](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L16)
 
 ## Methods
 
 ### emit()
 
-> **emit**(`topic`, `payload`, `headers?`, `tx?`): `Promise`\<`void`\>
+> **emit**(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:7](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L7)
+Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:17](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L17)
 
 #### Parameters
 
@@ -30,9 +30,9 @@ Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:7](https://git
 
 [`CapHeaders`](../type-aliases/CapHeaders.md)
 
-##### tx?
+##### metadata?
 
-`unknown`
+[`CapPublishMetadata`](CapPublishMetadata.md)
 
 #### Returns
 
@@ -44,7 +44,7 @@ Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:7](https://git
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:14](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L14)
+Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:24](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L24)
 
 Optional one-time initialization: create queues/topics if needed
 

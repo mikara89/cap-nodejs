@@ -1,12 +1,12 @@
 [**CAP for NestJS API**](../../../README.md)
 
----
+***
 
 [CAP for NestJS API](../../../README.md) / [cap-nest/src](../README.md) / CapReceivedEvent
 
 # Interface: CapReceivedEvent\<T\>
 
-Defined in: [cap-nest/src/cap/models/cap-received-event.ts:6](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L6)
+Defined in: [cap-nest/src/cap/models/cap-received-event.ts:14](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L14)
 
 Message as observed on the subscriber side, AFTER persistence.
 
@@ -18,42 +18,35 @@ Message as observed on the subscriber side, AFTER persistence.
 
 ### T
 
-`T` = `unknown`
+`T` = [`JsonValue`](../type-aliases/JsonValue.md)
 
 ## Properties
-
-### group
-
-> **group**: `string`
-
-Defined in: [cap-nest/src/cap/models/cap-received-event.ts:9](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L9)
-
-Consumer-group (queue) that received the delivery
-
----
-
-### messageId
-
-> **messageId**: `string`
-
-Broker/source message id used for tracing the delivery.
-
----
 
 ### dedupeKey
 
 > **dedupeKey**: `string`
 
-Stable inbox idempotency key; first-party durable storage deduplicates by group
-and dedupeKey.
+Defined in: [cap-nest/src/cap/models/cap-received-event.ts:22](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L22)
 
----
+Stable dedupe key; defaults to `${topic}|${group}|${messageId}`.
+
+***
+
+### group
+
+> **group**: `string`
+
+Defined in: [cap-nest/src/cap/models/cap-received-event.ts:16](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L16)
+
+Consumer-group (queue) that received the delivery
+
+***
 
 ### headers?
 
 > `optional` **headers?**: [`CapHeaders`](../type-aliases/CapHeaders.md)
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:21](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L21)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:22](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L22)
 
 Optional key/value headers (trace-id, saga-id, etc.).
 
@@ -61,13 +54,13 @@ Optional key/value headers (trace-id, saga-id, etc.).
 
 [`CapBaseMessage`](CapBaseMessage.md).[`headers`](CapBaseMessage.md#headers)
 
----
+***
 
 ### id
 
 > **id**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:9](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L9)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:10](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L10)
 
 Globally unique ID (UUID v4 recommended)
 
@@ -75,33 +68,45 @@ Globally unique ID (UUID v4 recommended)
 
 [`CapBaseMessage`](CapBaseMessage.md).[`id`](CapBaseMessage.md#id)
 
----
-
-### nextRetry
-
-> **nextRetry**: `Date` \| `null`
-
-Defined in: [cap-nest/src/cap/models/cap-received-event.ts:22](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L22)
-
-When this message becomes eligible for the next retry.
-• `null` – first attempt still pending
-• Date – retry after that instant
-
----
+***
 
 ### lastError?
 
 > `optional` **lastError?**: `string` \| `null`
 
+Defined in: [cap-nest/src/cap/models/cap-received-event.ts:34](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L34)
+
 Last handler error message, if processing failed.
 
----
+***
+
+### messageId
+
+> **messageId**: `string`
+
+Defined in: [cap-nest/src/cap/models/cap-received-event.ts:19](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L19)
+
+Broker/source message id used for inbox deduplication.
+
+***
+
+### nextRetry
+
+> **nextRetry**: `Date` \| `null`
+
+Defined in: [cap-nest/src/cap/models/cap-received-event.ts:44](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L44)
+
+When this message becomes eligible for the next retry.
+ • `null`  – first attempt still pending
+ • Date    – retry after that instant
+
+***
 
 ### occurredAt
 
 > **occurredAt**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:15](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L15)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:16](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L16)
 
 UTC ISO string set by publisher (not the DB timestamp)
 
@@ -109,63 +114,67 @@ UTC ISO string set by publisher (not the DB timestamp)
 
 [`CapBaseMessage`](CapBaseMessage.md).[`occurredAt`](CapBaseMessage.md#occurredat)
 
----
+***
 
 ### payload
 
 > **payload**: `T`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:18](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L18)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:19](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L19)
 
-User-defined payload. Keep it serialisable.
+User-defined payload.  Keep it serialisable.
 
 #### Inherited from
 
 [`CapBaseMessage`](CapBaseMessage.md).[`payload`](CapBaseMessage.md#payload)
 
----
+***
 
 ### processed
 
 > **processed**: `boolean`
 
-Defined in: [cap-nest/src/cap/models/cap-received-event.ts:15](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L15)
+Defined in: [cap-nest/src/cap/models/cap-received-event.ts:31](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L31)
 
 true when handler completed successfully
 
----
+***
 
 ### processedAt?
 
 > `optional` **processedAt?**: `Date` \| `null`
 
+Defined in: [cap-nest/src/cap/models/cap-received-event.ts:37](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L37)
+
 When the handler completed successfully.
 
----
+***
 
 ### retryCount
 
 > **retryCount**: `number`
 
-Defined in: [cap-nest/src/cap/models/cap-received-event.ts:12](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L12)
+Defined in: [cap-nest/src/cap/models/cap-received-event.ts:25](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L25)
 
 How many handler attempts so far
 
----
+***
 
 ### status
 
-> **status**: `"pending"` \| `"processing"` \| `"processed"` \| `"failed"` \| `"dead_letter"`
+> **status**: [`CapReceivedStatus`](../type-aliases/CapReceivedStatus.md)
+
+Defined in: [cap-nest/src/cap/models/cap-received-event.ts:28](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-received-event.ts#L28)
 
 Current inbox processing state.
 
----
+***
 
 ### topic
 
 > **topic**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:12](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L12)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:13](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L13)
 
 Logical topic / exchange name, e.g. `user.created`
 

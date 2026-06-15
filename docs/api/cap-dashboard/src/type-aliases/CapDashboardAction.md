@@ -6,6 +6,6 @@
 
 # Type Alias: CapDashboardAction
 
-> **CapDashboardAction** = `"ui.view"` \| `"outbox.list"` \| `"outbox.get"` \| `"outbox.retry"` \| `"outbox.markPublished"` \| `"inbox.list"` \| `"inbox.get"` \| `"inbox.retry"` \| `"inbox.markProcessed"` \| `"scheduler.flushOutbox"`
+> **CapDashboardAction** = `"ui.view"` \| `"outbox.list"` \| `"outbox.get"` \| `"outbox.fullPayload"` \| `"outbox.retry"` \| `"outbox.markPublished"` \| `"inbox.list"` \| `"inbox.get"` \| `"inbox.fullPayload"` \| `"inbox.retry"` \| `"inbox.markProcessed"` \| `"scheduler.flushOutbox"`
 
-Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:12](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L12)
+Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:13](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L13)

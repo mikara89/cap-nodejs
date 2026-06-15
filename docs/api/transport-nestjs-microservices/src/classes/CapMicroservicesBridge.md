@@ -6,7 +6,7 @@
 
 # Class: CapMicroservicesBridge
 
-Defined in: [transport-nestjs-microservices/src/cap-microservices-bridge.ts:7](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-bridge.ts#L7)
+Defined in: [transport-nestjs-microservices/src/cap-microservices-bridge.ts:15](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-bridge.ts#L15)
 
 ## Implements
 
@@ -28,7 +28,7 @@ Defined in: [transport-nestjs-microservices/src/cap-microservices-bridge.ts:7](h
 
 > **consume**(`topic`, `group`, `onMessage`): `Promise`\<`void`\>
 
-Defined in: [transport-nestjs-microservices/src/cap-microservices-bridge.ts:10](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-bridge.ts#L10)
+Defined in: [transport-nestjs-microservices/src/cap-microservices-bridge.ts:18](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-bridge.ts#L18)
 
 #### Parameters
 
@@ -56,9 +56,9 @@ Defined in: [transport-nestjs-microservices/src/cap-microservices-bridge.ts:10](
 
 ### dispatch()
 
-> **dispatch**(`topic`, `group`, `message`, `headers?`): `Promise`\<`void`\>
+> **dispatch**(`topic`, `group`, `message`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: [transport-nestjs-microservices/src/cap-microservices-bridge.ts:24](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-bridge.ts#L24)
+Defined in: [transport-nestjs-microservices/src/cap-microservices-bridge.ts:32](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-nestjs-microservices/src/cap-microservices-bridge.ts#L32)
 
 #### Parameters
 
@@ -77,6 +77,10 @@ Defined in: [transport-nestjs-microservices/src/cap-microservices-bridge.ts:24](
 ##### headers?
 
 `CapHeaders`
+
+##### metadata?
+
+`CapDeliveryMetadata`
 
 #### Returns
 

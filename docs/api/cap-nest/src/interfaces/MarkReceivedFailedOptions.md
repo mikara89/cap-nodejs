@@ -1,12 +1,12 @@
 [**CAP for NestJS API**](../../../README.md)
 
----
+***
 
 [CAP for NestJS API](../../../README.md) / [cap-nest/src](../README.md) / MarkReceivedFailedOptions
 
 # Interface: MarkReceivedFailedOptions
 
-Options passed when marking an inbox delivery as failed.
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:23](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L23)
 
 ## Properties
 
@@ -14,20 +14,20 @@ Options passed when marking an inbox delivery as failed.
 
 > **maxRetries**: `number`
 
-Maximum handler attempts before moving the record to `dead_letter`.
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:24](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L24)
 
----
+***
 
 ### nextRetryAt
 
 > **nextRetryAt**: `Date`
 
-Next retry timestamp when the failure remains retryable.
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:25](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L25)
 
----
+***
 
 ### now
 
 > **now**: `Date`
 
-Current timestamp used for storage updates.
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:26](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L26)

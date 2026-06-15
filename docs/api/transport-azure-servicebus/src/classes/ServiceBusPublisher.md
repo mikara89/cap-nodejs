@@ -6,7 +6,7 @@
 
 # Class: ServiceBusPublisher
 
-Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:11](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-publisher.ts#L11)
+Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:15](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-publisher.ts#L15)
 
 Azure Service Bus implementation of IPublisher.
 Sends messages to Service Bus topics.
@@ -22,7 +22,7 @@ Sends messages to Service Bus topics.
 
 > **new ServiceBusPublisher**(`client`, `config`): `ServiceBusPublisher`
 
-Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:15](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-publisher.ts#L15)
+Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:19](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-publisher.ts#L19)
 
 #### Parameters
 
@@ -42,9 +42,9 @@ Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:15
 
 ### emit()
 
-> **emit**(`topic`, `payload`, `headers?`, `_tx?`): `Promise`\<`void`\>
+> **emit**(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:48](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-publisher.ts#L48)
+Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:52](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-publisher.ts#L52)
 
 #### Parameters
 
@@ -60,9 +60,9 @@ Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:48
 
 `CapHeaders`
 
-##### \_tx?
+##### metadata?
 
-`unknown`
+`CapPublishMetadata`
 
 #### Returns
 
@@ -78,7 +78,7 @@ Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:48
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:20](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-publisher.ts#L20)
+Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:24](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-publisher.ts#L24)
 
 #### Parameters
 
@@ -106,7 +106,7 @@ Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:20
 
 > **onModuleDestroy**(): `Promise`\<`void`\>
 
-Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:79](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-publisher.ts#L79)
+Defined in: [transport-azure-servicebus/src/transport/servicebus-publisher.ts:84](https://github.com/mikara89/cap-nestjs/blob/main/libs/transport-azure-servicebus/src/transport/servicebus-publisher.ts#L84)
 
 #### Returns
 

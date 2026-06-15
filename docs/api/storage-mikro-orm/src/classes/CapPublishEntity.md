@@ -6,7 +6,7 @@
 
 # Class: CapPublishEntity
 
-Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:11](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L11)
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:15](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L15)
 
 MikroORM entity for CAP outbox (publish events).
 Stores messages pending publication or failed publish attempts.
@@ -27,7 +27,7 @@ Stores messages pending publication or failed publish attempts.
 
 > **createdAt**: `Date`
 
-Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:31](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L31)
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:50](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L50)
 
 ***
 
@@ -35,7 +35,7 @@ Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:31](https://gi
 
 > `optional` **headers?**: `CapHeaders`
 
-Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:22](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L22)
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:26](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L26)
 
 ***
 
@@ -43,15 +43,55 @@ Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:22](https://gi
 
 > **id**: `string`
 
-Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:13](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L13)
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:17](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L17)
+
+***
+
+### lastError?
+
+> `optional` **lastError?**: `string` \| `null`
+
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:38](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L38)
+
+***
+
+### lockedBy?
+
+> `optional` **lockedBy?**: `string` \| `null`
+
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:41](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L41)
+
+***
+
+### lockedUntil?
+
+> `optional` **lockedUntil?**: `Date` \| `null`
+
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:44](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L44)
+
+***
+
+### nextRetryAt?
+
+> `optional` **nextRetryAt?**: `Date` \| `null`
+
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:35](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L35)
 
 ***
 
 ### payload
 
-> **payload**: `Record`\<`string`, `unknown`\>
+> **payload**: `JsonValue`
 
-Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:19](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L19)
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:23](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L23)
+
+***
+
+### publishedAt?
+
+> `optional` **publishedAt?**: `Date` \| `null`
+
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:47](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L47)
 
 ***
 
@@ -59,15 +99,15 @@ Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:19](https://gi
 
 > **retryCount**: `number` = `0`
 
-Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:28](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L28)
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:32](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L32)
 
 ***
 
-### status?
+### status
 
-> `optional` **status?**: `"published"` \| `"failed"`
+> **status**: `CapPublishStatus` = `'pending'`
 
-Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:25](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L25)
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:29](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L29)
 
 ***
 
@@ -75,7 +115,7 @@ Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:25](https://gi
 
 > **topic**: `string`
 
-Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:16](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L16)
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:20](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L20)
 
 ***
 
@@ -83,4 +123,4 @@ Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:16](https://gi
 
 > **updatedAt**: `Date`
 
-Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:34](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L34)
+Defined in: [storage-mikro-orm/src/entities/cap-publish.entity.ts:53](https://github.com/mikara89/cap-nestjs/blob/main/libs/storage-mikro-orm/src/entities/cap-publish.entity.ts#L53)

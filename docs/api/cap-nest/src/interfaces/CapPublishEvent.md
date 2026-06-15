@@ -6,7 +6,7 @@
 
 # Interface: CapPublishEvent\<T\>
 
-Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:8](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-publish-event.ts#L8)
+Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:16](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-publish-event.ts#L16)
 
 What the *publisher* hands to CapService.
 Storage/transport layers may enrich it, but the core library and
@@ -20,7 +20,7 @@ user code see only this contract.
 
 ### T
 
-`T` = `unknown`
+`T` = [`JsonValue`](../type-aliases/JsonValue.md)
 
 ## Properties
 
@@ -28,7 +28,7 @@ user code see only this contract.
 
 > `optional` **headers?**: [`CapHeaders`](../type-aliases/CapHeaders.md)
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:21](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L21)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:22](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L22)
 
 Optional key/value headers (trace-id, saga-id, etc.).
 
@@ -42,7 +42,7 @@ Optional key/value headers (trace-id, saga-id, etc.).
 
 > **id**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:9](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L9)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:10](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L10)
 
 Globally unique ID (UUID v4 recommended)
 
@@ -52,11 +52,43 @@ Globally unique ID (UUID v4 recommended)
 
 ***
 
+### lastError?
+
+> `optional` **lastError?**: `string` \| `null`
+
+Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:21](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-publish-event.ts#L21)
+
+***
+
+### lockedBy?
+
+> `optional` **lockedBy?**: `string` \| `null`
+
+Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:22](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-publish-event.ts#L22)
+
+***
+
+### lockedUntil?
+
+> `optional` **lockedUntil?**: `Date` \| `null`
+
+Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:23](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-publish-event.ts#L23)
+
+***
+
+### nextRetryAt?
+
+> `optional` **nextRetryAt?**: `Date` \| `null`
+
+Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:20](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-publish-event.ts#L20)
+
+***
+
 ### occurredAt
 
 > **occurredAt**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:15](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L15)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:16](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L16)
 
 UTC ISO string set by publisher (not the DB timestamp)
 
@@ -70,7 +102,7 @@ UTC ISO string set by publisher (not the DB timestamp)
 
 > **payload**: `T`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:18](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L18)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:19](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L19)
 
 User-defined payload.  Keep it serialisable.
 
@@ -80,21 +112,29 @@ User-defined payload.  Keep it serialisable.
 
 ***
 
+### publishedAt?
+
+> `optional` **publishedAt?**: `Date` \| `null`
+
+Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:24](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-publish-event.ts#L24)
+
+***
+
 ### retryCount
 
 > **retryCount**: `number`
 
-Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:10](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-publish-event.ts#L10)
+Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:18](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-publish-event.ts#L18)
 
 How many times the publish logic retried this record
 
 ***
 
-### status?
+### status
 
-> `optional` **status?**: `"published"` \| `"failed"`
+> **status**: [`CapPublishStatus`](../type-aliases/CapPublishStatus.md)
 
-Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:11](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-publish-event.ts#L11)
+Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:19](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-publish-event.ts#L19)
 
 ***
 
@@ -102,7 +142,7 @@ Defined in: [cap-nest/src/cap/models/cap-publish-event.ts:11](https://github.com
 
 > **topic**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:12](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L12)
+Defined in: [cap-nest/src/cap/models/cap-base-message.ts:13](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L13)
 
 Logical topic / exchange name, e.g. `user.created`
 

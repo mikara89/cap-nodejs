@@ -6,7 +6,7 @@
 
 # Interface: CapDashboardAccess
 
-Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:53](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L53)
+Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:56](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L56)
 
 ## Extended by
 
@@ -18,7 +18,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:53](https://github.com/mika
 
 > **action**: [`CapDashboardAction`](../type-aliases/CapDashboardAction.md)
 
-Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:25](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L25)
+Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:28](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L28)
 
 ***
 
@@ -26,4 +26,4 @@ Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:25](https://github.com/mika
 
 > **permission**: [`CapDashboardPermission`](../type-aliases/CapDashboardPermission.md)
 
-Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:26](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L26)
+Defined in: [cap-dashboard/src/cap-dashboard.auth.ts:29](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.auth.ts#L29)

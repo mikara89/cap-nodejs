@@ -6,7 +6,7 @@
 
 # Interface: CapDashboardModuleOptions
 
-Defined in: [cap-dashboard/src/cap-dashboard.module.ts:20](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L20)
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:26](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L26)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.module.ts:20](https://github.com/mi
 
 > `optional` **authorizer?**: `Provider`
 
-Defined in: [cap-dashboard/src/cap-dashboard.module.ts:23](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L23)
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:29](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L29)
 
 ***
 
@@ -22,7 +22,15 @@ Defined in: [cap-dashboard/src/cap-dashboard.module.ts:23](https://github.com/mi
 
 > **guard**: `Provider`
 
-Defined in: [cap-dashboard/src/cap-dashboard.module.ts:22](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L22)
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:28](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L28)
+
+***
+
+### maxPageSize?
+
+> `optional` **maxPageSize?**: `number`
+
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:32](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L32)
 
 ***
 
@@ -30,7 +38,23 @@ Defined in: [cap-dashboard/src/cap-dashboard.module.ts:22](https://github.com/mi
 
 > `optional` **pageSizeDefault?**: `number`
 
-Defined in: [cap-dashboard/src/cap-dashboard.module.ts:24](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L24)
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:30](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L30)
+
+***
+
+### readOnly?
+
+> `optional` **readOnly?**: `boolean`
+
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:31](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L31)
+
+***
+
+### redact?
+
+> `optional` **redact?**: [`CapDashboardRedactionOptions`](CapDashboardRedactionOptions.md)
+
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:33](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L33)
 
 ***
 
@@ -38,7 +62,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.module.ts:24](https://github.com/mi
 
 > `optional` **routePrefix?**: `string`
 
-Defined in: [cap-dashboard/src/cap-dashboard.module.ts:21](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L21)
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:27](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L27)
 
 ***
 
@@ -46,7 +70,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.module.ts:21](https://github.com/mi
 
 > `optional` **serveStatic?**: `boolean`
 
-Defined in: [cap-dashboard/src/cap-dashboard.module.ts:25](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L25)
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:34](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L34)
 
 ***
 
@@ -54,7 +78,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.module.ts:25](https://github.com/mi
 
 > `optional` **staticAssetsPath?**: `string`
 
-Defined in: [cap-dashboard/src/cap-dashboard.module.ts:26](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L26)
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:35](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L35)
 
 ***
 
@@ -62,4 +86,4 @@ Defined in: [cap-dashboard/src/cap-dashboard.module.ts:26](https://github.com/mi
 
 > `optional` **uiRoute?**: `string`
 
-Defined in: [cap-dashboard/src/cap-dashboard.module.ts:27](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L27)
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:36](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L36)

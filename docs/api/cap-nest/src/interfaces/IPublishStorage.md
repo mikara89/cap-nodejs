@@ -6,7 +6,7 @@
 
 # Interface: IPublishStorage
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:12](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L12)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:38](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L38)
 
 ## Extended by
 
@@ -14,11 +14,31 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:12](https://gith
 
 ## Methods
 
+### claimUnpublished()
+
+> **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]\>
+
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:48](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L48)
+
+Atomically claim ready rows for one dispatcher instance.
+
+#### Parameters
+
+##### options
+
+[`ClaimUnpublishedOptions`](ClaimUnpublishedOptions.md)
+
+#### Returns
+
+`Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]\>
+
+***
+
 ### findPublishById()?
 
-> `optional` **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<`unknown`\> \| `undefined`\>
+> `optional` **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:26](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L26)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:66](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L66)
 
 Optional: find a published record by id (dashboard helpers)
 
@@ -30,27 +50,7 @@ Optional: find a published record by id (dashboard helpers)
 
 #### Returns
 
-`Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<`unknown`\> \| `undefined`\>
-
-***
-
-### getUnpublished()
-
-> **getUnpublished**(`limit`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<`unknown`\>[]\>
-
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:23](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L23)
-
-Fetch N unpublished rows – used by retry-scheduler
-
-#### Parameters
-
-##### limit
-
-`number`
-
-#### Returns
-
-`Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<`unknown`\>[]\>
+`Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\> \| `undefined`\>
 
 ***
 
@@ -58,7 +58,7 @@ Fetch N unpublished rows – used by retry-scheduler
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:17](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L17)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:45](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L45)
 
 Optional one-time initialization: create schema/tables if needed
 
@@ -76,9 +76,9 @@ Optional one-time initialization: create schema/tables if needed
 
 ### listPublish()?
 
-> `optional` **listPublish**(`opts`): `Promise`\<\{ `items`: [`CapPublishEvent`](CapPublishEvent.md)\<`unknown`\>[]; `total?`: `number`; \}\>
+> `optional` **listPublish**(`opts`): `Promise`\<\{ `items`: [`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]; `total?`: `number`; \}\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:29](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L29)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:69](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L69)
 
 Optional: paginated listing for dashboards and admin UIs
 
@@ -104,23 +104,75 @@ Optional: paginated listing for dashboards and admin UIs
 
 #### Returns
 
-`Promise`\<\{ `items`: [`CapPublishEvent`](CapPublishEvent.md)\<`unknown`\>[]; `total?`: `number`; \}\>
+`Promise`\<\{ `items`: [`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]; `total?`: `number`; \}\>
 
 ***
 
 ### markPublished()
 
-> **markPublished**(`id`): `Promise`\<`void`\>
+> **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:20](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L20)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:53](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L53)
 
-Mark record as successfully emitted to the broker
+Mark record as successfully emitted to the broker.
 
 #### Parameters
 
 ##### id
 
 `string`
+
+##### publishedAt?
+
+`Date`
+
+#### Returns
+
+`Promise`\<`void`\>
+
+***
+
+### markPublishFailed()
+
+> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
+
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:56](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L56)
+
+Mark record as retryable failed, or dead-letter when retry limit is exceeded.
+
+#### Parameters
+
+##### id
+
+`string`
+
+##### error
+
+`unknown`
+
+##### options
+
+[`MarkPublishFailedOptions`](MarkPublishFailedOptions.md)
+
+#### Returns
+
+`Promise`\<`void`\>
+
+***
+
+### releaseExpiredClaims()
+
+> **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
+
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:63](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L63)
+
+Release processing rows whose lease has expired.
+
+#### Parameters
+
+##### now
+
+`Date`
 
 #### Returns
 
@@ -132,15 +184,15 @@ Mark record as successfully emitted to the broker
 
 > **savePublish**\<`T`\>(`evt`): `Promise`\<`string`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:14](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L14)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:40](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L40)
 
-Insert a fresh record and return its DB id
+Insert a fresh outbox record and return its DB id
 
 #### Type Parameters
 
 ##### T
 
-`T` = `unknown`
+`T` *extends* [`JsonValue`](../type-aliases/JsonValue.md) = [`JsonValue`](../type-aliases/JsonValue.md)
 
 #### Parameters
 

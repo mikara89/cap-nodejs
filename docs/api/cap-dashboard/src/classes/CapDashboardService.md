@@ -6,15 +6,15 @@
 
 # Class: CapDashboardService
 
-Defined in: [cap-dashboard/src/cap-dashboard.service.ts:26](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L26)
+Defined in: [cap-dashboard/src/cap-dashboard.service.ts:49](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L49)
 
 ## Constructors
 
 ### Constructor
 
-> **new CapDashboardService**(`pubStorage`, `recStorage`, `capService?`, `publisher?`): `CapDashboardService`
+> **new CapDashboardService**(`pubStorage`, `recStorage`, `capService?`, `publisher?`, `options?`, `schedulerOptions?`): `CapDashboardService`
 
-Defined in: [cap-dashboard/src/cap-dashboard.service.ts:28](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L28)
+Defined in: [cap-dashboard/src/cap-dashboard.service.ts:52](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L52)
 
 #### Parameters
 
@@ -34,6 +34,14 @@ Defined in: [cap-dashboard/src/cap-dashboard.service.ts:28](https://github.com/m
 
 `IPublisher`
 
+##### options?
+
+[`CapDashboardServiceOptions`](../interfaces/CapDashboardServiceOptions.md) = `...`
+
+##### schedulerOptions?
+
+`ResolvedCapSchedulerOptions` = `DEFAULT_RETRY_OPTIONS`
+
 #### Returns
 
 `CapDashboardService`
@@ -44,7 +52,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.service.ts:28](https://github.com/m
 
 > **flushOutbox**(): `Promise`\<[`ActionResultDto`](ActionResultDto.md)\>
 
-Defined in: [cap-dashboard/src/cap-dashboard.service.ts:249](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L249)
+Defined in: [cap-dashboard/src/cap-dashboard.service.ts:230](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L230)
 
 #### Returns
 
@@ -56,7 +64,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.service.ts:249](https://github.com/
 
 > **getInboxById**(`id`, `full?`): `Promise`\<[`InboxItemDto`](InboxItemDto.md) \| `undefined`\>
 
-Defined in: [cap-dashboard/src/cap-dashboard.service.ts:188](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L188)
+Defined in: [cap-dashboard/src/cap-dashboard.service.ts:182](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L182)
 
 #### Parameters
 
@@ -78,7 +86,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.service.ts:188](https://github.com/
 
 > **getOutboxById**(`id`, `full?`): `Promise`\<[`OutboxItemDto`](OutboxItemDto.md) \| `undefined`\>
 
-Defined in: [cap-dashboard/src/cap-dashboard.service.ts:76](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L76)
+Defined in: [cap-dashboard/src/cap-dashboard.service.ts:100](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L100)
 
 #### Parameters
 
@@ -100,7 +108,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.service.ts:76](https://github.com/m
 
 > **listInbox**(`query`): `Promise`\<[`InboxPageDto`](InboxPageDto.md)\>
 
-Defined in: [cap-dashboard/src/cap-dashboard.service.ts:143](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L143)
+Defined in: [cap-dashboard/src/cap-dashboard.service.ts:155](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L155)
 
 #### Parameters
 
@@ -118,7 +126,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.service.ts:143](https://github.com/
 
 > **listOutbox**(`query`): `Promise`\<[`OutboxPageDto`](OutboxPageDto.md)\>
 
-Defined in: [cap-dashboard/src/cap-dashboard.service.ts:35](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L35)
+Defined in: [cap-dashboard/src/cap-dashboard.service.ts:72](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L72)
 
 #### Parameters
 
@@ -136,7 +144,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.service.ts:35](https://github.com/m
 
 > **markInboxProcessed**(`id`): `Promise`\<[`ActionResultDto`](ActionResultDto.md)\>
 
-Defined in: [cap-dashboard/src/cap-dashboard.service.ts:239](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L239)
+Defined in: [cap-dashboard/src/cap-dashboard.service.ts:218](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L218)
 
 #### Parameters
 
@@ -154,7 +162,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.service.ts:239](https://github.com/
 
 > **markOutboxPublished**(`id`): `Promise`\<[`ActionResultDto`](ActionResultDto.md)\>
 
-Defined in: [cap-dashboard/src/cap-dashboard.service.ts:133](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L133)
+Defined in: [cap-dashboard/src/cap-dashboard.service.ts:143](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L143)
 
 #### Parameters
 
@@ -172,7 +180,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.service.ts:133](https://github.com/
 
 > **retryInbox**(`id`, `_opts?`): `Promise`\<[`ActionResultDto`](ActionResultDto.md)\>
 
-Defined in: [cap-dashboard/src/cap-dashboard.service.ts:212](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L212)
+Defined in: [cap-dashboard/src/cap-dashboard.service.ts:195](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L195)
 
 #### Parameters
 
@@ -194,7 +202,7 @@ Defined in: [cap-dashboard/src/cap-dashboard.service.ts:212](https://github.com/
 
 > **retryOutbox**(`id`, `_opts?`): `Promise`\<[`ActionResultDto`](ActionResultDto.md)\>
 
-Defined in: [cap-dashboard/src/cap-dashboard.service.ts:101](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L101)
+Defined in: [cap-dashboard/src/cap-dashboard.service.ts:113](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.service.ts#L113)
 
 #### Parameters
 

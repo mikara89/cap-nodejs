@@ -6,7 +6,7 @@
 
 # Class: CapDashboardModule
 
-Defined in: [cap-dashboard/src/cap-dashboard.module.ts:31](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L31)
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:40](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L40)
 
 ## Constructors
 
@@ -24,7 +24,25 @@ Defined in: [cap-dashboard/src/cap-dashboard.module.ts:31](https://github.com/mi
 
 > `static` **forRoot**(`opts`): `DynamicModule`
 
-Defined in: [cap-dashboard/src/cap-dashboard.module.ts:32](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L32)
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:45](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L45)
+
+#### Parameters
+
+##### opts
+
+[`CapDashboardModuleOptions`](../interfaces/CapDashboardModuleOptions.md)
+
+#### Returns
+
+`DynamicModule`
+
+***
+
+### register()
+
+> `static` **register**(`opts`): `DynamicModule`
+
+Defined in: [cap-dashboard/src/cap-dashboard.module.ts:41](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-dashboard/src/cap-dashboard.module.ts#L41)
 
 #### Parameters
 
