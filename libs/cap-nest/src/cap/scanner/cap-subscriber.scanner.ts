@@ -5,6 +5,8 @@ import {
   CAP_SUBSCRIBE_METADATA,
   CapSubscribeOptions,
 } from '../decorators/cap-subscribe.decorator';
+import { getCapHeadersParamIndex } from '../decorators/cap-headers.decorator';
+import type { CapHeaders } from '../models/cap-headers.type';
 import { CapValidatePipe } from '../pipes/cap-validate.pipe';
 
 @Injectable({ scope: Scope.DEFAULT }) // one global instance
@@ -61,18 +63,30 @@ export class CapSubscriberScanner implements OnModuleInit {
       // Type it as a safe callable and call it via `.call(target, ...)` to
       // avoid unsafe `any` casts and direct binding that ESLint flags.
       const fn = desc.value as (...args: unknown[]) => unknown;
-      const invokeBound = (payload: unknown): Promise<unknown> =>
-        Promise.resolve(fn.call(target, payload));
+      const headersParamIndex = getCapHeadersParamIndex(proto, key);
+      const invokeBound = (
+        payload: unknown,
+        headers?: CapHeaders,
+      ): Promise<unknown> => {
+        if (headersParamIndex === undefined) {
+          return Promise.resolve(fn.call(target, payload, headers));
+        }
+
+        const args = new Array<unknown>(Math.max(headersParamIndex + 1, 1));
+        args[0] = payload;
+        args[headersParamIndex] = headers;
+        return Promise.resolve(fn.apply(target, args));
+      };
 
       this.log.debug(
         `@CapSubscribe → ${target.constructor.name}.${key} ` +
           `(${topic}|${group || 'broadcast'})`,
       );
 
-      this.cap.subscribe(topic, group, async (payload: unknown) => {
+      this.cap.subscribe(topic, group, async (payload: unknown, headers) => {
         const validated = pipe ? pipe.transform(payload) : payload;
         if (!filter || (await filter(validated))) {
-          await invokeBound(validated);
+          await invokeBound(validated, headers);
         }
       });
     }

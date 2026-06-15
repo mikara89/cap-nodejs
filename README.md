@@ -268,9 +268,12 @@ npm run docs:api
 - Keep automatic schema and broker provisioning disabled in production unless
   you explicitly want CAP to create those resources.
 - Durable MikroORM inbox deduplication uses `(group, dedupeKey)`, and outbox
-  claiming relies on pessimistic partial write locking. Existing beta
-  databases need a migration for new inbox status/dead-letter fields and the
-  dedupe index change.
+  claiming relies on pessimistic partial write locking. Multi-instance durable
+  outbox dispatch is production-supported for lock-capable drivers such as
+  PostgreSQL and MySQL; SQLite/local demo drivers use a non-locking fallback
+  and should not be used for multi-instance dispatch. Existing beta databases
+  need a migration for new inbox status/dead-letter fields and the dedupe index
+  change.
 
 ## Documentation
 

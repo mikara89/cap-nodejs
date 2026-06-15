@@ -43,6 +43,8 @@ export class AppModule {}
 - Production outbox dispatch requires a MikroORM SQL driver that supports
   pessimistic partial write locking; use a custom storage adapter if your
   database cannot provide equivalent claim safety.
+- SQLite/local demo drivers fall back to non-locking transactional claims and
+  are not supported for multi-instance durable dispatch.
 - `savePublishWithTx` is available for transactional outbox persistence.
 - Inbox idempotency uses unique `(group, dedupeKey)` records. Existing
   databases upgrading from message-id dedupe need a migration that adds inbox

@@ -1,5 +1,6 @@
 import { CapSubscriberScanner } from './cap-subscriber.scanner';
 import { CapSubscribe } from '../decorators/cap-subscribe.decorator';
+import { CapHeaders } from '../decorators/cap-headers.decorator';
 import { ModulesContainer, Reflector } from '@nestjs/core';
 
 describe('CapSubscriberScanner (integration)', () => {
@@ -38,5 +39,40 @@ describe('CapSubscriberScanner (integration)', () => {
       'g-scan',
       expect.any(Function),
     );
+  });
+
+  it('injects headers into @CapHeaders parameter when invoking scanned handlers', async () => {
+    const seen: unknown[] = [];
+
+    class ProviderWithHeaders {
+      @CapSubscribe({ topic: 't.headers', group: 'g-headers' })
+      onMessage(payload: unknown, @CapHeaders() headers: unknown): void {
+        seen.push(payload, headers);
+      }
+    }
+
+    const providersMap: Map<string, { instance: object }> = new Map();
+    providersMap.set('ph', { instance: new ProviderWithHeaders() });
+
+    const modulesContainer = new Map() as unknown as ModulesContainer;
+    modulesContainer.set('mod', { providers: providersMap as any } as any);
+
+    const capService = { subscribe: jest.fn() } as unknown as any;
+    const scanner = new CapSubscriberScanner(
+      modulesContainer,
+      new Reflector(),
+      capService,
+    );
+
+    scanner.onModuleInit();
+
+    const handler = (capService.subscribe as jest.Mock).mock.calls[0][2] as (
+      payload: unknown,
+      headers?: Record<string, unknown>,
+    ) => Promise<void>;
+
+    await handler({ id: 1 }, { traceId: 'abc' });
+
+    expect(seen).toEqual([{ id: 1 }, { traceId: 'abc' }]);
   });
 });

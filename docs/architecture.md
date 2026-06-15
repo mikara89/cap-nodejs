@@ -116,7 +116,9 @@ transaction-aware behavior:
 - If `tx` is provided and `immediate` is not `true`, CAP does not emit to the
   broker immediately. The scheduler publishes the row after the DB commit.
 - If `immediate: true` is provided, CAP emits immediately and marks published on
-  success. This is intentionally non-atomic across DB and broker.
+  success. This is intentionally non-atomic across DB and broker. If the broker
+  emit fails, CAP marks the persisted outbox row failed for retry and logs the
+  failure; `publish()` does not rethrow the broker error.
 
 Recommended production behavior is deferred publication: persist the outbox row
 inside the same database transaction as the domain change, then emit after the
