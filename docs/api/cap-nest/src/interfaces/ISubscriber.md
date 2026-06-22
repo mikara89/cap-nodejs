@@ -6,7 +6,7 @@
 
 # Interface: ISubscriber
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:27](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L27)
+Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:31
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:27](https://gi
 
 > **consume**(`topic`, `group`, `onMessage`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:28](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L28)
+Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:32
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:28](https://gi
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:38](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L38)
+Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:42
 
 Optional one-time initialization: create queues/topics if needed
 

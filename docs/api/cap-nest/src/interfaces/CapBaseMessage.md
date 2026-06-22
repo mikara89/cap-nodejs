@@ -6,15 +6,12 @@
 
 # Interface: CapBaseMessage\<T\>
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:8](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L8)
-
-Core shape every CAP message shares – NEVER mutate these fields in-place;
-keep messages immutable.
+Defined in: cap-core/dist/models/cap-base-message.d.ts:3
 
 ## Extended by
 
-- [`CapPublishEvent`](CapPublishEvent.md)
 - [`CapReceivedEvent`](CapReceivedEvent.md)
+- [`CapPublishEvent`](CapPublishEvent.md)
 
 ## Type Parameters
 
@@ -28,9 +25,7 @@ keep messages immutable.
 
 > `optional` **headers?**: [`CapHeaders`](../type-aliases/CapHeaders.md)
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:22](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L22)
-
-Optional key/value headers (trace-id, saga-id, etc.).
+Defined in: cap-core/dist/models/cap-base-message.d.ts:8
 
 ***
 
@@ -38,9 +33,7 @@ Optional key/value headers (trace-id, saga-id, etc.).
 
 > **id**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:10](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L10)
-
-Globally unique ID (UUID v4 recommended)
+Defined in: cap-core/dist/models/cap-base-message.d.ts:4
 
 ***
 
@@ -48,9 +41,7 @@ Globally unique ID (UUID v4 recommended)
 
 > **occurredAt**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:16](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L16)
-
-UTC ISO string set by publisher (not the DB timestamp)
+Defined in: cap-core/dist/models/cap-base-message.d.ts:6
 
 ***
 
@@ -58,9 +49,7 @@ UTC ISO string set by publisher (not the DB timestamp)
 
 > **payload**: `T`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:19](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L19)
-
-User-defined payload.  Keep it serialisable.
+Defined in: cap-core/dist/models/cap-base-message.d.ts:7
 
 ***
 
@@ -68,6 +57,4 @@ User-defined payload.  Keep it serialisable.
 
 > **topic**: `string`
 
-Defined in: [cap-nest/src/cap/models/cap-base-message.ts:13](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-base-message.ts#L13)
-
-Logical topic / exchange name, e.g. `user.created`
+Defined in: cap-core/dist/models/cap-base-message.d.ts:5

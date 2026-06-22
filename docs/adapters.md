@@ -71,7 +71,7 @@ header values: `string`, `number`, `boolean`, and `Date`.
 
 ## First-Party Storage: MikroORM
 
-Package: `@mikara89/mikroorm-storage`
+Package: `@mikara89/cap-storage-mikro-orm`
 
 The MikroORM adapter provides:
 
@@ -92,9 +92,20 @@ Existing databases need a migration when upgrading to this shape: add the new
 inbox state columns and replace the old `(topic, group, messageId)` unique
 index with `(group, dedupeKey)`.
 
+## First-Party Framework Adapter: Express
+
+Package: `@mikara89/cap-express`
+
+The Express adapter provides:
+
+- `createCapExpress` for explicit CAP lifecycle management
+- `start()` and `stop()` methods for application-owned startup/shutdown
+- `healthRouter()` with simple process and CAP health endpoints
+- direct delegation to the framework-agnostic `CapEngine`
+
 ## First-Party Transport: Azure Service Bus
 
-Package: `@mikara89/azure-servicebus-transport`
+Package: `@mikara89/cap-transport-azure-servicebus`
 
 The Azure Service Bus adapter provides:
 
@@ -106,7 +117,7 @@ The Azure Service Bus adapter provides:
 
 ## First-Party Transport: NestJS Microservices
 
-Package: `@mikara89/nestjs-microservices-transport`
+Package: `@mikara89/cap-transport-nestjs-microservices`
 
 This adapter lets applications reuse existing `@nestjs/microservices`
 `ClientProxy` registrations while CAP keeps durable outbox/inbox state,

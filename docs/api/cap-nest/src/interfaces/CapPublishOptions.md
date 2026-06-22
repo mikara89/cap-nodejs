@@ -6,7 +6,7 @@
 
 # Interface: CapPublishOptions
 
-Defined in: [cap-nest/src/cap/cap.service.ts:47](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L47)
+Defined in: cap-core/dist/models/cap-options.d.ts:2
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-nest/src/cap/cap.service.ts:47](https://github.com/mikara89/cap
 
 > `optional` **headers?**: [`CapHeaders`](../type-aliases/CapHeaders.md)
 
-Defined in: [cap-nest/src/cap/cap.service.ts:48](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L48)
+Defined in: cap-core/dist/models/cap-options.d.ts:3
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-nest/src/cap/cap.service.ts:48](https://github.com/mikara89/cap
 
 > `optional` **immediate?**: `boolean`
 
-Defined in: [cap-nest/src/cap/cap.service.ts:50](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L50)
+Defined in: cap-core/dist/models/cap-options.d.ts:5
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [cap-nest/src/cap/cap.service.ts:50](https://github.com/mikara89/cap
 
 > `optional` **tx?**: `unknown`
 
-Defined in: [cap-nest/src/cap/cap.service.ts:49](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L49)
+Defined in: cap-core/dist/models/cap-options.d.ts:4

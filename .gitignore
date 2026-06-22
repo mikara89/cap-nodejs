@@ -73,6 +73,7 @@ pids
 
 # Package manager caches
 .npm/
+.npm-cache*/
 .pnpm-store/
 .yarn/*
 !.yarn/patches

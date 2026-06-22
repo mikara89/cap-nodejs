@@ -78,8 +78,8 @@ import {
   MikroStorageModule,
   CapPublishEntity,
   CapReceivedEntity,
-} from '@mikara89/mikroorm-storage';
-import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
+} from '@mikara89/cap-storage-mikro-orm';
+import { ServiceBusTransportModule } from '@mikara89/cap-transport-azure-servicebus';
 
 const serviceBusTransport = ServiceBusTransportModule.forRoot({
   connectionString: process.env.AZURE_SERVICEBUS_CONNECTION_STRING!,
@@ -115,7 +115,7 @@ strings or database credentials.
 The dashboard is optional and must be protected by a guard.
 
 ```ts
-import { CapDashboardModule } from '@mikara89/cap-dashboard';
+import { CapDashboardModule } from '@mikara89/cap-dashboard-nest';
 
 @Module({
   imports: [

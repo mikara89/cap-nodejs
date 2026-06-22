@@ -9,8 +9,9 @@ import {
   MikroStorageModule,
   CapPublishEntity,
   CapReceivedEntity,
-} from '@mikara89/mikroorm-storage';
-import { PUBLISH_STORAGE, type IPublishStorage } from '@mikara89/cap-nest';
+} from '@mikara89/cap-storage-mikro-orm';
+import { PUBLISH_STORAGE } from '@mikara89/cap-nest';
+import { type PublishStoragePort } from '@mikara89/cap-core';
 
 type StoppableContainer = {
   stop(): Promise<unknown>;
@@ -114,7 +115,7 @@ describe('Integration: withTransactionAndPostCommit (MikroORM + Postgres)', () =
   it('commits transactional save and runs afterCommitFn', async () => {
     if (!app || !orm) return;
 
-    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE);
+    const storage = app.get<PublishStoragePort>(PUBLISH_STORAGE);
     const publisher = { emit: jest.fn().mockResolvedValue(undefined) };
 
     const event = {
@@ -148,7 +149,7 @@ describe('Integration: withTransactionAndPostCommit (MikroORM + Postgres)', () =
   it('rolls back transactional save and does not run afterCommitFn', async () => {
     if (!app || !orm) return;
 
-    const storage = app.get<IPublishStorage>(PUBLISH_STORAGE);
+    const storage = app.get<PublishStoragePort>(PUBLISH_STORAGE);
     const publisher = { emit: jest.fn().mockResolvedValue(undefined) };
 
     const event = {

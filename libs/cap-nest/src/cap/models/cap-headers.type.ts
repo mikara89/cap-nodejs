@@ -1,3 +1,1 @@
-export type CapHeaderValue = string | number | boolean | Date;
-
-export type CapHeaders = Record<string, CapHeaderValue>;
+export type { CapHeaderValue, CapHeaders } from '@mikara89/cap-core';

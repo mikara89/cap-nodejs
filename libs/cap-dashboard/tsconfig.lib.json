@@ -6,7 +6,11 @@
     "noImplicitAny": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "incremental": false
+    "incremental": false,
+    "paths": {
+      "@mikara89/cap-dashboard-nest": ["libs/cap-dashboard-nest/dist"],
+      "@mikara89/cap-dashboard-nest/*": ["libs/cap-dashboard-nest/dist/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]

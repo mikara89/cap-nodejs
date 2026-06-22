@@ -6,7 +6,7 @@
 
 # Interface: CapModuleFactory
 
-Defined in: [cap-nest/src/cap/cap.module.ts:44](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L44)
+Defined in: cap-nest/src/cap/cap.module.ts:45
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [cap-nest/src/cap/cap.module.ts:44](https://github.com/mikara89/cap-
 
 > **createCapOptions**(): [`CapModuleOptions`](CapModuleOptions.md) \| `Promise`\<[`CapModuleOptions`](CapModuleOptions.md)\>
 
-Defined in: [cap-nest/src/cap/cap.module.ts:45](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L45)
+Defined in: cap-nest/src/cap/cap.module.ts:46
 
 #### Returns
 

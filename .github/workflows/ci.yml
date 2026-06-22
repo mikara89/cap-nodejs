@@ -34,6 +34,12 @@ jobs:
         run: npm run fallow:health:ci
       - name: Build
         run: npm run build
+      - name: Type-check examples
+        run: npm run examples:check
+      - name: Generate API docs
+        run: npm run docs:api
+      - name: Verify workspace links
+        run: npm ls --workspaces --depth=0
       - name: Type-check `libs/cap-nest`
         run: npx tsc -p libs/cap-nest/tsconfig.lib.json --noEmit
       - name: Run tests

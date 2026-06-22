@@ -1,8 +1,12 @@
-export const PUBLISHER = Symbol('CAP_PUBLISHER');
-export const SUBSCRIBER = Symbol('CAP_SUBSCRIBER');
-
 import type { InitOptions } from './initializer.interface';
 import type { CapHeaders } from '../models/cap-headers.type';
+import {
+  PUBLISHER as CORE_PUBLISHER,
+  SUBSCRIBER as CORE_SUBSCRIBER,
+} from '@mikara89/cap-core';
+
+export const PUBLISHER = CORE_PUBLISHER;
+export const SUBSCRIBER = CORE_SUBSCRIBER;
 
 export interface CapPublishMetadata {
   messageId: string;

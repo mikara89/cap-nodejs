@@ -9,24 +9,38 @@
     "outDir": "../.tmp/examples",
     "rootDir": "..",
     "paths": {
-      "@mikara89/cap-nest": ["../libs/cap-nest/src"],
-      "@mikara89/cap-nest/*": ["../libs/cap-nest/src/*"],
-      "@mikara89/mikroorm-storage": ["../libs/storage-mikro-orm/src"],
-      "@mikara89/mikroorm-storage/*": ["../libs/storage-mikro-orm/src/*"],
-      "@mikara89/azure-servicebus-transport": [
-        "../libs/transport-azure-servicebus/src"
+      "@mikara89/cap-core": ["libs/cap-core/src"],
+      "@mikara89/cap-core/*": ["libs/cap-core/src/*"],
+      "@mikara89/cap-testing": ["libs/cap-testing/src"],
+      "@mikara89/cap-testing/*": ["libs/cap-testing/src/*"],
+      "@mikara89/cap-nest": ["libs/cap-nest/src"],
+      "@mikara89/cap-nest/*": ["libs/cap-nest/src/*"],
+      "@mikara89/cap-express": ["libs/cap-express/src"],
+      "@mikara89/cap-express/*": ["libs/cap-express/src/*"],
+      "@mikara89/cap-dashboard-core": ["libs/cap-dashboard-core/src"],
+      "@mikara89/cap-dashboard-core/*": ["libs/cap-dashboard-core/src/*"],
+      "@mikara89/cap-dashboard-nest": ["libs/cap-dashboard-nest/src"],
+      "@mikara89/cap-dashboard-nest/*": ["libs/cap-dashboard-nest/src/*"],
+      "@mikara89/cap-dashboard-express": ["libs/cap-dashboard-express/src"],
+      "@mikara89/cap-dashboard-express/*": [
+        "libs/cap-dashboard-express/src/*"
       ],
-      "@mikara89/azure-servicebus-transport/*": [
-        "../libs/transport-azure-servicebus/src/*"
+      "@mikara89/cap-storage-mikro-orm": ["libs/cap-storage-mikro-orm/src"],
+      "@mikara89/cap-storage-mikro-orm/*": ["libs/cap-storage-mikro-orm/src/*"],
+      "@mikara89/cap-transport-azure-servicebus": [
+        "libs/cap-transport-azure-servicebus/src"
       ],
-      "@mikara89/nestjs-microservices-transport": [
-        "../libs/transport-nestjs-microservices/src"
+      "@mikara89/cap-transport-azure-servicebus/*": [
+        "libs/cap-transport-azure-servicebus/src/*"
       ],
-      "@mikara89/nestjs-microservices-transport/*": [
-        "../libs/transport-nestjs-microservices/src/*"
+      "@mikara89/cap-transport-nestjs-microservices": [
+        "libs/cap-transport-nestjs-microservices/src"
       ],
-      "@mikara89/cap-dashboard": ["../libs/cap-dashboard/src"],
-      "@mikara89/cap-dashboard/*": ["../libs/cap-dashboard/src/*"]
+      "@mikara89/cap-transport-nestjs-microservices/*": [
+        "libs/cap-transport-nestjs-microservices/src/*"
+      ],
+      "@mikara89/cap-dashboard": ["libs/cap-dashboard/src"],
+      "@mikara89/cap-dashboard/*": ["libs/cap-dashboard/src/*"]
     },
     "strict": true,
     "types": ["node"]

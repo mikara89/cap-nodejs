@@ -19,10 +19,12 @@ adapters.
 7. [GitHub Pages homepage](github-pages.md) - public homepage setup.
 8. [Roadmap](roadmap.md) - stable 0.7, v1, and later stages.
 9. [Release checklist](release.md) - validation and publishing safety.
-10. [Migrations](migrations/0.7-to-1.0.md) - upgrade notes for stable schema
-    and API behavior.
-11. [ADRs](adr/README.md) - durable architecture decisions.
-12. [Contributing](contributing.md) - local workflow, repo health checks, tests,
+10. [Schema/API migration](migrations/0.7-to-1.0.md) - upgrade notes for
+    stable schema and API behavior.
+11. [Framework-agnostic core migration](migration/framework-agnostic-core.md) -
+    package rename and adapter split notes.
+12. [ADRs](adr/README.md) - durable architecture decisions.
+13. [Contributing](contributing.md) - local workflow, repo health checks, tests,
     coverage, and docs rules.
 
 ## Current Maturity

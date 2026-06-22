@@ -1,0 +1,35 @@
+{
+  "name": "@mikara89/cap-core",
+  "version": "0.7.0-beta.3",
+  "description": "Framework-agnostic CAP core contracts, models, and utilities",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://mikara89.github.io/cap-nestjs/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikara89/cap-nestjs.git",
+    "directory": "libs/cap-core"
+  },
+  "bugs": {
+    "url": "https://github.com/mikara89/cap-nestjs/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json",
+    "prepack": "npm run build",
+    "test": "jest",
+    "lint": "eslint \"src/**/*.ts\" --fix"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

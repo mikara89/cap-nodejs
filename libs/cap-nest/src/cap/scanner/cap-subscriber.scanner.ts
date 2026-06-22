@@ -79,7 +79,7 @@ export class CapSubscriberScanner implements OnModuleInit {
       };
 
       this.log.debug(
-        `@CapSubscribe → ${target.constructor.name}.${key} ` +
+        `@CapSubscribe -> ${target.constructor.name}.${key} ` +
           `(${topic}|${group || 'broadcast'})`,
       );
 

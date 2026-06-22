@@ -32,10 +32,15 @@ The root workspace package is private. The publishable packages live under
 | Package                                    | Purpose                                                                                                   |
 | ------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
 | `@mikara89/cap-nest`                       | Core NestJS module, service, decorators, scheduler, abstractions, and in-memory mode.                     |
-| `@mikara89/mikroorm-storage`               | MikroORM storage adapter for outbox and inbox records.                                                    |
-| `@mikara89/azure-servicebus-transport`     | Azure Service Bus transport adapter.                                                                      |
-| `@mikara89/nestjs-microservices-transport` | Adapter that publishes through existing NestJS `ClientProxy` registrations and exposes an inbound bridge. |
-| `@mikara89/cap-dashboard`                  | Optional admin REST API and static dashboard UI.                                                          |
+| `@mikara89/cap-testing`                    | Framework-agnostic testing helpers, fakes, fixtures, and in-memory engine setup.                         |
+| `@mikara89/cap-express`                    | Express adapter with explicit lifecycle and CAP health router.                                            |
+| `@mikara89/cap-storage-mikro-orm`          | MikroORM storage adapter for outbox and inbox records.                                                    |
+| `@mikara89/cap-transport-azure-servicebus` | Azure Service Bus transport adapter.                                                                      |
+| `@mikara89/cap-transport-nestjs-microservices` | Adapter that publishes through existing NestJS `ClientProxy` registrations and exposes an inbound bridge. |
+| `@mikara89/cap-dashboard-core`             | Framework-agnostic dashboard DTOs and service logic.                                                      |
+| `@mikara89/cap-dashboard-nest`             | NestJS dashboard module, REST API, and static dashboard UI.                                               |
+| `@mikara89/cap-dashboard-express`          | Express router for the dashboard service.                                                                 |
+| `@mikara89/cap-dashboard`                  | Compatibility alias for the Nest dashboard package.                                                       |
 
 `apps/cap-test-app` is a demo and integration test application; it is not a
 published package.
@@ -49,8 +54,8 @@ published package.
 
 Adapter-specific requirements:
 
-- `@mikara89/mikroorm-storage` requires MikroORM 6.
-- `@mikara89/azure-servicebus-transport` requires Azure Service Bus credentials or
+- `@mikara89/cap-storage-mikro-orm` requires MikroORM 6.
+- `@mikara89/cap-transport-azure-servicebus` requires Azure Service Bus credentials or
   an emulator path for external integration testing.
 
 ## Installation
@@ -71,14 +76,16 @@ npm install @mikara89/cap-nest
 For durable storage and Azure Service Bus transport:
 
 ```sh
-npm install @mikara89/cap-nest @mikara89/mikroorm-storage @mikara89/azure-servicebus-transport
+npm install @mikara89/cap-nest @mikara89/cap-storage-mikro-orm @mikara89/cap-transport-azure-servicebus
 ```
 
-For the optional dashboard:
+For the optional Nest dashboard:
 
 ```sh
-npm install @mikara89/cap-dashboard
+npm install @mikara89/cap-dashboard-nest
 ```
+
+`@mikara89/cap-dashboard` remains available as a compatibility alias.
 
 Package availability depends on GitHub Packages visibility. GitHub Packages may
 require npm authentication with a GitHub personal access token for installs.
@@ -153,8 +160,8 @@ import {
   CapPublishEntity,
   CapReceivedEntity,
   MikroStorageModule,
-} from '@mikara89/mikroorm-storage';
-import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
+} from '@mikara89/cap-storage-mikro-orm';
+import { ServiceBusTransportModule } from '@mikara89/cap-transport-azure-servicebus';
 
 const serviceBusTransport = ServiceBusTransportModule.forRoot({
   connectionString: process.env.AZURE_SERVICEBUS_CONNECTION_STRING!,
@@ -193,7 +200,7 @@ root; feature modules can inject `CapService` without re-importing CAP.
 The dashboard is optional and must be protected by an application-owned guard:
 
 ```ts
-import { CapDashboardModule } from '@mikara89/cap-dashboard';
+import { CapDashboardModule } from '@mikara89/cap-dashboard-nest';
 
 CapDashboardModule.forRoot({
   guard: {

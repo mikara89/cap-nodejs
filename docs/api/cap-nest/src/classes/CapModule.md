@@ -6,7 +6,7 @@
 
 # Class: CapModule
 
-Defined in: [cap-nest/src/cap/cap.module.ts:63](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L63)
+Defined in: cap-nest/src/cap/cap.module.ts:64
 
 ## Constructors
 
@@ -24,7 +24,7 @@ Defined in: [cap-nest/src/cap/cap.module.ts:63](https://github.com/mikara89/cap-
 
 > `static` **forInMemory**(`options?`): `DynamicModule`
 
-Defined in: [cap-nest/src/cap/cap.module.ts:116](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L116)
+Defined in: cap-nest/src/cap/cap.module.ts:123
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: [cap-nest/src/cap/cap.module.ts:116](https://github.com/mikara89/cap
 
 > `static` **forRoot**(`opts?`): `DynamicModule`
 
-Defined in: [cap-nest/src/cap/cap.module.ts:64](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L64)
+Defined in: cap-nest/src/cap/cap.module.ts:65
 
 #### Parameters
 
@@ -60,7 +60,7 @@ Defined in: [cap-nest/src/cap/cap.module.ts:64](https://github.com/mikara89/cap-
 
 > `static` **forRootAsync**(`opts`): `DynamicModule`
 
-Defined in: [cap-nest/src/cap/cap.module.ts:92](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L92)
+Defined in: cap-nest/src/cap/cap.module.ts:96
 
 #### Parameters
 

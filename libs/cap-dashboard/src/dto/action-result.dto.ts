@@ -1,4 +1,1 @@
-export class ActionResultDto {
-  success!: boolean;
-  message?: string;
-}
+export { ActionResultDto } from '@mikara89/cap-dashboard-nest';

@@ -2,10 +2,14 @@ import { type CapPublishEvent } from '../models/cap-publish-event';
 import { type CapReceivedEvent } from '../models/cap-received-event';
 import { type JsonValue } from '../models/json-value.type';
 import type { InitOptions } from './initializer.interface';
+import {
+  PUBLISH_STORAGE as CORE_PUBLISH_STORAGE,
+  RECEIVED_STORAGE as CORE_RECEIVED_STORAGE,
+} from '@mikara89/cap-core';
 
 /** IoC tokens - easier than string literals */
-export const PUBLISH_STORAGE = Symbol('CAP_PUBLISH_STORAGE');
-export const RECEIVED_STORAGE = Symbol('CAP_RECEIVED_STORAGE');
+export const PUBLISH_STORAGE = CORE_PUBLISH_STORAGE;
+export const RECEIVED_STORAGE = CORE_RECEIVED_STORAGE;
 
 export interface ClaimUnpublishedOptions {
   limit: number;

@@ -1,0 +1,41 @@
+{
+  "name": "@mikara89/cap-express",
+  "version": "0.7.0-beta.3",
+  "description": "Express adapter for the framework-agnostic CAP engine",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://mikara89.github.io/cap-nestjs/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikara89/cap-nestjs.git",
+    "directory": "libs/cap-express"
+  },
+  "bugs": {
+    "url": "https://github.com/mikara89/cap-nestjs/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json",
+    "prepack": "npm run build",
+    "test": "jest",
+    "lint": "eslint \"src/**/*.ts\" --fix"
+  },
+  "peerDependencies": {
+    "@mikara89/cap-core": "^0.7.0-beta.3",
+    "express": "^5.0.0"
+  },
+  "devDependencies": {
+    "@mikara89/cap-core": "file:../cap-core",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

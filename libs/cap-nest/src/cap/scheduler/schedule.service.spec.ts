@@ -4,8 +4,10 @@ import {
   createInMemoryPublishStorage,
   createInMemoryPublisher,
   createInMemoryReceivedStorage,
+  createInMemorySubscriber,
 } from '../testing/test-helpers';
 import type { CapReceivedEvent } from '../models/cap-received-event';
+import { CapService } from '../cap.service';
 
 const schedulerOptions = {
   batchSize: 200,
@@ -18,16 +20,17 @@ const schedulerOptions = {
 
 describe('RetrySchedulerService', () => {
   let svc: RetrySchedulerService;
+  let cap: CapService;
   let pubStore = createInMemoryPublishStorage();
   let publisher = createInMemoryPublisher();
   let recStore = createInMemoryReceivedStorage();
-  let cap = { retryReceived: jest.fn().mockResolvedValue(undefined) };
+  let subscriber = createInMemorySubscriber();
 
   beforeEach(() => {
     pubStore = createInMemoryPublishStorage();
     publisher = createInMemoryPublisher();
     recStore = createInMemoryReceivedStorage();
-    cap = { retryReceived: jest.fn().mockResolvedValue(undefined) };
+    subscriber = createInMemorySubscriber();
 
     jest.spyOn(pubStore, 'claimUnpublished');
     jest.spyOn(pubStore, 'markPublished');
@@ -35,18 +38,22 @@ describe('RetrySchedulerService', () => {
     jest.spyOn(pubStore, 'releaseExpiredClaims');
     jest.spyOn(publisher, 'emit');
     jest.spyOn(recStore, 'getRetryDue');
-    jest.spyOn(cap, 'retryReceived');
 
-    svc = new RetrySchedulerService(
+    cap = new CapService(
       pubStore,
-      publisher,
       recStore,
-      cap as any,
+      publisher,
+      subscriber,
       schedulerOptions,
     );
+    jest.spyOn(cap, 'dispatchOutboxBatch');
+    jest.spyOn(cap, 'retryInboxBatch');
+    jest.spyOn(cap, 'retryReceived');
+
+    svc = new RetrySchedulerService(cap, schedulerOptions);
   });
 
-  it('flushOutbox claims, publishes, and marks published', async () => {
+  it('flushOutbox delegates to CapService and preserves publish behavior', async () => {
     await pubStore.savePublish({
       id: '1',
       topic: 't',
@@ -59,6 +66,7 @@ describe('RetrySchedulerService', () => {
 
     await svc.flushOutbox();
 
+    expect(cap.dispatchOutboxBatch).toHaveBeenCalled();
     expect(pubStore.releaseExpiredClaims).toHaveBeenCalled();
     expect(pubStore.claimUnpublished).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -88,6 +96,7 @@ describe('RetrySchedulerService', () => {
 
     await svc.flushOutbox();
 
+    expect(cap.dispatchOutboxBatch).toHaveBeenCalled();
     expect(pubStore.markPublished).not.toHaveBeenCalled();
     expect(pubStore.markPublishFailed).toHaveBeenCalledWith(
       '2',
@@ -96,7 +105,9 @@ describe('RetrySchedulerService', () => {
     );
   });
 
-  it('retryInbox calls cap.retryReceived for due messages', async () => {
+  it('retryInbox delegates to CapService and executes due retry handlers', async () => {
+    const handler = jest.fn();
+    cap.subscribe('x', 'g', handler);
     const rec: CapReceivedEvent = {
       id: 'r1',
       topic: 'x',
@@ -115,6 +126,8 @@ describe('RetrySchedulerService', () => {
 
     await svc.retryInbox();
 
-    expect(cap.retryReceived).toHaveBeenCalledWith(rec);
+    expect(cap.retryInboxBatch).toHaveBeenCalled();
+    expect(handler).toHaveBeenCalledWith({}, undefined);
+    expect(recStore.store.get('r1')?.status).toBe('processed');
   });
 });

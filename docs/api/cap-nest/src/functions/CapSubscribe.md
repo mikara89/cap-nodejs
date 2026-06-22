@@ -8,14 +8,14 @@
 
 > **CapSubscribe**\<`T`\>(`opts`, `maybeGroup?`): `MethodDecorator`
 
-Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:43](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L43)
+Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:42
 
-Decorate a *method* so the CAP worker knows it should be invoked
+Decorate a method so the CAP worker knows it should be invoked
 when a message on `topic` (optionally `group`) arrives.
 
 ```ts
 @CapSubscribe({ topic: 'user.created', group: 'mail-service' })
-async handleUserCreated(evt: UserCreated) { … }
+async handleUserCreated(evt: UserCreated) { ... }
 ```
 
 ## Type Parameters

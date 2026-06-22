@@ -8,4 +8,4 @@
 
 > **CapHeaderValue** = `string` \| `number` \| `boolean` \| `Date`
 
-Defined in: [cap-nest/src/cap/models/cap-headers.type.ts:1](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/cap-headers.type.ts#L1)
+Defined in: cap-core/dist/models/cap-headers.type.d.ts:1

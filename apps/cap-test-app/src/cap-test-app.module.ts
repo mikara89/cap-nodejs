@@ -11,10 +11,10 @@ import {
   MikroStorageModule,
   CapPublishEntity,
   CapReceivedEntity,
-} from '../../../libs/storage-mikro-orm/src';
+} from '@mikara89/cap-storage-mikro-orm';
 // Note: schema creation is handled via CapModule init options.
-import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
-import { CapDashboardModule } from '@mikara89/cap-dashboard';
+import { ServiceBusTransportModule } from '@mikara89/cap-transport-azure-servicebus';
+import { CapDashboardModule } from '@mikara89/cap-dashboard-nest';
 
 const serviceBusConnectionString =
   process.env.SERVICEBUS_CONNECTION_STRING ??

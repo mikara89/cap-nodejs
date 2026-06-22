@@ -3,7 +3,7 @@ import {
   ServiceBusAdministrationClient,
   ServiceBusClient,
 } from '@azure/service-bus';
-import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
+import { ServiceBusTransportModule } from '@mikara89/cap-transport-azure-servicebus';
 import {
   PUBLISHER,
   SUBSCRIBER,
@@ -12,7 +12,7 @@ import {
 } from '@mikara89/cap-nest';
 import { v4 as uuid } from 'uuid';
 
-describe('Integration: transport-azure-servicebus', () => {
+describe('Integration: cap-transport-azure-servicebus', () => {
   it('publishes and receives a message when SERVICEBUS_CONNECTION_STRING is provided or emulator is available', async () => {
     const providedConn = process.env.SERVICEBUS_CONNECTION_STRING;
     let conn = providedConn;

@@ -1,19 +1,26 @@
 # @mikara89/cap-dashboard
 
-Optional dashboard package for CAP outbox and inbox operations.
+Compatibility alias for the Nest dashboard package.
 
-This package provides:
+Prefer new imports from `@mikara89/cap-dashboard-nest`:
 
-- `CapDashboardModule`
-- REST endpoints for outbox and inbox inspection
-- manual retry and mark actions
-- a lightweight static UI
-- required guard integration for dashboard access
+```ts
+import { CapDashboardModule } from '@mikara89/cap-dashboard-nest';
+```
+
+Existing package-root imports continue to work:
+
+```ts
+import { CapDashboardModule } from '@mikara89/cap-dashboard';
+```
+
+The implementation, REST endpoints, static UI, and guard integration live in
+`@mikara89/cap-dashboard-nest`.
 
 ## Usage Shape
 
 ```ts
-import { CapDashboardModule } from '@mikara89/cap-dashboard';
+import { CapDashboardModule } from '@mikara89/cap-dashboard-nest';
 
 CapDashboardModule.forRoot({
   guard: {

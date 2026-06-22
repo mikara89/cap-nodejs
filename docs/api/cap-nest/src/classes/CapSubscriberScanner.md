@@ -1,0 +1,55 @@
+[**CAP for NestJS API**](../../../README.md)
+
+***
+
+[CAP for NestJS API](../../../README.md) / [cap-nest/src](../README.md) / CapSubscriberScanner
+
+# Class: CapSubscriberScanner
+
+Defined in: cap-nest/src/cap/scanner/cap-subscriber.scanner.ts:13
+
+## Implements
+
+- `OnModuleInit`
+
+## Constructors
+
+### Constructor
+
+> **new CapSubscriberScanner**(`modules`, `reflector`, `cap`): `CapSubscriberScanner`
+
+Defined in: cap-nest/src/cap/scanner/cap-subscriber.scanner.ts:16
+
+#### Parameters
+
+##### modules
+
+`ModulesContainer`
+
+##### reflector
+
+`Reflector`
+
+##### cap
+
+[`CapService`](CapService.md)
+
+#### Returns
+
+`CapSubscriberScanner`
+
+## Methods
+
+### onModuleInit()
+
+> **onModuleInit**(): `void`
+
+Defined in: cap-nest/src/cap/scanner/cap-subscriber.scanner.ts:22
+
+#### Returns
+
+`void`
+
+#### Implementation of
+
+`OnModuleInit.onModuleInit`

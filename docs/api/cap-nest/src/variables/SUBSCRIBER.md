@@ -6,6 +6,6 @@
 
 # Variable: SUBSCRIBER
 
-> `const` **SUBSCRIBER**: *typeof* `SUBSCRIBER`
+> `const` **SUBSCRIBER**: `symbol` = `CORE_SUBSCRIBER`
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:2](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L2)
+Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:9

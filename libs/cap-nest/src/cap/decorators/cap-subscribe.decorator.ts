@@ -11,10 +11,10 @@ import { getCapHeadersParamIndex } from './cap-headers.decorator';
 /**
  * Options recognized by `@CapSubscribe`.
  *
- * * `topic`  – logical topic / exchange / subject.
- * * `group`  – queue / consumer-group name.  Omit if you want a
+ * * `topic`  - logical topic / exchange / subject.
+ * * `group`  - queue / consumer-group name. Omit if you want a
  *              broadcast queue that every subscriber receives.
- * * `filter` – (optional) user-defined predicate that can short-circuit
+ * * `filter` - optional user-defined predicate that can short-circuit
  *              delivery before your handler executes.
  */
 export interface CapSubscribeOptions<T = unknown> {
@@ -25,26 +25,25 @@ export interface CapSubscribeOptions<T = unknown> {
 }
 
 /**
- * Symbol under which the framework stores metadata.  Exported so
- * helper utilities (e.g. the worker) can reuse the constant without
- * string-literals.
+ * Symbol under which the framework stores metadata. Exported so
+ * helper utilities can reuse the constant without string-literals.
  */
 export const CAP_SUBSCRIBE_METADATA = 'CAP_SUBSCRIBE_METADATA';
 
 /**
- * Decorate a *method* so the CAP worker knows it should be invoked
+ * Decorate a method so the CAP worker knows it should be invoked
  * when a message on `topic` (optionally `group`) arrives.
  *
  * ```ts
  * @CapSubscribe({ topic: 'user.created', group: 'mail-service' })
- * async handleUserCreated(evt: UserCreated) { … }
+ * async handleUserCreated(evt: UserCreated) { ... }
  * ```
  */
 export function CapSubscribe<T = unknown>(
   opts: CapSubscribeOptions<T> | string,
   maybeGroup?: string,
 ): MethodDecorator {
-  // Support legacy signature  @CapSubscribe('topic','group')
+  // Support legacy signature @CapSubscribe('topic','group').
   // Metadata stores handlers erased to unknown; typed filters are restored by caller usage.
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const normalized: CapSubscribeOptions = (

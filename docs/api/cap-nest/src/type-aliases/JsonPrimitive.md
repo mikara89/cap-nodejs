@@ -8,4 +8,4 @@
 
 > **JsonPrimitive** = `string` \| `number` \| `boolean` \| `null`
 
-Defined in: [cap-nest/src/cap/models/json-value.type.ts:1](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/json-value.type.ts#L1)
+Defined in: cap-core/dist/models/json-value.type.d.ts:1

@@ -6,6 +6,6 @@
 
 # Variable: PUBLISHER
 
-> `const` **PUBLISHER**: *typeof* `PUBLISHER`
+> `const` **PUBLISHER**: `symbol` = `CORE_PUBLISHER`
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:1](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L1)
+Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:8

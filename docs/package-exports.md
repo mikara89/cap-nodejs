@@ -9,20 +9,33 @@ package `exports` maps.
 Use package-root imports:
 
 ```ts
+import { CapEngine } from '@mikara89/cap-core';
 import { CapModule, CapService, CapSubscribe } from '@mikara89/cap-nest';
-import { MikroStorageModule } from '@mikara89/mikroorm-storage';
-import { ServiceBusTransportModule } from '@mikara89/azure-servicebus-transport';
-import { NestjsMicroservicesTransportModule } from '@mikara89/nestjs-microservices-transport';
-import { CapDashboardModule } from '@mikara89/cap-dashboard';
+import { createTestCapEngine } from '@mikara89/cap-testing';
+import { createCapExpress } from '@mikara89/cap-express';
+import { MikroStorageModule } from '@mikara89/cap-storage-mikro-orm';
+import { ServiceBusTransportModule } from '@mikara89/cap-transport-azure-servicebus';
+import { NestjsMicroservicesTransportModule } from '@mikara89/cap-transport-nestjs-microservices';
+import { CapDashboardModule } from '@mikara89/cap-dashboard-nest';
+import { createCapDashboardRouter } from '@mikara89/cap-dashboard-express';
 ```
 
 The supported package roots are:
 
+- `@mikara89/cap-core`
 - `@mikara89/cap-nest`
-- `@mikara89/mikroorm-storage`
-- `@mikara89/azure-servicebus-transport`
-- `@mikara89/nestjs-microservices-transport`
+- `@mikara89/cap-testing`
+- `@mikara89/cap-express`
+- `@mikara89/cap-storage-mikro-orm`
+- `@mikara89/cap-transport-azure-servicebus`
+- `@mikara89/cap-transport-nestjs-microservices`
+- `@mikara89/cap-dashboard-core`
+- `@mikara89/cap-dashboard-nest`
+- `@mikara89/cap-dashboard-express`
 - `@mikara89/cap-dashboard`
+
+`@mikara89/cap-dashboard` remains supported as a compatibility alias for the
+Nest dashboard package root.
 
 ## Unsupported Deep Imports
 

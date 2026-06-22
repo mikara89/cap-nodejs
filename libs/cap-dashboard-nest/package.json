@@ -1,0 +1,49 @@
+{
+  "name": "@mikara89/cap-dashboard-nest",
+  "version": "0.7.0-beta.3",
+  "description": "NestJS dashboard adapter for CAP outbox and inbox operations",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://mikara89.github.io/cap-nestjs/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikara89/cap-nestjs.git",
+    "directory": "libs/cap-dashboard-nest"
+  },
+  "bugs": {
+    "url": "https://github.com/mikara89/cap-nestjs/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json && node -e \"require('fs').cpSync('src/public','dist/public',{recursive:true})\"",
+    "prepack": "npm run build",
+    "test": "jest"
+  },
+  "peerDependencies": {
+    "@mikara89/cap-core": "^0.7.0-beta.3",
+    "@mikara89/cap-dashboard-core": "^0.7.0-beta.3",
+    "@mikara89/cap-nest": "^0.7.0-beta.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@mikara89/cap-core": "file:../cap-core",
+    "@mikara89/cap-dashboard-core": "file:../cap-dashboard-core",
+    "@mikara89/cap-nest": "file:../cap-nest",
+    "@nestjs/testing": "^11.0.1",
+    "jest": "^29.0.0",
+    "rxjs": "^7.8.1",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.9.3"
+  }
+}

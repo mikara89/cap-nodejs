@@ -4,7 +4,7 @@ import { CapModule } from '@mikara89/cap-nest';
 import {
   CapMicroservicesBridge,
   NestjsMicroservicesTransportModule,
-} from '@mikara89/nestjs-microservices-transport';
+} from '@mikara89/cap-transport-nestjs-microservices';
 
 const ORDERS_CLIENT = 'ORDERS_CLIENT';
 

@@ -8,4 +8,4 @@
 
 > **JsonValue** = [`JsonPrimitive`](JsonPrimitive.md) \| `JsonValue`[] \| \{\[`key`: `string`\]: `JsonValue`; \}
 
-Defined in: [cap-nest/src/cap/models/json-value.type.ts:3](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/models/json-value.type.ts#L3)
+Defined in: cap-core/dist/models/json-value.type.d.ts:2

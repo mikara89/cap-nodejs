@@ -6,7 +6,7 @@
 
 # Interface: ResolvedCapSchedulerOptions
 
-Defined in: [cap-nest/src/cap/cap.options.ts:16](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L16)
+Defined in: cap-nest/src/cap/cap.options.ts:16
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:16](https://github.com/mikara89/cap
 
 > **batchSize**: `number`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:17](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L17)
+Defined in: cap-nest/src/cap/cap.options.ts:17
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:17](https://github.com/mikara89/cap
 
 > **disabled**: `boolean`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:22](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L22)
+Defined in: cap-nest/src/cap/cap.options.ts:22
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:22](https://github.com/mikara89/cap
 
 > **instanceId**: `string`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:21](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L21)
+Defined in: cap-nest/src/cap/cap.options.ts:21
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:21](https://github.com/mikara89/cap
 
 > **leaseMs**: `number`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:18](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L18)
+Defined in: cap-nest/src/cap/cap.options.ts:18
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:18](https://github.com/mikara89/cap
 
 > **maxInboxRetries**: `number`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:20](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L20)
+Defined in: cap-nest/src/cap/cap.options.ts:20
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [cap-nest/src/cap/cap.options.ts:20](https://github.com/mikara89/cap
 
 > **maxRetries**: `number`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:19](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L19)
+Defined in: cap-nest/src/cap/cap.options.ts:19

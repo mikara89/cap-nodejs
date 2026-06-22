@@ -6,7 +6,7 @@
 
 # Interface: TrySaveReceivedResult\<T\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:29](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L29)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:33
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:29](https://gith
 
 > **event**: [`CapReceivedEvent`](CapReceivedEvent.md)\<`T`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:32](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L32)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:36
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:32](https://gith
 
 > **id**: `string`
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:31](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L31)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:35
 
 ***
 
@@ -36,4 +36,4 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:31](https://gith
 
 > **inserted**: `boolean`
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:30](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L30)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:34

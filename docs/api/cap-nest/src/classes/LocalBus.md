@@ -6,7 +6,11 @@
 
 # Class: LocalBus
 
-Defined in: [cap-nest/src/cap/cap.module.ts:126](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L126)
+Defined in: cap-nest/src/cap/cap.module.ts:133
+
+## Extends
+
+- [`LocalBus`](../../../cap-testing/src/classes/LocalBus.md)
 
 ## Implements
 
@@ -23,13 +27,29 @@ Defined in: [cap-nest/src/cap/cap.module.ts:126](https://github.com/mikara89/cap
 
 `LocalBus`
 
+#### Inherited from
+
+[`LocalBus`](../../../cap-testing/src/classes/LocalBus.md).[`constructor`](../../../cap-testing/src/classes/LocalBus.md#constructor)
+
+## Properties
+
+### listeners
+
+> `readonly` **listeners**: `Map`\<`string`, `Set`\<`Listener`\>\>
+
+Defined in: cap-core/dist/testing/local-bus.d.ts:7
+
+#### Inherited from
+
+[`LocalBus`](../../../cap-testing/src/classes/LocalBus.md).[`listeners`](../../../cap-testing/src/classes/LocalBus.md#listeners)
+
 ## Methods
 
 ### consume()
 
-> **consume**(`topic`, `_group`, `on`): `Promise`\<`void`\>
+> **consume**(`topic`, `group`, `on`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/cap.module.ts:153](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L153)
+Defined in: cap-nest/src/cap/cap.module.ts:143
 
 #### Parameters
 
@@ -37,7 +57,7 @@ Defined in: [cap-nest/src/cap/cap.module.ts:153](https://github.com/mikara89/cap
 
 `string`
 
-##### \_group
+##### group
 
 `string`
 
@@ -53,13 +73,17 @@ Defined in: [cap-nest/src/cap/cap.module.ts:153](https://github.com/mikara89/cap
 
 [`ISubscriber`](../interfaces/ISubscriber.md).[`consume`](../interfaces/ISubscriber.md#consume)
 
+#### Overrides
+
+[`LocalBus`](../../../cap-testing/src/classes/LocalBus.md).[`consume`](../../../cap-testing/src/classes/LocalBus.md#consume)
+
 ***
 
 ### emit()
 
 > **emit**(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/cap.module.ts:132](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L132)
+Defined in: cap-nest/src/cap/cap.module.ts:134
 
 #### Parameters
 
@@ -86,3 +110,7 @@ Defined in: [cap-nest/src/cap/cap.module.ts:132](https://github.com/mikara89/cap
 #### Implementation of
 
 [`IPublisher`](../interfaces/IPublisher.md).[`emit`](../interfaces/IPublisher.md#emit)
+
+#### Overrides
+
+[`LocalBus`](../../../cap-testing/src/classes/LocalBus.md).[`emit`](../../../cap-testing/src/classes/LocalBus.md#emit)

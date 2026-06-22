@@ -64,7 +64,7 @@ jobs:
         run: npm ci
 
       - name: Build libs
-        run: npm run build:libs:lerna
+        run: npm run build:libs
 
       - name: Verify package contents
         run: npm run pack:dry-run

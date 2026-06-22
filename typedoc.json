@@ -1,11 +1,16 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
+    "libs/cap-core/src/index.ts",
+    "libs/cap-testing/src/index.ts",
     "libs/cap-nest/src/index.ts",
-    "libs/storage-mikro-orm/src/index.ts",
-    "libs/transport-azure-servicebus/src/index.ts",
-    "libs/transport-nestjs-microservices/src/index.ts",
-    "libs/cap-dashboard/src/index.ts"
+    "libs/cap-express/src/index.ts",
+    "libs/cap-storage-mikro-orm/src/index.ts",
+    "libs/cap-transport-azure-servicebus/src/index.ts",
+    "libs/cap-transport-nestjs-microservices/src/index.ts",
+    "libs/cap-dashboard-core/src/index.ts",
+    "libs/cap-dashboard-nest/src/index.ts",
+    "libs/cap-dashboard-express/src/index.ts"
   ],
   "entryPointStrategy": "expand",
   "name": "CAP for NestJS API",

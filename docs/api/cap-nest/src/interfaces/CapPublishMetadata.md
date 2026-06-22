@@ -6,7 +6,7 @@
 
 # Interface: CapPublishMetadata
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:7](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L7)
+Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:11
 
 ## Properties
 
@@ -14,4 +14,4 @@ Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:7](https://git
 
 > **messageId**: `string`
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:8](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L8)
+Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:12

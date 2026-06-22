@@ -6,7 +6,7 @@
 
 # Interface: IPublishStorage
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:38](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L38)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:42
 
 ## Extended by
 
@@ -18,7 +18,7 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:38](https://gith
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:48](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L48)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:52
 
 Atomically claim ready rows for one dispatcher instance.
 
@@ -38,7 +38,7 @@ Atomically claim ready rows for one dispatcher instance.
 
 > `optional` **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:66](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L66)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:70
 
 Optional: find a published record by id (dashboard helpers)
 
@@ -58,7 +58,7 @@ Optional: find a published record by id (dashboard helpers)
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:45](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L45)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:49
 
 Optional one-time initialization: create schema/tables if needed
 
@@ -78,7 +78,7 @@ Optional one-time initialization: create schema/tables if needed
 
 > `optional` **listPublish**(`opts`): `Promise`\<\{ `items`: [`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]; `total?`: `number`; \}\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:69](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L69)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:73
 
 Optional: paginated listing for dashboards and admin UIs
 
@@ -112,7 +112,7 @@ Optional: paginated listing for dashboards and admin UIs
 
 > **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:53](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L53)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:57
 
 Mark record as successfully emitted to the broker.
 
@@ -136,7 +136,7 @@ Mark record as successfully emitted to the broker.
 
 > **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:56](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L56)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:60
 
 Mark record as retryable failed, or dead-letter when retry limit is exceeded.
 
@@ -164,7 +164,7 @@ Mark record as retryable failed, or dead-letter when retry limit is exceeded.
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:63](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L63)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:67
 
 Release processing rows whose lease has expired.
 
@@ -184,7 +184,7 @@ Release processing rows whose lease has expired.
 
 > **savePublish**\<`T`\>(`evt`): `Promise`\<`string`\>
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:40](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L40)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:44
 
 Insert a fresh outbox record and return its DB id
 

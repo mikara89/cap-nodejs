@@ -13,7 +13,7 @@ import {
   MikroStorageModule,
   CapPublishEntity,
   CapReceivedEntity,
-} from '@mikara89/mikroorm-storage';
+} from '@mikara89/cap-storage-mikro-orm';
 import { PUBLISH_STORAGE, type IPublishStorage } from '@mikara89/cap-nest';
 
 // start Postgres container

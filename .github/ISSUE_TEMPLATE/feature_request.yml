@@ -8,11 +8,17 @@ body:
     attributes:
       label: Area
       options:
+        - '@mikara89/cap-core'
         - '@mikara89/cap-nest'
-        - '@mikara89/mikroorm-storage'
-        - '@mikara89/azure-servicebus-transport'
-        - '@mikara89/nestjs-microservices-transport'
+        - '@mikara89/cap-express'
+        - '@mikara89/cap-storage-mikro-orm'
+        - '@mikara89/cap-transport-azure-servicebus'
+        - '@mikara89/cap-transport-nestjs-microservices'
+        - '@mikara89/cap-dashboard-core'
+        - '@mikara89/cap-dashboard-nest'
+        - '@mikara89/cap-dashboard-express'
         - '@mikara89/cap-dashboard'
+        - '@mikara89/cap-testing'
         - Documentation
         - Tooling
         - Not sure

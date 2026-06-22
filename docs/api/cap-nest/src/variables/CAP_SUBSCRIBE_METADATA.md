@@ -8,8 +8,7 @@
 
 > `const` **CAP\_SUBSCRIBE\_METADATA**: `"CAP_SUBSCRIBE_METADATA"` = `'CAP_SUBSCRIBE_METADATA'`
 
-Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:32](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L32)
+Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:31
 
-Symbol under which the framework stores metadata.  Exported so
-helper utilities (e.g. the worker) can reuse the constant without
-string-literals.
+Symbol under which the framework stores metadata. Exported so
+helper utilities can reuse the constant without string-literals.

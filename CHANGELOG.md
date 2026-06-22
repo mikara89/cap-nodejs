@@ -5,9 +5,11 @@ All notable repository-level changes should be summarized here.
 Package-specific changelogs are maintained with each publishable package:
 
 - [@mikara89/cap-nest](libs/cap-nest/CHANGELOG.md)
-- [@mikara89/mikroorm-storage](libs/storage-mikro-orm/CHANGELOG.md)
-- [@mikara89/azure-servicebus-transport](libs/transport-azure-servicebus/CHANGELOG.md)
-- [@mikara89/nestjs-microservices-transport](libs/transport-nestjs-microservices/CHANGELOG.md)
+- [@mikara89/cap-testing](libs/cap-testing/CHANGELOG.md)
+- [@mikara89/cap-storage-mikro-orm](libs/cap-storage-mikro-orm/CHANGELOG.md)
+- [@mikara89/cap-transport-azure-servicebus](libs/cap-transport-azure-servicebus/CHANGELOG.md)
+- [@mikara89/cap-transport-nestjs-microservices](libs/cap-transport-nestjs-microservices/CHANGELOG.md)
+- [@mikara89/cap-dashboard-nest](libs/cap-dashboard-nest/CHANGELOG.md)
 - [@mikara89/cap-dashboard](libs/cap-dashboard/CHANGELOG.md)
 
 ## Unreleased

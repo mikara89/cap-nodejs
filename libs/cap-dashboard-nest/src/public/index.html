@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CAP Dashboard</title>
+    <link rel="stylesheet" href="/cap-dashboard/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="app-header">
+        <div>
+          <h1>CAP Dashboard</h1>
+          <p id="last-updated">Waiting for data</p>
+        </div>
+        <nav class="tabs" aria-label="Message store">
+          <button id="tab-outbox" class="active" type="button">
+            <span>Outbox</span>
+            <strong id="tab-outbox-count">0</strong>
+          </button>
+          <button id="tab-inbox" type="button">
+            <span>Inbox</span>
+            <strong id="tab-inbox-count">0</strong>
+          </button>
+        </nav>
+      </header>
+
+      <section class="toolbar" aria-label="Filters">
+        <label class="field">
+          <span>Topic</span>
+          <input id="filter-topic" type="search" placeholder="example.topic" />
+        </label>
+        <label class="field">
+          <span>Mode</span>
+          <select id="filter-mode">
+            <option value="all">All</option>
+            <option value="due">Needs attention</option>
+          </select>
+        </label>
+        <button id="btn-refresh" class="button primary" type="button">Refresh</button>
+      </section>
+
+      <section class="summary" aria-label="Current page summary">
+        <div>
+          <span>Total</span>
+          <strong id="summary-total">0</strong>
+        </div>
+        <div>
+          <span>Published</span>
+          <strong id="summary-success">0</strong>
+        </div>
+        <div>
+          <span>Pending</span>
+          <strong id="summary-pending">0</strong>
+        </div>
+        <div>
+          <span>Retries</span>
+          <strong id="summary-retries">0</strong>
+        </div>
+      </section>
+
+      <main class="dashboard-grid">
+        <section id="list-view">
+          <div class="panel-header">
+            <h2 id="list-title">Outbox</h2>
+            <span id="list-range">Page 1</span>
+          </div>
+          <div id="list"></div>
+          <div id="pagination" class="pagination"></div>
+        </section>
+
+        <aside id="detail-view">
+          <div class="panel-header">
+            <h2>Details</h2>
+            <span id="detail-status"></span>
+          </div>
+          <div id="detail"></div>
+          <div id="detail-actions"></div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="/cap-dashboard/main.js" defer></script>
+  </body>
+</html>

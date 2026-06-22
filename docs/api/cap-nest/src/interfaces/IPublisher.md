@@ -6,7 +6,7 @@
 
 # Interface: IPublisher
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:16](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L16)
+Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:20
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:16](https://gi
 
 > **emit**(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:17](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L17)
+Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:21
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:17](https://gi
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:24](https://github.com/mikara89/cap-nestjs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L24)
+Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:28
 
 Optional one-time initialization: create queues/topics if needed
 

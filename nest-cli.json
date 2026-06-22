@@ -3,8 +3,8 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "apps/cap-test-app/src",
   "compilerOptions": {
-    "deleteOutDir": true,
-    "webpack": true,
+    "deleteOutDir": false,
+    "webpack": false,
     "tsConfigPath": "apps/cap-test-app/tsconfig.app.json"
   },
   "projects": {
@@ -17,40 +17,40 @@
         "tsConfigPath": "libs/cap-nest/tsconfig.lib.json"
       }
     },
-    "storage-mikro-orm": {
+    "cap-storage-mikro-orm": {
       "type": "library",
-      "root": "libs/storage-mikro-orm",
+      "root": "libs/cap-storage-mikro-orm",
       "entryFile": "index",
-      "sourceRoot": "libs/storage-mikro-orm/src",
+      "sourceRoot": "libs/cap-storage-mikro-orm/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/storage-mikro-orm/tsconfig.lib.json"
+        "tsConfigPath": "libs/cap-storage-mikro-orm/tsconfig.lib.json"
       }
     },
-    "transport-azure-servicebus": {
+    "cap-transport-azure-servicebus": {
       "type": "library",
-      "root": "libs/transport-azure-servicebus",
+      "root": "libs/cap-transport-azure-servicebus",
       "entryFile": "index",
-      "sourceRoot": "libs/transport-azure-servicebus/src",
+      "sourceRoot": "libs/cap-transport-azure-servicebus/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/transport-azure-servicebus/tsconfig.lib.json"
+        "tsConfigPath": "libs/cap-transport-azure-servicebus/tsconfig.lib.json"
       }
     },
-    "transport-nestjs-microservices": {
+    "cap-transport-nestjs-microservices": {
       "type": "library",
-      "root": "libs/transport-nestjs-microservices",
+      "root": "libs/cap-transport-nestjs-microservices",
       "entryFile": "index",
-      "sourceRoot": "libs/transport-nestjs-microservices/src",
+      "sourceRoot": "libs/cap-transport-nestjs-microservices/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/transport-nestjs-microservices/tsconfig.lib.json"
+        "tsConfigPath": "libs/cap-transport-nestjs-microservices/tsconfig.lib.json"
       }
     },
-    "cap-dashboard": {
+    "cap-dashboard-nest": {
       "type": "library",
-      "root": "libs/cap-dashboard",
+      "root": "libs/cap-dashboard-nest",
       "entryFile": "index",
-      "sourceRoot": "libs/cap-dashboard/src",
+      "sourceRoot": "libs/cap-dashboard-nest/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/cap-dashboard/tsconfig.lib.json"
+        "tsConfigPath": "libs/cap-dashboard-nest/tsconfig.lib.json"
       }
     },
     "cap-test-app": {
