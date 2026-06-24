@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-dashboard-core",
-  "version": "0.7.0-beta.3",
+  "version": "0.7.0-beta.4",
   "description": "Framework-agnostic CAP dashboard service and DTOs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

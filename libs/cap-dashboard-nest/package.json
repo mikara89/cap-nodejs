@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-dashboard-nest",
-  "version": "0.7.0-beta.3",
+  "version": "0.7.0-beta.4",
   "description": "NestJS dashboard adapter for CAP outbox and inbox operations",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 0.7.0-beta.4 (2026-06-24)
+
+**Note:** Version bump only for package @mikara89/cap-dashboard-nest
+
 History below was copied from the original `@mikara89/cap-dashboard` package
 during the dashboard split.
 

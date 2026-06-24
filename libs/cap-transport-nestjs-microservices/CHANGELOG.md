@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 0.7.0-beta.4 (2026-06-24)
+
+**Note:** Version bump only for package @mikara89/cap-transport-nestjs-microservices
+
 # [0.7.0](https://github.com/mikara89/cap-nestjs/compare/@mikara89/nestjs-microservices-transport@0.7.0-beta.3...@mikara89/nestjs-microservices-transport@0.7.0) (2026-06-15)
 
 **Note:** Version bump only for package @mikara89/nestjs-microservices-transport
