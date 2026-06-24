@@ -1,5 +1,6 @@
 import { createCapExpress } from './create-cap-express';
 import {
+  CapScheduler,
   FakePublisher,
   FakeSubscriber,
   InMemoryPublishStorage,
@@ -130,11 +131,63 @@ describe('createCapExpress', () => {
       autoStart: true,
     });
 
+    await expect(cap.ready).resolves.toBeUndefined();
     await waitFor(() => cap.schedulerRunning);
 
     expect(publishStorage.initialize).toHaveBeenCalledWith({ autoInit: true });
 
     await cap.stop();
+  });
+
+  it('surfaces adapter initialization failures during autoStart', async () => {
+    const error = new Error('init failed');
+    const logger = { error: jest.fn() };
+    const publishStorage = withInitializer(new InMemoryPublishStorage(), () =>
+      Promise.reject(error),
+    );
+    const cap = createCapExpress({
+      publishStorage,
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+      init: { autoInit: true },
+      autoStart: true,
+      logger,
+    });
+
+    await expect(cap.ready).rejects.toThrow('init failed');
+    expect(logger.error).toHaveBeenCalledWith(
+      'CAP Express autoStart failed',
+      error,
+    );
+    expect(cap.schedulerRunning).toBe(false);
+  });
+
+  it('surfaces scheduler start failures during autoStart', async () => {
+    const error = new Error('scheduler failed');
+    const logger = { error: jest.fn() };
+    const startSpy = jest
+      .spyOn(CapScheduler.prototype, 'start')
+      .mockImplementationOnce(() => {
+        throw error;
+      });
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+      autoStart: true,
+      logger,
+    });
+
+    await expect(cap.ready).rejects.toThrow('scheduler failed');
+    expect(logger.error).toHaveBeenCalledWith(
+      'CAP Express autoStart failed',
+      error,
+    );
+    expect(cap.schedulerRunning).toBe(false);
+
+    startSpy.mockRestore();
   });
 
   it('stops the scheduler and closes the subscriber', async () => {

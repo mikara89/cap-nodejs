@@ -1,6 +1,9 @@
-# Future `libs` Layout
+# Future Libs Layout
 
-The v2.1.1 release keeps the current flat workspace layout:
+This page documents a future workspace layout proposal only. The v2.1.1
+release keeps the current flat workspace layout.
+
+## Current v2.1.1 Layout
 
 ```txt
 libs/
@@ -52,7 +55,10 @@ libs/
     cap-dashboard/
 ```
 
-Published package names stay unchanged.
+Published package names stay unchanged. The folder grouping is only a workspace
+organization change.
+
+## Proposed Groups
 
 | Group | Packages |
 | --- | --- |
@@ -61,6 +67,8 @@ Published package names stay unchanged.
 | Storage | `cap-storage-mikro-orm` |
 | Transports | `cap-transport-azure-servicebus`, `cap-transport-nestjs-microservices` |
 | Dashboard | `cap-dashboard-core`, `cap-dashboard-nest`, `cap-dashboard-express`, `cap-dashboard` |
+
+## Workspace Pattern
 
 The workspace configuration would move from:
 
@@ -78,7 +86,7 @@ to:
 }
 ```
 
-## Package-Internal Shape
+## Package Internal Shape
 
 Publishable packages should keep predictable internal boundaries:
 

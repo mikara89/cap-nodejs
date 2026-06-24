@@ -37,6 +37,7 @@ export interface CreateCapExpressOptions {
 
 export interface CapExpressApp {
   engine: CapEngine;
+  readonly ready: Promise<void>;
   publish<T extends JsonValue = JsonValue>(
     topic: string,
     payload: T,
@@ -85,9 +86,13 @@ export function createCapExpress(
   let started = false;
   let initialized = false;
   let startPromise: Promise<void> | undefined;
+  let readyPromise: Promise<void> = Promise.resolve();
 
   const app: CapExpressApp = {
     engine,
+    get ready() {
+      return readyPromise;
+    },
     publish: (topic, payload, publishOptions) =>
       engine.publish(topic, payload, publishOptions),
     subscribe: async (topic, group, handler) => {
@@ -130,7 +135,10 @@ export function createCapExpress(
   };
 
   if (options.autoStart) {
-    void app.start();
+    readyPromise = app.start();
+    readyPromise.catch((error: unknown) => {
+      options.logger?.error?.('CAP Express autoStart failed', error);
+    });
   }
 
   return app;
