@@ -18,6 +18,8 @@
 
 - [CreatePublishFixtureOptions](interfaces/CreatePublishFixtureOptions.md)
 - [CreateReceivedFixtureOptions](interfaces/CreateReceivedFixtureOptions.md)
+- [PublishStorageContractOptions](interfaces/PublishStorageContractOptions.md)
+- [PublishStorageContractSetup](interfaces/PublishStorageContractSetup.md)
 - [TestCapEngine](interfaces/TestCapEngine.md)
 - [TestCapEngineOptions](interfaces/TestCapEngineOptions.md)
 
@@ -30,3 +32,4 @@
 - [createPublishFixture](functions/createPublishFixture.md)
 - [createReceivedFixture](functions/createReceivedFixture.md)
 - [createTestCapEngine](functions/createTestCapEngine.md)
+- [definePublishStorageContract](functions/definePublishStorageContract.md)

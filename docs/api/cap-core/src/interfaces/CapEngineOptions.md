@@ -6,7 +6,7 @@
 
 # Interface: CapEngineOptions
 
-Defined in: [cap-core/src/engine/cap-engine.ts:47](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L47)
+Defined in: [cap-core/src/engine/cap-engine.ts:54](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L54)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:47](https://github.com/mikara89/c
 
 > `optional` **idGenerator?**: () => `string`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:56](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L56)
+Defined in: [cap-core/src/engine/cap-engine.ts:63](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L63)
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:56](https://github.com/mikara89/c
 
 > `optional` **instanceId?**: `string`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:54](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L54)
+Defined in: [cap-core/src/engine/cap-engine.ts:61](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L61)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:54](https://github.com/mikara89/c
 
 > `optional` **logger?**: [`CapLogger`](CapLogger.md)
 
-Defined in: [cap-core/src/engine/cap-engine.ts:53](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L53)
+Defined in: [cap-core/src/engine/cap-engine.ts:60](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L60)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:53](https://github.com/mikara89/c
 
 > `optional` **now?**: () => `Date`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:55](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L55)
+Defined in: [cap-core/src/engine/cap-engine.ts:62](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L62)
 
 #### Returns
 
@@ -54,7 +54,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:55](https://github.com/mikara89/c
 
 > **publisher**: [`PublisherPort`](PublisherPort.md)
 
-Defined in: [cap-core/src/engine/cap-engine.ts:50](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L50)
+Defined in: [cap-core/src/engine/cap-engine.ts:57](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L57)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:50](https://github.com/mikara89/c
 
 > **publishStorage**: [`PublishStoragePort`](PublishStoragePort.md)
 
-Defined in: [cap-core/src/engine/cap-engine.ts:48](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L48)
+Defined in: [cap-core/src/engine/cap-engine.ts:55](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L55)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:48](https://github.com/mikara89/c
 
 > **receivedStorage**: [`ReceivedStoragePort`](ReceivedStoragePort.md)
 
-Defined in: [cap-core/src/engine/cap-engine.ts:49](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L49)
+Defined in: [cap-core/src/engine/cap-engine.ts:56](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L56)
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:49](https://github.com/mikara89/c
 
 > `optional` **scheduler?**: [`CapSchedulerOptions`](CapSchedulerOptions.md)
 
-Defined in: [cap-core/src/engine/cap-engine.ts:52](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L52)
+Defined in: [cap-core/src/engine/cap-engine.ts:59](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L59)
 
 ***
 
@@ -86,4 +86,20 @@ Defined in: [cap-core/src/engine/cap-engine.ts:52](https://github.com/mikara89/c
 
 > **subscriber**: [`SubscriberPort`](SubscriberPort.md)
 
-Defined in: [cap-core/src/engine/cap-engine.ts:51](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L51)
+Defined in: [cap-core/src/engine/cap-engine.ts:58](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L58)
+
+***
+
+### transactionContext?
+
+> `optional` **transactionContext?**: [`CapTransactionContext`](../classes/CapTransactionContext.md)\<`unknown`\>
+
+Defined in: [cap-core/src/engine/cap-engine.ts:65](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L65)
+
+***
+
+### transactionManager?
+
+> `optional` **transactionManager?**: [`CapTransactionManagerPort`](CapTransactionManagerPort.md)\<`unknown`\>
+
+Defined in: [cap-core/src/engine/cap-engine.ts:64](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L64)

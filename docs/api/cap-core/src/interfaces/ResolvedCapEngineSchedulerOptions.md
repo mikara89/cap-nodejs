@@ -6,7 +6,7 @@
 
 # Interface: ResolvedCapEngineSchedulerOptions
 
-Defined in: [cap-core/src/engine/cap-engine.ts:38](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L38)
+Defined in: [cap-core/src/engine/cap-engine.ts:45](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L45)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:38](https://github.com/mikara89/c
 
 > **batchSize**: `number`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:39](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L39)
+Defined in: [cap-core/src/engine/cap-engine.ts:46](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L46)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:39](https://github.com/mikara89/c
 
 > **disabled**: `boolean`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:44](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L44)
+Defined in: [cap-core/src/engine/cap-engine.ts:51](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L51)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:44](https://github.com/mikara89/c
 
 > **instanceId**: `string`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:43](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L43)
+Defined in: [cap-core/src/engine/cap-engine.ts:50](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L50)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:43](https://github.com/mikara89/c
 
 > **leaseMs**: `number`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:40](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L40)
+Defined in: [cap-core/src/engine/cap-engine.ts:47](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L47)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:40](https://github.com/mikara89/c
 
 > **maxInboxRetries**: `number`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L42)
+Defined in: [cap-core/src/engine/cap-engine.ts:49](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L49)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [cap-core/src/engine/cap-engine.ts:42](https://github.com/mikara89/c
 
 > **maxRetries**: `number`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:41](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L41)
+Defined in: [cap-core/src/engine/cap-engine.ts:48](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L48)

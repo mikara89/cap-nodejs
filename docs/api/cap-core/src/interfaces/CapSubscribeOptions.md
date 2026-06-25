@@ -6,7 +6,7 @@
 
 # Interface: CapSubscribeOptions\<T\>
 
-Defined in: [cap-core/src/models/cap-options.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L9)
+Defined in: [cap-core/src/models/cap-options.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L11)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [cap-core/src/models/cap-options.ts:9](https://github.com/mikara89/c
 
 > `optional` **dto?**: () => `T`
 
-Defined in: [cap-core/src/models/cap-options.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L12)
+Defined in: [cap-core/src/models/cap-options.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L14)
 
 #### Returns
 
@@ -32,7 +32,7 @@ Defined in: [cap-core/src/models/cap-options.ts:12](https://github.com/mikara89/
 
 > `optional` **filter?**: (`payload`) => `boolean` \| `Promise`\<`boolean`\>
 
-Defined in: [cap-core/src/models/cap-options.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L13)
+Defined in: [cap-core/src/models/cap-options.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L15)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: [cap-core/src/models/cap-options.ts:13](https://github.com/mikara89/
 
 > `optional` **group?**: `string`
 
-Defined in: [cap-core/src/models/cap-options.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L11)
+Defined in: [cap-core/src/models/cap-options.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L13)
 
 ***
 
@@ -58,4 +58,4 @@ Defined in: [cap-core/src/models/cap-options.ts:11](https://github.com/mikara89/
 
 > **topic**: `string`
 
-Defined in: [cap-core/src/models/cap-options.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L10)
+Defined in: [cap-core/src/models/cap-options.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L12)

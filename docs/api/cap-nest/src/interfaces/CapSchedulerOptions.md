@@ -6,7 +6,7 @@
 
 # Interface: CapSchedulerOptions
 
-Defined in: [cap-nest/src/cap/cap.options.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L7)
+Defined in: [cap-nest/src/cap/cap.options.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L11)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:7](https://github.com/mikara89/cap-
 
 > `optional` **batchSize?**: `number`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L8)
+Defined in: [cap-nest/src/cap/cap.options.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L12)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:8](https://github.com/mikara89/cap-
 
 > `optional` **disabled?**: `boolean`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L13)
+Defined in: [cap-nest/src/cap/cap.options.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L17)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:13](https://github.com/mikara89/cap
 
 > `optional` **instanceId?**: `string`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L12)
+Defined in: [cap-nest/src/cap/cap.options.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L16)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:12](https://github.com/mikara89/cap
 
 > `optional` **leaseMs?**: `number`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L9)
+Defined in: [cap-nest/src/cap/cap.options.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L13)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:9](https://github.com/mikara89/cap-
 
 > `optional` **maxInboxRetries?**: `number`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L11)
+Defined in: [cap-nest/src/cap/cap.options.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L15)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [cap-nest/src/cap/cap.options.ts:11](https://github.com/mikara89/cap
 
 > `optional` **maxRetries?**: `number`
 
-Defined in: [cap-nest/src/cap/cap.options.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L10)
+Defined in: [cap-nest/src/cap/cap.options.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L14)

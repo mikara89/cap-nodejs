@@ -6,7 +6,7 @@
 
 # Class: CapEngine
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:30
+Defined in: cap-core/dist/engine/cap-engine.d.ts:35
 
 ## Constructors
 
@@ -14,7 +14,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:30
 
 > **new CapEngine**(`options`): `CapEngine`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:40
+Defined in: cap-core/dist/engine/cap-engine.d.ts:47
 
 #### Parameters
 
@@ -32,7 +32,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:40
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:46
+Defined in: cap-core/dist/engine/cap-engine.d.ts:54
 
 #### Returns
 
@@ -44,7 +44,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:46
 
 > **dispatchOutboxBatch**(): `Promise`\<`number`\>
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:44
+Defined in: cap-core/dist/engine/cap-engine.d.ts:52
 
 #### Returns
 
@@ -56,7 +56,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:44
 
 > **publish**\<`T`\>(`topic`, `payload`, `options?`): `Promise`\<`void`\>
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:41
+Defined in: cap-core/dist/engine/cap-engine.d.ts:48
 
 #### Type Parameters
 
@@ -76,7 +76,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:41
 
 ##### options?
 
-[`CapPublishOptions`](../interfaces/CapPublishOptions.md)
+[`CapPublishOptions`](../interfaces/CapPublishOptions.md)\<`unknown`\>
 
 #### Returns
 
@@ -88,7 +88,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:41
 
 > **retryInboxBatch**(): `Promise`\<`number`\>
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:45
+Defined in: cap-core/dist/engine/cap-engine.d.ts:53
 
 #### Returns
 
@@ -100,7 +100,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:45
 
 > **retryReceived**(`rec`): `Promise`\<`void`\>
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:43
+Defined in: cap-core/dist/engine/cap-engine.d.ts:51
 
 #### Parameters
 
@@ -118,7 +118,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:43
 
 > **subscribe**\<`T`\>(`topic`, `group`, `handler`): `void`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:42
+Defined in: cap-core/dist/engine/cap-engine.d.ts:50
 
 #### Type Parameters
 
@@ -143,3 +143,31 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:42
 #### Returns
 
 `void`
+
+***
+
+### transaction()
+
+> **transaction**\<`T`\>(`fn`, `options?`): `Promise`\<`T`\>
+
+Defined in: cap-core/dist/engine/cap-engine.d.ts:49
+
+#### Type Parameters
+
+##### T
+
+`T`
+
+#### Parameters
+
+##### fn
+
+(`ctx`) => `Promise`\<`T`\>
+
+##### options?
+
+[`CapTransactionOptions`](../interfaces/CapTransactionOptions.md)
+
+#### Returns
+
+`Promise`\<`T`\>

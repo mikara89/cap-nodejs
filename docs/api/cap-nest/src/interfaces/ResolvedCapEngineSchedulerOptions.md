@@ -6,7 +6,7 @@
 
 # Interface: ResolvedCapEngineSchedulerOptions
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:11
+Defined in: cap-core/dist/engine/cap-engine.d.ts:14
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:11
 
 > **batchSize**: `number`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:12
+Defined in: cap-core/dist/engine/cap-engine.d.ts:15
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:12
 
 > **disabled**: `boolean`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:17
+Defined in: cap-core/dist/engine/cap-engine.d.ts:20
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:17
 
 > **instanceId**: `string`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:16
+Defined in: cap-core/dist/engine/cap-engine.d.ts:19
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:16
 
 > **leaseMs**: `number`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:13
+Defined in: cap-core/dist/engine/cap-engine.d.ts:16
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:13
 
 > **maxInboxRetries**: `number`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:15
+Defined in: cap-core/dist/engine/cap-engine.d.ts:18
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:15
 
 > **maxRetries**: `number`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:14
+Defined in: cap-core/dist/engine/cap-engine.d.ts:17

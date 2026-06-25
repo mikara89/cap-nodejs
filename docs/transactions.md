@@ -55,5 +55,12 @@ and `ctx` publish options, optional transaction-manager integration, and the
 primary `savePublish(event, ctx?)` storage API.
 
 v2.3 uses that foundation for planned Knex, TypeORM, and Prisma storage
-adapters. Transaction manager integration remains optional; explicit `ctx` or
-`tx` passed to `publish()` is still the primary transaction path.
+adapters. v2.2 also introduces reusable publish-storage conformance tests in
+`@mikara89/cap-testing`; future v2.3 adapters must pass the relevant contract
+suite for their supported capabilities. Transaction manager integration remains
+optional; explicit `ctx` or `tx` passed to `publish()` is still the primary
+transaction path.
+
+Storage adapters should implement `savePublish(event, ctx?)` as the primary
+transaction-aware persistence API. `savePublishWithTx(event, tx)` remains
+deprecated compatibility only.

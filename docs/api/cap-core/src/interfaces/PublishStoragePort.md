@@ -4,13 +4,19 @@
 
 [CAP Node.js API](../../../README.md) / [cap-core/src](../README.md) / PublishStoragePort
 
-# Interface: PublishStoragePort
+# Interface: PublishStoragePort\<TTx\>
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L24)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L25)
 
 ## Extended by
 
 - [`TransactionalPublishStoragePort`](TransactionalPublishStoragePort.md)
+
+## Type Parameters
+
+### TTx
+
+`TTx` = `unknown`
 
 ## Methods
 
@@ -18,7 +24,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:24](https://github.com/m
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]\>
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L31)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L33)
 
 #### Parameters
 
@@ -36,7 +42,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:31](https://github.com/m
 
 > `optional` **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:45](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L45)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:47](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L47)
 
 #### Parameters
 
@@ -54,7 +60,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:45](https://github.com/m
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L29)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L31)
 
 #### Parameters
 
@@ -72,7 +78,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:29](https://github.com/m
 
 > `optional` **listPublish**(`options`): `Promise`\<[`DashboardListResult`](DashboardListResult.md)\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>\>\>
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:47](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L47)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:49](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L49)
 
 #### Parameters
 
@@ -90,7 +96,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:47](https://github.com/m
 
 > **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:35](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L35)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:37](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L37)
 
 #### Parameters
 
@@ -112,7 +118,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:35](https://github.com/m
 
 > **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:37](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L37)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:39](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L39)
 
 #### Parameters
 
@@ -138,7 +144,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:37](https://github.com/m
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:43](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L43)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:45](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L45)
 
 #### Parameters
 
@@ -154,9 +160,9 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:43](https://github.com/m
 
 ### savePublish()
 
-> **savePublish**\<`T`\>(`event`): `Promise`\<`string`\>
+> **savePublish**\<`T`\>(`event`, `ctx?`): `Promise`\<`string`\>
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L25)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L26)
 
 #### Type Parameters
 
@@ -169,6 +175,10 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:25](https://github.com/m
 ##### event
 
 [`CapPublishEvent`](CapPublishEvent.md)\<`T`\>
+
+##### ctx?
+
+[`CapOperationContext`](CapOperationContext.md)\<`TTx`\>
 
 #### Returns
 

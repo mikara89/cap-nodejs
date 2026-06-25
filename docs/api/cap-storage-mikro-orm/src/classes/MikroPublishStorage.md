@@ -6,11 +6,11 @@
 
 # Class: MikroPublishStorage
 
-Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L34)
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:35](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L35)
 
 ## Implements
 
-- [`TransactionalPublishStoragePort`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md)
+- [`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md)\<`EntityManager`\>
 
 ## Constructors
 
@@ -18,7 +18,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:34](http
 
 > **new MikroPublishStorage**(`em`, `orm?`, `logger?`): `MikroPublishStorage`
 
-Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:35](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L35)
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:36](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L36)
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:35](http
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]\>
 
-Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:83](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L83)
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:88](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L88)
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:83](http
 
 #### Implementation of
 
-[`TransactionalPublishStoragePort`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md).[`claimUnpublished`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md#claimunpublished)
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`claimUnpublished`](../../../cap-nest/src/interfaces/PublishStoragePort.md#claimunpublished)
 
 ***
 
@@ -66,7 +66,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:83](http
 
 > **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:152](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L152)
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:157](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L157)
 
 #### Parameters
 
@@ -80,7 +80,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:152](htt
 
 #### Implementation of
 
-[`TransactionalPublishStoragePort`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md).[`findPublishById`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md#findpublishbyid)
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`findPublishById`](../../../cap-nest/src/interfaces/PublishStoragePort.md#findpublishbyid)
 
 ***
 
@@ -88,7 +88,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:152](htt
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:41](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L41)
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L42)
 
 #### Parameters
 
@@ -108,7 +108,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:41](http
 
 #### Implementation of
 
-[`TransactionalPublishStoragePort`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md).[`initialize`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md#initialize)
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`initialize`](../../../cap-nest/src/interfaces/PublishStoragePort.md#initialize)
 
 ***
 
@@ -116,7 +116,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:41](http
 
 > **listPublish**(`opts`): `Promise`\<\{ `items`: [`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]; `total`: `number`; \}\>
 
-Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:159](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L159)
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:164](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L164)
 
 #### Parameters
 
@@ -144,7 +144,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:159](htt
 
 #### Implementation of
 
-[`TransactionalPublishStoragePort`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md).[`listPublish`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md#listpublish)
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`listPublish`](../../../cap-nest/src/interfaces/PublishStoragePort.md#listpublish)
 
 ***
 
@@ -152,7 +152,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:159](htt
 
 > **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
 
-Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:105](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L105)
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:110](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L110)
 
 #### Parameters
 
@@ -170,7 +170,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:105](htt
 
 #### Implementation of
 
-[`TransactionalPublishStoragePort`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md).[`markPublished`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md#markpublished)
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`markPublished`](../../../cap-nest/src/interfaces/PublishStoragePort.md#markpublished)
 
 ***
 
@@ -178,7 +178,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:105](htt
 
 > **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:116](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L116)
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:121](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L121)
 
 #### Parameters
 
@@ -200,7 +200,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:116](htt
 
 #### Implementation of
 
-[`TransactionalPublishStoragePort`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md).[`markPublishFailed`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md#markpublishfailed)
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`markPublishFailed`](../../../cap-nest/src/interfaces/PublishStoragePort.md#markpublishfailed)
 
 ***
 
@@ -208,7 +208,7 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:116](htt
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:136](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L136)
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:141](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L141)
 
 #### Parameters
 
@@ -222,15 +222,15 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:136](htt
 
 #### Implementation of
 
-[`TransactionalPublishStoragePort`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md).[`releaseExpiredClaims`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md#releaseexpiredclaims)
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`releaseExpiredClaims`](../../../cap-nest/src/interfaces/PublishStoragePort.md#releaseexpiredclaims)
 
 ***
 
 ### savePublish()
 
-> **savePublish**(`event`): `Promise`\<`string`\>
+> **savePublish**(`event`, `ctx?`): `Promise`\<`string`\>
 
-Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:67](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L67)
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:68](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L68)
 
 #### Parameters
 
@@ -238,21 +238,25 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:67](http
 
 [`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>
 
+##### ctx?
+
+[`CapOperationContext`](../../../cap-nest/src/interfaces/CapOperationContext.md)\<`EntityManager`\<`IDatabaseDriver`\<`Connection`\>\>\>
+
 #### Returns
 
 `Promise`\<`string`\>
 
 #### Implementation of
 
-[`TransactionalPublishStoragePort`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md).[`savePublish`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md#savepublish)
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`savePublish`](../../../cap-nest/src/interfaces/PublishStoragePort.md#savepublish)
 
 ***
 
-### savePublishWithTx()
+### ~~savePublishWithTx()~~
 
 > **savePublishWithTx**(`event`, `tx`): `Promise`\<`string`\>
 
-Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:73](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L73)
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:81](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L81)
 
 #### Parameters
 
@@ -262,12 +266,12 @@ Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:73](http
 
 ##### tx
 
-`unknown`
+`EntityManager`
 
 #### Returns
 
 `Promise`\<`string`\>
 
-#### Implementation of
+#### Deprecated
 
-[`TransactionalPublishStoragePort`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md).[`savePublishWithTx`](../../../cap-nest/src/interfaces/TransactionalPublishStoragePort.md#savepublishwithtx)
+Use savePublish(event, { tx }) instead.

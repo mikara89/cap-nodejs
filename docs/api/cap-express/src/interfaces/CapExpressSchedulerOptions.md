@@ -6,7 +6,7 @@
 
 # Interface: CapExpressSchedulerOptions
 
-Defined in: [cap-express/src/create-cap-express.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L19)
+Defined in: [cap-express/src/create-cap-express.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L21)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [cap-express/src/create-cap-express.ts:19](https://github.com/mikara
 
 > `optional` **batchSize?**: `number`
 
-Defined in: cap-core/dist/models/cap-options.d.ts:14
+Defined in: cap-core/dist/models/cap-options.d.ts:16
 
 #### Inherited from
 
@@ -30,7 +30,7 @@ Defined in: cap-core/dist/models/cap-options.d.ts:14
 
 > `optional` **disabled?**: `boolean`
 
-Defined in: cap-core/dist/models/cap-options.d.ts:19
+Defined in: cap-core/dist/models/cap-options.d.ts:21
 
 #### Inherited from
 
@@ -42,7 +42,7 @@ Defined in: cap-core/dist/models/cap-options.d.ts:19
 
 > `optional` **inboxRetryIntervalMs?**: `number`
 
-Defined in: [cap-express/src/create-cap-express.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L21)
+Defined in: [cap-express/src/create-cap-express.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L23)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [cap-express/src/create-cap-express.ts:21](https://github.com/mikara
 
 > `optional` **instanceId?**: `string`
 
-Defined in: cap-core/dist/models/cap-options.d.ts:18
+Defined in: cap-core/dist/models/cap-options.d.ts:20
 
 #### Inherited from
 
@@ -62,7 +62,7 @@ Defined in: cap-core/dist/models/cap-options.d.ts:18
 
 > `optional` **leaseMs?**: `number`
 
-Defined in: cap-core/dist/models/cap-options.d.ts:15
+Defined in: cap-core/dist/models/cap-options.d.ts:17
 
 #### Inherited from
 
@@ -74,7 +74,7 @@ Defined in: cap-core/dist/models/cap-options.d.ts:15
 
 > `optional` **maxInboxRetries?**: `number`
 
-Defined in: cap-core/dist/models/cap-options.d.ts:17
+Defined in: cap-core/dist/models/cap-options.d.ts:19
 
 #### Inherited from
 
@@ -86,7 +86,7 @@ Defined in: cap-core/dist/models/cap-options.d.ts:17
 
 > `optional` **maxRetries?**: `number`
 
-Defined in: cap-core/dist/models/cap-options.d.ts:16
+Defined in: cap-core/dist/models/cap-options.d.ts:18
 
 #### Inherited from
 
@@ -98,4 +98,4 @@ Defined in: cap-core/dist/models/cap-options.d.ts:16
 
 > `optional` **outboxIntervalMs?**: `number`
 
-Defined in: [cap-express/src/create-cap-express.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L20)
+Defined in: [cap-express/src/create-cap-express.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L22)

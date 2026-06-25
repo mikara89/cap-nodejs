@@ -6,7 +6,7 @@
 
 # Class: InMemoryPublishStorage
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:4
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:5
 
 ## Implements
 
@@ -28,7 +28,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:4
 
 > `readonly` **store**: `Map`\<`string`, [`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:5
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:6
 
 ## Methods
 
@@ -36,7 +36,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:5
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:7
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:8
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:7
 
 > **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:11
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:12
 
 #### Parameters
 
@@ -80,7 +80,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:11
 
 > **listPublish**(`options?`): `Promise`\<\{ `items`: [`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]; `total`: `number`; \}\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:12
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:13
 
 #### Parameters
 
@@ -116,7 +116,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:12
 
 > **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:8
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:9
 
 #### Parameters
 
@@ -142,7 +142,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:8
 
 > **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:9
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:10
 
 #### Parameters
 
@@ -172,7 +172,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:9
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:10
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:11
 
 #### Parameters
 
@@ -192,9 +192,9 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:10
 
 ### savePublish()
 
-> **savePublish**\<`T`\>(`event`): `Promise`\<`string`\>
+> **savePublish**\<`T`\>(`event`, `_ctx?`): `Promise`\<`string`\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:6
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:7
 
 #### Type Parameters
 
@@ -207,6 +207,10 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:6
 ##### event
 
 [`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<`T`\>
+
+##### \_ctx?
+
+[`CapOperationContext`](../../../cap-nest/src/interfaces/CapOperationContext.md)\<`unknown`\>
 
 #### Returns
 

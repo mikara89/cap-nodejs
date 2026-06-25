@@ -14,6 +14,7 @@
 - [CapScheduler](classes/CapScheduler.md)
 - [CapService](classes/CapService.md)
 - [CapSubscriberScanner](classes/CapSubscriberScanner.md)
+- [CapTransactionContext](classes/CapTransactionContext.md)
 - [LocalBus](classes/LocalBus.md)
 - [RetrySchedulerService](classes/RetrySchedulerService.md)
 
@@ -26,6 +27,7 @@
 - [CapModuleAsyncOptions](interfaces/CapModuleAsyncOptions.md)
 - [CapModuleFactory](interfaces/CapModuleFactory.md)
 - [CapModuleOptions](interfaces/CapModuleOptions.md)
+- [CapOperationContext](interfaces/CapOperationContext.md)
 - [CapPublishEvent](interfaces/CapPublishEvent.md)
 - [CapPublishMetadata](interfaces/CapPublishMetadata.md)
 - [CapPublishOptions](interfaces/CapPublishOptions.md)
@@ -33,6 +35,8 @@
 - [CapSchedulerOptions](interfaces/CapSchedulerOptions.md)
 - [CapSchedulerRuntimeOptions](interfaces/CapSchedulerRuntimeOptions.md)
 - [CapSubscribeOptions](interfaces/CapSubscribeOptions.md)
+- [CapTransactionManagerPort](interfaces/CapTransactionManagerPort.md)
+- [CapTransactionOptions](interfaces/CapTransactionOptions.md)
 - [ClaimUnpublishedOptions](interfaces/ClaimUnpublishedOptions.md)
 - [DashboardListOptions](interfaces/DashboardListOptions.md)
 - [DashboardListResult](interfaces/DashboardListResult.md)
@@ -63,6 +67,7 @@
 - [CapHeaderValue](type-aliases/CapHeaderValue.md)
 - [CapPublishStatus](type-aliases/CapPublishStatus.md)
 - [CapReceivedStatus](type-aliases/CapReceivedStatus.md)
+- [CapTransactionPropagation](type-aliases/CapTransactionPropagation.md)
 - [JsonPrimitive](type-aliases/JsonPrimitive.md)
 - [JsonValue](type-aliases/JsonValue.md)
 

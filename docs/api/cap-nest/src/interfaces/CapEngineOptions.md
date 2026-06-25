@@ -6,7 +6,7 @@
 
 # Interface: CapEngineOptions
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:19
+Defined in: cap-core/dist/engine/cap-engine.d.ts:22
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:19
 
 > `optional` **idGenerator?**: () => `string`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:28
+Defined in: cap-core/dist/engine/cap-engine.d.ts:31
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:28
 
 > `optional` **instanceId?**: `string`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:26
+Defined in: cap-core/dist/engine/cap-engine.d.ts:29
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:26
 
 > `optional` **logger?**: [`CapLogger`](CapLogger.md)
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:25
+Defined in: cap-core/dist/engine/cap-engine.d.ts:28
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:25
 
 > `optional` **now?**: () => `Date`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:27
+Defined in: cap-core/dist/engine/cap-engine.d.ts:30
 
 #### Returns
 
@@ -54,7 +54,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:27
 
 > **publisher**: [`PublisherPort`](PublisherPort.md)
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:22
+Defined in: cap-core/dist/engine/cap-engine.d.ts:25
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:22
 
 > **publishStorage**: [`PublishStoragePort`](PublishStoragePort.md)
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:20
+Defined in: cap-core/dist/engine/cap-engine.d.ts:23
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:20
 
 > **receivedStorage**: [`ReceivedStoragePort`](ReceivedStoragePort.md)
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:21
+Defined in: cap-core/dist/engine/cap-engine.d.ts:24
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:21
 
 > `optional` **scheduler?**: `CapSchedulerOptions`
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:24
+Defined in: cap-core/dist/engine/cap-engine.d.ts:27
 
 ***
 
@@ -86,4 +86,20 @@ Defined in: cap-core/dist/engine/cap-engine.d.ts:24
 
 > **subscriber**: [`SubscriberPort`](SubscriberPort.md)
 
-Defined in: cap-core/dist/engine/cap-engine.d.ts:23
+Defined in: cap-core/dist/engine/cap-engine.d.ts:26
+
+***
+
+### transactionContext?
+
+> `optional` **transactionContext?**: [`CapTransactionContext`](../classes/CapTransactionContext.md)\<`unknown`\>
+
+Defined in: cap-core/dist/engine/cap-engine.d.ts:33
+
+***
+
+### transactionManager?
+
+> `optional` **transactionManager?**: [`CapTransactionManagerPort`](CapTransactionManagerPort.md)\<`unknown`\>
+
+Defined in: cap-core/dist/engine/cap-engine.d.ts:32

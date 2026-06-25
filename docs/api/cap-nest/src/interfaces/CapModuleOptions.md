@@ -6,7 +6,7 @@
 
 # Interface: CapModuleOptions
 
-Defined in: [cap-nest/src/cap/cap.options.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L25)
+Defined in: [cap-nest/src/cap/cap.options.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L29)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:25](https://github.com/mikara89/cap
 
 > `optional` **imports?**: (`Type`\<`any`\> \| `ForwardReference`\<`any`\> \| `DynamicModule` \| `Promise`\<`DynamicModule`\>)[]
 
-Defined in: [cap-nest/src/cap/cap.options.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L26)
+Defined in: [cap-nest/src/cap/cap.options.ts:30](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L30)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:26](https://github.com/mikara89/cap
 
 > `optional` **init?**: [`InitOptions`](InitOptions.md)
 
-Defined in: [cap-nest/src/cap/cap.options.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L27)
+Defined in: [cap-nest/src/cap/cap.options.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L31)
 
 ***
 
@@ -30,4 +30,20 @@ Defined in: [cap-nest/src/cap/cap.options.ts:27](https://github.com/mikara89/cap
 
 > `optional` **scheduler?**: [`CapSchedulerOptions`](CapSchedulerOptions.md)
 
-Defined in: [cap-nest/src/cap/cap.options.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L28)
+Defined in: [cap-nest/src/cap/cap.options.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L32)
+
+***
+
+### transactionContext?
+
+> `optional` **transactionContext?**: [`CapTransactionContext`](../classes/CapTransactionContext.md)\<`unknown`\>
+
+Defined in: [cap-nest/src/cap/cap.options.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L34)
+
+***
+
+### transactionManager?
+
+> `optional` **transactionManager?**: [`CapTransactionManagerPort`](CapTransactionManagerPort.md)\<`unknown`\>
+
+Defined in: [cap-nest/src/cap/cap.options.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L33)

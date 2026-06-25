@@ -6,7 +6,7 @@
 
 # Interface: MarkPublishFailedOptions
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L21)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L22)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:21](https://gith
 
 > **maxRetries**: `number`
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L22)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L23)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:22](https://gith
 
 > **nextRetryAt**: `Date`
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L23)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L24)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:23](https://gith
 
 > **now**: `Date`
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L24)
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L25)

@@ -6,7 +6,7 @@
 
 # Class: CapEngine
 
-Defined in: [cap-core/src/engine/cap-engine.ts:68](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L68)
+Defined in: [cap-core/src/engine/cap-engine.ts:80](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L80)
 
 ## Constructors
 
@@ -14,7 +14,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:68](https://github.com/mikara89/c
 
 > **new CapEngine**(`options`): `CapEngine`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:79](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L79)
+Defined in: [cap-core/src/engine/cap-engine.ts:93](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L93)
 
 #### Parameters
 
@@ -32,7 +32,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:79](https://github.com/mikara89/c
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/engine/cap-engine.ts:216](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L216)
+Defined in: [cap-core/src/engine/cap-engine.ts:242](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L242)
 
 #### Returns
 
@@ -44,7 +44,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:216](https://github.com/mikara89/
 
 > **dispatchOutboxBatch**(): `Promise`\<`number`\>
 
-Defined in: [cap-core/src/engine/cap-engine.ts:174](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L174)
+Defined in: [cap-core/src/engine/cap-engine.ts:200](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L200)
 
 #### Returns
 
@@ -56,7 +56,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:174](https://github.com/mikara89/
 
 > **publish**\<`T`\>(`topic`, `payload`, `options?`): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/engine/cap-engine.ts:90](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L90)
+Defined in: [cap-core/src/engine/cap-engine.ts:106](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L106)
 
 #### Type Parameters
 
@@ -88,7 +88,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:90](https://github.com/mikara89/c
 
 > **retryInboxBatch**(): `Promise`\<`number`\>
 
-Defined in: [cap-core/src/engine/cap-engine.ts:198](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L198)
+Defined in: [cap-core/src/engine/cap-engine.ts:224](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L224)
 
 #### Returns
 
@@ -100,7 +100,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:198](https://github.com/mikara89/
 
 > **retryReceived**(`rec`): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/engine/cap-engine.ts:163](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L163)
+Defined in: [cap-core/src/engine/cap-engine.ts:189](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L189)
 
 #### Parameters
 
@@ -118,7 +118,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:163](https://github.com/mikara89/
 
 > **subscribe**\<`T`\>(`topic`, `group`, `handler`): `void`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:127](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L127)
+Defined in: [cap-core/src/engine/cap-engine.ts:153](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L153)
 
 #### Type Parameters
 
@@ -143,3 +143,31 @@ Defined in: [cap-core/src/engine/cap-engine.ts:127](https://github.com/mikara89/
 #### Returns
 
 `void`
+
+***
+
+### transaction()
+
+> **transaction**\<`T`\>(`fn`, `options?`): `Promise`\<`T`\>
+
+Defined in: [cap-core/src/engine/cap-engine.ts:142](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L142)
+
+#### Type Parameters
+
+##### T
+
+`T`
+
+#### Parameters
+
+##### fn
+
+(`ctx`) => `Promise`\<`T`\>
+
+##### options?
+
+[`CapTransactionOptions`](../interfaces/CapTransactionOptions.md) = `{}`
+
+#### Returns
+
+`Promise`\<`T`\>

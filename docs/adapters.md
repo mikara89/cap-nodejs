@@ -49,6 +49,21 @@ older adapters and examples.
 `MarkPublishFailedOptions` includes `now` so storage adapters can persist
 failure timestamps consistently with scheduler decisions.
 
+### Publish Storage Conformance
+
+v2.2 adds reusable publish-storage contract tests in
+`@mikara89/cap-testing`. Storage adapters should run
+`definePublishStorageContract()` in their test suite and pass capability flags
+for transactions, rollback, and safe concurrent claiming. Unsupported
+capabilities should be skipped explicitly by the contract, not hidden in custom
+test setup.
+
+Future v2.3 storage adapters, including planned Knex, TypeORM, and Prisma
+packages, must pass the relevant publish-storage contract suite before they are
+treated as first-party adapters. The contract uses `savePublish(event, ctx?)` as
+the primary API. `savePublishWithTx(event, tx)` remains deprecated
+compatibility only.
+
 `ReceivedStoragePort` stores inbox records with dedupe-key idempotency and
 dead-letter-aware retry state:
 
@@ -94,29 +109,29 @@ Important subscriber invariant:
 
 ## Planned Storage Adapter Matrix
 
-| Adapter | Status |
-| ------- | ------ |
-| MikroORM | Current first-party adapter: `@mikara89/cap-storage-mikro-orm`. |
-| Knex | Planned v2.3: `@mikara89/cap-storage-knex`. |
-| TypeORM | Planned v2.3: `@mikara89/cap-storage-typeorm`. |
-| Prisma | Planned v2.3: `@mikara89/cap-storage-prisma`. |
-| Drizzle | Future candidate. |
-| Sequelize | Future candidate. |
-| Mongoose | Future candidate. |
-| raw `pg` or custom SQL | Future or custom adapter candidate. |
+| Adapter                | Status                                                          |
+| ---------------------- | --------------------------------------------------------------- |
+| MikroORM               | Current first-party adapter: `@mikara89/cap-storage-mikro-orm`. |
+| Knex                   | Planned v2.3: `@mikara89/cap-storage-knex`.                     |
+| TypeORM                | Planned v2.3: `@mikara89/cap-storage-typeorm`.                  |
+| Prisma                 | Planned v2.3: `@mikara89/cap-storage-prisma`.                   |
+| Drizzle                | Future candidate.                                               |
+| Sequelize              | Future candidate.                                               |
+| Mongoose               | Future candidate.                                               |
+| raw `pg` or custom SQL | Future or custom adapter candidate.                             |
 
 ## Planned Transport Adapter Matrix
 
-| Adapter | Status |
-| ------- | ------ |
-| Azure Service Bus | Current first-party adapter: `@mikara89/cap-transport-azure-servicebus`. |
-| NestJS microservices | Current bridge adapter: `@mikara89/cap-transport-nestjs-microservices`. |
-| RabbitMQ | Planned v2.4: `@mikara89/cap-transport-rabbitmq`. |
-| Kafka | Planned v2.4: `@mikara89/cap-transport-kafka`. |
-| AWS SNS/SQS | Planned v2.4: `@mikara89/cap-transport-aws-sns-sqs`. |
-| Google Pub/Sub | Likely v2.5 candidate. |
-| NATS JetStream | Likely v2.5 candidate. |
-| Redis Streams and MQTT | Later optional candidates. |
+| Adapter                | Status                                                                   |
+| ---------------------- | ------------------------------------------------------------------------ |
+| Azure Service Bus      | Current first-party adapter: `@mikara89/cap-transport-azure-servicebus`. |
+| NestJS microservices   | Current bridge adapter: `@mikara89/cap-transport-nestjs-microservices`.  |
+| RabbitMQ               | Planned v2.4: `@mikara89/cap-transport-rabbitmq`.                        |
+| Kafka                  | Planned v2.4: `@mikara89/cap-transport-kafka`.                           |
+| AWS SNS/SQS            | Planned v2.4: `@mikara89/cap-transport-aws-sns-sqs`.                     |
+| Google Pub/Sub         | Likely v2.5 candidate.                                                   |
+| NATS JetStream         | Likely v2.5 candidate.                                                   |
+| Redis Streams and MQTT | Later optional candidates.                                               |
 
 ## First-Party Storage: MikroORM
 
@@ -181,6 +196,7 @@ portable durable broker acknowledgment.
 
 - Bind and export the CAP Symbol tokens, not string literals.
 - Implement claim/lease outbox dispatch atomically for production stores.
+- Run the publish-storage contract tests from `@mikara89/cap-testing`.
 - Enforce inbox idempotency with a stable `dedupeKey`.
 - Preserve payload and headers without transport-specific coupling.
 - Return due inbox retries only when `status = failed` and `nextRetry <= now`.

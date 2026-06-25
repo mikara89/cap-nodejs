@@ -6,7 +6,7 @@
 
 # Interface: ClaimUnpublishedOptions
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L11)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L12)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:11](https://github.com/m
 
 > **limit**: `number`
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L12)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L13)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:12](https://github.com/m
 
 > **lockedBy**: `string`
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L13)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L14)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:13](https://github.com/m
 
 > **lockUntil**: `Date`
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L14)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L15)
 
 ***
 
@@ -38,4 +38,4 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:14](https://github.com/m
 
 > **now**: `Date`
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L15)
+Defined in: [cap-core/src/ports/publish-storage.port.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L16)

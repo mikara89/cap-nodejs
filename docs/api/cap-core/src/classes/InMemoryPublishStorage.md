@@ -6,7 +6,7 @@
 
 # Class: InMemoryPublishStorage
 
-Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L9)
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L10)
 
 ## Implements
 
@@ -28,7 +28,7 @@ Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:9](https://github
 
 > `readonly` **store**: `Map`\<`string`, [`CapPublishEvent`](../interfaces/CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>\>
 
-Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L10)
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L11)
 
 ## Methods
 
@@ -36,7 +36,7 @@ Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:10](https://githu
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](../interfaces/CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]\>
 
-Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L19)
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L21)
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:19](https://githu
 
 > **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](../interfaces/CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:77](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L77)
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:79](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L79)
 
 #### Parameters
 
@@ -80,7 +80,7 @@ Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:77](https://githu
 
 > **listPublish**(`options?`): `Promise`\<\{ `items`: [`CapPublishEvent`](../interfaces/CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]; `total`: `number`; \}\>
 
-Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:82](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L82)
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:84](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L84)
 
 #### Parameters
 
@@ -116,7 +116,7 @@ Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:82](https://githu
 
 > **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L34)
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:36](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L36)
 
 #### Parameters
 
@@ -142,7 +142,7 @@ Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:34](https://githu
 
 > **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:44](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L44)
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:46](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L46)
 
 #### Parameters
 
@@ -172,7 +172,7 @@ Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:44](https://githu
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:62](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L62)
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:64](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L64)
 
 #### Parameters
 
@@ -192,9 +192,9 @@ Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:62](https://githu
 
 ### savePublish()
 
-> **savePublish**\<`T`\>(`event`): `Promise`\<`string`\>
+> **savePublish**\<`T`\>(`event`, `_ctx?`): `Promise`\<`string`\>
 
-Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L12)
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L13)
 
 #### Type Parameters
 
@@ -207,6 +207,10 @@ Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:12](https://githu
 ##### event
 
 [`CapPublishEvent`](../interfaces/CapPublishEvent.md)\<`T`\>
+
+##### \_ctx?
+
+[`CapOperationContext`](../interfaces/CapOperationContext.md)\<`unknown`\>
 
 #### Returns
 
