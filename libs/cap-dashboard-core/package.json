@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-dashboard-core",
-  "version": "0.7.0-beta.4",
+  "version": "2.1.1",
   "description": "Framework-agnostic CAP dashboard service and DTOs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,7 +29,7 @@
     "lint": "eslint \"src/**/*.ts\" --fix"
   },
   "peerDependencies": {
-    "@mikara89/cap-core": "^0.7.0-beta.3"
+    "@mikara89/cap-core": "^2.1.1"
   },
   "devDependencies": {
     "@mikara89/cap-core": "file:../cap-core",

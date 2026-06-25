@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-transport-nestjs-microservices",
-  "version": "0.7.0-beta.4",
+  "version": "2.1.1",
   "description": "NestJS ClientProxy transport adapter for CAP",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,7 +29,7 @@
     "lint": "eslint \"src/**/*.ts\" --fix"
   },
   "peerDependencies": {
-    "@mikara89/cap-core": "^0.7.0-beta.3",
+    "@mikara89/cap-core": "^2.1.1",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/microservices": "^11.0.0",
