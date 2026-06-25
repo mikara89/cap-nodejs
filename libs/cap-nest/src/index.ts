@@ -27,6 +27,7 @@ export * from './cap/utils/transaction.util';
 export {
   CapEngine,
   CapScheduler,
+  CapTransactionContext,
   calculateBackoff,
   expJitter,
 } from '@mikara89/cap-core';
@@ -36,6 +37,9 @@ export type {
   CapLogger,
   CapOperationContext,
   CapSchedulerRuntimeOptions,
+  CapTransactionManagerPort,
+  CapTransactionOptions,
+  CapTransactionPropagation,
   DashboardListOptions,
   DashboardListResult,
   PublishMetadata,

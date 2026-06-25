@@ -213,6 +213,7 @@ function createCapEngineProvider(): Provider {
   return {
     provide: CAP_ENGINE,
     useFactory: (
+      options: CapModuleOptions,
       pubStorage: IPublishStorage,
       recStorage: IReceivedStorage,
       publisher: IPublisher,
@@ -226,8 +227,11 @@ function createCapEngineProvider(): Provider {
         subscriber,
         scheduler: schedulerOptions,
         logger: createNestLogger(CapEngine.name),
+        transactionManager: options.transactionManager,
+        transactionContext: options.transactionContext,
       }),
     inject: [
+      CAP_MODULE_OPTIONS,
       PUBLISH_STORAGE,
       RECEIVED_STORAGE,
       PUBLISHER,

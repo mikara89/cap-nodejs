@@ -23,12 +23,15 @@ export * from './ports/publish-storage.port';
 export * from './ports/publisher.port';
 export * from './ports/received-storage.port';
 export * from './ports/subscriber.port';
+export * from './ports/transaction-manager.port';
 
 export * from './testing/fake-publisher';
 export * from './testing/fake-subscriber';
 export * from './testing/in-memory-publish-storage';
 export * from './testing/in-memory-received-storage';
 export * from './testing/local-bus';
+
+export * from './transactions/cap-transaction-context';
 
 export * from './utils/cap-message-id.util';
 export * from './utils/dedupe-key.util';

@@ -33,6 +33,11 @@ import {
   type SubscribeMetadata,
   type SubscriberPort,
 } from '../ports/subscriber.port';
+import {
+  type CapTransactionManagerPort,
+  type CapTransactionOptions,
+} from '../ports/transaction-manager.port';
+import { type CapTransactionContext } from '../transactions/cap-transaction-context';
 
 type Handler<T = unknown> = (payload: T, headers?: CapHeaders) => Promise<void>;
 type HandlerMap = Map<string, Map<string, Handler<JsonValue>>>;
@@ -56,7 +61,12 @@ export interface CapEngineOptions {
   instanceId?: string;
   now?: () => Date;
   idGenerator?: () => string;
+  transactionManager?: CapTransactionManagerPort;
+  transactionContext?: CapTransactionContext;
 }
+
+const TRANSACTION_MANAGER_NOT_CONFIGURED =
+  'CAP transaction manager is not configured. Pass an explicit ctx/tx to publish(), or configure a CapTransactionManagerPort.';
 
 const DEFAULT_SCHEDULER_OPTIONS: ResolvedCapEngineSchedulerOptions = {
   batchSize: 200,
@@ -76,6 +86,8 @@ export class CapEngine {
   private readonly logger: CapLogger;
   private readonly now: () => Date;
   private readonly idGenerator: () => string;
+  private readonly transactionManager?: CapTransactionManagerPort;
+  private readonly transactionContext?: CapTransactionContext;
   private readonly handlers: HandlerMap = new Map();
 
   constructor(options: CapEngineOptions) {
@@ -87,6 +99,8 @@ export class CapEngine {
     this.logger = options.logger ?? noopLogger;
     this.now = options.now ?? (() => new Date());
     this.idGenerator = options.idGenerator ?? randomUUID;
+    this.transactionManager = options.transactionManager;
+    this.transactionContext = options.transactionContext;
   }
 
   async publish<T = JsonValue>(
@@ -109,7 +123,7 @@ export class CapEngine {
       publishedAt: null,
     };
 
-    const ctx = resolveOperationContext(options);
+    const ctx = this.resolvePublishOperationContext(options);
     const hasTx = hasOperationTransaction(ctx);
     const dbId = await this.savePublishEvent(evt, ctx);
 
@@ -123,6 +137,17 @@ export class CapEngine {
     if (options.immediate === true || !hasTx) {
       await this.emitPersistedEvent({ ...evt, id: dbId });
     }
+  }
+
+  transaction<T>(
+    fn: (ctx: CapOperationContext) => Promise<T>,
+    options: CapTransactionOptions = {},
+  ): Promise<T> {
+    if (!this.transactionManager) {
+      throw new Error(TRANSACTION_MANAGER_NOT_CONFIGURED);
+    }
+
+    return this.transactionManager.runInTransaction(options, fn);
   }
 
   subscribe<T = unknown>(
@@ -230,6 +255,26 @@ export class CapEngine {
     }
 
     return this.publishStorage.savePublish(event, ctx);
+  }
+
+  private resolvePublishOperationContext<TTx>(
+    options?: CapPublishOptions<TTx>,
+  ): CapOperationContext<TTx> | undefined {
+    const explicit = resolveOperationContext(options);
+    if (explicit) return explicit;
+
+    return this.resolveAmbientOperationContext() as
+      | CapOperationContext<TTx>
+      | undefined;
+  }
+
+  private resolveAmbientOperationContext():
+    | CapOperationContext<unknown>
+    | undefined {
+    return (
+      this.transactionManager?.getCurrentContext?.() ??
+      this.transactionContext?.current()
+    );
   }
 
   private async emitPersistedEvent(

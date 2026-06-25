@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/require-await */
 import { CapService } from './cap.service';
 import {
+  CapEngine,
+  type CapOperationContext,
+  type CapTransactionManagerPort,
+  type CapTransactionOptions,
+} from '@mikara89/cap-core';
+import {
   createInMemoryPublisher,
   createInMemorySubscriber,
   createInMemoryPublishStorage,
@@ -150,4 +156,43 @@ describe('CapService (unit)', () => {
     expect(transactionalPubStore.savePublish).not.toHaveBeenCalled();
     expect(publisher.emit).not.toHaveBeenCalled();
   });
+
+  it('transaction delegates to the configured core transaction manager', async () => {
+    const transactionManager = new FakeTransactionManager({ tx: 'nest-tx' });
+    cap = new CapService(
+      new CapEngine({
+        publishStorage: pubStore,
+        receivedStorage: recStore,
+        publisher,
+        subscriber,
+        scheduler: schedulerOptions,
+        transactionManager,
+      }),
+    );
+    const options = { propagation: 'required' as const };
+
+    await expect(
+      cap.transaction(async (ctx) => {
+        await Promise.resolve();
+        expect(ctx.tx).toBe('nest-tx');
+        return 'ok';
+      }, options),
+    ).resolves.toBe('ok');
+
+    expect(transactionManager.runInTransactionCalls).toEqual([options]);
+  });
 });
+
+class FakeTransactionManager implements CapTransactionManagerPort {
+  readonly runInTransactionCalls: CapTransactionOptions[] = [];
+
+  constructor(private readonly ctx: { tx: unknown }) {}
+
+  runInTransaction<T>(
+    options: CapTransactionOptions,
+    fn: (ctx: CapOperationContext) => Promise<T>,
+  ): Promise<T> {
+    this.runInTransactionCalls.push(options);
+    return fn(this.ctx);
+  }
+}

@@ -1,4 +1,4 @@
-import { CapEngine } from './cap-engine';
+import { CapEngine, type CapEngineOptions } from './cap-engine';
 import { type CapHeaders } from '../models/cap-headers.type';
 import { type CapOperationContext } from '../models/cap-operation-context';
 import { type CapPublishEvent } from '../models/cap-publish-event';
@@ -20,6 +20,11 @@ import {
   type SubscribeMetadata,
   type SubscriberPort,
 } from '../ports/subscriber.port';
+import {
+  type CapTransactionManagerPort,
+  type CapTransactionOptions,
+} from '../ports/transaction-manager.port';
+import { CapTransactionContext } from '../transactions/cap-transaction-context';
 
 describe('CapEngine', () => {
   const scheduler = {
@@ -37,7 +42,7 @@ describe('CapEngine', () => {
   let subscriber: FakeSubscriber;
   let id = 0;
 
-  const createEngine = (): CapEngine =>
+  const createEngine = (options: Partial<CapEngineOptions> = {}): CapEngine =>
     new CapEngine({
       publishStorage,
       receivedStorage,
@@ -46,6 +51,7 @@ describe('CapEngine', () => {
       scheduler,
       idGenerator: () => `id-${++id}`,
       now: () => new Date('2026-01-01T00:00:00.000Z'),
+      ...options,
     });
 
   beforeEach(() => {
@@ -129,6 +135,47 @@ describe('CapEngine', () => {
     expect(publisher.emitted).toHaveLength(0);
   });
 
+  it('publish uses ambient transaction manager context when no explicit ctx or tx exists', async () => {
+    const ambientCtx = { tx: { tx: 'manager' } };
+    const transactionManager = new FakeTransactionManager(ambientCtx);
+    const engine = createEngine({ transactionManager });
+
+    await engine.publish('t-manager-ambient', { ok: true });
+
+    expect(transactionManager.getCurrentContextCalls).toBe(1);
+    expect(publishStorage.tx).toBe(ambientCtx.tx);
+    expect(publisher.emitted).toHaveLength(0);
+    expect(publishStorage.store.get('id-1')?.status).toBe('pending');
+  });
+
+  it('publish uses ambient AsyncLocalStorage context when no explicit ctx or tx exists', async () => {
+    const transactionContext = new CapTransactionContext();
+    const ambientCtx = { tx: { tx: 'als' } };
+    const engine = createEngine({ transactionContext });
+
+    await transactionContext.run(ambientCtx, async () => {
+      await engine.publish('t-als-ambient', { ok: true });
+    });
+
+    expect(publishStorage.tx).toBe(ambientCtx.tx);
+    expect(publisher.emitted).toHaveLength(0);
+    expect(publishStorage.store.get('id-1')?.status).toBe('pending');
+  });
+
+  it('explicit tx wins over ambient context', async () => {
+    const ambientCtx = { tx: { tx: 'ambient' } };
+    const explicitTx = { tx: 'explicit' };
+    const transactionManager = new FakeTransactionManager(ambientCtx);
+    const engine = createEngine({ transactionManager });
+
+    await engine.publish('t-explicit-tx', { ok: true }, { tx: explicitTx });
+
+    expect(transactionManager.getCurrentContextCalls).toBe(0);
+    expect(publishStorage.tx).toBe(explicitTx);
+    expect(publishStorage.tx).not.toBe(ambientCtx.tx);
+    expect(publisher.emitted).toHaveLength(0);
+  });
+
   it('publish with tx and immediate true attempts broker emit', async () => {
     const engine = createEngine();
     const tx = { tx: true };
@@ -142,6 +189,47 @@ describe('CapEngine', () => {
     expect(publishStorage.tx).toBe(tx);
     expect(publisher.emitted).toHaveLength(1);
     expect(publishStorage.store.get('id-1')?.status).toBe('published');
+  });
+
+  it('ambient tx with immediate true attempts broker emit', async () => {
+    const ambientCtx = { tx: { tx: 'ambient-immediate' } };
+    const transactionManager = new FakeTransactionManager(ambientCtx);
+    const engine = createEngine({ transactionManager });
+
+    await engine.publish(
+      't-ambient-immediate',
+      { ok: true },
+      { immediate: true },
+    );
+
+    expect(publishStorage.tx).toBe(ambientCtx.tx);
+    expect(publisher.emitted).toHaveLength(1);
+    expect(publishStorage.store.get('id-1')?.status).toBe('published');
+  });
+
+  it('transaction calls configured transactionManager.runInTransaction', async () => {
+    const ctx = { tx: { tx: 'run' } };
+    const transactionManager = new FakeTransactionManager(ctx);
+    const engine = createEngine({ transactionManager });
+    const options = { isolationLevel: 'serializable' };
+
+    await expect(
+      engine.transaction(async (transactionCtx) => {
+        await Promise.resolve();
+        expect(transactionCtx).toBe(ctx);
+        return 'ok';
+      }, options),
+    ).resolves.toBe('ok');
+
+    expect(transactionManager.runInTransactionCalls).toEqual([options]);
+  });
+
+  it('transaction throws clear error when no transaction manager is configured', () => {
+    const engine = createEngine();
+
+    expect(() => engine.transaction(() => Promise.resolve(undefined))).toThrow(
+      'CAP transaction manager is not configured. Pass an explicit ctx/tx to publish(), or configure a CapTransactionManagerPort.',
+    );
   });
 
   it('legacy savePublishWithTx is used when implemented and ctx.tx exists', async () => {
@@ -314,6 +402,26 @@ class FakeSubscriber implements SubscriberPort {
     for (const handler of handlers) {
       await handler(payload, headers, metadata);
     }
+  }
+}
+
+class FakeTransactionManager implements CapTransactionManagerPort {
+  readonly runInTransactionCalls: CapTransactionOptions[] = [];
+  getCurrentContextCalls = 0;
+
+  constructor(private readonly ctx?: CapOperationContext) {}
+
+  runInTransaction<T>(
+    options: CapTransactionOptions,
+    fn: (ctx: CapOperationContext) => Promise<T>,
+  ): Promise<T> {
+    this.runInTransactionCalls.push(options);
+    return fn(this.ctx ?? { tx: { tx: 'fake' } });
+  }
+
+  getCurrentContext(): CapOperationContext | undefined {
+    this.getCurrentContextCalls += 1;
+    return this.ctx;
   }
 }
 

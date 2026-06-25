@@ -5,6 +5,9 @@ import {
   FakeSubscriber,
   InMemoryPublishStorage,
   InMemoryReceivedStorage,
+  type CapOperationContext,
+  type CapTransactionManagerPort,
+  type CapTransactionOptions,
   type InitOptions,
 } from '@mikara89/cap-core';
 
@@ -216,6 +219,28 @@ describe('createCapExpress', () => {
 
     expect(cap.healthRouter()).toBeDefined();
   });
+
+  it('exposes transaction through the core engine', async () => {
+    const transactionManager = new FakeTransactionManager({ tx: 'express-tx' });
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+      transactionManager,
+    });
+    const options = { readOnly: true };
+
+    await expect(
+      cap.transaction(async (ctx) => {
+        await Promise.resolve();
+        expect(ctx.tx).toBe('express-tx');
+        return 'ok';
+      }, options),
+    ).resolves.toBe('ok');
+
+    expect(transactionManager.runInTransactionCalls).toEqual([options]);
+  });
 });
 
 function withInitializer<T extends object>(
@@ -234,6 +259,20 @@ function withInitializer<T extends object>(
 
 class ClosableFakeSubscriber extends FakeSubscriber {
   close = jest.fn(() => Promise.resolve());
+}
+
+class FakeTransactionManager implements CapTransactionManagerPort {
+  readonly runInTransactionCalls: CapTransactionOptions[] = [];
+
+  constructor(private readonly ctx: { tx: unknown }) {}
+
+  runInTransaction<T>(
+    options: CapTransactionOptions,
+    fn: (ctx: CapOperationContext) => Promise<T>,
+  ): Promise<T> {
+    this.runInTransactionCalls.push(options);
+    return fn(this.ctx);
+  }
 }
 
 async function waitFor(assertion: () => boolean): Promise<void> {

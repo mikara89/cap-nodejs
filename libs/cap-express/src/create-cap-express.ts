@@ -5,8 +5,10 @@ import {
   type CapEngineOptions,
   type CapHeaders,
   type CapLogger,
+  type CapOperationContext,
   type CapPublishOptions,
   type CapSchedulerOptions,
+  type CapTransactionOptions,
   type InitOptions,
   type JsonValue,
   type PublishStoragePort,
@@ -31,6 +33,8 @@ export interface CreateCapExpressOptions {
   instanceId?: string;
   now?: CapEngineOptions['now'];
   idGenerator?: CapEngineOptions['idGenerator'];
+  transactionManager?: CapEngineOptions['transactionManager'];
+  transactionContext?: CapEngineOptions['transactionContext'];
   autoStart?: boolean;
   init?: InitOptions;
 }
@@ -48,6 +52,10 @@ export interface CapExpressApp {
     group: string,
     handler: (payload: T, headers?: CapHeaders) => Promise<void>,
   ): Promise<void>;
+  transaction<T>(
+    fn: (ctx: CapOperationContext) => Promise<T>,
+    options?: CapTransactionOptions,
+  ): Promise<T>;
   start(): Promise<void>;
   stop(): Promise<void>;
   healthRouter(): Router;
@@ -70,6 +78,8 @@ export function createCapExpress(
     instanceId: options.instanceId,
     now: options.now,
     idGenerator: options.idGenerator,
+    transactionManager: options.transactionManager,
+    transactionContext: options.transactionContext,
   });
   const scheduler = new CapScheduler(
     engine,
@@ -99,6 +109,8 @@ export function createCapExpress(
       engine.subscribe(topic, group, handler);
       await Promise.resolve();
     },
+    transaction: (fn, transactionOptions) =>
+      engine.transaction(fn, transactionOptions),
     start: async () => {
       if (started) {
         return;

@@ -17,7 +17,20 @@ await cap.publish('user.created', payload, { ctx: { tx: em } });
 
 For MikroORM, `em` is the transactional `EntityManager`.
 
+Transaction manager style:
+
+```ts
+await cap.transaction(async (ctx) => {
+  await userRepo.create(input, ctx);
+  await cap.publish('user.created', payload, { ctx });
+});
+```
+
 When both are present, `ctx` wins over `tx`.
+
+Explicit `ctx` and `tx` always win over ambient transaction context. Ambient
+context from a configured transaction manager or `CapTransactionContext` is
+convenience only.
 
 When `tx` or `ctx.tx` is provided, CAP saves the outbox row inside that
 transaction and defers broker emit by default. The scheduler dispatches after

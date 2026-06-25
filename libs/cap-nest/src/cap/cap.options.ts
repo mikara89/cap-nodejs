@@ -1,4 +1,8 @@
 import type { ModuleMetadata } from '@nestjs/common';
+import type {
+  CapTransactionContext,
+  CapTransactionManagerPort,
+} from '@mikara89/cap-core';
 import type { InitOptions } from './abstractions/initializer.interface';
 
 export const CAP_MODULE_OPTIONS = Symbol('CAP_MODULE_OPTIONS');
@@ -26,4 +30,6 @@ export interface CapModuleOptions {
   imports?: ModuleMetadata['imports'];
   init?: InitOptions;
   scheduler?: CapSchedulerOptions;
+  transactionManager?: CapTransactionManagerPort;
+  transactionContext?: CapTransactionContext;
 }

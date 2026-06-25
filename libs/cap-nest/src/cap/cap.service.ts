@@ -2,7 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   CapEngine,
   type CapLogger,
+  type CapOperationContext,
   type CapPublishOptions,
+  type CapTransactionOptions,
 } from '@mikara89/cap-core';
 
 import {
@@ -29,6 +31,7 @@ const DEFAULT_SCHEDULER_OPTIONS: ResolvedCapSchedulerOptions = {
 export type {
   CapOperationContext,
   CapPublishOptions,
+  CapTransactionOptions,
 } from '@mikara89/cap-core';
 
 @Injectable()
@@ -85,6 +88,13 @@ export class CapService {
     handler: Handler<T>,
   ): void {
     this.engine.subscribe(topic, group, handler as Handler<JsonValue>);
+  }
+
+  transaction<T>(
+    fn: (ctx: CapOperationContext) => Promise<T>,
+    options?: CapTransactionOptions,
+  ): Promise<T> {
+    return this.engine.transaction(fn, options);
   }
 
   retryReceived(rec: CapReceivedEvent): Promise<void> {

@@ -34,6 +34,20 @@ New code can pass a CAP operation context:
 await cap.publish('user.created', payload, { ctx: { tx: em } });
 ```
 
+If a `CapTransactionManagerPort` is configured, use `transaction()` to run work
+with a manager-provided context:
+
+```ts
+await cap.transaction(async (ctx) => {
+  await userRepo.create(input, ctx);
+  await cap.publish('user.created', payload, { ctx });
+});
+```
+
+Explicit `ctx` and `tx` always win over ambient transaction context. Ambient
+context from a transaction manager or `CapTransactionContext` is convenience
+only.
+
 When `tx` or `ctx.tx` is provided, CAP saves the outbox row inside that
 transaction and defers broker emit by default. The scheduler dispatches after
 commit. Use `immediate: true` only when intentionally attempting broker emit in
