@@ -16,6 +16,8 @@ npm run examples:check
   publisher and subscriber.
 - [mikroorm-azure-servicebus.ts](mikroorm-azure-servicebus.ts) - production-style
   MikroORM storage and Azure Service Bus transport registration.
+- [knex-storage.ts](knex-storage.ts) - framework-free Knex storage setup and
+  explicit transaction publishing.
 - [dashboard.ts](dashboard.ts) - dashboard registration with a local-only sample
   guard.
 - [nestjs-microservices-bridge.ts](nestjs-microservices-bridge.ts) - publishing

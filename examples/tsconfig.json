@@ -27,6 +27,8 @@
       ],
       "@mikara89/cap-storage-mikro-orm": ["libs/cap-storage-mikro-orm/src"],
       "@mikara89/cap-storage-mikro-orm/*": ["libs/cap-storage-mikro-orm/src/*"],
+      "@mikara89/cap-storage-knex": ["libs/cap-storage-knex/src"],
+      "@mikara89/cap-storage-knex/*": ["libs/cap-storage-knex/src/*"],
       "@mikara89/cap-transport-azure-servicebus": [
         "libs/cap-transport-azure-servicebus/src"
       ],

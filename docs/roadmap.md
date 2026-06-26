@@ -51,16 +51,15 @@ generic SQL core are not part of the v2.2 minimum scope.
 
 ## v2.3 Storage Contract Hardening and Storage Reach
 
-CAP starts v2.3 with storage contract hardening, then adds first-party Knex,
-TypeORM, and Prisma storage adapters after the shared foundation is in place.
+CAP starts v2.3 with storage contract hardening and adds first-party Knex
+storage. TypeORM and Prisma follow after the shared foundation is in place.
 SQL-core extraction remains deferred until duplication is proven.
 
 Planned scope:
 
 - Harden the storage adapter contract suite first, including received-storage
   conformance.
-- First planned adapter after the foundation PR:
-  `@mikara89/cap-storage-knex`.
+- First adapter after the foundation PR: `@mikara89/cap-storage-knex`.
 - Follow-up planned adapters: `@mikara89/cap-storage-typeorm` and
   `@mikara89/cap-storage-prisma`.
 - Add a storage adapter matrix and examples.

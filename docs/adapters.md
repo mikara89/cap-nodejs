@@ -130,7 +130,7 @@ Important subscriber invariant:
 | Adapter                | Status                                                          |
 | ---------------------- | --------------------------------------------------------------- |
 | MikroORM               | Current first-party adapter: `@mikara89/cap-storage-mikro-orm`. |
-| Knex                   | Planned v2.3: `@mikara89/cap-storage-knex`.                     |
+| Knex                   | Current first-party adapter: `@mikara89/cap-storage-knex`.      |
 | TypeORM                | Planned v2.3: `@mikara89/cap-storage-typeorm`.                  |
 | Prisma                 | Planned v2.3: `@mikara89/cap-storage-prisma`.                   |
 | Drizzle                | Future candidate.                                               |
@@ -176,6 +176,29 @@ The MikroORM adapter provides:
 Existing databases need a migration when upgrading to this shape: add the new
 inbox state columns and replace the old `(topic, group, messageId)` unique
 index with `(group, dedupeKey)`.
+
+## First-Party Storage: Knex
+
+Package: `@mikara89/cap-storage-knex`
+
+The Knex adapter provides:
+
+- `KnexPublishStorage` for outbox rows with retry, lease, and dead-letter state
+- `KnexReceivedStorage` for inbox rows with unique `(group, dedupeKey)`
+- `createKnexCapSchema(knex, options?)` for table and index creation
+- configurable publish and received table names
+- `savePublish(event, ctx?)` using `ctx.tx` when a Knex transaction is supplied
+- deprecated `savePublishWithTx(event, tx)` compatibility wrapper
+- `KnexTransactionManager` for `CapTransactionManagerPort<Knex.Transaction>`
+- conservative `getCapabilities()` reporting through
+  `CapabilityAwareStoragePort`
+- dashboard list/find helpers for outbox and inbox records
+
+PostgreSQL and MySQL/MariaDB clients use Knex row locking with `skipLocked()`
+for outbox claiming when available. SQLite is supported for local development
+and tests, but it reports non-safe multi-instance claiming and should not be
+used for multi-instance durable dispatch without an application-specific
+locking strategy.
 
 ## First-Party Framework Adapter: Express
 
