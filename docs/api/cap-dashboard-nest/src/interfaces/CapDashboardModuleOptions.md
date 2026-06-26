@@ -6,7 +6,7 @@
 
 # Interface: CapDashboardModuleOptions
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L26)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:26
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:26](https://github.c
 
 > `optional` **authorizer?**: `Provider`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L29)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:29
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:29](https://github.c
 
 > **guard**: `Provider`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L28)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:28
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:28](https://github.c
 
 > `optional` **maxPageSize?**: `number`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L32)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:32
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:32](https://github.c
 
 > `optional` **pageSizeDefault?**: `number`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:30](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L30)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:30
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:30](https://github.c
 
 > `optional` **readOnly?**: `boolean`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L31)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:31
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:31](https://github.c
 
 > `optional` **redact?**: [`CapDashboardRedactionOptions`](CapDashboardRedactionOptions.md)
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L33)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:33
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:33](https://github.c
 
 > `optional` **routePrefix?**: `string`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L27)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:27
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:27](https://github.c
 
 > `optional` **serveStatic?**: `boolean`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L34)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:34
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:34](https://github.c
 
 > `optional` **staticAssetsPath?**: `string`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:35](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L35)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:35
 
 ***
 
@@ -86,4 +86,4 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:35](https://github.c
 
 > `optional` **uiRoute?**: `string`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:36](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L36)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:36

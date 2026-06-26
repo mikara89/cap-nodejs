@@ -6,7 +6,7 @@
 
 # Class: LocalBus
 
-Defined in: [cap-core/src/testing/local-bus.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/local-bus.ts#L18)
+Defined in: cap-core/src/testing/local-bus.ts:18
 
 ## Implements
 
@@ -29,7 +29,7 @@ Defined in: [cap-core/src/testing/local-bus.ts:18](https://github.com/mikara89/c
 
 > `readonly` **listeners**: `Map`\<`string`, `Set`\<`Listener`\>\>
 
-Defined in: [cap-core/src/testing/local-bus.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/local-bus.ts#L19)
+Defined in: cap-core/src/testing/local-bus.ts:19
 
 ## Methods
 
@@ -37,7 +37,7 @@ Defined in: [cap-core/src/testing/local-bus.ts:19](https://github.com/mikara89/c
 
 > **consume**(`topic`, `_group`, `handler`): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/testing/local-bus.ts:44](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/local-bus.ts#L44)
+Defined in: cap-core/src/testing/local-bus.ts:44
 
 #### Parameters
 
@@ -67,7 +67,7 @@ Defined in: [cap-core/src/testing/local-bus.ts:44](https://github.com/mikara89/c
 
 > **emit**\<`T`\>(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: [cap-core/src/testing/local-bus.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/local-bus.ts#L21)
+Defined in: cap-core/src/testing/local-bus.ts:21
 
 #### Type Parameters
 

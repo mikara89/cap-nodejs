@@ -51,8 +51,9 @@ instead of rethrowing from `publish()`.
 ## Roadmap Relationship
 
 v2.2 provides the transaction context foundation: `CapOperationContext`, `tx`
-and `ctx` publish options, optional transaction-manager integration, and the
-primary `savePublish(event, ctx?)` storage API.
+and `ctx` publish options, optional transaction-manager integration, optional
+ambient context, publish storage contract tests, informational storage
+capability types, and the primary `savePublish(event, ctx?)` storage API.
 
 v2.3 uses that foundation for planned Knex, TypeORM, and Prisma storage
 adapters. v2.2 also introduces reusable publish-storage conformance tests in

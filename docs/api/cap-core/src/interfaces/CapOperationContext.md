@@ -6,7 +6,7 @@
 
 # Interface: CapOperationContext\<TTx\>
 
-Defined in: [cap-core/src/models/cap-operation-context.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-operation-context.ts#L1)
+Defined in: cap-core/src/models/cap-operation-context.ts:1
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [cap-core/src/models/cap-operation-context.ts:1](https://github.com/
 
 > `optional` **afterCommit?**: (`fn`) => `void`
 
-Defined in: [cap-core/src/models/cap-operation-context.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-operation-context.ts#L3)
+Defined in: cap-core/src/models/cap-operation-context.ts:3
 
 #### Parameters
 
@@ -38,7 +38,7 @@ Defined in: [cap-core/src/models/cap-operation-context.ts:3](https://github.com/
 
 > `optional` **afterRollback?**: (`fn`) => `void`
 
-Defined in: [cap-core/src/models/cap-operation-context.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-operation-context.ts#L4)
+Defined in: cap-core/src/models/cap-operation-context.ts:4
 
 #### Parameters
 
@@ -56,7 +56,7 @@ Defined in: [cap-core/src/models/cap-operation-context.ts:4](https://github.com/
 
 > `optional` **metadata?**: `Record`\<`string`, `unknown`\>
 
-Defined in: [cap-core/src/models/cap-operation-context.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-operation-context.ts#L5)
+Defined in: cap-core/src/models/cap-operation-context.ts:5
 
 ***
 
@@ -64,4 +64,4 @@ Defined in: [cap-core/src/models/cap-operation-context.ts:5](https://github.com/
 
 > `optional` **tx?**: `TTx`
 
-Defined in: [cap-core/src/models/cap-operation-context.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-operation-context.ts#L2)
+Defined in: cap-core/src/models/cap-operation-context.ts:2

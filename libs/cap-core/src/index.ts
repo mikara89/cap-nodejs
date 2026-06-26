@@ -12,6 +12,7 @@ export * from './models/cap-publish-event';
 export * from './models/cap-received-event';
 export * from './models/cap-message-metadata';
 export * from './models/cap-options';
+export * from './models/cap-storage-capabilities';
 export type { JsonPrimitive, JsonValue } from './models/json-value';
 
 export * from './ports/clock.port';

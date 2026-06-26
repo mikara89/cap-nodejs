@@ -143,6 +143,19 @@ describe('MikroReceivedStorage', () => {
     expect(entity.lastError).toBe('boom');
   });
 
+  it('reports conservative capabilities for SQLite/local drivers', () => {
+    setPlatform(em, 'BetterSqlitePlatform');
+
+    expect(storage.getCapabilities()).toEqual({
+      transactions: true,
+      skipLockedClaiming: false,
+      advisoryLocks: false,
+      atomicInsertIgnore: false,
+      nestedTransactions: false,
+      isolationLevels: [],
+    });
+  });
+
   it('returns retry-due events', async () => {
     const entity = receivedEntity({
       processed: false,
@@ -233,4 +246,16 @@ function receivedEntity(
   entity.createdAt = new Date();
   Object.assign(entity, overrides);
   return entity;
+}
+
+function setPlatform(em: EntityManager, platformName: string): void {
+  (
+    em as unknown as {
+      getDriver: () => {
+        getPlatform: () => { constructor: { name: string } };
+      };
+    }
+  ).getDriver = () => ({
+    getPlatform: () => ({ constructor: { name: platformName } }),
+  });
 }

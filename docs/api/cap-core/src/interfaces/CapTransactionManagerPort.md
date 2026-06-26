@@ -6,7 +6,7 @@
 
 # Interface: CapTransactionManagerPort\<TTx\>
 
-Defined in: [cap-core/src/ports/transaction-manager.port.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/transaction-manager.port.ts#L18)
+Defined in: cap-core/src/ports/transaction-manager.port.ts:18
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [cap-core/src/ports/transaction-manager.port.ts:18](https://github.c
 
 > `optional` **afterCommit**(`fn`): `void`
 
-Defined in: [cap-core/src/ports/transaction-manager.port.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/transaction-manager.port.ts#L26)
+Defined in: cap-core/src/ports/transaction-manager.port.ts:26
 
 #### Parameters
 
@@ -38,7 +38,7 @@ Defined in: [cap-core/src/ports/transaction-manager.port.ts:26](https://github.c
 
 > `optional` **afterRollback**(`fn`): `void`
 
-Defined in: [cap-core/src/ports/transaction-manager.port.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/transaction-manager.port.ts#L28)
+Defined in: cap-core/src/ports/transaction-manager.port.ts:28
 
 #### Parameters
 
@@ -56,7 +56,7 @@ Defined in: [cap-core/src/ports/transaction-manager.port.ts:28](https://github.c
 
 > `optional` **getCurrentContext**(): [`CapOperationContext`](CapOperationContext.md)\<`TTx`\> \| `undefined`
 
-Defined in: [cap-core/src/ports/transaction-manager.port.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/transaction-manager.port.ts#L24)
+Defined in: cap-core/src/ports/transaction-manager.port.ts:24
 
 #### Returns
 
@@ -68,7 +68,7 @@ Defined in: [cap-core/src/ports/transaction-manager.port.ts:24](https://github.c
 
 > **runInTransaction**\<`T`\>(`options`, `fn`): `Promise`\<`T`\>
 
-Defined in: [cap-core/src/ports/transaction-manager.port.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/transaction-manager.port.ts#L19)
+Defined in: cap-core/src/ports/transaction-manager.port.ts:19
 
 #### Type Parameters
 

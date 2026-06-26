@@ -6,7 +6,7 @@
 
 # Class: ServiceBusPublisher
 
-Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts#L17)
+Defined in: cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:17
 
 Azure Service Bus implementation of PublisherPort.
 Sends messages to Service Bus topics.
@@ -21,7 +21,7 @@ Sends messages to Service Bus topics.
 
 > **new ServiceBusPublisher**(`client`, `config`, `logger?`): `ServiceBusPublisher`
 
-Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts#L20)
+Defined in: cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:20
 
 #### Parameters
 
@@ -47,7 +47,7 @@ Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-publisher.t
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:85](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts#L85)
+Defined in: cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:85
 
 #### Returns
 
@@ -59,7 +59,7 @@ Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-publisher.t
 
 > **emit**(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:53](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts#L53)
+Defined in: cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:53
 
 #### Parameters
 
@@ -93,7 +93,7 @@ Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-publisher.t
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts#L26)
+Defined in: cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:26
 
 #### Parameters
 
@@ -121,7 +121,7 @@ Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-publisher.t
 
 > **onModuleDestroy**(): `Promise`\<`void`\>
 
-Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:97](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts#L97)
+Defined in: cap-transport-azure-servicebus/src/transport/servicebus-publisher.ts:97
 
 #### Returns
 

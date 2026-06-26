@@ -6,7 +6,7 @@
 
 # Interface: CapDashboardAuthorizationContext
 
-Defined in: [cap-dashboard-core/src/dashboard-auth.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-auth.ts#L22)
+Defined in: cap-dashboard-core/src/dashboard-auth.ts:22
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [cap-dashboard-core/src/dashboard-auth.ts:22](https://github.com/mik
 
 > **action**: [`CapDashboardAction`](../type-aliases/CapDashboardAction.md)
 
-Defined in: [cap-dashboard-core/src/dashboard-auth.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-auth.ts#L18)
+Defined in: cap-dashboard-core/src/dashboard-auth.ts:18
 
 #### Inherited from
 
@@ -30,7 +30,7 @@ Defined in: [cap-dashboard-core/src/dashboard-auth.ts:18](https://github.com/mik
 
 > **permission**: [`CapDashboardPermission`](../type-aliases/CapDashboardPermission.md)
 
-Defined in: [cap-dashboard-core/src/dashboard-auth.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-auth.ts#L19)
+Defined in: cap-dashboard-core/src/dashboard-auth.ts:19
 
 #### Inherited from
 
@@ -42,7 +42,7 @@ Defined in: [cap-dashboard-core/src/dashboard-auth.ts:19](https://github.com/mik
 
 > `optional` **request?**: `unknown`
 
-Defined in: [cap-dashboard-core/src/dashboard-auth.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-auth.ts#L23)
+Defined in: cap-dashboard-core/src/dashboard-auth.ts:23
 
 ***
 
@@ -50,4 +50,4 @@ Defined in: [cap-dashboard-core/src/dashboard-auth.ts:23](https://github.com/mik
 
 > `optional` **user?**: `unknown`
 
-Defined in: [cap-dashboard-core/src/dashboard-auth.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-auth.ts#L24)
+Defined in: cap-dashboard-core/src/dashboard-auth.ts:24

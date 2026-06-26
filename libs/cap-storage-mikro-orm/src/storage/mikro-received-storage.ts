@@ -1,15 +1,20 @@
 import type { EntityManager, FilterQuery, MikroORM } from '@mikro-orm/core';
 import type {
+  CapabilityAwareStoragePort,
   CapLogger,
   CapReceivedEvent,
+  CapStorageCapabilities,
   JsonValue,
   MarkReceivedFailedOptions,
   ReceivedStoragePort,
   TrySaveReceivedResult,
 } from '@mikara89/cap-core';
 import { CapReceivedEntity } from '../entities/cap-received.entity';
+import { getMikroStorageCapabilities } from './mikro-storage-capabilities';
 
-export class MikroReceivedStorage implements ReceivedStoragePort {
+export class MikroReceivedStorage
+  implements ReceivedStoragePort, CapabilityAwareStoragePort
+{
   constructor(
     private readonly em: EntityManager,
     private readonly orm?: MikroORM,
@@ -93,6 +98,10 @@ export class MikroReceivedStorage implements ReceivedStoragePort {
       }
       throw err;
     }
+  }
+
+  getCapabilities(): CapStorageCapabilities {
+    return getMikroStorageCapabilities(this.em);
   }
 
   async markProcessed(id: string): Promise<void> {

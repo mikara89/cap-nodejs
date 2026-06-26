@@ -276,6 +276,34 @@ describe('MikroPublishStorage', () => {
     );
   });
 
+  it('reports conservative capabilities for unknown drivers', () => {
+    expect(storage.getCapabilities()).toEqual({
+      transactions: true,
+      skipLockedClaiming: false,
+      advisoryLocks: false,
+      atomicInsertIgnore: false,
+      nestedTransactions: false,
+      isolationLevels: [],
+    });
+  });
+
+  it('reports SQLite as not safe for multi-instance claiming', () => {
+    setPlatform(em, 'BetterSqlitePlatform');
+
+    expect(storage.getCapabilities()).toMatchObject({
+      transactions: true,
+      skipLockedClaiming: false,
+    });
+  });
+
+  it('reports PostgreSQL and MySQL as skip-locked claim capable', () => {
+    setPlatform(em, 'PostgreSqlPlatform');
+    expect(storage.getCapabilities().skipLockedClaiming).toBe(true);
+
+    setPlatform(em, 'MySqlPlatform');
+    expect(storage.getCapabilities().skipLockedClaiming).toBe(true);
+  });
+
   it('marks published and clears lease fields', async () => {
     const entity = publishEntity({ status: 'processing' });
     entity.lockedBy = 'worker';
@@ -390,6 +418,18 @@ function createMockEntityManager(): MockEntityManager {
   };
 
   return mockEm;
+}
+
+function setPlatform(em: EntityManager, platformName: string): void {
+  (
+    em as unknown as {
+      getDriver: () => {
+        getPlatform: () => { constructor: { name: string } };
+      };
+    }
+  ).getDriver = () => ({
+    getPlatform: () => ({ constructor: { name: platformName } }),
+  });
 }
 
 function createEngine(

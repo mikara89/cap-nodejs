@@ -48,3 +48,8 @@ The primary publish storage API is `savePublish(event, ctx?)`. Adapters that
 support transactions should read `ctx.tx`. `savePublishWithTx(event, tx)` is
 deprecated compatibility only; the contract checks it when an adapter still
 implements the method.
+
+Adapters can also implement `CapabilityAwareStoragePort` from `cap-core` to
+report informational storage behavior. Keep contract capability flags explicit
+even when `getCapabilities()` is implemented, so unsupported behavior remains
+clear in test output.

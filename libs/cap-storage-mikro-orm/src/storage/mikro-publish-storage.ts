@@ -7,14 +7,21 @@ import {
 } from '@mikro-orm/core';
 import type {
   CapOperationContext,
+  CapabilityAwareStoragePort,
   CapLogger,
   CapPublishEvent,
+  CapStorageCapabilities,
   ClaimUnpublishedOptions,
   JsonValue,
   MarkPublishFailedOptions,
   PublishStoragePort,
 } from '@mikara89/cap-core';
 import { CapPublishEntity } from '../entities/cap-publish.entity';
+import {
+  getMikroPlatformName,
+  getMikroStorageCapabilities,
+  supportsSkipLockedClaiming,
+} from './mikro-storage-capabilities';
 
 type PublishEntityData = {
   id: string;
@@ -32,7 +39,9 @@ type PublishEntityData = {
   updatedAt: Date;
 };
 
-export class MikroPublishStorage implements PublishStoragePort<EntityManager> {
+export class MikroPublishStorage
+  implements PublishStoragePort<EntityManager>, CapabilityAwareStoragePort
+{
   constructor(
     private readonly em: EntityManager,
     private readonly orm?: MikroORM,
@@ -83,6 +92,10 @@ export class MikroPublishStorage implements PublishStoragePort<EntityManager> {
     tx: EntityManager,
   ): Promise<string> {
     return this.savePublish(event, { tx });
+  }
+
+  getCapabilities(): CapStorageCapabilities {
+    return getMikroStorageCapabilities(this.em);
   }
 
   async claimUnpublished(
@@ -217,7 +230,7 @@ function claimFindOptions(
 function supportsSkipLocked(em: EntityManager): boolean {
   const platformName = getPlatformName(em);
   if (!platformName) return true;
-  return platformName.includes('postgres') || platformName.includes('mysql');
+  return supportsSkipLockedClaiming(em);
 }
 
 function claimTransactionOptions(
@@ -232,17 +245,7 @@ function claimTransactionOptions(
 }
 
 function getPlatformName(em: EntityManager): string | undefined {
-  const maybeDriver = (
-    em as unknown as {
-      getDriver?: () => {
-        getPlatform?: () => { constructor?: { name?: string } };
-      };
-    }
-  ).getDriver?.();
-  const platformName = maybeDriver
-    ?.getPlatform?.()
-    ?.constructor?.name?.toLowerCase();
-  return platformName;
+  return getMikroPlatformName(em);
 }
 
 function claimableWhere(now: Date): FilterQuery<CapPublishEntity> {

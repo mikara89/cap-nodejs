@@ -20,6 +20,7 @@
 
 ## Interfaces
 
+- [CapabilityAwareStoragePort](interfaces/CapabilityAwareStoragePort.md)
 - [CapBaseMessage](interfaces/CapBaseMessage.md)
 - [CapEngineOptions](interfaces/CapEngineOptions.md)
 - [CapLogger](interfaces/CapLogger.md)
@@ -30,6 +31,7 @@
 - [CapReceivedEvent](interfaces/CapReceivedEvent.md)
 - [CapSchedulerOptions](interfaces/CapSchedulerOptions.md)
 - [CapSchedulerRuntimeOptions](interfaces/CapSchedulerRuntimeOptions.md)
+- [CapStorageCapabilities](interfaces/CapStorageCapabilities.md)
 - [CapSubscribeOptions](interfaces/CapSubscribeOptions.md)
 - [CapTransactionManagerPort](interfaces/CapTransactionManagerPort.md)
 - [CapTransactionOptions](interfaces/CapTransactionOptions.md)

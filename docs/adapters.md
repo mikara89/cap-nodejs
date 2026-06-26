@@ -49,6 +49,11 @@ older adapters and examples.
 `MarkPublishFailedOptions` includes `now` so storage adapters can persist
 failure timestamps consistently with scheduler decisions.
 
+Storage adapters can also implement `CapabilityAwareStoragePort` to expose
+informational capabilities such as transaction support and safe skip-locked
+claiming. CAP does not fail startup based on capability values in v2.2; use
+them for diagnostics, tests, documentation, and future dashboard visibility.
+
 ### Publish Storage Conformance
 
 v2.2 adds reusable publish-storage contract tests in
@@ -150,6 +155,8 @@ The MikroORM adapter provides:
 - inbox retry/dead-letter state with `status`, `lastError`, and `processedAt`
 - `savePublish(event, ctx?)` for transaction-aware outbox persistence
 - deprecated `savePublishWithTx(event, tx)` compatibility wrapper
+- conservative `getCapabilities()` reporting through
+  `CapabilityAwareStoragePort`
 - dashboard list/find helpers for outbox and inbox records
 - optional initialization through MikroORM schema generation
 
@@ -197,6 +204,8 @@ portable durable broker acknowledgment.
 - Bind and export the CAP Symbol tokens, not string literals.
 - Implement claim/lease outbox dispatch atomically for production stores.
 - Run the publish-storage contract tests from `@mikara89/cap-testing`.
+- Implement `CapabilityAwareStoragePort` when the adapter can report its
+  behavior without guessing.
 - Enforce inbox idempotency with a stable `dedupeKey`.
 - Preserve payload and headers without transport-specific coupling.
 - Return due inbox retries only when `status = failed` and `nextRetry <= now`.

@@ -14,6 +14,7 @@ purpose is a framework integration:
 
 ```ts
 import { CapEngine } from '@mikara89/cap-core';
+import type { CapStorageCapabilities } from '@mikara89/cap-core';
 import { CapModule, CapService, CapSubscribe } from '@mikara89/cap-nest';
 import { createTestCapEngine } from '@mikara89/cap-testing';
 import { createCapExpress } from '@mikara89/cap-express';

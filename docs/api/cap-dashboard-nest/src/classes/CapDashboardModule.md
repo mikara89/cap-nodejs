@@ -6,7 +6,7 @@
 
 # Class: CapDashboardModule
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:40](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L40)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:40
 
 ## Constructors
 
@@ -24,7 +24,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:40](https://github.c
 
 > `static` **forRoot**(`opts`): `DynamicModule`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:45](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L45)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:45
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:45](https://github.c
 
 > `static` **register**(`opts`): `DynamicModule`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.module.ts:41](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.module.ts#L41)
+Defined in: cap-dashboard-nest/src/cap-dashboard.module.ts:41
 
 #### Parameters
 

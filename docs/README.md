@@ -38,10 +38,12 @@ framework adapters, and pluggable storage and transport adapters.
 
 The repository is on the stable v2.1.1 line. The core publish/subscribe path,
 first-party adapters, dashboard package, header propagation, release workflow,
-and PostgreSQL/MySQL multi-instance claim gate are in place. The
-[roadmap](roadmap.md) tracks the current package set plus the v2.2 transaction
-context foundation, v2.3 storage reach, v2.4 transport reach, and v2.5+
-ecosystem candidates.
+and PostgreSQL/MySQL multi-instance claim gate are in place. The v2.2
+transaction context foundation adds operation context, transaction manager
+extension points, publish storage contract tests, and informational storage
+capability types. The [roadmap](roadmap.md) tracks the current package set plus
+planned v2.3 storage reach, v2.4 transport reach, and v2.5+ ecosystem
+candidates.
 
 ## Documentation Rules
 

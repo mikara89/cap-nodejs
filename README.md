@@ -52,6 +52,11 @@ Current first-party transports are Azure Service Bus and the NestJS
 microservices bridge. RabbitMQ, Kafka, and AWS SNS/SQS transports are planned
 for v2.4 after transport conformance tests and capability metadata are added.
 
+v2.2 adds the transaction context foundation, transaction manager extension
+points, publish storage contract tests, and informational storage capability
+types. Planned v2.3/v2.4 packages are roadmap items, not installable packages
+today.
+
 ## Requirements
 
 - Node.js 22, matching CI.

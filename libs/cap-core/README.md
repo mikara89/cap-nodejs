@@ -52,3 +52,10 @@ When `tx` or `ctx.tx` is provided, CAP saves the outbox row inside that
 transaction and defers broker emit by default. The scheduler dispatches after
 commit. Use `immediate: true` only when intentionally attempting broker emit in
 the same call.
+
+## Storage Capabilities
+
+`CapStorageCapabilities` and `CapabilityAwareStoragePort` let storage adapters
+report informational behavior such as transaction support, safe skip-locked
+claiming, and supported isolation levels. CAP core does not enforce these
+capabilities at startup in v2.2.

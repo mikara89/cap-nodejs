@@ -6,7 +6,7 @@
 
 # Interface: CapDashboardAuthorizationContext
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.auth.ts#L32)
+Defined in: cap-dashboard-nest/src/cap-dashboard.auth.ts:32
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:32](https://github.com
 
 > **action**: [`CapDashboardAction`](../type-aliases/CapDashboardAction.md)
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.auth.ts#L28)
+Defined in: cap-dashboard-nest/src/cap-dashboard.auth.ts:28
 
 #### Inherited from
 
@@ -30,7 +30,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:28](https://github.com
 
 > **executionContext**: `ExecutionContext`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.auth.ts#L34)
+Defined in: cap-dashboard-nest/src/cap-dashboard.auth.ts:34
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:34](https://github.com
 
 > **permission**: [`CapDashboardPermission`](../type-aliases/CapDashboardPermission.md)
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.auth.ts#L29)
+Defined in: cap-dashboard-nest/src/cap-dashboard.auth.ts:29
 
 #### Inherited from
 
@@ -50,4 +50,4 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:29](https://github.com
 
 > **request**: `unknown`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.auth.ts#L33)
+Defined in: cap-dashboard-nest/src/cap-dashboard.auth.ts:33

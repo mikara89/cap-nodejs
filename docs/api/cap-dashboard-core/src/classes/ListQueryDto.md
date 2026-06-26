@@ -6,7 +6,7 @@
 
 # Class: ListQueryDto
 
-Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/list-query.dto.ts#L1)
+Defined in: cap-dashboard-core/src/dto/list-query.dto.ts:1
 
 ## Constructors
 
@@ -24,7 +24,7 @@ Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:1](https://github.com/
 
 > `optional` **due?**: `boolean`
 
-Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/list-query.dto.ts#L6)
+Defined in: cap-dashboard-core/src/dto/list-query.dto.ts:6
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:6](https://github.com/
 
 > `optional` **full?**: `boolean`
 
-Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/list-query.dto.ts#L7)
+Defined in: cap-dashboard-core/src/dto/list-query.dto.ts:7
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:7](https://github.com/
 
 > `optional` **limit?**: `number`
 
-Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/list-query.dto.ts#L3)
+Defined in: cap-dashboard-core/src/dto/list-query.dto.ts:3
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:3](https://github.com/
 
 > `optional` **onlyUnpublished?**: `boolean`
 
-Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/list-query.dto.ts#L5)
+Defined in: cap-dashboard-core/src/dto/list-query.dto.ts:5
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:5](https://github.com/
 
 > `optional` **page?**: `number`
 
-Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/list-query.dto.ts#L2)
+Defined in: cap-dashboard-core/src/dto/list-query.dto.ts:2
 
 ***
 
@@ -64,4 +64,4 @@ Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:2](https://github.com/
 
 > `optional` **topic?**: `string`
 
-Defined in: [cap-dashboard-core/src/dto/list-query.dto.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/list-query.dto.ts#L4)
+Defined in: cap-dashboard-core/src/dto/list-query.dto.ts:4

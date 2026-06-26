@@ -45,6 +45,10 @@ export class AppModule {}
 - SQLite/local demo drivers and SQL Server fall back to non-locking
   transactional claims and are not supported for multi-instance durable
   dispatch by this adapter.
+- `MikroPublishStorage` and `MikroReceivedStorage` implement
+  `CapabilityAwareStoragePort`. PostgreSQL and MySQL report safe skip-locked
+  claiming; SQLite, SQL Server, and unknown/local drivers report conservative
+  non-locking claiming capability.
 - MikroORM transaction-aware publish can use the operation context API:
 
   ```ts

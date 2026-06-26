@@ -33,7 +33,7 @@ CAP core standardizes operation context and transaction-manager extension points
 so storage adapters can bind ORM-specific transaction objects without CAP core
 depending on any ORM.
 
-Planned scope:
+Scope:
 
 - Operation context foundation for ORM-agnostic transactional outbox behavior.
 - `CapOperationContext<TTx>`.
@@ -44,7 +44,7 @@ Planned scope:
 - Optional `CapTransactionManagerPort`.
 - Optional AsyncLocalStorage-based transaction context.
 - Publish storage contract tests in `@mikara89/cap-testing`.
-- Storage capability model.
+- Informational storage capability model.
 
 v2.2 is not the storage adapter expansion release. Knex, TypeORM, Prisma, and a
 generic SQL core are not part of the v2.2 minimum scope.
@@ -57,13 +57,14 @@ until duplication is proven.
 
 Planned scope:
 
-- Add and harden the storage adapter contract suite first.
+- Harden the storage adapter contract suite first.
 - Planned first-party package: `@mikara89/cap-storage-knex`.
 - Planned first-party package: `@mikara89/cap-storage-typeorm`.
 - Planned first-party package: `@mikara89/cap-storage-prisma`.
 - Add a storage adapter matrix and examples.
-- Keep generic SQL core as future work until real adapters prove shared
-  duplication.
+- Do not add a generic SQL core yet.
+- Keep SQL core as future work only after duplication is proven across real
+  adapters.
 
 Potential future storage candidates beyond v2.3 include Drizzle, Sequelize,
 Mongoose, and raw `pg` or custom SQL adapters.
@@ -85,7 +86,7 @@ Google Pub/Sub and NATS JetStream are likely v2.5 candidates, not v2.4 minimum
 scope. Redis Streams, MQTT, and other niche transports remain later or optional
 ecosystem work.
 
-## v2.5+ Future Ecosystem
+## v2.5+ Ecosystem Expansion
 
 Likely candidates:
 
