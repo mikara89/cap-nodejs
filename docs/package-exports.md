@@ -21,6 +21,7 @@ import { createTestCapEngine } from '@mikara89/cap-testing';
 import { createCapExpress } from '@mikara89/cap-express';
 import { MikroPublishStorage } from '@mikara89/cap-storage-mikro-orm';
 import { KnexPublishStorage } from '@mikara89/cap-storage-knex';
+import { TypeOrmPublishStorage } from '@mikara89/cap-storage-typeorm';
 import { ServiceBusPublisher } from '@mikara89/cap-transport-azure-servicebus';
 import { NestjsMicroservicesTransportModule } from '@mikara89/cap-transport-nestjs-microservices';
 import { CapDashboardModule } from '@mikara89/cap-dashboard-nest';
@@ -35,6 +36,7 @@ The supported package roots are:
 - `@mikara89/cap-express`
 - `@mikara89/cap-storage-mikro-orm`
 - `@mikara89/cap-storage-knex`
+- `@mikara89/cap-storage-typeorm`
 - `@mikara89/cap-transport-azure-servicebus`
 - `@mikara89/cap-transport-nestjs-microservices`
 - `@mikara89/cap-dashboard-core`
@@ -47,8 +49,8 @@ Nest dashboard package root.
 
 Planned packages are not exported until they are implemented and released. Do
 not import planned storage package names such as
-`@mikara89/cap-storage-typeorm` or `@mikara89/cap-storage-prisma`, and do not
-import v2.4 transport package names such as
+`@mikara89/cap-storage-prisma`, and do not import v2.4 transport package names
+such as
 `@mikara89/cap-transport-rabbitmq`, `@mikara89/cap-transport-kafka`, or
 `@mikara89/cap-transport-aws-sns-sqs`, unless those packages exist in the
 workspace and are listed here as supported package roots.

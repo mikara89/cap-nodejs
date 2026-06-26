@@ -4,9 +4,10 @@ This guide describes the minimum contract for CAP storage adapters. Storage
 packages should keep their package root framework-free and expose framework
 wrappers only from explicit subpaths such as `/nest`.
 
-Use `@mikara89/cap-storage-knex` as the first v2.3 reference adapter for a
-framework-free SQL storage package. Do not extract a shared SQL core until
-multiple real adapters prove repeated implementation details.
+Use `@mikara89/cap-storage-knex` and `@mikara89/cap-storage-typeorm` as v2.3
+reference adapters for framework-free SQL storage packages. Do not extract a
+shared SQL core until multiple real adapters prove repeated implementation
+details.
 
 ## Package Shape
 

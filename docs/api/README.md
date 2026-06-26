@@ -14,6 +14,7 @@
 - [cap-nest/src](cap-nest/src/README.md)
 - [cap-storage-knex/src](cap-storage-knex/src/README.md)
 - [cap-storage-mikro-orm/src](cap-storage-mikro-orm/src/README.md)
+- [cap-storage-typeorm/src](cap-storage-typeorm/src/README.md)
 - [cap-testing/src](cap-testing/src/README.md)
 - [cap-transport-azure-servicebus/src](cap-transport-azure-servicebus/src/README.md)
 - [cap-transport-nestjs-microservices/src](cap-transport-nestjs-microservices/src/README.md)

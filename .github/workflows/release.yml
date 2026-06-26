@@ -183,6 +183,12 @@ jobs:
       - name: Test cap-storage-mikro-orm
         run: npx jest --testPathPattern=libs/cap-storage-mikro-orm --runInBand
 
+      - name: Test cap-storage-knex
+        run: npx jest --testPathPattern=libs/cap-storage-knex --runInBand
+
+      - name: Test cap-storage-typeorm
+        run: npx jest --testPathPattern=libs/cap-storage-typeorm --runInBand
+
       - name: Test cap-transport-azure-servicebus
         run: npx jest --testPathPattern=libs/cap-transport-azure-servicebus --runInBand
 

@@ -35,6 +35,7 @@ The root workspace package is private. The publishable packages live under
 | `@mikara89/cap-express`                        | Express adapter with explicit lifecycle and CAP health router.                                            |
 | `@mikara89/cap-storage-mikro-orm`              | MikroORM storage adapter for outbox and inbox records.                                                    |
 | `@mikara89/cap-storage-knex`                   | Knex storage adapter for outbox and inbox records.                                                        |
+| `@mikara89/cap-storage-typeorm`                | TypeORM storage adapter for outbox and inbox records.                                                     |
 | `@mikara89/cap-transport-azure-servicebus`     | Azure Service Bus transport adapter.                                                                      |
 | `@mikara89/cap-transport-nestjs-microservices` | Adapter that publishes through existing NestJS `ClientProxy` registrations and exposes an inbound bridge. |
 | `@mikara89/cap-dashboard-core`                 | Framework-agnostic dashboard DTOs and service logic.                                                      |
@@ -45,8 +46,8 @@ The root workspace package is private. The publishable packages live under
 `apps/cap-test-app` is a demo and integration test application; it is not a
 published package.
 
-Current first-party durable storage adapters are MikroORM and Knex. TypeORM
-and Prisma storage adapters remain planned follow-ups for v2.3.
+Current first-party durable storage adapters are MikroORM, Knex, and TypeORM.
+Prisma remains a planned follow-up for v2.3.
 
 Current first-party transports are Azure Service Bus and the NestJS
 microservices bridge. RabbitMQ, Kafka, and AWS SNS/SQS transports are planned
@@ -54,9 +55,9 @@ for v2.4 after transport conformance tests and capability metadata are added.
 
 v2.2 adds the transaction context foundation, transaction manager extension
 points, publish storage contract tests, and informational storage capability
-types. v2.3 extends storage contract coverage and adds the first Knex storage
-adapter. Planned TypeORM, Prisma, and v2.4 transport packages are roadmap
-items, not installable packages today.
+types. v2.3 extends storage contract coverage and adds Knex and TypeORM
+storage adapters. Planned Prisma and v2.4 transport packages are roadmap items,
+not installable packages today.
 
 ## Requirements
 
@@ -69,6 +70,7 @@ Adapter-specific requirements:
 
 - `@mikara89/cap-storage-mikro-orm` requires MikroORM 6.
 - `@mikara89/cap-storage-knex` requires Knex 3 and a Knex dialect driver.
+- `@mikara89/cap-storage-typeorm` requires TypeORM 0.3 and a TypeORM dialect driver.
 - `@mikara89/cap-transport-azure-servicebus` requires Azure Service Bus credentials or
   an emulator path for external integration testing.
 
@@ -98,6 +100,13 @@ For durable Knex storage, install Knex and a dialect driver such as `pg`,
 
 ```sh
 npm install @mikara89/cap-storage-knex knex pg
+```
+
+For durable TypeORM storage, install TypeORM and a dialect driver such as `pg`,
+`mysql2`, `mariadb`, or `better-sqlite3`:
+
+```sh
+npm install @mikara89/cap-storage-typeorm typeorm pg
 ```
 
 For the optional Nest dashboard:

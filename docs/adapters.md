@@ -63,11 +63,10 @@ for transactions, rollback, and safe concurrent claiming. Unsupported
 capabilities should be skipped explicitly by the contract, not hidden in custom
 test setup.
 
-Future v2.3 storage adapters, including planned Knex, TypeORM, and Prisma
-packages, must pass the relevant publish-storage contract suite before they are
-treated as first-party adapters. The contract uses `savePublish(event, ctx?)` as
-the primary API. `savePublishWithTx(event, tx)` remains deprecated
-compatibility only.
+Future v2.3 storage adapters, including planned Prisma packages, must pass the
+relevant publish-storage contract suite before they are treated as first-party
+adapters. The contract uses `savePublish(event, ctx?)` as the primary API.
+`savePublishWithTx(event, tx)` remains deprecated compatibility only.
 
 ### Received Storage Conformance
 
@@ -131,7 +130,7 @@ Important subscriber invariant:
 | ---------------------- | --------------------------------------------------------------- |
 | MikroORM               | Current first-party adapter: `@mikara89/cap-storage-mikro-orm`. |
 | Knex                   | Current first-party adapter: `@mikara89/cap-storage-knex`.      |
-| TypeORM                | Planned v2.3: `@mikara89/cap-storage-typeorm`.                  |
+| TypeORM                | Current first-party adapter: `@mikara89/cap-storage-typeorm`.   |
 | Prisma                 | Planned v2.3: `@mikara89/cap-storage-prisma`.                   |
 | Drizzle                | Future candidate.                                               |
 | Sequelize              | Future candidate.                                               |
@@ -199,6 +198,32 @@ for outbox claiming when available. SQLite is supported for local development
 and tests, but it reports non-safe multi-instance claiming and should not be
 used for multi-instance durable dispatch without an application-specific
 locking strategy.
+
+## First-Party Storage: TypeORM
+
+Package: `@mikara89/cap-storage-typeorm`
+
+The TypeORM adapter provides:
+
+- `TypeOrmPublishStorage` for outbox rows with retry, lease, and dead-letter
+  state
+- `TypeOrmReceivedStorage` for inbox rows with unique `(group, dedupeKey)`
+- `createTypeOrmCapSchema(dataSource, options?)` for table and index creation
+- configurable publish and received table names
+- `savePublish(event, ctx?)` using `ctx.tx` when a TypeORM `EntityManager` is
+  supplied
+- deprecated `savePublishWithTx(event, manager)` compatibility wrapper
+- `TypeOrmTransactionManager` for
+  `CapTransactionManagerPort<EntityManager>`
+- conservative `getCapabilities()` reporting through
+  `CapabilityAwareStoragePort`
+- dashboard list/find helpers for outbox and inbox records
+
+PostgreSQL and MySQL/MariaDB data sources use TypeORM pessimistic write locking
+with `skip_locked` for outbox claiming when available. SQLite is supported for
+local development and tests, but it reports non-safe multi-instance claiming and
+should not be used for multi-instance durable dispatch without an
+application-specific locking strategy.
 
 ## First-Party Framework Adapter: Express
 
