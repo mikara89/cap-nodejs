@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-dashboard",
-  "version": "2.3.0",
+  "version": "2.2.0",
   "description": "Optional dashboard for CAP NestJS outbox and inbox operations",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,7 +29,7 @@
     "test": "jest"
   },
   "peerDependencies": {
-    "@mikara89/cap-dashboard-nest": "^2.3.0"
+    "@mikara89/cap-dashboard-nest": "^2.2.0"
   },
   "devDependencies": {
     "@mikara89/cap-dashboard-nest": "file:../cap-dashboard-nest",

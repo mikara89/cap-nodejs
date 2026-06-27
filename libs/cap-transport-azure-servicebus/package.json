@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-transport-azure-servicebus",
-  "version": "2.3.0",
+  "version": "2.2.0",
   "description": "Azure Service Bus transport adapter for CAP",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -33,7 +33,7 @@
     "@azure/service-bus": "^7.9.0"
   },
   "peerDependencies": {
-    "@mikara89/cap-core": "^2.3.0",
+    "@mikara89/cap-core": "^2.2.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "reflect-metadata": "^0.2.0"

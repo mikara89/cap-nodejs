@@ -3,11 +3,6 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 2.3.0 (2026-06-27)
-
-- Align the NestJS dashboard adapter with the coordinated v2.3 release; no
-  dashboard adapter API changes are introduced.
-
 # 0.7.0-beta.4 (2026-06-24)
 
 **Note:** Version bump only for package @mikara89/cap-dashboard-nest

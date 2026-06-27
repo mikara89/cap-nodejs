@@ -3,11 +3,6 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 2.3.0 (2026-06-27)
-
-- Align the compatibility dashboard package with the coordinated v2.3 release;
-  no dashboard API changes are introduced.
-
 ## [0.7.1-beta.0](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-dashboard@0.7.0...@mikara89/cap-dashboard@0.7.1-beta.0) (2026-06-24)
 
 **Note:** Version bump only for package @mikara89/cap-dashboard

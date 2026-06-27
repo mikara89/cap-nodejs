@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.3.0 (2026-06-27)
+## 2.3.0
 
 - Release the framework-free Prisma outbox and inbox adapter as a current
   first-party storage option.

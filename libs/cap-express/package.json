@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-express",
-  "version": "2.3.0",
+  "version": "2.2.0",
   "description": "Express adapter for the framework-agnostic CAP engine",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -30,7 +30,7 @@
     "lint": "eslint \"src/**/*.ts\" --fix"
   },
   "peerDependencies": {
-    "@mikara89/cap-core": "^2.3.0",
+    "@mikara89/cap-core": "^2.2.0",
     "express": "^5.0.0"
   },
   "devDependencies": {

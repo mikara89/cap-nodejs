@@ -3,18 +3,6 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 2.3.0 (2026-06-27)
-
-### Testing
-
-- Qualify inbox behavior with the shared received-storage contract and retain
-  PostgreSQL/MySQL database integration coverage in the four-adapter gate.
-
-### Compatibility
-
-- Accept explicit timestamps in `markProcessed()` and `getRetryDue()` while
-  preserving their existing defaults.
-
 ## 2.2.0 (2026-06-26)
 
 ### Features

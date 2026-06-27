@@ -14,9 +14,7 @@ Package-specific changelogs are maintained with each publishable package:
 - [@mikara89/cap-storage-prisma](libs/cap-storage-prisma/CHANGELOG.md)
 - [@mikara89/cap-transport-azure-servicebus](libs/cap-transport-azure-servicebus/CHANGELOG.md)
 - [@mikara89/cap-transport-nestjs-microservices](libs/cap-transport-nestjs-microservices/CHANGELOG.md)
-- [@mikara89/cap-dashboard-core](libs/cap-dashboard-core/CHANGELOG.md)
 - [@mikara89/cap-dashboard-nest](libs/cap-dashboard-nest/CHANGELOG.md)
-- [@mikara89/cap-dashboard-express](libs/cap-dashboard-express/CHANGELOG.md)
 - [@mikara89/cap-dashboard](libs/cap-dashboard/CHANGELOG.md)
 
 ## Unreleased
@@ -37,9 +35,6 @@ Package-specific changelogs are maintained with each publishable package:
 - Added PostgreSQL, MySQL/MariaDB, and SQLite support across the new SQL-backed
   adapters. PostgreSQL and MySQL are the multi-instance integration targets;
   SQLite remains a local-development and single-process option.
-- Completed the PostgreSQL/MySQL Testcontainers gate across MikroORM, Knex,
-  TypeORM, and Prisma, including Knex concurrency, deduplication, transaction,
-  rollback, capability, and expired-claim coverage.
 - Added compile-checked schema initialization, engine wiring, explicit
   transaction, and operation-context examples for Knex, TypeORM, and Prisma.
 - Kept a shared SQL core deferred until duplication across real adapters proves

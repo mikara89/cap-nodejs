@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-dashboard-express",
-  "version": "2.3.0",
+  "version": "2.2.0",
   "description": "Express router adapter for the CAP dashboard",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -30,8 +30,8 @@
     "lint": "eslint \"src/**/*.ts\" --fix"
   },
   "peerDependencies": {
-    "@mikara89/cap-core": "^2.3.0",
-    "@mikara89/cap-dashboard-core": "^2.3.0",
+    "@mikara89/cap-core": "^2.2.0",
+    "@mikara89/cap-dashboard-core": "^2.2.0",
     "express": "^5.0.0"
   },
   "devDependencies": {
