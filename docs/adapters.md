@@ -63,9 +63,9 @@ for transactions, rollback, and safe concurrent claiming. Unsupported
 capabilities should be skipped explicitly by the contract, not hidden in custom
 test setup.
 
-Future v2.3 storage adapters, including planned Prisma packages, must pass the
-relevant publish-storage contract suite before they are treated as first-party
-adapters. The contract uses `savePublish(event, ctx?)` as the primary API.
+Every v2.3 storage adapter, including Prisma, must pass the relevant
+publish-storage contract suite before it is treated as first-party. The
+contract uses `savePublish(event, ctx?)` as the primary API.
 `savePublishWithTx(event, tx)` remains deprecated compatibility only.
 
 ### Received Storage Conformance
@@ -124,14 +124,14 @@ Important subscriber invariant:
 - Handler failure should be persisted in the CAP inbox and should not cause
   infinite broker redelivery loops by default.
 
-## Planned Storage Adapter Matrix
+## Storage Adapter Matrix
 
 | Adapter                | Status                                                          |
 | ---------------------- | --------------------------------------------------------------- |
 | MikroORM               | Current first-party adapter: `@mikara89/cap-storage-mikro-orm`. |
 | Knex                   | Current first-party adapter: `@mikara89/cap-storage-knex`.      |
 | TypeORM                | Current first-party adapter: `@mikara89/cap-storage-typeorm`.   |
-| Prisma                 | Planned v2.3: `@mikara89/cap-storage-prisma`.                   |
+| Prisma                 | Current first-party adapter: `@mikara89/cap-storage-prisma`.    |
 | Drizzle                | Future candidate.                                               |
 | Sequelize              | Future candidate.                                               |
 | Mongoose               | Future candidate.                                               |
@@ -224,6 +224,31 @@ with `skip_locked` for outbox claiming when available. SQLite is supported for
 local development and tests, but it reports non-safe multi-instance claiming and
 should not be used for multi-instance durable dispatch without an
 application-specific locking strategy.
+
+## First-Party Storage: Prisma
+
+Package: `@mikara89/cap-storage-prisma`
+
+The Prisma adapter provides:
+
+- `PrismaPublishStorage` and `PrismaReceivedStorage` backed by parameterized
+  raw SQL rather than generated model delegates
+- `initializePrismaCapStorage(client, options)` for table, constraint, and
+  index creation without adding CAP models to the application Prisma schema
+- explicit PostgreSQL, MySQL/MariaDB, and SQLite provider options
+- strict validation and provider-aware quoting for configurable table names
+- `savePublish(event, ctx?)` using `ctx.tx` when a Prisma interactive
+  transaction client is supplied
+- deprecated `savePublishWithTx(event, tx)` compatibility wrapper
+- `PrismaTransactionManager` for
+  `CapTransactionManagerPort<Prisma.TransactionClient>`
+- atomic inbox insert-ignore with unique `(group, dedupeKey)` enforcement
+- dashboard list/find helpers and conservative capability reporting
+
+PostgreSQL and MySQL/MariaDB use explicit `FOR UPDATE SKIP LOCKED` outbox
+claiming and are covered by Testcontainers integration tests. SQLite is a
+local/test fallback and does not report safe multi-instance claiming. Users may
+run the initializer or manage equivalent CAP tables with their own migrations.
 
 ## First-Party Framework Adapter: Express
 

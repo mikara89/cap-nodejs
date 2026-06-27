@@ -189,6 +189,9 @@ jobs:
       - name: Test cap-storage-typeorm
         run: npx jest --testPathPattern=libs/cap-storage-typeorm --runInBand
 
+      - name: Test cap-storage-prisma
+        run: npm run test:lib:cap-storage-prisma -- --runInBand
+
       - name: Test cap-transport-azure-servicebus
         run: npx jest --testPathPattern=libs/cap-transport-azure-servicebus --runInBand
 

@@ -20,6 +20,8 @@ npm run examples:check
   explicit transaction publishing.
 - [typeorm-storage.ts](typeorm-storage.ts) - framework-free TypeORM storage
   setup and explicit `EntityManager` transaction publishing.
+- [prisma-storage.ts](prisma-storage.ts) - model-free Prisma storage setup and
+  interactive transaction client publishing.
 - [dashboard.ts](dashboard.ts) - dashboard registration with a local-only sample
   guard.
 - [nestjs-microservices-bridge.ts](nestjs-microservices-bridge.ts) - publishing

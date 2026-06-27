@@ -63,6 +63,7 @@ Desktop.ini
 .temp
 .tmp
 /tmp
+libs/cap-storage-prisma/prisma/generated/
 /.fallow/
 
 # Runtime data

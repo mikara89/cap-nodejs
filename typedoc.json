@@ -8,6 +8,7 @@
     "libs/cap-storage-mikro-orm/src/index.ts",
     "libs/cap-storage-knex/src/index.ts",
     "libs/cap-storage-typeorm/src/index.ts",
+    "libs/cap-storage-prisma/src/index.ts",
     "libs/cap-transport-azure-servicebus/src/index.ts",
     "libs/cap-transport-nestjs-microservices/src/index.ts",
     "libs/cap-dashboard-core/src/index.ts",

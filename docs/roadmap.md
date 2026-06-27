@@ -20,6 +20,8 @@ provides framework adapters where they are useful:
 - `@mikara89/cap-storage-knex` as a current framework-free SQL storage adapter.
 - `@mikara89/cap-storage-typeorm` as a current framework-free TypeORM storage
   adapter.
+- `@mikara89/cap-storage-prisma` as a current framework-free Prisma storage
+  adapter using raw SQL and interactive transaction clients.
 - `@mikara89/cap-transport-azure-servicebus` as the current first-party broker
   transport adapter.
 - `@mikara89/cap-transport-nestjs-microservices` as the current bridge adapter
@@ -54,9 +56,9 @@ generic SQL core are not part of the v2.2 minimum scope.
 
 ## v2.3 Storage Contract Hardening and Storage Reach
 
-CAP starts v2.3 with storage contract hardening and adds first-party Knex and
-TypeORM storage. Prisma follows after the shared foundation is in place.
-SQL-core extraction remains deferred until duplication is proven.
+CAP starts v2.3 with storage contract hardening and adds first-party Knex,
+TypeORM, and Prisma storage. SQL-core extraction remains deferred until
+duplication is proven.
 
 Planned scope:
 
@@ -64,7 +66,7 @@ Planned scope:
   conformance.
 - First adapters after the foundation PR: `@mikara89/cap-storage-knex` and
   `@mikara89/cap-storage-typeorm`.
-- Follow-up planned adapter: `@mikara89/cap-storage-prisma`.
+- Follow-up adapter: `@mikara89/cap-storage-prisma`.
 - Add a storage adapter matrix and examples.
 - Do not add a generic SQL core yet.
 - Keep SQL core as future work only after duplication is proven across real

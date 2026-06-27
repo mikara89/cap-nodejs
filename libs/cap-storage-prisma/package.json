@@ -1,0 +1,54 @@
+{
+  "name": "@mikara89/cap-storage-prisma",
+  "version": "2.2.0",
+  "description": "Prisma storage adapter for CAP",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://mikara89.github.io/cap-nodejs/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikara89/cap-nodejs.git",
+    "directory": "libs/cap-storage-prisma"
+  },
+  "bugs": {
+    "url": "https://github.com/mikara89/cap-nodejs/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "generate": "prisma generate --schema prisma/schema.prisma",
+    "generate:test-clients": "npm run generate && prisma generate --schema prisma/postgresql.prisma && prisma generate --schema prisma/mysql.prisma",
+    "build": "npm run generate && tsc -p tsconfig.lib.json",
+    "prepack": "npm run build",
+    "test": "npm run generate:test-clients && jest",
+    "lint": "eslint \"src/**/*.ts\" --fix"
+  },
+  "peerDependencies": {
+    "@mikara89/cap-core": "^2.2.0",
+    "@prisma/client": "^6.0.0"
+  },
+  "devDependencies": {
+    "@mikara89/cap-core": "file:../cap-core",
+    "@mikara89/cap-testing": "file:../cap-testing",
+    "@prisma/client": "^6.0.0",
+    "@types/node": "^22.0.0",
+    "prisma": "^6.0.0",
+    "typescript": "^5.7.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  }
+}

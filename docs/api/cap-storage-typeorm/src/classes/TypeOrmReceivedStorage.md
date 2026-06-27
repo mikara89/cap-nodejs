@@ -6,7 +6,7 @@
 
 # Class: TypeOrmReceivedStorage
 
-Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:49
+Defined in: [cap-storage-typeorm/src/typeorm-received-storage.ts:49](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-received-storage.ts#L49)
 
 ## Implements
 
@@ -19,7 +19,7 @@ Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:49
 
 > **new TypeOrmReceivedStorage**(`dataSource`, `options?`): `TypeOrmReceivedStorage`
 
-Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:54
+Defined in: [cap-storage-typeorm/src/typeorm-received-storage.ts:54](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-received-storage.ts#L54)
 
 #### Parameters
 
@@ -41,7 +41,7 @@ Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:54
 
 > **findReceivedById**(`id`): `Promise`\<[`CapReceivedEvent`](../../../cap-nest/src/interfaces/CapReceivedEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:161
+Defined in: [cap-storage-typeorm/src/typeorm-received-storage.ts:161](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-received-storage.ts#L161)
 
 #### Parameters
 
@@ -63,7 +63,7 @@ Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:161
 
 > **getCapabilities**(): `CapStorageCapabilities`
 
-Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:93
+Defined in: [cap-storage-typeorm/src/typeorm-received-storage.ts:93](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-received-storage.ts#L93)
 
 #### Returns
 
@@ -79,7 +79,7 @@ Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:93
 
 > **getRetryDue**(`limit`, `now?`): `Promise`\<[`CapReceivedEvent`](../../../cap-nest/src/interfaces/CapReceivedEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:139
+Defined in: [cap-storage-typeorm/src/typeorm-received-storage.ts:139](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-received-storage.ts#L139)
 
 #### Parameters
 
@@ -105,7 +105,7 @@ Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:139
 
 > **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:61
+Defined in: [cap-storage-typeorm/src/typeorm-received-storage.ts:61](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-received-storage.ts#L61)
 
 #### Parameters
 
@@ -127,7 +127,7 @@ Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:61
 
 > **listReceived**(`options?`): `Promise`\<[`DashboardListResult`](../../../cap-nest/src/interfaces/DashboardListResult.md)\<[`CapReceivedEvent`](../../../cap-nest/src/interfaces/CapReceivedEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>\>\>
 
-Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:168
+Defined in: [cap-storage-typeorm/src/typeorm-received-storage.ts:168](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-received-storage.ts#L168)
 
 #### Parameters
 
@@ -149,7 +149,7 @@ Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:168
 
 > **markProcessed**(`id`, `processedAt?`): `Promise`\<`void`\>
 
-Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:97
+Defined in: [cap-storage-typeorm/src/typeorm-received-storage.ts:97](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-received-storage.ts#L97)
 
 #### Parameters
 
@@ -175,7 +175,7 @@ Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:97
 
 > **markReceivedFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:112
+Defined in: [cap-storage-typeorm/src/typeorm-received-storage.ts:112](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-received-storage.ts#L112)
 
 #### Parameters
 
@@ -205,7 +205,7 @@ Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:112
 
 > **trySaveReceived**\<`T`\>(`event`): `Promise`\<`TrySaveReceivedResult`\<`T`\>\>
 
-Defined in: cap-storage-typeorm/src/typeorm-received-storage.ts:68
+Defined in: [cap-storage-typeorm/src/typeorm-received-storage.ts:68](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-received-storage.ts#L68)
 
 #### Type Parameters
 

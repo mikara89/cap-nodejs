@@ -31,6 +31,8 @@
       "@mikara89/cap-storage-knex/*": ["libs/cap-storage-knex/src/*"],
       "@mikara89/cap-storage-typeorm": ["libs/cap-storage-typeorm/src"],
       "@mikara89/cap-storage-typeorm/*": ["libs/cap-storage-typeorm/src/*"],
+      "@mikara89/cap-storage-prisma": ["libs/cap-storage-prisma/src"],
+      "@mikara89/cap-storage-prisma/*": ["libs/cap-storage-prisma/src/*"],
       "@mikara89/cap-transport-azure-servicebus": [
         "libs/cap-transport-azure-servicebus/src"
       ],

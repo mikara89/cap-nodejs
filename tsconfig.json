@@ -82,6 +82,12 @@
       "@mikara89/cap-storage-typeorm/*": [
         "./libs/cap-storage-typeorm/dist/*"
       ],
+      "@mikara89/cap-storage-prisma": [
+        "./libs/cap-storage-prisma/dist"
+      ],
+      "@mikara89/cap-storage-prisma/*": [
+        "./libs/cap-storage-prisma/dist/*"
+      ],
       "@mikara89/cap-transport-azure-servicebus": [
         "./libs/cap-transport-azure-servicebus/dist"
       ],
