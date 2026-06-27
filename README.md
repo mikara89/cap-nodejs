@@ -18,10 +18,10 @@ Application code
 
 ## Status
 
-This repository contains the stable `v2.1.1` package set. The core messaging
-path, first-party adapters, dashboard auth extension points, header
-propagation, and release workflow are implemented for the supported boundaries
-documented below.
+This repository contains the `v2.3` package set. The core messaging path,
+first-party adapters, dashboard auth extension points, header propagation, and
+release workflow are implemented for the supported boundaries documented
+below.
 
 The root workspace package is private. The publishable packages live under
 `libs/*`.
@@ -49,6 +49,17 @@ published package.
 
 Current first-party durable storage adapters are MikroORM, Knex, TypeORM, and
 Prisma.
+
+| Storage adapter | Status | Adapter style | Transaction context |
+| --------------- | ------ | ------------- | ------------------- |
+| MikroORM | Current | ORM-specific adapter | `MikroORM EntityManager` |
+| Knex | Current | SQL query-builder adapter | `Knex.Transaction` |
+| TypeORM | Current | ORM adapter | `TypeORM EntityManager` |
+| Prisma | Current | Raw-SQL Prisma Client adapter; no CAP models are required in the Prisma schema | `Prisma.TransactionClient` |
+
+Drizzle, Sequelize, and Mongoose remain future storage candidates. A raw SQL
+adapter or shared SQL-core extraction remains deferred until duplication across
+the current adapters proves that it is worthwhile.
 
 Current first-party transports are Azure Service Bus and the NestJS
 microservices bridge. RabbitMQ, Kafka, and AWS SNS/SQS transports are planned
@@ -195,8 +206,9 @@ export class MailHandler {
 ## Production-Style Setup
 
 Production applications should use durable storage and an external transport.
-The current first-party production-oriented path combines MikroORM storage with
-Azure Service Bus transport:
+Current first-party durable choices include MikroORM, Knex, TypeORM, and
+Prisma. The production-style example below combines MikroORM storage with Azure
+Service Bus transport:
 
 > Warning: multi-instance durable outbox dispatch requires a lock-capable
 > MikroORM SQL driver such as PostgreSQL or MySQL, or a custom storage adapter

@@ -126,16 +126,16 @@ Important subscriber invariant:
 
 ## Storage Adapter Matrix
 
-| Adapter                | Status                                                          |
-| ---------------------- | --------------------------------------------------------------- |
-| MikroORM               | Current first-party adapter: `@mikara89/cap-storage-mikro-orm`. |
-| Knex                   | Current first-party adapter: `@mikara89/cap-storage-knex`.      |
-| TypeORM                | Current first-party adapter: `@mikara89/cap-storage-typeorm`.   |
-| Prisma                 | Current first-party adapter: `@mikara89/cap-storage-prisma`.    |
-| Drizzle                | Future candidate.                                               |
-| Sequelize              | Future candidate.                                               |
-| Mongoose               | Future candidate.                                               |
-| raw `pg` or custom SQL | Future or custom adapter candidate.                             |
+| Adapter | Status | Adapter style | Transaction context |
+| ------- | ------ | ------------- | ------------------- |
+| MikroORM | Current: `@mikara89/cap-storage-mikro-orm` | ORM-specific adapter | `MikroORM EntityManager` |
+| Knex | Current: `@mikara89/cap-storage-knex` | SQL query-builder adapter | `Knex.Transaction` |
+| TypeORM | Current: `@mikara89/cap-storage-typeorm` | ORM adapter | `TypeORM EntityManager` |
+| Prisma | Current: `@mikara89/cap-storage-prisma` | Raw-SQL Prisma Client adapter; CAP models are not required in the Prisma schema | `Prisma.TransactionClient` |
+| Drizzle | Future candidate | Not implemented | Not defined |
+| Sequelize | Future candidate | Not implemented | Not defined |
+| Mongoose | Future candidate | Not implemented | Not defined |
+| raw SQL / SQL-core | Deferred until current adapters prove enough duplication | Not implemented | Not defined |
 
 ## Planned Transport Adapter Matrix
 

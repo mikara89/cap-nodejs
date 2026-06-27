@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.3.0 (2026-06-27)
+
+### Features
+
+- add `defineReceivedStorageContract()` for reusable inbox persistence,
+  deduplication, retry, dead-letter, and capability-aware concurrency checks
+- use the publish and received contract suites to qualify the Knex, TypeORM,
+  and Prisma adapters for the v2.3 first-party storage matrix
+
 ## 2.2.0 (2026-06-26)
 
 ### Features

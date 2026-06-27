@@ -4,9 +4,14 @@ All notable repository-level changes should be summarized here.
 
 Package-specific changelogs are maintained with each publishable package:
 
+- [@mikara89/cap-core](libs/cap-core/CHANGELOG.md)
 - [@mikara89/cap-nest](libs/cap-nest/CHANGELOG.md)
 - [@mikara89/cap-testing](libs/cap-testing/CHANGELOG.md)
+- [@mikara89/cap-express](libs/cap-express/CHANGELOG.md)
 - [@mikara89/cap-storage-mikro-orm](libs/cap-storage-mikro-orm/CHANGELOG.md)
+- [@mikara89/cap-storage-knex](libs/cap-storage-knex/CHANGELOG.md)
+- [@mikara89/cap-storage-typeorm](libs/cap-storage-typeorm/CHANGELOG.md)
+- [@mikara89/cap-storage-prisma](libs/cap-storage-prisma/CHANGELOG.md)
 - [@mikara89/cap-transport-azure-servicebus](libs/cap-transport-azure-servicebus/CHANGELOG.md)
 - [@mikara89/cap-transport-nestjs-microservices](libs/cap-transport-nestjs-microservices/CHANGELOG.md)
 - [@mikara89/cap-dashboard-nest](libs/cap-dashboard-nest/CHANGELOG.md)
@@ -18,6 +23,22 @@ Package-specific changelogs are maintained with each publishable package:
   source readiness.
 - Added generated API documentation tooling, compile-checked examples, and a
   package export-surface audit.
+
+## 2.3.0 (2026-06-27)
+
+- Expanded first-party storage reach with framework-free Knex, TypeORM, and
+  model-free raw-SQL Prisma adapters alongside MikroORM.
+- Added reusable received-storage contracts to `@mikara89/cap-testing`,
+  complementing the publish-storage contracts introduced in v2.2.
+- Added PostgreSQL, MySQL/MariaDB, and SQLite support across the new SQL-backed
+  adapters. PostgreSQL and MySQL are the multi-instance integration targets;
+  SQLite remains a local-development and single-process option.
+- Added compile-checked schema initialization, engine wiring, explicit
+  transaction, and operation-context examples for Knex, TypeORM, and Prisma.
+- Kept a shared SQL core deferred until duplication across real adapters proves
+  that extraction is worthwhile.
+- Kept RabbitMQ, Kafka, and AWS SNS/SQS as planned v2.4 transports; Google
+  Pub/Sub and NATS remain v2.5+ candidates.
 
 ## 2.2.0 (2026-06-26)
 

@@ -17,7 +17,7 @@ framework adapters, and pluggable storage and transport adapters.
 5. [Dashboard](cap-dashboard.md) - admin API and UI behavior.
 6. [API reference](api/README.md) - generated package API documentation.
 7. [Package export surface](package-exports.md) - supported import paths and
-   future `exports` map plan.
+   current package `exports` maps.
 8. [Future libs layout](architecture/libs-layout.md) - proposed package folder
    grouping without moving folders in v2.1.1.
 9. [GitHub Pages homepage](github-pages.md) - public homepage setup.
@@ -36,14 +36,13 @@ framework adapters, and pluggable storage and transport adapters.
 
 ## Current Maturity
 
-The repository is on the stable v2.1.1 line. The core publish/subscribe path,
+The repository is on the v2.3 line. The core publish/subscribe path,
 first-party adapters, dashboard package, header propagation, release workflow,
-and PostgreSQL/MySQL multi-instance claim gate are in place. The v2.2
-transaction context foundation adds operation context, transaction manager
-extension points, publish storage contract tests, and informational storage
-capability types. The [roadmap](roadmap.md) tracks the current package set plus
-planned v2.3 storage reach, v2.4 transport reach, and v2.5+ ecosystem
-candidates.
+and PostgreSQL/MySQL multi-instance claim gate are in place. v2.2 added the
+transaction-context foundation; v2.3 adds received-storage contracts and
+current Knex, TypeORM, and Prisma storage adapters alongside MikroORM. The
+[roadmap](roadmap.md) tracks the current package set, planned v2.4 transport
+reach, and v2.5+ ecosystem candidates.
 
 ## Documentation Rules
 

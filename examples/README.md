@@ -16,12 +16,13 @@ npm run examples:check
   publisher and subscriber.
 - [mikroorm-azure-servicebus.ts](mikroorm-azure-servicebus.ts) - production-style
   MikroORM storage and Azure Service Bus transport registration.
-- [knex-storage.ts](knex-storage.ts) - framework-free Knex storage setup and
-  explicit transaction publishing.
-- [typeorm-storage.ts](typeorm-storage.ts) - framework-free TypeORM storage
-  setup and explicit `EntityManager` transaction publishing.
-- [prisma-storage.ts](prisma-storage.ts) - model-free Prisma storage setup and
-  interactive transaction client publishing.
+- [storage/knex.ts](storage/knex.ts) - framework-free Knex schema and engine
+  setup with explicit transaction and operation-context publishing.
+- [storage/typeorm.ts](storage/typeorm.ts) - framework-free TypeORM schema and
+  engine setup with explicit `EntityManager` and operation-context publishing.
+- [storage/prisma.ts](storage/prisma.ts) - model-free raw-SQL Prisma schema and
+  engine setup with explicit transaction-client and operation-context
+  publishing.
 - [dashboard.ts](dashboard.ts) - dashboard registration with a local-only sample
   guard.
 - [nestjs-microservices-bridge.ts](nestjs-microservices-bridge.ts) - publishing

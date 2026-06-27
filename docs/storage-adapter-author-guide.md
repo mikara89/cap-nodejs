@@ -11,6 +11,19 @@ small structural raw-SQL interface without requiring CAP schema models. Do not
 extract a shared SQL core until multiple real adapters prove repeated
 implementation details.
 
+## Current Reference Matrix
+
+| Adapter | Adapter style | Transaction context |
+| ------- | ------------- | ------------------- |
+| MikroORM | ORM-specific adapter | `MikroORM EntityManager` |
+| Knex | SQL query-builder adapter | `Knex.Transaction` |
+| TypeORM | ORM adapter | `TypeORM EntityManager` |
+| Prisma | Raw-SQL Prisma Client adapter; no CAP models in the Prisma schema | `Prisma.TransactionClient` |
+
+Drizzle, Sequelize, and Mongoose are future candidates. Raw SQL or SQL-core
+extraction remains deferred until duplication across these real adapters proves
+the need.
+
 ## Package Shape
 
 - Use the `@mikara89/cap-*` package naming rule for publishable packages.

@@ -56,24 +56,30 @@ generic SQL core are not part of the v2.2 minimum scope.
 
 ## v2.3 Storage Contract Hardening and Storage Reach
 
-CAP starts v2.3 with storage contract hardening and adds first-party Knex,
-TypeORM, and Prisma storage. SQL-core extraction remains deferred until
-duplication is proven.
+CAP v2.3 hardens the storage contracts and adds first-party Knex, TypeORM, and
+Prisma storage. SQL-core extraction remains deferred until duplication is
+proven.
 
-Planned scope:
+Delivered scope:
 
-- Harden the storage adapter contract suite first, including received-storage
+- Hardened the storage adapter contract suite with received-storage
   conformance.
-- First adapters after the foundation PR: `@mikara89/cap-storage-knex` and
-  `@mikara89/cap-storage-typeorm`.
-- Follow-up adapter: `@mikara89/cap-storage-prisma`.
-- Add a storage adapter matrix and examples.
-- Do not add a generic SQL core yet.
-- Keep SQL core as future work only after duplication is proven across real
+- Added `@mikara89/cap-storage-knex` as a SQL query-builder adapter using
+  `Knex.Transaction` contexts.
+- Added `@mikara89/cap-storage-typeorm` as an ORM adapter using TypeORM
+  `EntityManager` contexts.
+- Added `@mikara89/cap-storage-prisma` as a raw-SQL Prisma Client adapter using
+  `Prisma.TransactionClient` contexts. It does not require CAP models in the
+  application Prisma schema.
+- Added the storage adapter matrix and compile-checked examples.
+- Deferred a generic SQL core until duplication is proven across real
   adapters.
 
-Potential future storage candidates beyond v2.3 include Drizzle, Sequelize,
-Mongoose, and raw `pg` or custom SQL adapters.
+MikroORM remains the current ORM-specific adapter using its `EntityManager` as
+the transaction context. Potential future storage candidates beyond v2.3
+include Drizzle, Sequelize, and Mongoose. Raw SQL adapters or a shared SQL core
+remain future work only if the current implementations prove enough repeated
+logic.
 
 ## v2.4 Transport Reach
 

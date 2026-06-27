@@ -16,6 +16,7 @@
   },
   "files": [
     "dist",
+    "!dist/testing",
     "README.md",
     "CHANGELOG.md"
   ],
@@ -46,7 +47,6 @@
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./dist/*": "./dist/*",
     "./package.json": "./package.json"
   }
 }
