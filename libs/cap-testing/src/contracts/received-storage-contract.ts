@@ -238,8 +238,12 @@ export function defineReceivedStorageContract(
           ]);
 
           expect(results.filter((result) => result.inserted)).toHaveLength(1);
+          const inserted = results.find((result) => result.inserted);
+          if (!inserted) {
+            throw new Error('Expected one concurrent insert to win');
+          }
           expect(new Set(results.map((result) => result.id))).toEqual(
-            new Set([first.id]),
+            new Set([inserted.id]),
           );
         });
       },
