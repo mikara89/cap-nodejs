@@ -502,7 +502,13 @@ function commitFiles(sha, pkg, cwd = rootDir) {
  * are non-semantic.  .npmignore, build-consumed tsconfig files, and all other
  * source / declaration files are always significant.
  */
-function sourceFilesChanged(baseCommit, headCommit, pkg, cwd = rootDir) {
+function sourceFilesChanged(
+  baseCommit,
+  headCommit,
+  pkg,
+  cwd = rootDir,
+  bootstrapVersion = undefined,
+) {
   const result = run(
     'git',
     [
@@ -518,6 +524,16 @@ function sourceFilesChanged(baseCommit, headCommit, pkg, cwd = rootDir) {
   // When either ref is unavailable (e.g. mock SHAs in tests), conservatively
   // report files as changed so the caller falls back to the recorded gitHead.
   if (result.status !== 0) return true;
+
+  // — Version invariant check (runs even when zero files differ) —
+  // If the caller supplied an expected bootstrap version and the current
+  // manifest does not match, this is a significant change regardless of
+  // whether any other files differ.
+  if (bootstrapVersion !== undefined) {
+    const headManifest = packageManifestAtCommit(pkg, headCommit, cwd);
+    if (!headManifest || headManifest.version !== bootstrapVersion) return true;
+  }
+
   const files = result.stdout
     .split(/\r?\n/u)
     .map((f) => f.trim())
@@ -550,7 +566,15 @@ function sourceFilesChanged(baseCommit, headCommit, pkg, cwd = rootDir) {
 
     // package.json — compare structurally after administrative normalization.
     if (packageJsonPattern.test(file)) {
-      if (packageJsonSemanticallyChanged(baseCommit, headCommit, pkg, cwd))
+      if (
+        packageJsonSemanticallyChanged(
+          baseCommit,
+          headCommit,
+          pkg,
+          cwd,
+          bootstrapVersion,
+        )
+      )
         return true;
       continue;
     }
@@ -563,49 +587,60 @@ function sourceFilesChanged(baseCommit, headCommit, pkg, cwd = rootDir) {
 }
 
 /**
- * Structural package.json comparison that normalizes approved administrative
- * fields so that a version bump followed by an exact restoration,
- * publishConfig.registry migration, and repository metadata corrections do
- * not force a spurious semantic release.
+ * Structural package.json comparison against the bootstrap baseline.
  *
- * Normalizations applied before comparison:
- * 1. version — stripped (must be identical after bump + exact revert).
+ * The baseline manifest (at baseCommit) represents the published npmjs
+ * artifact.  The head manifest must match it after approved administrative
+ * fields are normalized.  Section moves (peer→dep, dep→optional, etc.) and
+ * range changes are always significant.
+ *
+ * Approved bootstrap-only normalizations:
+ * 1. version — stripped after verifying the head version equals
+ *    bootstrapVersion.
  * 2. publishConfig — stripped.
  * 3. repository — stripped.
- * 4. devDependencies — file: references removed (monorepo-local, never published).
- * 5. Internal dependency location — @mikara89/* entries consolidated across
- *    dependencies / peerDependencies / devDependencies so that moving an
- *    internal dep between sections is treated as a repository metadata
- *    correction rather than a semantic change.
+ * 4. devDependencies file: references — removed only when they reference a
+ *    package that is already declared in dependencies or peerDependencies
+ *    with an equivalent range.
  */
 function packageJsonSemanticallyChanged(
   baseCommit,
   headCommit,
   pkg,
   cwd = rootDir,
+  bootstrapVersion = undefined,
 ) {
   const baseManifest = packageManifestAtCommit(pkg, baseCommit, cwd);
   const headManifest = packageManifestAtCommit(pkg, headCommit, cwd);
   if (!baseManifest || !headManifest) return true;
 
-  // Normalize both manifests.
+  const expectedVersion = bootstrapVersion ?? baseManifest.version;
+
+  // — Version invariant —
+  if (headManifest.version !== expectedVersion) return true;
+
   const baseNorm = normalizePackageForBootstrap(baseManifest);
   const headNorm = normalizePackageForBootstrap(headManifest);
 
-  // Deep compare.
   try {
-    return (
-      JSON.stringify(baseNorm) !== JSON.stringify(headNorm)
-    );
+    return JSON.stringify(baseNorm) !== JSON.stringify(headNorm);
   } catch {
     return true;
   }
 }
 
 /**
- * Strip approved administrative fields and normalize internal dependency
- * placement so that repository metadata corrections do not register as
- * semantic changes during the one-time bootstrap.
+ * Strip approved administrative fields and normalize file: devDep references
+ * so that repository metadata corrections do not register as semantic changes
+ * during the one-time bootstrap.
+ *
+ * Section placement (dependencies, peerDependencies, optionalDependencies,
+ * bundledDependencies, peerDependenciesMeta) is never consolidated.
+ * Moving a dependency between sections is always significant.
+ *
+ * DevDependencies are preserved in full.  Only file: references are removed
+ * and only when the referenced package also appears in dependencies or
+ * peerDependencies with an equivalent range.
  */
 function normalizePackageForBootstrap(manifest) {
   const normalized = { ...manifest };
@@ -615,40 +650,23 @@ function normalizePackageForBootstrap(manifest) {
   delete normalized.publishConfig;
   delete normalized.repository;
 
-  // Remove file: references from devDependencies (monorepo-local, never
-  // published).
+  // Normalize file: references in devDependencies.  A file: ref is removed
+  // only when the same package is already declared in dependencies or
+  // peerDependencies with an equivalent version range; otherwise the
+  // presence or absence of a file: ref is a significant change.
   if (normalized.devDependencies) {
     const clean = { ...normalized.devDependencies };
+    const declaredDeps = {
+      ...(normalized.dependencies || {}),
+      ...(normalized.peerDependencies || {}),
+    };
     for (const key of Object.keys(clean)) {
-      if (clean[key]?.startsWith?.('file:')) delete clean[key];
-    }
-    normalized.devDependencies =
-      Object.keys(clean).length > 0 ? clean : undefined;
-  }
-
-  // Consolidate @mikara89/* entries: copy them into a single virtual
-  // "internalDeps" bucket, then remove them from dependencies,
-  // peerDependencies, and devDependencies.  This treats moving an internal
-  // dep between sections as a repository metadata correction.
-  const internalDeps = {};
-  for (const section of [
-    'dependencies',
-    'peerDependencies',
-    'devDependencies',
-  ]) {
-    if (!normalized[section]) continue;
-    const deps = { ...normalized[section] };
-    for (const key of Object.keys(deps)) {
-      if (key.startsWith('@mikara89/')) {
-        internalDeps[key] = deps[key];
-        delete deps[key];
+      if (clean[key]?.startsWith?.('file:') && declaredDeps[key] !== undefined) {
+        delete clean[key];
       }
     }
-    normalized[section] =
-      Object.keys(deps).length > 0 ? deps : undefined;
+    normalized.devDependencies = clean;
   }
-  normalized._internalDeps =
-    Object.keys(internalDeps).length > 0 ? internalDeps : undefined;
 
   return normalized;
 }
@@ -969,6 +987,7 @@ async function buildBootstrapPackages(packages, options = {}) {
         currentHead,
         pkg,
         options.cwd || rootDir,
+        pkg.version,
       )
     ) {
       target = currentHead;

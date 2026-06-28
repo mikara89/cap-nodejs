@@ -1115,7 +1115,7 @@ test('sourceFilesChanged: version bump and exact revert is not a candidate', () 
     },
   ));
 
-test('sourceFilesChanged: internal dep moved between sections is not a candidate', () =>
+test('sourceFilesChanged: peer dependency -> runtime dependency is significant', () =>
   withFixture(
     [
       {
@@ -1128,16 +1128,245 @@ test('sourceFilesChanged: internal dep moved between sections is not a candidate
     (cwd) => {
       const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      // Move @mikara89/core from peerDependencies to dependencies.
       delete manifest.peerDependencies;
       manifest.dependencies = { '@mikara89/core': '^2.0.0' };
       fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
       command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: peer->dep'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: runtime dependency -> peer dependency is significant', () =>
+  withFixture(
+    [
+      {
+        id: 'a',
+        name: '@fixture/a',
+        version: '1.0.0',
+        dependencies: { '@mikara89/core': '^2.0.0' },
+      },
+    ],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      delete manifest.dependencies;
+      manifest.peerDependencies = { '@mikara89/core': '^2.0.0' };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: dep->peer'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: dependency -> optional dependency is significant', () =>
+  withFixture(
+    [
+      {
+        id: 'a',
+        name: '@fixture/a',
+        version: '1.0.0',
+        dependencies: { leftpad: '^1.0.0' },
+      },
+    ],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      delete manifest.dependencies;
+      manifest.optionalDependencies = { leftpad: '^1.0.0' };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
       command(
         'git',
-        ['commit', '--quiet', '-m', 'chore: move internal dep'],
+        ['commit', '--quiet', '-m', 'chore: dep->optional'],
         cwd,
       );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: peerDependenciesMeta change is significant', () =>
+  withFixture(
+    [
+      {
+        id: 'a',
+        name: '@fixture/a',
+        version: '1.0.0',
+        peerDependencies: { react: '^18.0.0' },
+      },
+    ],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.peerDependenciesMeta = { react: { optional: true } };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: add peerDepsMeta'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: internal dependency range change is significant', () =>
+  withFixture(
+    [
+      {
+        id: 'a',
+        name: '@fixture/a',
+        version: '1.0.0',
+        dependencies: { '@mikara89/core': '^2.0.0' },
+      },
+    ],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.dependencies['@mikara89/core'] = '^2.1.0';
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: bump range'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: build devDependency version change is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.devDependencies = { typescript: '^5.0.0' };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: pin ts'], cwd);
+      // Bump TypeScript in devDeps.
+      manifest.devDependencies.typescript = '^5.5.0';
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: bump ts'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~2',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: unresolved file: normalization (no declared dep) is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      // file: ref to something NOT in deps/peerDeps — normalization must
+      // NOT strip it.
+      manifest.devDependencies = {
+        '@some/tool': 'file:../some-tool',
+        typescript: '^5.0.0',
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: add file ref'], cwd);
+      // Now remove it.
+      const manifest2 = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      delete manifest2.devDependencies['@some/tool'];
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest2, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: remove file ref'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: resolved file: normalization (declared dep exists) is not a candidate', () =>
+  withFixture(
+    [
+      {
+        id: 'a',
+        name: '@fixture/a',
+        version: '1.0.0',
+        dependencies: { '@fixture/core': '^2.0.0' },
+      },
+    ],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      // Add file: ref for a package that IS in dependencies.
+      manifest.devDependencies = {
+        ...(manifest.devDependencies || {}),
+        '@fixture/core': 'file:../core',
+        typescript: '^5.0.0',
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: add file ref'], cwd);
+      // Remove the file: ref.
+      delete manifest.devDependencies['@fixture/core'];
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: remove file ref'],
+        cwd,
+      );
+      // file: ref was for a declared dep → normalized away.
       assert.equal(
         sourceFilesChanged(
           'HEAD~1',
@@ -1150,39 +1379,19 @@ test('sourceFilesChanged: internal dep moved between sections is not a candidate
     },
   ));
 
-test('sourceFilesChanged: devDep file reference removal is not a candidate', () =>
+test('sourceFilesChanged: bootstrap manifest/registry version mismatch fails closed', () =>
   withFixture(
     [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
     (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.devDependencies = {
-        '@mikara89/core': 'file:../core',
-        typescript: '^5.0.0',
-      };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: add file ref'], cwd);
-      // Now remove the file: reference, keep typescript.
-      const manifest2 = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      delete manifest2.devDependencies['@mikara89/core'];
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest2, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: remove file ref'],
-        cwd,
-      );
-      // HEAD~1 has file ref, HEAD has it removed — normalization strips
-      // file: refs, so the two manifests normalize to the same thing.
       assert.equal(
         sourceFilesChanged(
-          'HEAD~1',
+          'HEAD',
           'HEAD',
           { relativeDir: 'libs/a' },
           cwd,
+          '2.0.0', // expected bootstrap version ≠ actual manifest version
         ),
-        false,
+        true,
       );
     },
   ));
