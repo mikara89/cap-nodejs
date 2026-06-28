@@ -123,18 +123,18 @@ jobs:
     permissions:
       contents: write
       id-token: write
-      workflows: write
     steps:
       - name: Checkout main with complete history
         uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
+          token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22.14.0
+          node-version: 22.19.0
           cache: npm
 
       - name: Install npm with trusted publishing support
@@ -174,6 +174,6 @@ jobs:
 
       - name: Execute approved Lerna plan
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
           EXPECTED_HEAD_SHA: ${{ needs.validate.outputs.head_sha }}
         run: node tools/release-tool.js execute --plan release-plan.generated.json
