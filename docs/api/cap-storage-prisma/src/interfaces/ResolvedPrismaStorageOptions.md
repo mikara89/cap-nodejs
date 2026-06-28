@@ -6,7 +6,7 @@
 
 # Interface: ResolvedPrismaStorageOptions
 
-Defined in: cap-storage-prisma/src/prisma-storage-options.ts:16
+Defined in: [cap-storage-prisma/src/prisma-storage-options.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-storage-options.ts#L16)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-storage-prisma/src/prisma-storage-options.ts:16
 
 > **provider**: [`ResolvedPrismaStorageProvider`](../type-aliases/ResolvedPrismaStorageProvider.md)
 
-Defined in: cap-storage-prisma/src/prisma-storage-options.ts:17
+Defined in: [cap-storage-prisma/src/prisma-storage-options.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-storage-options.ts#L17)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-storage-prisma/src/prisma-storage-options.ts:17
 
 > **publishTableName**: `string`
 
-Defined in: cap-storage-prisma/src/prisma-storage-options.ts:18
+Defined in: [cap-storage-prisma/src/prisma-storage-options.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-storage-options.ts#L18)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: cap-storage-prisma/src/prisma-storage-options.ts:18
 
 > **receivedTableName**: `string`
 
-Defined in: cap-storage-prisma/src/prisma-storage-options.ts:19
+Defined in: [cap-storage-prisma/src/prisma-storage-options.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-storage-options.ts#L19)

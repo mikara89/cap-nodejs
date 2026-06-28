@@ -8,4 +8,4 @@
 
 > **PrismaStorageProvider** = `"postgresql"` \| `"postgres"` \| `"mysql"` \| `"mariadb"` \| `"sqlite"`
 
-Defined in: cap-storage-prisma/src/prisma-storage-options.ts:1
+Defined in: [cap-storage-prisma/src/prisma-storage-options.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-storage-options.ts#L1)
