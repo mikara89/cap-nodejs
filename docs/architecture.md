@@ -94,6 +94,29 @@ through the `dto` option on `@CapSubscribe`.
 Handlers receive headers either as the second argument or through the
 `@CapHeaders()` parameter decorator.
 
+## Transport Contract Boundary
+
+The adapter-neutral transport surface is intentionally small. Publishers map a
+logical topic, JSON-compatible payload, CAP headers, and stable message ID to a
+client send operation. Subscribers register a logical `topic + group` handler
+and pass payload, headers, and available message/deduplication identity inward.
+Transport errors remain observable at this boundary.
+
+CAP owns durable outbox/inbox records and application-handler retry. The public
+subscriber port exposes no acknowledgement or delivery-handle API, so broker
+settlement, commits, and broker redelivery remain adapter/client-owned. The
+common conformance suite verifies handler success and failure propagation; it
+does not claim portable acknowledgement semantics.
+
+Optional initialization and subscriber disposal are tested only when an
+adapter declares support. Publisher disposal is not part of `PublisherPort`;
+the Azure adapter's sender cleanup is an adapter lifecycle extension. No core
+transport capability interface is introduced until real adapter variation is
+both implemented and testable.
+
+See the [transport adapter author guide](transport-adapter-author-guide.md) for
+the verified behavior of the current adapters.
+
 ## Retry Scheduler
 
 The scheduler is registered by `CapModule` and performs two periodic jobs:

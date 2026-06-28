@@ -18,13 +18,16 @@ Application code
 
 ## Status
 
-This repository contains the `v2.3` package set. The core messaging path,
-first-party adapters, dashboard auth extension points, header propagation, and
-release workflow are implemented for the supported boundaries documented
-below.
+The repository roadmap is at the `v2.4` milestone, beginning with the transport
+contract foundation. The core messaging path, current first-party adapters,
+dashboard auth extension points, header propagation, and release workflow are
+implemented for the supported boundaries documented below.
 
-The root workspace package is private. The publishable packages live under
-`libs/*`.
+The root workspace package is private and its `2.4.0` version tracks repository
+roadmap progress. It is not an npm package version and does not imply that all
+libraries are version `2.4.0`. Publishable packages live under `libs/*`, remain
+independently versioned by Lerna, and keep their current release baselines.
+Root-only milestone changes must produce zero Lerna package candidates.
 
 ## Packages
 
@@ -62,14 +65,15 @@ adapter or shared SQL-core extraction remains deferred until duplication across
 the current adapters proves that it is worthwhile.
 
 Current first-party transports are Azure Service Bus and the NestJS
-microservices bridge. RabbitMQ, Kafka, and AWS SNS/SQS transports are planned
-for v2.4 after transport conformance tests and capability metadata are added.
+microservices bridge. The v2.4 transport conformance foundation now qualifies
+both with the adapter-neutral contract suite. RabbitMQ, Kafka, and AWS SNS/SQS
+remain planned later phases and are not available packages.
 
 v2.2 adds the transaction context foundation, transaction manager extension
 points, publish storage contract tests, and informational storage capability
 types. v2.3 extends storage contract coverage and adds Knex, TypeORM, and
-Prisma storage adapters. Planned v2.4 transport packages are roadmap items,
-not installable packages today.
+Prisma storage adapters. v2.4 starts with reusable transport conformance;
+planned transport packages are roadmap items, not installable packages today.
 
 ## Requirements
 
@@ -366,6 +370,7 @@ npm run docs:api
 - [Transactions](docs/transactions.md)
 - [Architecture](docs/architecture.md)
 - [Adapters](docs/adapters.md)
+- [Transport adapter author guide](docs/transport-adapter-author-guide.md)
 - [Dashboard](docs/cap-dashboard.md)
 - [API reference](docs/api/README.md)
 - [Package export surface](docs/package-exports.md)

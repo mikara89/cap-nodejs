@@ -17,6 +17,7 @@ const {
   coordinatedMajorConfirmation,
   coordinatedTagCommit,
   createBootstrapTags,
+  discoverPackages,
   distTagFor,
   hasReleaseRelevantCommit,
   isReleaseCommit,
@@ -34,6 +35,25 @@ const {
 
 const rootDir = path.resolve(__dirname, '..');
 const lernaCli = path.join(rootDir, 'node_modules', 'lerna', 'dist', 'cli.js');
+
+test('repository roadmap version belongs only to the private workspace root', () => {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'),
+  );
+  const lerna = JSON.parse(
+    fs.readFileSync(path.join(rootDir, 'lerna.json'), 'utf8'),
+  );
+
+  assert.equal(manifest.private, true);
+  assert.equal(manifest.version, '2.4.0');
+  assert.deepEqual(manifest.workspaces, ['libs/*']);
+  assert.deepEqual(lerna.packages, ['libs/*']);
+  assert.ok(
+    discoverPackages(rootDir).every((pkg) =>
+      pkg.relativeDir.startsWith('libs/'),
+    ),
+  );
+});
 
 function command(commandName, args, cwd) {
   const result = spawnSync(commandName, args, {
@@ -167,6 +187,31 @@ function withFixture(specs, fn) {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
 }
+
+test('root-only roadmap version change creates zero Lerna candidates', () =>
+  withFixture(
+    [
+      { id: 'a', name: '@fixture/a', version: '1.0.0' },
+      { id: 'b', name: '@fixture/b', version: '2.0.0' },
+    ],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.version = '2.4.0';
+      writeJson(manifestPath, manifest);
+      command('git', ['add', 'package.json'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: start v2.4 roadmap'],
+        cwd,
+      );
+
+      const versions = runVersion(cwd, ['--conventional-commits']);
+
+      assert.equal(versions['@fixture/a'].version, '1.0.0');
+      assert.equal(versions['@fixture/b'].version, '2.0.0');
+    },
+  ));
 
 function bootstrapTestOptions(overrides = {}) {
   return {

@@ -83,16 +83,28 @@ logic.
 
 ## v2.4 Transport Reach
 
-CAP adds first-party RabbitMQ, Kafka, and AWS SNS/SQS transports after transport
-capability and conformance tests are introduced.
+The v2.4 repository roadmap milestone expands transport reach in five ordered
+PR phases. Only the first foundation phase is started; the planned transport
+packages are not currently available.
 
-Planned scope:
+1. **PR 1 - transport contract foundation:** verify the existing core ports,
+   add the adapter-neutral `defineTransportContract` suite, qualify Azure
+   Service Bus and the NestJS Microservices bridge with fakes, and document the
+   lifecycle and settlement boundary.
+2. **PR 2 - RabbitMQ transport:** implement and qualify the planned
+   `@mikara89/cap-transport-rabbitmq` package.
+3. **PR 3 - Kafka transport:** implement and qualify the planned
+   `@mikara89/cap-transport-kafka` package.
+4. **PR 4 - AWS SNS/SQS transport:** implement and qualify the planned
+   `@mikara89/cap-transport-aws-sns-sqs` package.
+5. **PR 5 - docs, examples, compatibility and release review:** complete the
+   adapter matrix and examples, verify compatibility, and perform release
+   readiness review.
 
-- Add a transport contract suite and transport capability model first.
-- Planned first-party package: `@mikara89/cap-transport-rabbitmq`.
-- Planned first-party package: `@mikara89/cap-transport-kafka`.
-- Planned first-party package: `@mikara89/cap-transport-aws-sns-sqs`.
-- Add a transport adapter matrix and examples.
+An explicit `cap-core` transport capability interface is deferred until
+conformance tests demonstrate real portable variation that applications need
+to inspect. PR 1 does not claim broker acknowledgement, delayed delivery,
+ordering, topology, dead-letter, or request/reply guarantees.
 
 Google Pub/Sub and NATS JetStream are likely v2.5 candidates, not v2.4 minimum
 scope. Redis Streams, MQTT, and other niche transports remain later or optional
@@ -121,8 +133,8 @@ Likely candidates:
   Streams, MQTT, or other broker implementations as part of v2.2.
 - Do not build a generic SQL core before at least two or three storage adapters
   prove real duplication.
-- Add conformance tests and capability models before broadening each adapter
-  family.
+- Add conformance tests before broadening each adapter family; add capability
+  models only when tests prove a portable need.
 - Keep current packages and planned packages clearly separated in README and
   docs.
 - Do not promise exact release dates from this roadmap.

@@ -24,6 +24,12 @@
 - [ReceivedStorageContractSetup](interfaces/ReceivedStorageContractSetup.md)
 - [TestCapEngine](interfaces/TestCapEngine.md)
 - [TestCapEngineOptions](interfaces/TestCapEngineOptions.md)
+- [TransportContractCapabilities](interfaces/TransportContractCapabilities.md)
+- [TransportContractDelivery](interfaces/TransportContractDelivery.md)
+- [TransportContractHarness](interfaces/TransportContractHarness.md)
+- [TransportContractPublishedMessage](interfaces/TransportContractPublishedMessage.md)
+- [TransportContractPublisher](interfaces/TransportContractPublisher.md)
+- [TransportContractSetup](interfaces/TransportContractSetup.md)
 
 ## Functions
 
@@ -36,3 +42,4 @@
 - [createTestCapEngine](functions/createTestCapEngine.md)
 - [definePublishStorageContract](functions/definePublishStorageContract.md)
 - [defineReceivedStorageContract](functions/defineReceivedStorageContract.md)
+- [defineTransportContract](functions/defineTransportContract.md)

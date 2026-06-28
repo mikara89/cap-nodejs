@@ -108,6 +108,19 @@ first-party adapter readiness rules.
 - optional `initialize(options)`
 - optional `close()`
 
+### Transport Conformance
+
+v2.4 PR 1 adds `defineTransportContract()` to
+`@mikara89/cap-testing`. Transport adapters should run it against fast client
+fakes while retaining emulator or broker integration tests. It covers publish
+mapping, headers and message identity, errors, inbound handler registration,
+delivery metadata, supported repeated lifecycle calls, and resource cleanup.
+
+Lifecycle capabilities are explicit contract options, so unsupported checks
+are skipped visibly. No core transport capability model is added yet: the
+current adapters have not proven a portable caller-facing requirement beyond
+the existing ports.
+
 Subscriber metadata should include a stable `messageId` when the broker exposes
 one. If a transport can provide a stronger idempotency identity, it should pass
 `dedupeKey`; CAP stores `messageId` for traceability but first-party durable
@@ -137,7 +150,7 @@ Important subscriber invariant:
 | Mongoose | Future candidate | Not implemented | Not defined |
 | raw SQL / SQL-core | Deferred until current adapters prove enough duplication | Not implemented | Not defined |
 
-## Planned Transport Adapter Matrix
+## Transport Adapter Matrix
 
 | Adapter                | Status                                                                   |
 | ---------------------- | ------------------------------------------------------------------------ |
@@ -291,6 +304,8 @@ portable durable broker acknowledgment.
 - Implement claim/lease outbox dispatch atomically for production stores.
 - Run the publish-storage contract tests from `@mikara89/cap-testing`.
 - Run the received-storage contract tests from `@mikara89/cap-testing`.
+- Run the transport contract tests from `@mikara89/cap-testing` for transport
+  adapters.
 - Implement `CapabilityAwareStoragePort` when the adapter can report its
   behavior without guessing.
 - Enforce inbox idempotency with a stable `dedupeKey`.
@@ -298,3 +313,6 @@ portable durable broker acknowledgment.
 - Return due inbox retries only when `status = failed` and `nextRetry <= now`.
 - Provide dashboard list/find helpers for production adapters.
 - Document resource naming, provisioning, and failure semantics.
+
+See the [transport adapter author guide](transport-adapter-author-guide.md) for
+the verified common contract and settlement boundary.

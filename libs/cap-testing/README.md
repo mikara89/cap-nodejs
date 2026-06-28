@@ -85,3 +85,32 @@ capability options make unsupported guarantees visible as skipped tests.
 
 Use this together with the
 [storage adapter author guide](../../docs/storage-adapter-author-guide.md).
+
+## Transport Contract
+
+Adapter authors can use `defineTransportContract` to qualify publisher and
+subscriber implementations with fast client fakes. The suite verifies logical
+topic and payload mapping, headers, message identity, publish errors, inbound
+handler registration, delivery metadata, handler failure propagation, repeated
+supported lifecycle calls, and cleanup.
+
+The setup supplies an adapter-neutral harness that observes published messages,
+injects a publish failure, and delivers an inbound fixture. Lifecycle
+capabilities are required and explicit:
+
+```ts
+defineTransportContract('my transport', setup, {
+  supportsPublisherInitialization: false,
+  supportsSubscriberInitialization: false,
+  supportsPublisherDisposal: false,
+  supportsSubscriberDisposal: true,
+});
+```
+
+Unsupported lifecycle behavior is reported as skipped tests. The suite does
+not invent broker acknowledgement semantics: the current public subscriber
+port exposes only handler resolution or rejection. Settlement and broker
+redelivery remain adapter/client responsibilities.
+
+Use this together with the
+[transport adapter author guide](../../docs/transport-adapter-author-guide.md).

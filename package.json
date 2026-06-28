@@ -1,6 +1,6 @@
 {
   "name": "cap-nodejs",
-  "version": "0.0.1",
+  "version": "2.4.0",
   "description": "Framework-agnostic Node.js CAP reliable messaging packages.",
   "author": "",
   "homepage": "https://mikara89.github.io/cap-nodejs/",

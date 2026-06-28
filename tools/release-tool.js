@@ -25,7 +25,7 @@ const ignoredReleaseChanges = [
 ];
 const lernaCli = path.join(rootDir, 'node_modules', 'lerna', 'dist', 'cli.js');
 
-class ReleaseToolError extends Error {}
+class ReleaseToolError extends Error { }
 
 function fail(message) {
   throw new ReleaseToolError(message);
@@ -80,7 +80,19 @@ function discoverPackages(cwd = rootDir) {
 }
 
 function verifyConfiguration(cwd = rootDir) {
+  const rootManifest = readJson(path.join(cwd, 'package.json'));
   const lerna = readJson(path.join(cwd, 'lerna.json'));
+  if (rootManifest.private !== true) {
+    fail('The workspace root must remain private.');
+  }
+  if (
+    JSON.stringify(rootManifest.workspaces) !== JSON.stringify(['libs/*']) ||
+    JSON.stringify(lerna.packages) !== JSON.stringify(['libs/*'])
+  ) {
+    fail(
+      'The workspace root must be excluded; npm workspaces and Lerna packages must target only libs/*.',
+    );
+  }
   if (lerna.version !== 'independent')
     fail('lerna.json must use independent versioning.');
   const version = lerna.command?.version;
@@ -91,7 +103,7 @@ function verifyConfiguration(cwd = rootDir) {
     version?.changelogPreset !== 'conventionalcommits' ||
     version?.excludeDependents !== true ||
     JSON.stringify(version?.ignoreChanges) !==
-      JSON.stringify(ignoredReleaseChanges)
+    JSON.stringify(ignoredReleaseChanges)
   ) {
     fail(
       'lerna.json command.version must enable Conventional Commits, GitHub releases, main-only releases, the conventionalcommits preset, dependent exclusion, and verified non-artifact ignore patterns.',
@@ -329,7 +341,7 @@ function packageArtifactFromTarball(buffer) {
   } catch (error) {
     fail(`npm artifact is not a valid gzip archive: ${error.message}`);
   }
-  for (let offset = 0; offset + 512 <= archive.length; ) {
+  for (let offset = 0; offset + 512 <= archive.length;) {
     const header = archive.subarray(offset, offset + 512);
     if (header.every((value) => value === 0)) break;
     const readString = (start, length) =>
@@ -1138,10 +1150,10 @@ async function buildBootstrapPackages(packages, options = {}) {
     }
     const artifact = published
       ? await (options.verifyArtifact || verifyRegistryArtifact)(
-          pkg,
-          published,
-          options,
-        )
+        pkg,
+        published,
+        options,
+      )
       : undefined;
     const tag = packageTag(pkg.name, pkg.version);
     const existing = (options.getTagCommit || tagCommit)(
@@ -1281,7 +1293,7 @@ async function createPlan(input, options = {}) {
       const directCommand = buildReleaseCommand(inputs, commandOptions);
       plannedPackages = simulate(directCommand.args, cwd);
       if (inputs.channel === 'stable') {
-        for (;;) {
+        for (; ;) {
           const additions = requiredDependents(
             packages,
             plannedPackages,
