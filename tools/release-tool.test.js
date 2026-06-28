@@ -21,7 +21,9 @@ const {
   hasReleaseRelevantCommit,
   isReleaseCommit,
   normalizeInputs,
+  normalizeDevDepFileRefs,
   normalizePackageForBootstrap,
+  normalizePublishConfigForBootstrap,
   packageJsonSemanticallyChanged,
   packageTag,
   requiredDependents,
@@ -1055,20 +1057,89 @@ test('sourceFilesChanged: changelog-only change is not a candidate', () =>
     },
   ));
 
-test('sourceFilesChanged: registry-only bootstrap normalization is not a candidate', () =>
+test('sourceFilesChanged: publishConfig registry migration (GitHub->npmjs) is not a candidate', () =>
   withFixture(
     [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
     (cwd) => {
       const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
       manifest.publishConfig = {
-        registry: 'https://registry.npmjs.org/',
+        registry: 'https://npm.pkg.github.com/',
       };
       fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
       command('git', ['add', '.'], cwd);
       command(
         'git',
-        ['commit', '--quiet', '-m', 'chore: set publishConfig'],
+        ['commit', '--quiet', '-m', 'chore: github registry'],
+        cwd,
+      );
+      // Migrate to npmjs.
+      manifest.publishConfig.registry = 'https://registry.npmjs.org/';
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: migrate to npmjs'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~2',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        false,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: publishConfig missing access -> public is not a candidate', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      // fixture has no publishConfig — add access: public (npmjs default).
+      manifest.publishConfig = { access: 'public' };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: set public access'],
+        cwd,
+      );
+      // Compare baseline (no publishConfig) with HEAD (access:public).
+      // access:"public" normalizes to undefined (npmjs default), so both
+      // manifests normalize to no publishConfig.
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        false,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: publishConfig public -> restricted is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.publishConfig = { access: 'public' };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: public'], cwd);
+      manifest.publishConfig.access = 'restricted';
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: restricted'],
         cwd,
       );
       assert.equal(
@@ -1078,7 +1149,131 @@ test('sourceFilesChanged: registry-only bootstrap normalization is not a candida
           { relativeDir: 'libs/a' },
           cwd,
         ),
-        false,
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: publishConfig tag change is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.publishConfig = { tag: 'next' };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: tag next'], cwd);
+      manifest.publishConfig.tag = 'latest';
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: tag latest'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: publishConfig directory change is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.publishConfig = { directory: 'dist' };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: directory dist'],
+        cwd,
+      );
+      manifest.publishConfig.directory = 'lib';
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: directory lib'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: publishConfig provenance change is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.publishConfig = { provenance: true };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: enable provenance'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: publishConfig unknown field change is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.publishConfig = { customField: 'value1' };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: custom v1'],
+        cwd,
+      );
+      manifest.publishConfig.customField = 'value2';
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: custom v2'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
       );
     },
   ));
@@ -1304,8 +1499,6 @@ test('sourceFilesChanged: unresolved file: normalization (no declared dep) is si
     (cwd) => {
       const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      // file: ref to something NOT in deps/peerDeps — normalization must
-      // NOT strip it.
       manifest.devDependencies = {
         '@some/tool': 'file:../some-tool',
         typescript: '^5.0.0',
@@ -1313,10 +1506,8 @@ test('sourceFilesChanged: unresolved file: normalization (no declared dep) is si
       fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
       command('git', ['add', '.'], cwd);
       command('git', ['commit', '--quiet', '-m', 'chore: add file ref'], cwd);
-      // Now remove it.
-      const manifest2 = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      delete manifest2.devDependencies['@some/tool'];
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest2, null, 2));
+      delete manifest.devDependencies['@some/tool'];
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
       command('git', ['add', '.'], cwd);
       command(
         'git',
@@ -1335,7 +1526,7 @@ test('sourceFilesChanged: unresolved file: normalization (no declared dep) is si
     },
   ));
 
-test('sourceFilesChanged: resolved file: normalization (declared dep exists) is not a candidate', () =>
+test('sourceFilesChanged: matching workspace identity/version -> non-candidate', () =>
   withFixture(
     [
       {
@@ -1344,20 +1535,18 @@ test('sourceFilesChanged: resolved file: normalization (declared dep exists) is 
         version: '1.0.0',
         dependencies: { '@fixture/core': '^2.0.0' },
       },
+      { id: 'core', name: '@fixture/core', version: '2.0.0' },
     ],
     (cwd) => {
       const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      // Add file: ref for a package that IS in dependencies.
       manifest.devDependencies = {
-        ...(manifest.devDependencies || {}),
         '@fixture/core': 'file:../core',
         typescript: '^5.0.0',
       };
       fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
       command('git', ['add', '.'], cwd);
       command('git', ['commit', '--quiet', '-m', 'chore: add file ref'], cwd);
-      // Remove the file: ref.
       delete manifest.devDependencies['@fixture/core'];
       fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
       command('git', ['add', '.'], cwd);
@@ -1366,7 +1555,6 @@ test('sourceFilesChanged: resolved file: normalization (declared dep exists) is 
         ['commit', '--quiet', '-m', 'chore: remove file ref'],
         cwd,
       );
-      // file: ref was for a declared dep → normalized away.
       assert.equal(
         sourceFilesChanged(
           'HEAD~1',
@@ -1375,6 +1563,126 @@ test('sourceFilesChanged: resolved file: normalization (declared dep exists) is 
           cwd,
         ),
         false,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: file: target package missing -> significant', () =>
+  withFixture(
+    [
+      {
+        id: 'a',
+        name: '@fixture/a',
+        version: '1.0.0',
+        dependencies: { '@fixture/missing': '^1.0.0' },
+      },
+    ],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.devDependencies = {
+        '@fixture/missing': 'file:../missing',
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: add file ref'], cwd);
+      delete manifest.devDependencies['@fixture/missing'];
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: remove file ref'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: file: target name mismatch -> significant', () =>
+  withFixture(
+    [
+      {
+        id: 'a',
+        name: '@fixture/a',
+        version: '1.0.0',
+        dependencies: { '@fixture/wrong': '^1.0.0' },
+      },
+      { id: 'core', name: '@fixture/core', version: '1.0.0' },
+    ],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      // Declared as @fixture/wrong but file: points to core (name mismatch)
+      manifest.devDependencies = {
+        '@fixture/wrong': 'file:../core',
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: add file ref'], cwd);
+      delete manifest.devDependencies['@fixture/wrong'];
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: remove file ref'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: file: target version outside declared range -> significant', () =>
+  withFixture(
+    [
+      {
+        id: 'a',
+        name: '@fixture/a',
+        version: '1.0.0',
+        dependencies: { '@fixture/core': '^1.0.0' },
+      },
+      { id: 'core', name: '@fixture/core', version: '2.0.0' },
+    ],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.devDependencies = {
+        '@fixture/core': 'file:../core',
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: add file ref'], cwd);
+      delete manifest.devDependencies['@fixture/core'];
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: remove file ref'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
       );
     },
   ));

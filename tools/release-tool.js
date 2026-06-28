@@ -597,11 +597,13 @@ function sourceFilesChanged(
  * Approved bootstrap-only normalizations:
  * 1. version — stripped after verifying the head version equals
  *    bootstrapVersion.
- * 2. publishConfig — stripped.
- * 3. repository — stripped.
- * 4. devDependencies file: references — removed only when they reference a
- *    package that is already declared in dependencies or peerDependencies
- *    with an equivalent range.
+ * 2. publishConfig.registry — normalizes GitHub Packages → npmjs migration.
+ * 3. publishConfig.access — normalizes explicit "public" to match npmjs
+ *    default.
+ * 4. repository — stripped.
+ * 5. devDependencies file: references — removed only when they reference an
+ *    existing workspace package whose name matches the key and whose version
+ *    satisfies the declared dependency/peer range.
  */
 function packageJsonSemanticallyChanged(
   baseCommit,
@@ -619,8 +621,8 @@ function packageJsonSemanticallyChanged(
   // — Version invariant —
   if (headManifest.version !== expectedVersion) return true;
 
-  const baseNorm = normalizePackageForBootstrap(baseManifest);
-  const headNorm = normalizePackageForBootstrap(headManifest);
+  const baseNorm = normalizePackageForBootstrap(baseManifest, pkg, cwd);
+  const headNorm = normalizePackageForBootstrap(headManifest, pkg, cwd);
 
   try {
     return JSON.stringify(baseNorm) !== JSON.stringify(headNorm);
@@ -634,41 +636,143 @@ function packageJsonSemanticallyChanged(
  * so that repository metadata corrections do not register as semantic changes
  * during the one-time bootstrap.
  *
- * Section placement (dependencies, peerDependencies, optionalDependencies,
- * bundledDependencies, peerDependenciesMeta) is never consolidated.
- * Moving a dependency between sections is always significant.
+ * publishConfig is normalized narrowly:
+ * - registry: GitHub Packages → registry.npmjs.org migration is stripped.
+ * - access: explicit "public" is stripped (npmjs default).
+ * Every other publishConfig field is compared unchanged.
  *
- * DevDependencies are preserved in full.  Only file: references are removed
- * and only when the referenced package also appears in dependencies or
- * peerDependencies with an equivalent range.
+ * DevDependencies are preserved in full.  A file: reference is removed only
+ * when all of the following hold:
+ * 1. The same package name exists in dependencies or peerDependencies.
+ * 2. The target workspace directory exists.
+ * 3. The target manifest name matches the key.
+ * 4. The target version satisfies the declared dependency/peer range.
+ * Otherwise the file: reference change is significant.
  */
-function normalizePackageForBootstrap(manifest) {
+function normalizePackageForBootstrap(manifest, pkg, cwd = rootDir) {
   const normalized = { ...manifest };
 
   // — Approved administrative field normalizations —
   delete normalized.version;
-  delete normalized.publishConfig;
   delete normalized.repository;
 
-  // Normalize file: references in devDependencies.  A file: ref is removed
-  // only when the same package is already declared in dependencies or
-  // peerDependencies with an equivalent version range; otherwise the
-  // presence or absence of a file: ref is a significant change.
+  // Narrow publishConfig normalization: only registry migration and
+  // explicit "public" access are approved bootstrap adjustments.  Every
+  // other publishConfig field is compared as-is.
+  normalized.publishConfig = normalizePublishConfigForBootstrap(
+    normalized.publishConfig,
+  );
+
+  // Normalize file: references in devDependencies.
   if (normalized.devDependencies) {
-    const clean = { ...normalized.devDependencies };
-    const declaredDeps = {
-      ...(normalized.dependencies || {}),
-      ...(normalized.peerDependencies || {}),
-    };
-    for (const key of Object.keys(clean)) {
-      if (clean[key]?.startsWith?.('file:') && declaredDeps[key] !== undefined) {
-        delete clean[key];
-      }
-    }
-    normalized.devDependencies = clean;
+    normalized.devDependencies = normalizeDevDepFileRefs(
+      normalized.devDependencies,
+      normalized.dependencies,
+      normalized.peerDependencies,
+      pkg,
+      cwd,
+    );
   }
 
   return normalized;
+}
+
+/**
+ * Narrow publishConfig normalization for the one-time bootstrap migration.
+ *
+ * - registry: if either manifest points at GitHub Packages
+ *   (npm.pkg.github.com) or at registry.npmjs.org, strip the field so the
+ *   migration itself is not a semantic change.
+ * - access: if the value is exactly "public", strip it (npmjs default).
+ *
+ * Every other field (tag, directory, provenance, etc.) is compared as-is.
+ */
+function normalizePublishConfigForBootstrap(publishConfig) {
+  if (!publishConfig) return publishConfig;
+  const normalized = { ...publishConfig };
+
+  const isNpmjsRegistry = (value) =>
+    value === 'https://registry.npmjs.org/';
+  const isGitHubRegistry = (value) =>
+    typeof value === 'string' && value.includes('npm.pkg.github.com');
+
+  if (
+    normalized.registry &&
+    (isNpmjsRegistry(normalized.registry) ||
+      isGitHubRegistry(normalized.registry))
+  ) {
+    delete normalized.registry;
+  }
+
+  if (normalized.access === 'public') {
+    delete normalized.access;
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : undefined;
+}
+
+/**
+ * Remove file: devDependency references only when the referenced workspace
+ * package can be verified to match the declared dependency.
+ *
+ * A file: ref is removed only when ALL of the following hold:
+ * 1. The same package name exists in dependencies or peerDependencies.
+ * 2. The target workspace directory (resolved from the file: path relative
+ *    to pkg.dir) exists.
+ * 3. The target manifest name matches the devDep key.
+ * 4. The target manifest version satisfies the declared dep/peer range.
+ *
+ * If any condition fails, the file: ref is preserved as-is (significant).
+ */
+function normalizeDevDepFileRefs(
+  devDependencies,
+  dependencies,
+  peerDependencies,
+  pkg,
+  cwd,
+) {
+  const clean = { ...devDependencies };
+  const declaredDeps = {
+    ...(dependencies || {}),
+    ...(peerDependencies || {}),
+  };
+
+  for (const key of Object.keys(clean)) {
+    const value = clean[key];
+    if (!value?.startsWith?.('file:')) continue;
+
+    // Condition 1: the same package must be declared in deps/peerDeps.
+    const declaredRange = declaredDeps[key];
+    if (declaredRange === undefined) continue;
+
+    // Condition 2–4: resolve the file: path and verify the target.
+    const relativePath = value.slice('file:'.length);
+    const targetDir = path.resolve(
+      pkg.dir || path.join(cwd, pkg.relativeDir),
+      relativePath,
+    );
+    let targetManifest;
+    try {
+      targetManifest = JSON.parse(
+        fs.readFileSync(path.join(targetDir, 'package.json'), 'utf8'),
+      );
+    } catch {
+      // Target doesn't exist or is unreadable — keep the file: ref.
+      continue;
+    }
+
+    // Condition 3: name must match.
+    if (targetManifest.name !== key) continue;
+
+    // Condition 4: version must satisfy the declared range.
+    if (!semver.satisfies(targetManifest.version, declaredRange)) continue;
+
+    // All conditions met — the file: ref is a workspace convenience
+    // that does not affect the published artifact.
+    delete clean[key];
+  }
+
+  return clean;
 }
 
 function validateReleaseSignals(packages, cwd = rootDir) {
@@ -1533,6 +1637,8 @@ module.exports = {
   registry,
   sourceFilesChanged,
   normalizePackageForBootstrap,
+  normalizePublishConfigForBootstrap,
+  normalizeDevDepFileRefs,
   packageJsonSemanticallyChanged,
   stableBase,
   validatePlanFile,
