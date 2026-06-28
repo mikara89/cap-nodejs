@@ -842,7 +842,7 @@ test('release workflow exposes only validated Lerna modes and protects publicati
   assert.match(workflow, /environment: npm-production/);
   assert.match(workflow, /contents: write/);
   assert.match(workflow, /id-token: write/);
-  assert.match(workflow, /GH_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}/);
+  assert.match(workflow, /GH_TOKEN: \$\{\{ secrets\.RELEASE_GITHUB_TOKEN \}\}/);
   assert.match(workflow, /if: \$\{\{ inputs\.operation == 'bootstrap' \}\}/);
   assert.match(workflow, /temporary npm tokens are bootstrap-only/);
   assert.match(workflow, /test:release-tooling/);
