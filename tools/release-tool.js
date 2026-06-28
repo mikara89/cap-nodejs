@@ -491,11 +491,16 @@ function commitFiles(sha, pkg, cwd = rootDir) {
 }
 
 /**
- * Returns true when any artifact-relevant source file (excluding metadata like
- * package.json, CHANGELOG, README, and tsconfig files) differs between two
+ * Returns true when any artifact-relevant source file differs between two
  * commits for a package. Used by the head-anchored bootstrap to decide whether
  * an existing npmjs baseline tag can be placed at the current HEAD instead of
  * the older recorded gitHead.
+ *
+ * package.json is compared structurally after normalizing approved
+ * administrative fields (version bump+restore, publishConfig.registry
+ * migration, repository metadata correction).  README.md and CHANGELOG.md
+ * are non-semantic.  .npmignore, build-consumed tsconfig files, and all other
+ * source / declaration files are always significant.
  */
 function sourceFilesChanged(baseCommit, headCommit, pkg, cwd = rootDir) {
   const result = run(
@@ -517,18 +522,135 @@ function sourceFilesChanged(baseCommit, headCommit, pkg, cwd = rootDir) {
     .split(/\r?\n/u)
     .map((f) => f.trim())
     .filter(Boolean);
-  const metadataPatterns = [
-    /[/\\]package\.json$/u,
-    /[/\\]CHANGELOG\.md$/u,
-    /[/\\]README\.md$/u,
-    /[/\\]tsconfig.*\.json$/u,
-    /[/\\]\.npmignore$/u,
-  ];
-  return files.some(
-    (f) =>
-      !isIgnoredReleasePath(f) &&
-      !metadataPatterns.some((pattern) => pattern.test(f)),
-  );
+
+  // Per-file classification patterns.
+  const readmePattern = /[/\\]README\.md$/u;
+  const changelogPattern = /[/\\]CHANGELOG\.md$/u;
+  const packageJsonPattern = /[/\\]package\.json$/u;
+  const npmignorePattern = /[/\\]\.npmignore$/u;
+  // Build-consumed tsconfigs (tsconfig.json, tsconfig.build.json,
+  // tsconfig.lib.json).  Lint/doc-only tsconfigs are not build-consumed.
+  const buildTsconfigPattern =
+    /[/\\]tsconfig(\.(build|lib))?\.json$/u;
+
+  for (const file of files) {
+    // Non-semantic documentation files.
+    if (readmePattern.test(file) || changelogPattern.test(file)) continue;
+
+    // .npmignore always affects the published artifact — check before
+    // isIgnoredReleasePath which would otherwise mask it.
+    if (npmignorePattern.test(file)) return true;
+
+    // Build-consumed tsconfig changes affect compilation output — check
+    // before isIgnoredReleasePath which treats all tsconfigs as ignored.
+    if (buildTsconfigPattern.test(file)) return true;
+
+    // Test / fixture / markdown patterns from the global ignore list.
+    if (isIgnoredReleasePath(file)) continue;
+
+    // package.json — compare structurally after administrative normalization.
+    if (packageJsonPattern.test(file)) {
+      if (packageJsonSemanticallyChanged(baseCommit, headCommit, pkg, cwd))
+        return true;
+      continue;
+    }
+
+    // Any other changed file (source, declaration, etc.) is significant.
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Structural package.json comparison that normalizes approved administrative
+ * fields so that a version bump followed by an exact restoration,
+ * publishConfig.registry migration, and repository metadata corrections do
+ * not force a spurious semantic release.
+ *
+ * Normalizations applied before comparison:
+ * 1. version — stripped (must be identical after bump + exact revert).
+ * 2. publishConfig — stripped.
+ * 3. repository — stripped.
+ * 4. devDependencies — file: references removed (monorepo-local, never published).
+ * 5. Internal dependency location — @mikara89/* entries consolidated across
+ *    dependencies / peerDependencies / devDependencies so that moving an
+ *    internal dep between sections is treated as a repository metadata
+ *    correction rather than a semantic change.
+ */
+function packageJsonSemanticallyChanged(
+  baseCommit,
+  headCommit,
+  pkg,
+  cwd = rootDir,
+) {
+  const baseManifest = packageManifestAtCommit(pkg, baseCommit, cwd);
+  const headManifest = packageManifestAtCommit(pkg, headCommit, cwd);
+  if (!baseManifest || !headManifest) return true;
+
+  // Normalize both manifests.
+  const baseNorm = normalizePackageForBootstrap(baseManifest);
+  const headNorm = normalizePackageForBootstrap(headManifest);
+
+  // Deep compare.
+  try {
+    return (
+      JSON.stringify(baseNorm) !== JSON.stringify(headNorm)
+    );
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Strip approved administrative fields and normalize internal dependency
+ * placement so that repository metadata corrections do not register as
+ * semantic changes during the one-time bootstrap.
+ */
+function normalizePackageForBootstrap(manifest) {
+  const normalized = { ...manifest };
+
+  // — Approved administrative field normalizations —
+  delete normalized.version;
+  delete normalized.publishConfig;
+  delete normalized.repository;
+
+  // Remove file: references from devDependencies (monorepo-local, never
+  // published).
+  if (normalized.devDependencies) {
+    const clean = { ...normalized.devDependencies };
+    for (const key of Object.keys(clean)) {
+      if (clean[key]?.startsWith?.('file:')) delete clean[key];
+    }
+    normalized.devDependencies =
+      Object.keys(clean).length > 0 ? clean : undefined;
+  }
+
+  // Consolidate @mikara89/* entries: copy them into a single virtual
+  // "internalDeps" bucket, then remove them from dependencies,
+  // peerDependencies, and devDependencies.  This treats moving an internal
+  // dep between sections as a repository metadata correction.
+  const internalDeps = {};
+  for (const section of [
+    'dependencies',
+    'peerDependencies',
+    'devDependencies',
+  ]) {
+    if (!normalized[section]) continue;
+    const deps = { ...normalized[section] };
+    for (const key of Object.keys(deps)) {
+      if (key.startsWith('@mikara89/')) {
+        internalDeps[key] = deps[key];
+        delete deps[key];
+      }
+    }
+    normalized[section] =
+      Object.keys(deps).length > 0 ? deps : undefined;
+  }
+  normalized._internalDeps =
+    Object.keys(internalDeps).length > 0 ? internalDeps : undefined;
+
+  return normalized;
 }
 
 function validateReleaseSignals(packages, cwd = rootDir) {
@@ -1391,6 +1513,8 @@ module.exports = {
   requiredDependents,
   registry,
   sourceFilesChanged,
+  normalizePackageForBootstrap,
+  packageJsonSemanticallyChanged,
   stableBase,
   validatePlanFile,
   verifyRegistryArtifact,

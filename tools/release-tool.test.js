@@ -21,6 +21,8 @@ const {
   hasReleaseRelevantCommit,
   isReleaseCommit,
   normalizeInputs,
+  normalizePackageForBootstrap,
+  packageJsonSemanticallyChanged,
   packageTag,
   requiredDependents,
   recoveryCommand,
@@ -853,13 +855,329 @@ test('release workflow exposes only validated Lerna modes and protects publicati
   assert.match(ci, /npm run test:release-tooling/);
 });
 
-test('sourceFilesChanged ignores metadata-only diffs', () =>
+test('sourceFilesChanged returns false when both commits are identical', () =>
   withFixture(
     [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
     (cwd) => {
       assert.equal(
         sourceFilesChanged(
           'HEAD',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        false,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: dependency change is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      // Add a new dependency.
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.dependencies = { leftpad: '^1.0.0' };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: add dep'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: peer dependency change is significant', () =>
+  withFixture(
+    [
+      {
+        id: 'a',
+        name: '@fixture/a',
+        version: '1.0.0',
+        peerDependencies: { react: '^18.0.0' },
+      },
+    ],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.peerDependencies.react = '^19.0.0';
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: bump peer'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: exports change is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.exports = { '.': './dist/index.js' };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: add exports'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: files allowlist change is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.files = ['dist', 'README.md'];
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: add files'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: .npmignore change is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      fs.writeFileSync(
+        path.join(cwd, 'libs', 'a', '.npmignore'),
+        'src\n',
+      );
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: add npmignore'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: build tsconfig change is significant', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      fs.writeFileSync(
+        path.join(cwd, 'libs', 'a', 'tsconfig.lib.json'),
+        '{ "compilerOptions": { "outDir": "dist" } }',
+      );
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: add tsconfig'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        true,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: README-only change is not a candidate', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      fs.appendFileSync(
+        path.join(cwd, 'libs', 'a', 'README.md'),
+        'Updated.\n',
+      );
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'docs: update readme'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        false,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: changelog-only change is not a candidate', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      fs.appendFileSync(
+        path.join(cwd, 'libs', 'a', 'CHANGELOG.md'),
+        '## 1.0.1\n',
+      );
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'docs: update changelog'], cwd);
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        false,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: registry-only bootstrap normalization is not a candidate', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.publishConfig = {
+        registry: 'https://registry.npmjs.org/',
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: set publishConfig'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        false,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: version bump and exact revert is not a candidate', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      const original = JSON.stringify(manifest, null, 2);
+      // Bump
+      manifest.version = '2.0.0';
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: bump to 2.0.0'], cwd);
+      // Revert
+      fs.writeFileSync(manifestPath, original);
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'Revert "chore: bump to 2.0.0"'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~2',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        false,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: internal dep moved between sections is not a candidate', () =>
+  withFixture(
+    [
+      {
+        id: 'a',
+        name: '@fixture/a',
+        version: '1.0.0',
+        peerDependencies: { '@mikara89/core': '^2.0.0' },
+      },
+    ],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      // Move @mikara89/core from peerDependencies to dependencies.
+      delete manifest.peerDependencies;
+      manifest.dependencies = { '@mikara89/core': '^2.0.0' };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: move internal dep'],
+        cwd,
+      );
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
+          'HEAD',
+          { relativeDir: 'libs/a' },
+          cwd,
+        ),
+        false,
+      );
+    },
+  ));
+
+test('sourceFilesChanged: devDep file reference removal is not a candidate', () =>
+  withFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
+    (cwd) => {
+      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.devDependencies = {
+        '@mikara89/core': 'file:../core',
+        typescript: '^5.0.0',
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'chore: add file ref'], cwd);
+      // Now remove the file: reference, keep typescript.
+      const manifest2 = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      delete manifest2.devDependencies['@mikara89/core'];
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest2, null, 2));
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: remove file ref'],
+        cwd,
+      );
+      // HEAD~1 has file ref, HEAD has it removed — normalization strips
+      // file: refs, so the two manifests normalize to the same thing.
+      assert.equal(
+        sourceFilesChanged(
+          'HEAD~1',
           'HEAD',
           { relativeDir: 'libs/a' },
           cwd,
