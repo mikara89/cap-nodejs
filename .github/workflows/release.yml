@@ -123,6 +123,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      workflows: write
     steps:
       - name: Checkout main with complete history
         uses: actions/checkout@v4
