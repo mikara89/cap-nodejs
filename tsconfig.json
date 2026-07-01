@@ -17,77 +17,34 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "baseUrl": ".",
-    "types": [
-      "node",
-      "jest"
-    ],
+    "types": ["node", "jest"],
     "paths": {
-      "@mikara89/cap-core": [
-        "./libs/cap-core/dist"
-      ],
-      "@mikara89/cap-core/*": [
-        "./libs/cap-core/dist/*"
-      ],
-      "@mikara89/cap-testing": [
-        "./libs/cap-testing/dist"
-      ],
-      "@mikara89/cap-testing/*": [
-        "./libs/cap-testing/dist/*"
-      ],
-      "@mikara89/cap-nest": [
-        "./libs/cap-nest/dist"
-      ],
-      "@mikara89/cap-nest/*": [
-        "./libs/cap-nest/dist/*"
-      ],
-      "@mikara89/cap-express": [
-        "./libs/cap-express/dist"
-      ],
-      "@mikara89/cap-express/*": [
-        "./libs/cap-express/dist/*"
-      ],
-      "@mikara89/cap-dashboard-core": [
-        "./libs/cap-dashboard-core/dist"
-      ],
-      "@mikara89/cap-dashboard-core/*": [
-        "./libs/cap-dashboard-core/dist/*"
-      ],
-      "@mikara89/cap-dashboard-nest": [
-        "./libs/cap-dashboard-nest/dist"
-      ],
-      "@mikara89/cap-dashboard-nest/*": [
-        "./libs/cap-dashboard-nest/dist/*"
-      ],
-      "@mikara89/cap-dashboard-express": [
-        "./libs/cap-dashboard-express/dist"
-      ],
+      "@mikara89/cap-core": ["./libs/cap-core/dist"],
+      "@mikara89/cap-core/*": ["./libs/cap-core/dist/*"],
+      "@mikara89/cap-testing": ["./libs/cap-testing/dist"],
+      "@mikara89/cap-testing/*": ["./libs/cap-testing/dist/*"],
+      "@mikara89/cap-nest": ["./libs/cap-nest/dist"],
+      "@mikara89/cap-nest/*": ["./libs/cap-nest/dist/*"],
+      "@mikara89/cap-express": ["./libs/cap-express/dist"],
+      "@mikara89/cap-express/*": ["./libs/cap-express/dist/*"],
+      "@mikara89/cap-dashboard-core": ["./libs/cap-dashboard-core/dist"],
+      "@mikara89/cap-dashboard-core/*": ["./libs/cap-dashboard-core/dist/*"],
+      "@mikara89/cap-dashboard-nest": ["./libs/cap-dashboard-nest/dist"],
+      "@mikara89/cap-dashboard-nest/*": ["./libs/cap-dashboard-nest/dist/*"],
+      "@mikara89/cap-dashboard-express": ["./libs/cap-dashboard-express/dist"],
       "@mikara89/cap-dashboard-express/*": [
         "./libs/cap-dashboard-express/dist/*"
       ],
-      "@mikara89/cap-storage-mikro-orm": [
-        "./libs/cap-storage-mikro-orm/dist"
-      ],
+      "@mikara89/cap-storage-mikro-orm": ["./libs/cap-storage-mikro-orm/dist"],
       "@mikara89/cap-storage-mikro-orm/*": [
         "./libs/cap-storage-mikro-orm/dist/*"
       ],
-      "@mikara89/cap-storage-knex": [
-        "./libs/cap-storage-knex/dist"
-      ],
-      "@mikara89/cap-storage-knex/*": [
-        "./libs/cap-storage-knex/dist/*"
-      ],
-      "@mikara89/cap-storage-typeorm": [
-        "./libs/cap-storage-typeorm/dist"
-      ],
-      "@mikara89/cap-storage-typeorm/*": [
-        "./libs/cap-storage-typeorm/dist/*"
-      ],
-      "@mikara89/cap-storage-prisma": [
-        "./libs/cap-storage-prisma/dist"
-      ],
-      "@mikara89/cap-storage-prisma/*": [
-        "./libs/cap-storage-prisma/dist/*"
-      ],
+      "@mikara89/cap-storage-knex": ["./libs/cap-storage-knex/dist"],
+      "@mikara89/cap-storage-knex/*": ["./libs/cap-storage-knex/dist/*"],
+      "@mikara89/cap-storage-typeorm": ["./libs/cap-storage-typeorm/dist"],
+      "@mikara89/cap-storage-typeorm/*": ["./libs/cap-storage-typeorm/dist/*"],
+      "@mikara89/cap-storage-prisma": ["./libs/cap-storage-prisma/dist"],
+      "@mikara89/cap-storage-prisma/*": ["./libs/cap-storage-prisma/dist/*"],
       "@mikara89/cap-transport-azure-servicebus": [
         "./libs/cap-transport-azure-servicebus/dist"
       ],
@@ -100,12 +57,14 @@
       "@mikara89/cap-transport-nestjs-microservices/*": [
         "./libs/cap-transport-nestjs-microservices/dist/*"
       ],
-      "@mikara89/cap-dashboard": [
-        "./libs/cap-dashboard/dist"
+      "@mikara89/cap-transport-rabbitmq": [
+        "./libs/cap-transport-rabbitmq/dist"
       ],
-      "@mikara89/cap-dashboard/*": [
-        "./libs/cap-dashboard/dist/*"
-      ]
+      "@mikara89/cap-transport-rabbitmq/*": [
+        "./libs/cap-transport-rabbitmq/dist/*"
+      ],
+      "@mikara89/cap-dashboard": ["./libs/cap-dashboard/dist"],
+      "@mikara89/cap-dashboard/*": ["./libs/cap-dashboard/dist/*"]
     }
   },
   "include": [

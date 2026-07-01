@@ -18,7 +18,7 @@
   "license": "MIT",
   "scripts": {
     "build": "npm run build:libs && nest build",
-    "build:libs": "npm run build:lib:cap-core && npm run build:lib:cap-testing && npm run build:lib:cap-nest && npm run build:lib:cap-express && npm run build:lib:cap-dashboard-core && npm run build:lib:cap-dashboard-nest && npm run build:lib:cap-dashboard && npm run build:lib:cap-dashboard-express && npm run build:lib:cap-storage-mikro-orm && npm run build:lib:cap-storage-knex && npm run build:lib:cap-storage-typeorm && npm run build:lib:cap-storage-prisma && npm run build:lib:cap-transport-azure-servicebus && npm run build:lib:cap-transport-nestjs-microservices",
+    "build:libs": "npm run build:lib:cap-core && npm run build:lib:cap-testing && npm run build:lib:cap-nest && npm run build:lib:cap-express && npm run build:lib:cap-dashboard-core && npm run build:lib:cap-dashboard-nest && npm run build:lib:cap-dashboard && npm run build:lib:cap-dashboard-express && npm run build:lib:cap-storage-mikro-orm && npm run build:lib:cap-storage-knex && npm run build:lib:cap-storage-typeorm && npm run build:lib:cap-storage-prisma && npm run build:lib:cap-transport-azure-servicebus && npm run build:lib:cap-transport-nestjs-microservices && npm run build:lib:cap-transport-rabbitmq",
     "bootstrap": "npm install",
     "build:libs:lerna": "npx lerna run build --stream",
     "release": "node tools/release-tool.js plan --operation release --channel stable --coordinated-major false",
@@ -39,6 +39,7 @@
     "build:lib:cap-storage-prisma": "npm run build --workspace @mikara89/cap-storage-prisma",
     "build:lib:cap-transport-azure-servicebus": "cd libs/cap-transport-azure-servicebus && tsc -p tsconfig.lib.json",
     "build:lib:cap-transport-nestjs-microservices": "cd libs/cap-transport-nestjs-microservices && tsc -p tsconfig.lib.json",
+    "build:lib:cap-transport-rabbitmq": "cd libs/cap-transport-rabbitmq && tsc -p tsconfig.lib.json",
     "prestart": "npm run build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "fallow": "fallow",
@@ -56,8 +57,9 @@
     "lint:check": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "docs:api": "node node_modules/typedoc/dist/lib/cli.js",
     "examples:check": "tsc -p examples/tsconfig.json --noEmit",
-    "pack:dry-run": "npm pack --dry-run --workspace @mikara89/cap-core && npm pack --dry-run --workspace @mikara89/cap-testing && npm pack --dry-run --workspace @mikara89/cap-nest && npm pack --dry-run --workspace @mikara89/cap-express && npm pack --dry-run --workspace @mikara89/cap-dashboard-core && npm pack --dry-run --workspace @mikara89/cap-dashboard-nest && npm pack --dry-run --workspace @mikara89/cap-dashboard && npm pack --dry-run --workspace @mikara89/cap-dashboard-express && npm pack --dry-run --workspace @mikara89/cap-storage-mikro-orm && npm pack --dry-run --workspace @mikara89/cap-storage-knex && npm pack --dry-run --workspace @mikara89/cap-storage-typeorm && npm pack --dry-run --workspace @mikara89/cap-storage-prisma && npm pack --dry-run --workspace @mikara89/cap-transport-azure-servicebus && npm pack --dry-run --workspace @mikara89/cap-transport-nestjs-microservices",
+    "pack:dry-run": "npm pack --dry-run --workspace @mikara89/cap-core && npm pack --dry-run --workspace @mikara89/cap-testing && npm pack --dry-run --workspace @mikara89/cap-nest && npm pack --dry-run --workspace @mikara89/cap-express && npm pack --dry-run --workspace @mikara89/cap-dashboard-core && npm pack --dry-run --workspace @mikara89/cap-dashboard-nest && npm pack --dry-run --workspace @mikara89/cap-dashboard && npm pack --dry-run --workspace @mikara89/cap-dashboard-express && npm pack --dry-run --workspace @mikara89/cap-storage-mikro-orm && npm pack --dry-run --workspace @mikara89/cap-storage-knex && npm pack --dry-run --workspace @mikara89/cap-storage-typeorm && npm pack --dry-run --workspace @mikara89/cap-storage-prisma && npm pack --dry-run --workspace @mikara89/cap-transport-azure-servicebus && npm pack --dry-run --workspace @mikara89/cap-transport-nestjs-microservices && npm pack --dry-run --workspace @mikara89/cap-transport-rabbitmq",
     "test:integration:servicebus": "node tools/run-servicebus-integration.js",
+    "test:integration:rabbitmq": "jest --testPathPattern=rabbitmq.integration.spec.ts --runInBand",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -65,6 +67,7 @@
     "test:lib:cap-testing": "jest --testPathPattern=libs/cap-testing",
     "test:lib:cap-nest": "jest --testPathPattern=libs/cap-nest",
     "test:lib:cap-express": "jest --testPathPattern=libs/cap-express",
+    "test:lib:cap-transport-rabbitmq": "jest --testPathPattern=libs/cap-transport-rabbitmq/src",
     "test:lib:cap-dashboard-core": "jest --testPathPattern=libs/cap-dashboard-core",
     "test:lib:cap-dashboard-nest": "jest --testPathPattern=libs/cap-dashboard-nest",
     "test:lib:cap-dashboard-express": "jest --testPathPattern=libs/cap-dashboard-express",
@@ -137,7 +140,8 @@
       "undici": "6.27.0"
     },
     "testcontainers": {
-      "undici": "8.5.0"
+      "undici": "8.5.0",
+      "archiver": "7.0.1"
     },
     "js-yaml": "4.2.0"
   },
@@ -182,6 +186,7 @@
       "^@mikara89/cap-storage-prisma(|/.*)$": "<rootDir>/libs/cap-storage-prisma/src/$1",
       "^@mikara89/cap-transport-azure-servicebus(|/.*)$": "<rootDir>/libs/cap-transport-azure-servicebus/src/$1",
       "^@mikara89/cap-transport-nestjs-microservices(|/.*)$": "<rootDir>/libs/cap-transport-nestjs-microservices/src/$1",
+      "^@mikara89/cap-transport-rabbitmq(|/.*)$": "<rootDir>/libs/cap-transport-rabbitmq/src/$1",
       "^@mikara89/cap-dashboard(|/.*)$": "<rootDir>/libs/cap-dashboard/src/$1"
     }
   }

@@ -22,9 +22,7 @@
       "@mikara89/cap-dashboard-nest": ["libs/cap-dashboard-nest/src"],
       "@mikara89/cap-dashboard-nest/*": ["libs/cap-dashboard-nest/src/*"],
       "@mikara89/cap-dashboard-express": ["libs/cap-dashboard-express/src"],
-      "@mikara89/cap-dashboard-express/*": [
-        "libs/cap-dashboard-express/src/*"
-      ],
+      "@mikara89/cap-dashboard-express/*": ["libs/cap-dashboard-express/src/*"],
       "@mikara89/cap-storage-mikro-orm": ["libs/cap-storage-mikro-orm/src"],
       "@mikara89/cap-storage-mikro-orm/*": ["libs/cap-storage-mikro-orm/src/*"],
       "@mikara89/cap-storage-knex": ["libs/cap-storage-knex/src"],
@@ -44,6 +42,10 @@
       ],
       "@mikara89/cap-transport-nestjs-microservices/*": [
         "libs/cap-transport-nestjs-microservices/src/*"
+      ],
+      "@mikara89/cap-transport-rabbitmq": ["libs/cap-transport-rabbitmq/src"],
+      "@mikara89/cap-transport-rabbitmq/*": [
+        "libs/cap-transport-rabbitmq/src/*"
       ],
       "@mikara89/cap-dashboard": ["libs/cap-dashboard/src"],
       "@mikara89/cap-dashboard/*": ["libs/cap-dashboard/src/*"]

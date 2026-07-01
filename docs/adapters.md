@@ -139,16 +139,16 @@ Important subscriber invariant:
 
 ## Storage Adapter Matrix
 
-| Adapter | Status | Adapter style | Transaction context |
-| ------- | ------ | ------------- | ------------------- |
-| MikroORM | Current: `@mikara89/cap-storage-mikro-orm` | ORM-specific adapter | `MikroORM EntityManager` |
-| Knex | Current: `@mikara89/cap-storage-knex` | SQL query-builder adapter | `Knex.Transaction` |
-| TypeORM | Current: `@mikara89/cap-storage-typeorm` | ORM adapter | `TypeORM EntityManager` |
-| Prisma | Current: `@mikara89/cap-storage-prisma` | Raw-SQL Prisma Client adapter; CAP models are not required in the Prisma schema | `Prisma.TransactionClient` |
-| Drizzle | Future candidate | Not implemented | Not defined |
-| Sequelize | Future candidate | Not implemented | Not defined |
-| Mongoose | Future candidate | Not implemented | Not defined |
-| raw SQL / SQL-core | Deferred until current adapters prove enough duplication | Not implemented | Not defined |
+| Adapter            | Status                                                   | Adapter style                                                                   | Transaction context        |
+| ------------------ | -------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------- |
+| MikroORM           | Current: `@mikara89/cap-storage-mikro-orm`               | ORM-specific adapter                                                            | `MikroORM EntityManager`   |
+| Knex               | Current: `@mikara89/cap-storage-knex`                    | SQL query-builder adapter                                                       | `Knex.Transaction`         |
+| TypeORM            | Current: `@mikara89/cap-storage-typeorm`                 | ORM adapter                                                                     | `TypeORM EntityManager`    |
+| Prisma             | Current: `@mikara89/cap-storage-prisma`                  | Raw-SQL Prisma Client adapter; CAP models are not required in the Prisma schema | `Prisma.TransactionClient` |
+| Drizzle            | Future candidate                                         | Not implemented                                                                 | Not defined                |
+| Sequelize          | Future candidate                                         | Not implemented                                                                 | Not defined                |
+| Mongoose           | Future candidate                                         | Not implemented                                                                 | Not defined                |
+| raw SQL / SQL-core | Deferred until current adapters prove enough duplication | Not implemented                                                                 | Not defined                |
 
 ## Transport Adapter Matrix
 
@@ -156,7 +156,7 @@ Important subscriber invariant:
 | ---------------------- | ------------------------------------------------------------------------ |
 | Azure Service Bus      | Current first-party adapter: `@mikara89/cap-transport-azure-servicebus`. |
 | NestJS microservices   | Current bridge adapter: `@mikara89/cap-transport-nestjs-microservices`.  |
-| RabbitMQ               | Planned v2.4: `@mikara89/cap-transport-rabbitmq`.                        |
+| RabbitMQ               | Current first-party adapter: `@mikara89/cap-transport-rabbitmq`.         |
 | Kafka                  | Planned v2.4: `@mikara89/cap-transport-kafka`.                           |
 | AWS SNS/SQS            | Planned v2.4: `@mikara89/cap-transport-aws-sns-sqs`.                     |
 | Google Pub/Sub         | Likely v2.5 candidate.                                                   |
@@ -297,6 +297,29 @@ retries, and dashboard visibility.
 Important reliability note: `ClientProxy.emit()` semantics vary by broker and
 configuration. CAP treats completion as client-library acceptance, not a
 portable durable broker acknowledgment.
+
+## First-Party Transport: RabbitMQ
+
+Package: `@mikara89/cap-transport-rabbitmq`
+
+The RabbitMQ adapter provides:
+
+- a framework-neutral `amqplib` publisher and subscriber
+- persistent JSON publishing to a durable topic exchange
+- publisher confirms with timeout, nack propagation, and channel-drain handling
+- durable group queues, topic bindings, prefetch, and manual acknowledgements
+- classic queues by default and opt-in quorum/dead-letter arguments
+- bounded reconnect with topology, binding, and consumer restoration
+- fail-fast publishes while disconnected; no hidden reconnect buffer
+
+A publisher confirmation proves broker acceptance only. It does not prove a
+queue matched or a consumer processed the message. Mandatory publishing remains
+disabled because returned-message correlation is not implemented.
+
+CAP inbox retries remain authoritative. The adapter acknowledges after the CAP
+inbound callback resolves, including when CAP has persisted an application
+handler failure for inbox retry. Boundary rejection nacks without requeue by
+default. Malformed payloads are never requeued indefinitely.
 
 ## Adapter Authoring Rules
 

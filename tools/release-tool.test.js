@@ -53,6 +53,30 @@ test('repository roadmap version belongs only to the private workspace root', ()
       pkg.relativeDir.startsWith('libs/'),
     ),
   );
+  const packages = discoverPackages(rootDir);
+  assert.equal(
+    packages.find((pkg) => pkg.name === '@mikara89/cap-transport-rabbitmq')
+      ?.version,
+    '0.0.0',
+  );
+  assert.ok(
+    packages
+      .filter((pkg) => pkg.name !== '@mikara89/cap-transport-rabbitmq')
+      .every((pkg) => pkg.version === '2.2.0'),
+  );
+});
+
+test('first RabbitMQ feat selects only the independent package at 0.1.0', () => {
+  const cwd = createFixture([
+    { id: 'core', name: '@fixture/core', version: '2.2.0' },
+    { id: 'rabbitmq', name: '@fixture/rabbitmq', version: '0.0.0' },
+  ]);
+
+  addCommit(cwd, 'rabbitmq', 'feat: add RabbitMQ transport');
+  const plan = runVersion(cwd, ['--conventional-commits']);
+
+  assert.equal(plan['@fixture/core'].version, '2.2.0');
+  assert.equal(plan['@fixture/rabbitmq'].version, '0.1.0');
 });
 
 function command(commandName, args, cwd) {
@@ -143,7 +167,17 @@ function createFixture(specs) {
   // Without tags, Lerna falls back to "Assuming all packages changed" and
   // versions every package, defeating excludeDependents.
   for (const spec of specs) {
-    command('git', ['tag', '-a', `${spec.name}@${spec.version}`, '-m', `${spec.name}@${spec.version}`], cwd);
+    command(
+      'git',
+      [
+        'tag',
+        '-a',
+        `${spec.name}@${spec.version}`,
+        '-m',
+        `${spec.name}@${spec.version}`,
+      ],
+      cwd,
+    );
   }
 
   return cwd;
@@ -903,43 +937,27 @@ test('release workflow exposes only validated Lerna modes and protects publicati
 });
 
 test('sourceFilesChanged returns false when both commits are identical', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        false,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    assert.equal(
+      sourceFilesChanged('HEAD', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      false,
+    );
+  }));
 
 test('sourceFilesChanged: dependency change is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      // Add a new dependency.
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.dependencies = { leftpad: '^1.0.0' };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: add dep'], cwd);
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    // Add a new dependency.
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.dependencies = { leftpad: '^1.0.0' };
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: add dep'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: peer dependency change is significant', () =>
   withFixture(
@@ -959,401 +977,246 @@ test('sourceFilesChanged: peer dependency change is significant', () =>
       command('git', ['add', '.'], cwd);
       command('git', ['commit', '--quiet', '-m', 'chore: bump peer'], cwd);
       assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
+        sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
         true,
       );
     },
   ));
 
 test('sourceFilesChanged: exports change is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.exports = { '.': './dist/index.js' };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: add exports'], cwd);
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.exports = { '.': './dist/index.js' };
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: add exports'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: files allowlist change is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.files = ['dist', 'README.md'];
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: add files'], cwd);
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.files = ['dist', 'README.md'];
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: add files'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: .npmignore change is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      fs.writeFileSync(
-        path.join(cwd, 'libs', 'a', '.npmignore'),
-        'src\n',
-      );
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: add npmignore'], cwd);
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    fs.writeFileSync(path.join(cwd, 'libs', 'a', '.npmignore'), 'src\n');
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: add npmignore'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: build tsconfig change is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      fs.writeFileSync(
-        path.join(cwd, 'libs', 'a', 'tsconfig.lib.json'),
-        '{ "compilerOptions": { "outDir": "dist" } }',
-      );
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: add tsconfig'], cwd);
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    fs.writeFileSync(
+      path.join(cwd, 'libs', 'a', 'tsconfig.lib.json'),
+      '{ "compilerOptions": { "outDir": "dist" } }',
+    );
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: add tsconfig'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: README-only change is not a candidate', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      fs.appendFileSync(
-        path.join(cwd, 'libs', 'a', 'README.md'),
-        'Updated.\n',
-      );
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'docs: update readme'], cwd);
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        false,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    fs.appendFileSync(path.join(cwd, 'libs', 'a', 'README.md'), 'Updated.\n');
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'docs: update readme'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      false,
+    );
+  }));
 
 test('sourceFilesChanged: changelog-only change is not a candidate', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      fs.appendFileSync(
-        path.join(cwd, 'libs', 'a', 'CHANGELOG.md'),
-        '## 1.0.1\n',
-      );
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'docs: update changelog'], cwd);
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        false,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    fs.appendFileSync(
+      path.join(cwd, 'libs', 'a', 'CHANGELOG.md'),
+      '## 1.0.1\n',
+    );
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'docs: update changelog'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      false,
+    );
+  }));
 
 test('sourceFilesChanged: publishConfig registry migration (GitHub->npmjs) is not a candidate', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.publishConfig = {
-        registry: 'https://npm.pkg.github.com/',
-      };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: github registry'],
-        cwd,
-      );
-      // Migrate to npmjs.
-      manifest.publishConfig.registry = 'https://registry.npmjs.org/';
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: migrate to npmjs'],
-        cwd,
-      );
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~2',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        false,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.publishConfig = {
+      registry: 'https://npm.pkg.github.com/',
+    };
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: github registry'], cwd);
+    // Migrate to npmjs.
+    manifest.publishConfig.registry = 'https://registry.npmjs.org/';
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: migrate to npmjs'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~2', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      false,
+    );
+  }));
 
 test('sourceFilesChanged: publishConfig missing access -> public is not a candidate', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      // fixture has no publishConfig — add access: public (npmjs default).
-      manifest.publishConfig = { access: 'public' };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: set public access'],
-        cwd,
-      );
-      // Compare baseline (no publishConfig) with HEAD (access:public).
-      // access:"public" normalizes to undefined (npmjs default), so both
-      // manifests normalize to no publishConfig.
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        false,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    // fixture has no publishConfig — add access: public (npmjs default).
+    manifest.publishConfig = { access: 'public' };
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command(
+      'git',
+      ['commit', '--quiet', '-m', 'chore: set public access'],
+      cwd,
+    );
+    // Compare baseline (no publishConfig) with HEAD (access:public).
+    // access:"public" normalizes to undefined (npmjs default), so both
+    // manifests normalize to no publishConfig.
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      false,
+    );
+  }));
 
 test('sourceFilesChanged: publishConfig public -> restricted is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.publishConfig = { access: 'public' };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: public'], cwd);
-      manifest.publishConfig.access = 'restricted';
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: restricted'],
-        cwd,
-      );
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.publishConfig = { access: 'public' };
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: public'], cwd);
+    manifest.publishConfig.access = 'restricted';
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: restricted'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: publishConfig tag change is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.publishConfig = { tag: 'next' };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: tag next'], cwd);
-      manifest.publishConfig.tag = 'latest';
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: tag latest'],
-        cwd,
-      );
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.publishConfig = { tag: 'next' };
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: tag next'], cwd);
+    manifest.publishConfig.tag = 'latest';
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: tag latest'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: publishConfig directory change is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.publishConfig = { directory: 'dist' };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: directory dist'],
-        cwd,
-      );
-      manifest.publishConfig.directory = 'lib';
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: directory lib'],
-        cwd,
-      );
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.publishConfig = { directory: 'dist' };
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: directory dist'], cwd);
+    manifest.publishConfig.directory = 'lib';
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: directory lib'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: publishConfig provenance change is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.publishConfig = { provenance: true };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: enable provenance'],
-        cwd,
-      );
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.publishConfig = { provenance: true };
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command(
+      'git',
+      ['commit', '--quiet', '-m', 'chore: enable provenance'],
+      cwd,
+    );
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: publishConfig unknown field change is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.publishConfig = { customField: 'value1' };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: custom v1'],
-        cwd,
-      );
-      manifest.publishConfig.customField = 'value2';
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: custom v2'],
-        cwd,
-      );
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.publishConfig = { customField: 'value1' };
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: custom v1'], cwd);
+    manifest.publishConfig.customField = 'value2';
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: custom v2'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: version bump and exact revert is not a candidate', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      const original = JSON.stringify(manifest, null, 2);
-      // Bump
-      manifest.version = '2.0.0';
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: bump to 2.0.0'], cwd);
-      // Revert
-      fs.writeFileSync(manifestPath, original);
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'Revert "chore: bump to 2.0.0"'],
-        cwd,
-      );
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~2',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        false,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    const original = JSON.stringify(manifest, null, 2);
+    // Bump
+    manifest.version = '2.0.0';
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: bump to 2.0.0'], cwd);
+    // Revert
+    fs.writeFileSync(manifestPath, original);
+    command('git', ['add', '.'], cwd);
+    command(
+      'git',
+      ['commit', '--quiet', '-m', 'Revert "chore: bump to 2.0.0"'],
+      cwd,
+    );
+    assert.equal(
+      sourceFilesChanged('HEAD~2', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      false,
+    );
+  }));
 
 test('sourceFilesChanged: peer dependency -> runtime dependency is significant', () =>
   withFixture(
@@ -1374,12 +1237,7 @@ test('sourceFilesChanged: peer dependency -> runtime dependency is significant',
       command('git', ['add', '.'], cwd);
       command('git', ['commit', '--quiet', '-m', 'chore: peer->dep'], cwd);
       assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
+        sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
         true,
       );
     },
@@ -1404,12 +1262,7 @@ test('sourceFilesChanged: runtime dependency -> peer dependency is significant',
       command('git', ['add', '.'], cwd);
       command('git', ['commit', '--quiet', '-m', 'chore: dep->peer'], cwd);
       assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
+        sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
         true,
       );
     },
@@ -1432,18 +1285,9 @@ test('sourceFilesChanged: dependency -> optional dependency is significant', () 
       manifest.optionalDependencies = { leftpad: '^1.0.0' };
       fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
       command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: dep->optional'],
-        cwd,
-      );
+      command('git', ['commit', '--quiet', '-m', 'chore: dep->optional'], cwd);
       assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
+        sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
         true,
       );
     },
@@ -1471,12 +1315,7 @@ test('sourceFilesChanged: peerDependenciesMeta change is significant', () =>
         cwd,
       );
       assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
+        sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
         true,
       );
     },
@@ -1500,76 +1339,51 @@ test('sourceFilesChanged: internal dependency range change is significant', () =
       command('git', ['add', '.'], cwd);
       command('git', ['commit', '--quiet', '-m', 'chore: bump range'], cwd);
       assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
+        sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
         true,
       );
     },
   ));
 
 test('sourceFilesChanged: build devDependency version change is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.devDependencies = { typescript: '^5.0.0' };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: pin ts'], cwd);
-      // Bump TypeScript in devDeps.
-      manifest.devDependencies.typescript = '^5.5.0';
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: bump ts'], cwd);
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~2',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.devDependencies = { typescript: '^5.0.0' };
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: pin ts'], cwd);
+    // Bump TypeScript in devDeps.
+    manifest.devDependencies.typescript = '^5.5.0';
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: bump ts'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~2', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: unresolved file: normalization (no declared dep) is significant', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest.devDependencies = {
-        '@some/tool': 'file:../some-tool',
-        typescript: '^5.0.0',
-      };
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'chore: add file ref'], cwd);
-      delete manifest.devDependencies['@some/tool'];
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      command('git', ['add', '.'], cwd);
-      command(
-        'git',
-        ['commit', '--quiet', '-m', 'chore: remove file ref'],
-        cwd,
-      );
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const manifestPath = path.join(cwd, 'libs', 'a', 'package.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.devDependencies = {
+      '@some/tool': 'file:../some-tool',
+      typescript: '^5.0.0',
+    };
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: add file ref'], cwd);
+    delete manifest.devDependencies['@some/tool'];
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    command('git', ['add', '.'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: remove file ref'], cwd);
+    assert.equal(
+      sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
+      true,
+    );
+  }));
 
 test('sourceFilesChanged: matching workspace identity/version -> non-candidate', () =>
   withFixture(
@@ -1601,12 +1415,7 @@ test('sourceFilesChanged: matching workspace identity/version -> non-candidate',
         cwd,
       );
       assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
+        sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
         false,
       );
     },
@@ -1640,12 +1449,7 @@ test('sourceFilesChanged: file: target package missing -> significant', () =>
         cwd,
       );
       assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
+        sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
         true,
       );
     },
@@ -1681,12 +1485,7 @@ test('sourceFilesChanged: file: target name mismatch -> significant', () =>
         cwd,
       );
       assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
+        sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
         true,
       );
     },
@@ -1721,33 +1520,25 @@ test('sourceFilesChanged: file: target version outside declared range -> signifi
         cwd,
       );
       assert.equal(
-        sourceFilesChanged(
-          'HEAD~1',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-        ),
+        sourceFilesChanged('HEAD~1', 'HEAD', { relativeDir: 'libs/a' }, cwd),
         true,
       );
     },
   ));
 
 test('sourceFilesChanged: bootstrap manifest/registry version mismatch fails closed', () =>
-  withFixture(
-    [{ id: 'a', name: '@fixture/a', version: '1.0.0' }],
-    (cwd) => {
-      assert.equal(
-        sourceFilesChanged(
-          'HEAD',
-          'HEAD',
-          { relativeDir: 'libs/a' },
-          cwd,
-          '2.0.0', // expected bootstrap version ≠ actual manifest version
-        ),
-        true,
-      );
-    },
-  ));
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    assert.equal(
+      sourceFilesChanged(
+        'HEAD',
+        'HEAD',
+        { relativeDir: 'libs/a' },
+        cwd,
+        '2.0.0', // expected bootstrap version ≠ actual manifest version
+      ),
+      true,
+    );
+  }));
 
 test('head-anchored bootstrap tags HEAD, normal release selects zero, fix/feat/breaking each select one', () => {
   // — Setup: two packages, a depends on b with a compatible range —

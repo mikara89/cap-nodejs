@@ -26,6 +26,8 @@ provides framework adapters where they are useful:
   transport adapter.
 - `@mikara89/cap-transport-nestjs-microservices` as the current bridge adapter
   for existing NestJS `ClientProxy` registrations.
+- `@mikara89/cap-transport-rabbitmq` as the current framework-neutral RabbitMQ
+  adapter with confirmed publishing and manual acknowledgements.
 - `@mikara89/cap-dashboard-core`, `@mikara89/cap-dashboard-nest`, and
   `@mikara89/cap-dashboard-express` for dashboard service logic and framework
   bindings.
@@ -84,15 +86,15 @@ logic.
 ## v2.4 Transport Reach
 
 The v2.4 repository roadmap milestone expands transport reach in five ordered
-PR phases. Only the first foundation phase is started; the planned transport
-packages are not currently available.
+PR phases. The transport foundation and RabbitMQ phases are delivered.
 
 1. **PR 1 - transport contract foundation:** verify the existing core ports,
    add the adapter-neutral `defineTransportContract` suite, qualify Azure
    Service Bus and the NestJS Microservices bridge with fakes, and document the
    lifecycle and settlement boundary.
-2. **PR 2 - RabbitMQ transport:** implement and qualify the planned
-   `@mikara89/cap-transport-rabbitmq` package.
+2. **PR 2 - RabbitMQ transport (delivered):** implement and qualify
+   `@mikara89/cap-transport-rabbitmq` with publisher confirms, manual consumer
+   settlement, conservative topology options, and pinned-broker integration.
 3. **PR 3 - Kafka transport:** implement and qualify the planned
    `@mikara89/cap-transport-kafka` package.
 4. **PR 4 - AWS SNS/SQS transport:** implement and qualify the planned
@@ -129,8 +131,8 @@ Likely candidates:
   documented, tested, and exported.
 - Do not add Knex, TypeORM, Prisma, or generic SQL core implementation as part
   of v2.2.
-- Do not add RabbitMQ, Kafka, AWS SNS/SQS, Google Pub/Sub, NATS JetStream, Redis
-  Streams, MQTT, or other broker implementations as part of v2.2.
+- Do not backport RabbitMQ, Kafka, AWS SNS/SQS, Google Pub/Sub, NATS JetStream,
+  Redis Streams, MQTT, or other broker implementations into v2.2.
 - Do not build a generic SQL core before at least two or three storage adapters
   prove real duplication.
 - Add conformance tests before broadening each adapter family; add capability

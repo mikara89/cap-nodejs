@@ -1,0 +1,49 @@
+{
+  "name": "@mikara89/cap-transport-rabbitmq",
+  "version": "0.0.0",
+  "description": "RabbitMQ transport adapter for CAP",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://mikara89.github.io/cap-nodejs/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mikara89/cap-nodejs",
+    "directory": "libs/cap-transport-rabbitmq"
+  },
+  "bugs": {
+    "url": "https://github.com/mikara89/cap-nodejs/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json",
+    "prepack": "npm run build",
+    "test": "jest --testPathPattern=libs/cap-transport-rabbitmq",
+    "lint": "eslint \"src/**/*.ts\" --fix"
+  },
+  "dependencies": {
+    "@mikara89/cap-core": "^2.2.0",
+    "amqplib": "^0.10.8"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.7",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  }
+}

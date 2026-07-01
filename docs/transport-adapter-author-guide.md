@@ -47,17 +47,15 @@ tested without weakening either broker's guarantees.
 
 ## Current Adapter Behavior
 
-| Behavior | Azure Service Bus | NestJS Microservices bridge |
-| --- | --- | --- |
-| Publish target | Prefixed topic or queue name | Topic or configured pattern factory result |
-| Publish envelope | Body, application-property headers, broker `messageId` | Raw payload when no metadata is present; otherwise `{ payload, headers, metadata }` |
-| Publish success | `sendMessages()` resolves | `ClientProxy.emit()` observable resolves |
-| Publish failure | Rejected and rethrown | Observable error/timeout is rejected |
-| Inbound identity | Broker `messageId`; dedupe key derived from resource/group plus message ID | Metadata supplied by the application bridge |
-| Handler failure | Rethrown to the Service Bus SDK callback | Rejected from `dispatch()` to the Nest handler |
-| Initialization | Optional sender pre-warm and optional subscriber provisioning setup | Not exposed |
-| Disposal | Cached senders and receivers are closed; publisher close is an adapter extension | Not exposed by the bridge |
-| Settlement | Owned by the Azure SDK receiver configuration | Owned by the selected Nest transporter and application handler |
+| Behavior         | RabbitMQ                                                                 | Azure Service Bus                                                  | NestJS Microservices bridge                       |
+| ---------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------- |
+| Publish target   | Durable topic exchange and routing key                                   | Prefixed topic or queue name                                       | Topic or configured pattern factory result        |
+| Publish success  | Confirm callback plus channel drain                                      | `sendMessages()` resolves                                          | `ClientProxy.emit()` observable resolves          |
+| Publish failure  | Nack/error/timeout rejected; disconnected publish fails fast             | Rejected and rethrown                                              | Observable error/timeout is rejected              |
+| Inbound identity | Broker `messageId`; dedupe key derived from exchange/group queue plus ID | Broker `messageId`; dedupe key derived from resource/group plus ID | Metadata supplied by the application bridge       |
+| Handler failure  | Manual nack; no requeue by default                                       | Rethrown to the Service Bus SDK callback                           | Rejected from `dispatch()` to the Nest handler    |
+| Recovery         | Bounded reconnect and topology/consumer restoration                      | Client-owned                                                       | Transporter-owned                                 |
+| Settlement       | Manual ack after CAP callback resolves                                   | Owned by Azure SDK receiver configuration                          | Owned by selected transporter/application handler |
 
 The Nest bridge's emit completion is client-library acceptance, not a portable
 durable broker acknowledgement. Azure resource provisioning is adapter-specific
