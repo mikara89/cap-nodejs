@@ -23,7 +23,7 @@
     "build:libs:lerna": "npx lerna run build --stream",
     "---------------------------------------------------------------------": "--- affected-package validation ---",
     "check:affected": "npx lerna ls --since=origin/main --all",
-    "lint:affected": "npx lerna run lint --since=origin/main",
+    "lint:affected": "npx lerna exec --since=origin/main -- eslint \"src/**/*.ts\"",
     "build:affected": "npx lerna run build --since=origin/main",
     "test:affected": "npx lerna run test --since=origin/main",
     "test:affected:unit": "npx lerna run test --since=origin/main -- --testPathPattern='^(?!.*integration-spec|.*\\.integration\\.)'",
