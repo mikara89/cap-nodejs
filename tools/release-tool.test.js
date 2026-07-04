@@ -1038,6 +1038,96 @@ test('sourceFilesChanged returns false when both commits are identical', () =>
     );
   }));
 
+// --- Development validation guard tests ---
+
+test('affected validation scripts do not modify versions or create tags', () => {
+  const scripts = [
+    'check:affected',
+    'lint:affected',
+    'build:affected',
+    'test:affected',
+    'test:affected:unit',
+    'pack:dry-run:affected',
+  ];
+  const rootManifest = JSON.parse(
+    fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'),
+  );
+  for (const script of scripts) {
+    const command = rootManifest.scripts[script];
+    assert.ok(command, `Missing script: ${script}`);
+    // Must not invoke release-tool.js or lerna version
+    assert.doesNotMatch(
+      command,
+      /release-tool\.js|release:verify|release:plan|lerna\s+version/,
+      `${script} must not trigger version bump or release`,
+    );
+    // Must not invoke git tag
+    assert.doesNotMatch(
+      command,
+      /git\s+tag/,
+      `${script} must not create git tags`,
+    );
+  }
+});
+
+test('release workflow trigger remains manual-only (workflow_dispatch)', () => {
+  const workflow = fs.readFileSync(
+    path.join(rootDir, '.github', 'workflows', 'release.yml'),
+    'utf8',
+  );
+  // Must only trigger on workflow_dispatch (no push/pull_request)
+  const onSection = workflow.slice(0, workflow.indexOf('jobs:'));
+  assert.match(onSection, /workflow_dispatch/);
+  assert.doesNotMatch(onSection, /push:/);
+  assert.doesNotMatch(onSection, /pull_request:/);
+  assert.doesNotMatch(onSection, /schedule:/);
+  // Must have npm-production environment protection
+  assert.match(workflow, /environment:\s*npm-production/);
+  // Must have concurrency gate
+  assert.match(workflow, /concurrency:/);
+  assert.match(workflow, /cancel-in-progress:\s*false/);
+});
+
+test('CI workflow exists and does not publish', () => {
+  const ci = fs.readFileSync(
+    path.join(rootDir, '.github', 'workflows', 'ci.yml'),
+    'utf8',
+  );
+  // CI must never publish
+  assert.doesNotMatch(ci, /npm\s+publish/);
+  assert.doesNotMatch(ci, /lerna\s+publish/);
+  assert.doesNotMatch(ci, /npm-production/);
+  assert.doesNotMatch(ci, /id-token:\s*write/);
+  // CI must validate release configuration
+  assert.match(ci, /release:verify/);
+  assert.match(ci, /test:release-tooling/);
+});
+
+test('new transport package baseline at version 0.0.0 is publish-ready', () => {
+  const packages = discoverPackages(rootDir);
+  const rabbitmq = packages.find(
+    (pkg) => pkg.name === '@mikara89/cap-transport-rabbitmq',
+  );
+  const kafka = packages.find(
+    (pkg) => pkg.name === '@mikara89/cap-transport-kafka',
+  );
+  assert.ok(rabbitmq, 'RabbitMQ package must exist');
+  assert.ok(kafka, 'Kafka package must exist');
+  assert.equal(rabbitmq.version, '0.0.0');
+  assert.equal(kafka.version, '0.0.0');
+  for (const pkg of [rabbitmq, kafka]) {
+    assert.equal(pkg.manifest.publishConfig?.access, 'public');
+    assert.equal(
+      pkg.manifest.publishConfig?.registry,
+      'https://registry.npmjs.org/',
+    );
+    assert.equal(
+      pkg.manifest.repository?.url,
+      'https://github.com/mikara89/cap-nodejs',
+    );
+  }
+});
+
 test('sourceFilesChanged: dependency change is significant', () =>
   withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
     // Add a new dependency.

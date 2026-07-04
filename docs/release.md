@@ -4,6 +4,9 @@ CAP publishes only to `https://registry.npmjs.org/`. Lerna 9 in independent
 mode is the sole version calculator, changelog generator, tag creator, npm
 publisher, and GitHub release source.
 
+For day-to-day development validation, see
+[docs/development-validation.md](./development-validation.md).
+
 The verified toolchain is Lerna 9.0.7 with
 `conventional-changelog-conventionalcommits` 7.0.2. The explicit preset is
 required because Lerna's bundled Angular preset does not treat a bang header as
