@@ -52,8 +52,12 @@ jobs:
         run: npm run test:e2e -- --runInBand
       - name: Run DB integration gate
         run: npm run test:integration:db
+      - name: Run Kafka integration gate
+        run: npm run test:integration:kafka
       - name: Verify package contents
         run: npm run pack:dry-run
+      - name: Verify Kafka package install
+        run: npm run pack:smoke:kafka
 
   servicebus-integration:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_servicebus_integration }}

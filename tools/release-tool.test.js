@@ -59,11 +59,51 @@ test('repository roadmap version belongs only to the private workspace root', ()
       ?.version,
     '0.0.0',
   );
+  assert.equal(
+    packages.find((pkg) => pkg.name === '@mikara89/cap-transport-kafka')
+      ?.version,
+    '0.0.0',
+  );
   assert.ok(
     packages
-      .filter((pkg) => pkg.name !== '@mikara89/cap-transport-rabbitmq')
+      .filter(
+        (pkg) =>
+          pkg.name !== '@mikara89/cap-transport-rabbitmq' &&
+          pkg.name !== '@mikara89/cap-transport-kafka',
+      )
       .every((pkg) => pkg.version === '2.2.0'),
   );
+});
+
+test('first Kafka feat selects only the independent package at 0.1.0', () => {
+  const cwd = createFixture([
+    { id: 'core', name: '@fixture/core', version: '2.2.0' },
+    { id: 'kafka', name: '@fixture/kafka', version: '0.0.0' },
+  ]);
+
+  addCommit(cwd, 'kafka', 'feat: add Kafka transport');
+  const plan = runVersion(cwd, ['--conventional-commits']);
+
+  assert.equal(plan['@fixture/core'].version, '2.2.0');
+  assert.equal(plan['@fixture/kafka'].version, '0.1.0');
+});
+
+test('first Kafka feature beta selects only 0.1.0-beta.0', () => {
+  const cwd = createFixture([
+    { id: 'core', name: '@fixture/core', version: '2.2.0' },
+    { id: 'kafka', name: '@fixture/kafka', version: '0.0.0' },
+  ]);
+
+  addCommit(cwd, 'kafka', 'feat: add Kafka transport');
+  const plan = runVersion(cwd, [
+    '--conventional-commits',
+    '--conventional-prerelease',
+    '--preid',
+    'beta',
+  ]);
+
+  assert.equal(plan['@fixture/core'].version, '2.2.0');
+  assert.equal(plan['@fixture/kafka'].version, '0.1.0-beta.0');
 });
 
 test('first RabbitMQ feat selects only the independent package at 0.1.0', () => {
@@ -117,7 +157,11 @@ test('root, docs, and admin-only changes select no package candidates', () => {
     'name: fixture-ci\n',
   );
   command('git', ['add', '.'], cwd);
-  command('git', ['commit', '--quiet', '-m', 'chore: update roadmap docs'], cwd);
+  command(
+    'git',
+    ['commit', '--quiet', '-m', 'chore: update roadmap docs'],
+    cwd,
+  );
 
   const plan = runVersion(cwd, ['--conventional-commits']);
 
@@ -971,10 +1015,7 @@ test('release workflow exposes only validated Lerna modes and protects publicati
   assert.match(workflow, /environment: npm-production/);
   assert.match(workflow, /contents: write/);
   assert.match(workflow, /id-token: write/);
-  assert.match(
-    workflow,
-    /GH_TOKEN: \$\{\{ secrets\.RELEASE_GITHUB_TOKEN \}\}/,
-  );
+  assert.match(workflow, /GH_TOKEN: \$\{\{ secrets\.RELEASE_GITHUB_TOKEN \}\}/);
   assert.match(workflow, /if: \$\{\{ inputs\.operation == 'bootstrap' \}\}/);
   assert.match(workflow, /temporary npm tokens are bootstrap-only/);
   assert.match(workflow, /test:release-tooling/);

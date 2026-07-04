@@ -113,8 +113,14 @@ jobs:
       - name: Run database integration gate
         run: npm run test:integration:db
 
+      - name: Run Kafka integration gate
+        run: npm run test:integration:kafka
+
       - name: Verify package archives
         run: npm run pack:dry-run
+
+      - name: Verify Kafka package install
+        run: npm run pack:smoke:kafka
 
   publish:
     needs: validate

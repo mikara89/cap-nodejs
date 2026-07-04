@@ -157,7 +157,7 @@ Important subscriber invariant:
 | Azure Service Bus      | Current first-party adapter: `@mikara89/cap-transport-azure-servicebus`. |
 | NestJS microservices   | Current bridge adapter: `@mikara89/cap-transport-nestjs-microservices`.  |
 | RabbitMQ               | Current first-party adapter: `@mikara89/cap-transport-rabbitmq`.         |
-| Kafka                  | Planned v2.4: `@mikara89/cap-transport-kafka`.                           |
+| Kafka                  | Current first-party adapter: `@mikara89/cap-transport-kafka`.            |
 | AWS SNS/SQS            | Planned v2.4: `@mikara89/cap-transport-aws-sns-sqs`.                     |
 | Google Pub/Sub         | Likely v2.5 candidate.                                                   |
 | NATS JetStream         | Likely v2.5 candidate.                                                   |
@@ -320,6 +320,18 @@ CAP inbox retries remain authoritative. The adapter acknowledges after the CAP
 inbound callback resolves, including when CAP has persisted an application
 handler failure for inbox retry. Boundary rejection nacks without requeue by
 default. Malformed payloads are never requeued indefinitely.
+
+## First-Party Transport: Kafka
+
+Package: `@mikara89/cap-transport-kafka`
+
+The Kafka adapter publishes JSON with CAP headers, content type, and message
+identity through the maintained `@confluentinc/kafka-javascript` client.
+Producer acks are configurable and default to all in-sync replicas. Consumers
+use native groups with auto-commit disabled: offsets advance only after handler
+success. Handler failure is propagated without a commit. Malformed messages are
+logged, skipped, and committed once to prevent poison-message loops. Topic
+creation is opt-in and configurable, so ordinary runtime needs no admin access.
 
 ## Adapter Authoring Rules
 

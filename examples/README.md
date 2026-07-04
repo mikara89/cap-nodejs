@@ -14,6 +14,8 @@ npm run examples:check
 
 - [transport/rabbitmq.ts](transport/rabbitmq.ts) - framework-neutral RabbitMQ
   publisher/subscriber lifecycle and group subscription wiring.
+- [transport/kafka.ts](transport/kafka.ts) - framework-neutral Kafka
+  publisher/subscriber with consumer groups and success-only offset commits.
 - [in-memory.ts](in-memory.ts) - local `CapModule.forInMemory()` setup with a
   publisher and subscriber.
 - [mikroorm-azure-servicebus.ts](mikroorm-azure-servicebus.ts) - production-style

@@ -63,6 +63,8 @@
       "@mikara89/cap-transport-rabbitmq/*": [
         "./libs/cap-transport-rabbitmq/dist/*"
       ],
+      "@mikara89/cap-transport-kafka": ["./libs/cap-transport-kafka/dist"],
+      "@mikara89/cap-transport-kafka/*": ["./libs/cap-transport-kafka/dist/*"],
       "@mikara89/cap-dashboard": ["./libs/cap-dashboard/dist"],
       "@mikara89/cap-dashboard/*": ["./libs/cap-dashboard/dist/*"]
     }

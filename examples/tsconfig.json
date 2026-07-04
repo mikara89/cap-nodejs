@@ -47,6 +47,8 @@
       "@mikara89/cap-transport-rabbitmq/*": [
         "libs/cap-transport-rabbitmq/src/*"
       ],
+      "@mikara89/cap-transport-kafka": ["libs/cap-transport-kafka/src"],
+      "@mikara89/cap-transport-kafka/*": ["libs/cap-transport-kafka/src/*"],
       "@mikara89/cap-dashboard": ["libs/cap-dashboard/src"],
       "@mikara89/cap-dashboard/*": ["libs/cap-dashboard/src/*"]
     },

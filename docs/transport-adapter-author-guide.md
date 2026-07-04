@@ -47,15 +47,13 @@ tested without weakening either broker's guarantees.
 
 ## Current Adapter Behavior
 
-| Behavior         | RabbitMQ                                                                 | Azure Service Bus                                                  | NestJS Microservices bridge                       |
-| ---------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------- |
-| Publish target   | Durable topic exchange and routing key                                   | Prefixed topic or queue name                                       | Topic or configured pattern factory result        |
-| Publish success  | Confirm callback plus channel drain                                      | `sendMessages()` resolves                                          | `ClientProxy.emit()` observable resolves          |
-| Publish failure  | Nack/error/timeout rejected; disconnected publish fails fast             | Rejected and rethrown                                              | Observable error/timeout is rejected              |
-| Inbound identity | Broker `messageId`; dedupe key derived from exchange/group queue plus ID | Broker `messageId`; dedupe key derived from resource/group plus ID | Metadata supplied by the application bridge       |
-| Handler failure  | Manual nack; no requeue by default                                       | Rethrown to the Service Bus SDK callback                           | Rejected from `dispatch()` to the Nest handler    |
-| Recovery         | Bounded reconnect and topology/consumer restoration                      | Client-owned                                                       | Transporter-owned                                 |
-| Settlement       | Manual ack after CAP callback resolves                                   | Owned by Azure SDK receiver configuration                          | Owned by selected transporter/application handler |
+| Behavior         | RabbitMQ                            | Kafka                                       | Azure Service Bus                | NestJS bridge              |
+| ---------------- | ----------------------------------- | ------------------------------------------- | -------------------------------- | -------------------------- |
+| Publish success  | Confirm callback plus channel drain | Delivery promise honors configured acks     | `sendMessages()` resolves        | Emit observable resolves   |
+| Inbound identity | Broker ID and exchange/group key    | Header ID and topic/group key               | Broker ID and resource/group key | Application metadata       |
+| Handler failure  | Manual nack; no requeue by default  | Propagated; offset is not committed         | Rethrown to SDK callback         | Rejected from `dispatch()` |
+| Recovery         | Bounded adapter reconnect           | Maintained client reconnect/rebalance       | Client-owned                     | Transporter-owned          |
+| Settlement       | Ack after callback resolves         | Commit `offset + 1` after callback resolves | SDK receiver configuration       | Transporter-owned          |
 
 The Nest bridge's emit completion is client-library acceptance, not a portable
 durable broker acknowledgement. Azure resource provisioning is adapter-specific

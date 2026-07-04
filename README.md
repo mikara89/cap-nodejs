@@ -13,7 +13,7 @@ Application code
   -> CAP reliable publish / subscribe
       -> outbox + inbox storage
       -> transport adapter
-          -> RabbitMQ, Azure Service Bus, NestJS ClientProxy, or custom transport
+          -> Kafka, RabbitMQ, Azure Service Bus, NestJS ClientProxy, or custom transport
 ```
 
 ## Status
@@ -43,6 +43,7 @@ Root-only milestone changes must produce zero Lerna package candidates.
 | `@mikara89/cap-transport-azure-servicebus`     | Azure Service Bus transport adapter.                                                                      |
 | `@mikara89/cap-transport-nestjs-microservices` | Adapter that publishes through existing NestJS `ClientProxy` registrations and exposes an inbound bridge. |
 | `@mikara89/cap-transport-rabbitmq`             | Framework-neutral RabbitMQ adapter with publisher confirms and manual consumer settlement.                |
+| `@mikara89/cap-transport-kafka`                | Framework-neutral Kafka adapter with acknowledged publishing and success-only offset commits.             |
 | `@mikara89/cap-dashboard-core`                 | Framework-agnostic dashboard DTOs and service logic.                                                      |
 | `@mikara89/cap-dashboard-nest`                 | NestJS dashboard module, REST API, and static dashboard UI.                                               |
 | `@mikara89/cap-dashboard-express`              | Express router for the dashboard service.                                                                 |
@@ -65,9 +66,9 @@ Drizzle, Sequelize, and Mongoose remain future storage candidates. A raw SQL
 adapter or shared SQL-core extraction remains deferred until duplication across
 the current adapters proves that it is worthwhile.
 
-Current first-party transports are RabbitMQ, Azure Service Bus, and the NestJS
-microservices bridge. Each runs the adapter-neutral transport contract suite.
-Kafka and AWS SNS/SQS remain planned v2.4 phases and are not available packages.
+Current first-party transports are Kafka, RabbitMQ, Azure Service Bus, and the
+NestJS microservices bridge. Each runs the adapter-neutral transport contract
+suite. AWS SNS/SQS remains planned; NATS and Pub/Sub remain future.
 
 v2.2 adds the transaction context foundation, transaction manager extension
 points, publish storage contract tests, and informational storage capability
@@ -92,6 +93,8 @@ Adapter-specific requirements:
   an emulator path for external integration testing.
 - `@mikara89/cap-transport-rabbitmq` requires RabbitMQ 4.x-compatible AMQP 0-9-1
   connectivity; its integration gate uses the pinned `rabbitmq:4.1.0-alpine` image.
+- `@mikara89/cap-transport-kafka` uses Confluent's maintained librdkafka-backed
+  client; its integration gate uses pinned `apache/kafka:3.9.1`.
 
 ## Installation
 
@@ -118,6 +121,12 @@ For RabbitMQ transport:
 
 ```sh
 npm install @mikara89/cap-transport-rabbitmq
+```
+
+For Kafka transport:
+
+```sh
+npm install @mikara89/cap-transport-kafka
 ```
 
 For durable Knex storage, install Knex and a dialect driver such as `pg`,

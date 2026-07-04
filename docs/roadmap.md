@@ -28,6 +28,8 @@ provides framework adapters where they are useful:
   for existing NestJS `ClientProxy` registrations.
 - `@mikara89/cap-transport-rabbitmq` as the current framework-neutral RabbitMQ
   adapter with confirmed publishing and manual acknowledgements.
+- `@mikara89/cap-transport-kafka` as the current framework-neutral Kafka
+  adapter with acknowledged publishing and success-only offset commits.
 - `@mikara89/cap-dashboard-core`, `@mikara89/cap-dashboard-nest`, and
   `@mikara89/cap-dashboard-express` for dashboard service logic and framework
   bindings.
@@ -86,7 +88,7 @@ logic.
 ## v2.4 Transport Reach
 
 The v2.4 repository roadmap milestone expands transport reach in five ordered
-PR phases. The transport foundation and RabbitMQ phases are delivered.
+PR phases. The transport foundation, RabbitMQ, and Kafka phases are delivered.
 
 1. **PR 1 - transport contract foundation:** verify the existing core ports,
    add the adapter-neutral `defineTransportContract` suite, qualify Azure
@@ -95,8 +97,9 @@ PR phases. The transport foundation and RabbitMQ phases are delivered.
 2. **PR 2 - RabbitMQ transport (delivered):** implement and qualify
    `@mikara89/cap-transport-rabbitmq` with publisher confirms, manual consumer
    settlement, conservative topology options, and pinned-broker integration.
-3. **PR 3 - Kafka transport:** implement and qualify the planned
-   `@mikara89/cap-transport-kafka` package.
+3. **PR 3 - Kafka transport (delivered):** implement and qualify
+   `@mikara89/cap-transport-kafka` with acknowledged publishing, native
+   consumer groups, and success-only manual offset commits.
 4. **PR 4 - AWS SNS/SQS transport:** implement and qualify the planned
    `@mikara89/cap-transport-aws-sns-sqs` package.
 5. **PR 5 - docs, examples, compatibility and release review:** complete the

@@ -25,6 +25,7 @@ import { TypeOrmPublishStorage } from '@mikara89/cap-storage-typeorm';
 import { PrismaPublishStorage } from '@mikara89/cap-storage-prisma';
 import { ServiceBusPublisher } from '@mikara89/cap-transport-azure-servicebus';
 import { NestjsMicroservicesTransportModule } from '@mikara89/cap-transport-nestjs-microservices';
+import { KafkaPublisher, KafkaSubscriber } from '@mikara89/cap-transport-kafka';
 import { CapDashboardModule } from '@mikara89/cap-dashboard-nest';
 import { createCapDashboardRouter } from '@mikara89/cap-dashboard-express';
 ```
@@ -41,6 +42,8 @@ The supported package roots are:
 - `@mikara89/cap-storage-prisma`
 - `@mikara89/cap-transport-azure-servicebus`
 - `@mikara89/cap-transport-nestjs-microservices`
+- `@mikara89/cap-transport-rabbitmq`
+- `@mikara89/cap-transport-kafka`
 - `@mikara89/cap-dashboard-core`
 - `@mikara89/cap-dashboard-nest`
 - `@mikara89/cap-dashboard-express`
@@ -51,11 +54,11 @@ Nest dashboard package root.
 
 The v2.3 storage roots expose their complete framework-free APIs:
 
-| Package | Public root surface |
-| ------- | ------------------- |
-| `@mikara89/cap-storage-knex` | Schema initializer and options, publish/received storage classes, transaction manager, and capability helper |
-| `@mikara89/cap-storage-typeorm` | Schema initializer and options, publish/received storage classes, transaction manager, and capability helper |
-| `@mikara89/cap-storage-prisma` | Raw-SQL schema initializer and options, Prisma client/executor types, publish/received storage classes, transaction manager, and capability helper |
+| Package                         | Public root surface                                                                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@mikara89/cap-storage-knex`    | Schema initializer and options, publish/received storage classes, transaction manager, and capability helper                                       |
+| `@mikara89/cap-storage-typeorm` | Schema initializer and options, publish/received storage classes, transaction manager, and capability helper                                       |
+| `@mikara89/cap-storage-prisma`  | Raw-SQL schema initializer and options, Prisma client/executor types, publish/received storage classes, transaction manager, and capability helper |
 
 These roots export no NestJS or Express integration and no test fixtures. The
 Prisma root works through raw SQL and does not require CAP models in the
@@ -64,11 +67,9 @@ TypeORM `EntityManager`, and `Prisma.TransactionClient`, respectively.
 
 Planned packages are not exported until they are implemented and released. Do
 not import future storage package names such as
-`@mikara89/cap-storage-drizzle`, and do not import v2.4 transport package names
-such as
-`@mikara89/cap-transport-rabbitmq`, `@mikara89/cap-transport-kafka`, or
-`@mikara89/cap-transport-aws-sns-sqs`, unless those packages exist in the
-workspace and are listed here as supported package roots.
+`@mikara89/cap-storage-drizzle`, and do not import future transport package
+names such as `@mikara89/cap-transport-aws-sns-sqs`, unless those packages
+exist in the workspace and are listed here as supported package roots.
 
 ## Nest Wrapper Imports
 
