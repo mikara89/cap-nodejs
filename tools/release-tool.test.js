@@ -79,6 +79,56 @@ test('first RabbitMQ feat selects only the independent package at 0.1.0', () => 
   assert.equal(plan['@fixture/rabbitmq'].version, '0.1.0');
 });
 
+test('first RabbitMQ feature beta selects only 0.1.0-beta.0', () => {
+  const cwd = createFixture([
+    { id: 'core', name: '@fixture/core', version: '2.2.0' },
+    { id: 'rabbitmq', name: '@fixture/rabbitmq', version: '0.0.0' },
+  ]);
+
+  addCommit(cwd, 'rabbitmq', 'feat: add RabbitMQ transport');
+  const plan = runVersion(cwd, [
+    '--conventional-commits',
+    '--conventional-prerelease',
+    '--preid',
+    'beta',
+  ]);
+
+  assert.equal(plan['@fixture/core'].version, '2.2.0');
+  assert.equal(plan['@fixture/rabbitmq'].version, '0.1.0-beta.0');
+});
+
+test('root, docs, and admin-only changes select no package candidates', () => {
+  const cwd = createFixture([
+    { id: 'core', name: '@fixture/core', version: '2.2.0' },
+    { id: 'rabbitmq', name: '@fixture/rabbitmq', version: '0.0.0' },
+  ]);
+  const rootManifestPath = path.join(cwd, 'package.json');
+  const rootManifest = JSON.parse(fs.readFileSync(rootManifestPath, 'utf8'));
+  rootManifest.version = '2.4.0';
+  writeJson(rootManifestPath, rootManifest);
+  fs.writeFileSync(path.join(cwd, 'README.md'), '# Roadmap administration\n');
+  fs.writeFileSync(
+    path.join(cwd, 'libs', 'rabbitmq', 'README.md'),
+    '# RabbitMQ documentation\n',
+  );
+  fs.mkdirSync(path.join(cwd, '.github', 'workflows'), { recursive: true });
+  fs.writeFileSync(
+    path.join(cwd, '.github', 'workflows', 'ci.yml'),
+    'name: fixture-ci\n',
+  );
+  command('git', ['add', '.'], cwd);
+  command('git', ['commit', '--quiet', '-m', 'chore: update roadmap docs'], cwd);
+
+  const plan = runVersion(cwd, ['--conventional-commits']);
+
+  assert.equal(
+    JSON.parse(fs.readFileSync(rootManifestPath, 'utf8')).version,
+    '2.4.0',
+  );
+  assert.equal(plan['@fixture/core'].version, '2.2.0');
+  assert.equal(plan['@fixture/rabbitmq'].version, '0.0.0');
+});
+
 function command(commandName, args, cwd) {
   const result = spawnSync(commandName, args, {
     cwd,
@@ -921,7 +971,10 @@ test('release workflow exposes only validated Lerna modes and protects publicati
   assert.match(workflow, /environment: npm-production/);
   assert.match(workflow, /contents: write/);
   assert.match(workflow, /id-token: write/);
-  assert.match(workflow, /GH_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}/);
+  assert.match(
+    workflow,
+    /GH_TOKEN: \$\{\{ secrets\.RELEASE_GITHUB_TOKEN \}\}/,
+  );
   assert.match(workflow, /if: \$\{\{ inputs\.operation == 'bootstrap' \}\}/);
   assert.match(workflow, /temporary npm tokens are bootstrap-only/);
   assert.match(workflow, /test:release-tooling/);

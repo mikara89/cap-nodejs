@@ -58,6 +58,7 @@
     "docs:api": "node node_modules/typedoc/dist/lib/cli.js",
     "examples:check": "tsc -p examples/tsconfig.json --noEmit",
     "pack:dry-run": "npm pack --dry-run --workspace @mikara89/cap-core && npm pack --dry-run --workspace @mikara89/cap-testing && npm pack --dry-run --workspace @mikara89/cap-nest && npm pack --dry-run --workspace @mikara89/cap-express && npm pack --dry-run --workspace @mikara89/cap-dashboard-core && npm pack --dry-run --workspace @mikara89/cap-dashboard-nest && npm pack --dry-run --workspace @mikara89/cap-dashboard && npm pack --dry-run --workspace @mikara89/cap-dashboard-express && npm pack --dry-run --workspace @mikara89/cap-storage-mikro-orm && npm pack --dry-run --workspace @mikara89/cap-storage-knex && npm pack --dry-run --workspace @mikara89/cap-storage-typeorm && npm pack --dry-run --workspace @mikara89/cap-storage-prisma && npm pack --dry-run --workspace @mikara89/cap-transport-azure-servicebus && npm pack --dry-run --workspace @mikara89/cap-transport-nestjs-microservices && npm pack --dry-run --workspace @mikara89/cap-transport-rabbitmq",
+    "pack:smoke:rabbitmq": "node tools/verify-rabbitmq-pack.js",
     "test:integration:servicebus": "node tools/run-servicebus-integration.js",
     "test:integration:rabbitmq": "jest --testPathPattern=rabbitmq.integration.spec.ts --runInBand",
     "test": "jest",

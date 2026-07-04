@@ -131,6 +131,49 @@ describe('RabbitMqPublisher', () => {
     expect(broker.confirmChannels.size).toBe(1);
     await publisher.close();
   });
+
+  it('rejects an in-flight unconfirmed publish when the connection closes', async () => {
+    const broker = new FakeBroker();
+    const connection = broker.connection();
+    broker.suppressConfirm = true;
+    const publisher = new RabbitMqPublisher({
+      connectionFactory: () => Promise.resolve(connection),
+      confirmTimeoutMs: 1_000,
+      reconnect: { attempts: 1, initialDelayMs: 0, maxDelayMs: 0 },
+    });
+    await publisher.initialize();
+    const publishing = publisher.emit('topic', { inFlight: true });
+    await Promise.resolve();
+
+    connection.triggerClose();
+
+    await expect(publishing).rejects.toBeInstanceOf(RabbitMqDisconnectedError);
+    await publisher.close();
+  });
+
+  it('stops an active bounded reconnect loop when closed', async () => {
+    const broker = new FakeBroker();
+    const firstConnection = broker.connection();
+    let attempts = 0;
+    const publisher = new RabbitMqPublisher({
+      connectionFactory: () => {
+        attempts += 1;
+        return attempts === 1
+          ? Promise.resolve(firstConnection)
+          : Promise.reject(new Error('broker unavailable'));
+      },
+      reconnect: { attempts: 5, initialDelayMs: 50, maxDelayMs: 50 },
+    });
+    await publisher.initialize();
+    firstConnection.triggerClose();
+    await waitFor(() => attempts >= 2);
+
+    await publisher.close();
+    const attemptsAtClose = attempts;
+    await new Promise((resolve) => setTimeout(resolve, 120));
+
+    expect(attempts).toBe(attemptsAtClose);
+  });
 });
 
 describe('RabbitMqSubscriber', () => {
@@ -336,6 +379,30 @@ describe('RabbitMqSubscriber', () => {
       true,
     );
     await subscriber.close();
+  });
+
+  it('stops subscriber reconnect attempts when closed', async () => {
+    const broker = new FakeBroker();
+    const firstConnection = broker.connection();
+    let attempts = 0;
+    const subscriber = new RabbitMqSubscriber({
+      connectionFactory: () => {
+        attempts += 1;
+        return attempts === 1
+          ? Promise.resolve(firstConnection)
+          : Promise.reject(new Error('broker unavailable'));
+      },
+      reconnect: { attempts: 5, initialDelayMs: 50, maxDelayMs: 50 },
+    });
+    await subscriber.consume('topic', 'group', jest.fn());
+    firstConnection.triggerClose();
+    await waitFor(() => attempts >= 2);
+
+    await subscriber.close();
+    const attemptsAtClose = attempts;
+    await new Promise((resolve) => setTimeout(resolve, 120));
+
+    expect(attempts).toBe(attemptsAtClose);
   });
 });
 

@@ -7,7 +7,9 @@ import { createTypeOrmCapSchema } from '../src/typeorm-cap-schema';
 import { TypeOrmPublishStorage } from '../src/typeorm-publish-storage';
 import { TypeOrmReceivedStorage } from '../src/typeorm-received-storage';
 
-jest.mock('archiver', () => ({ __esModule: true, default: jest.fn() }));
+jest.mock('archiver', () => ({ __esModule: true, default: jest.fn() }), {
+  virtual: true,
+});
 jest.setTimeout(120000);
 
 async function startPostgres(): Promise<{

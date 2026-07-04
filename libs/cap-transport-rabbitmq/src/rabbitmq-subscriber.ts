@@ -18,7 +18,11 @@ import type {
   RabbitMqOptions,
   ResolvedRabbitMqOptions,
 } from './rabbitmq-options';
-import { reportConnectionError, retryConnection } from './rabbitmq-retry';
+import {
+  isRabbitMqRetryCancelled,
+  reportConnectionError,
+  retryConnection,
+} from './rabbitmq-retry';
 import type {
   RabbitMqConnection,
   RabbitMqConsumerChannel,
@@ -334,8 +338,10 @@ export class RabbitMqSubscriber implements SubscriberPort {
       () => this.connectAndRestore(),
       this.options,
       'RabbitMQ subscriber recovery',
+      () => this.disposed,
     )
       .catch((error) => {
+        if (isRabbitMqRetryCancelled(error)) return;
         this.options.logger?.error?.(
           'RabbitMQ subscriber recovery stopped after bounded retries',
           error,

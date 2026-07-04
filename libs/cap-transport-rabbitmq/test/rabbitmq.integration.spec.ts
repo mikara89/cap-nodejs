@@ -1,4 +1,6 @@
 import type { StartedTestContainer } from 'testcontainers';
+import { connect, type Channel, type GetMessage } from 'amqplib';
+import type { CapLogger } from '@mikara89/cap-core';
 import { RabbitMqPublisher, RabbitMqSubscriber } from '../src';
 
 jest.setTimeout(120_000);
@@ -12,7 +14,11 @@ describe('RabbitMQ transport integration', () => {
     const { GenericContainer, Wait } = await import('testcontainers');
     container = await new GenericContainer('rabbitmq:4.1.0-alpine')
       .withExposedPorts(5672)
-      .withWaitStrategy(Wait.forLogMessage(/Server startup complete/))
+      .withWaitStrategy(
+        Wait.forLogMessage(/Server startup complete/).withStartupTimeout(
+          120_000,
+        ),
+      )
       .start();
     url = `amqp://guest:guest@${container.getHost()}:${container.getMappedPort(5672)}`;
   });
@@ -205,6 +211,182 @@ describe('RabbitMQ transport integration', () => {
     await expect(publisher.close()).resolves.toBeUndefined();
   });
 
+  it.each(['classic', 'quorum'] as const)(
+    'creates and consumes from an explicitly configured %s queue',
+    async (queueType) => {
+      const prefix = uniquePrefix(queueType);
+      const publisher = track(
+        new RabbitMqPublisher({ url, namingPrefix: prefix }),
+      );
+      const subscriber = track(
+        new RabbitMqSubscriber({ url, namingPrefix: prefix, queueType }),
+      );
+      const delivered = deferred<unknown>();
+      await publisher.initialize();
+      await subscriber.consume('queue.mode', 'workers', (payload) => {
+        delivered.resolve(payload);
+      });
+
+      await publisher.emit('queue.mode', { queueType }, undefined, {
+        messageId: `${queueType}-message`,
+      });
+
+      await expect(delivered.promise).resolves.toEqual({ queueType });
+    },
+  );
+
+  it('dead-letters a default handler failure once instead of requeueing', async () => {
+    const prefix = uniquePrefix('dlx-handler');
+    const deadLetterExchange = `${prefix}dlx`;
+    const deadQueue = `${prefix}dead`;
+    const inspector = track(await connect(url));
+    const channel = track(await inspector.createChannel());
+    await channel.assertExchange(deadLetterExchange, 'topic', {
+      durable: true,
+    });
+    await channel.assertQueue(deadQueue, { durable: true });
+    await channel.bindQueue(deadQueue, deadLetterExchange, 'failed');
+    const publisher = track(
+      new RabbitMqPublisher({ url, namingPrefix: prefix }),
+    );
+    const subscriber = track(
+      new RabbitMqSubscriber({
+        url,
+        namingPrefix: prefix,
+        deadLetterExchange,
+        deadLetterRoutingKey: 'failed',
+      }),
+    );
+    let attempts = 0;
+    await publisher.initialize();
+    await subscriber.consume('handler.failure', 'workers', () => {
+      attempts += 1;
+      throw new Error('CAP boundary failure');
+    });
+
+    await publisher.emit('handler.failure', { id: 1 }, undefined, {
+      messageId: 'handler-failure-1',
+    });
+
+    const deadLetter = await waitForMessage(channel, deadQueue);
+    expect(JSON.parse(deadLetter.content.toString('utf8'))).toEqual({ id: 1 });
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(attempts).toBe(1);
+    expect(
+      (await channel.checkQueue(`${prefix}cap.workers`)).messageCount,
+    ).toBe(0);
+  });
+
+  it('dead-letters malformed JSON once and never creates a redelivery loop', async () => {
+    const prefix = uniquePrefix('dlx-malformed');
+    const deadLetterExchange = `${prefix}dlx`;
+    const deadQueue = `${prefix}dead`;
+    const inspector = track(await connect(url));
+    const channel = track(await inspector.createChannel());
+    await channel.assertExchange(deadLetterExchange, 'topic', {
+      durable: true,
+    });
+    await channel.assertQueue(deadQueue, { durable: true });
+    await channel.bindQueue(deadQueue, deadLetterExchange, 'malformed');
+    const subscriber = track(
+      new RabbitMqSubscriber({
+        url,
+        namingPrefix: prefix,
+        deadLetterExchange,
+        deadLetterRoutingKey: 'malformed',
+        requeueOnHandlerError: true,
+      }),
+    );
+    const handler = jest.fn();
+    await subscriber.consume('malformed.message', 'workers', handler);
+
+    channel.publish(
+      `${prefix}cap`,
+      'malformed.message',
+      Buffer.from('{not-json', 'utf8'),
+      {
+        contentType: 'application/json',
+        deliveryMode: 2,
+        messageId: 'malformed-1',
+      },
+    );
+
+    const deadLetter = await waitForMessage(channel, deadQueue);
+    expect(deadLetter.content.toString('utf8')).toBe('{not-json');
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(handler).not.toHaveBeenCalled();
+    expect(
+      (await channel.checkQueue(`${prefix}cap.workers`)).messageCount,
+    ).toBe(0);
+    expect((await channel.checkQueue(deadQueue)).messageCount).toBe(0);
+  });
+
+  it('fails a publish during broker interruption, reconnects, restores topology, and resumes consumption', async () => {
+    const prefix = uniquePrefix('restart');
+    const logger: CapLogger = {
+      debug: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    };
+    const reconnect = { attempts: 30, initialDelayMs: 100, maxDelayMs: 500 };
+    const publisher = track(
+      new RabbitMqPublisher({
+        url,
+        namingPrefix: prefix,
+        reconnect,
+        logger,
+      }),
+    );
+    const subscriber = track(
+      new RabbitMqSubscriber({
+        url,
+        namingPrefix: prefix,
+        reconnect,
+        logger,
+      }),
+    );
+    const delivered = deferred<unknown>();
+    await publisher.initialize();
+    await subscriber.consume('restart.topic', 'workers', (payload) => {
+      delivered.resolve(payload);
+    });
+
+    const stopped = await container.exec(['rabbitmqctl', 'stop_app']);
+    expect(stopped.exitCode).toBe(0);
+    await waitFor(
+      () =>
+        loggerCalls(logger, 'warn').some((line) =>
+          /publisher (connection|channel) closed/u.test(line),
+        ),
+      30_000,
+    );
+    await expect(
+      publisher.emit('restart.topic', { duringRestart: true }),
+    ).rejects.toThrow(/disconnected|confirmation/i);
+    const started = await container.exec(['rabbitmqctl', 'start_app']);
+    expect(started.exitCode).toBe(0);
+    await waitFor(
+      () =>
+        loggerCalls(logger, 'info').filter((line) =>
+          line.includes('publisher connected'),
+        ).length >= 2 &&
+        loggerCalls(logger, 'info').filter((line) =>
+          line.includes('subscriber connected'),
+        ).length >= 2,
+      30_000,
+    );
+
+    await publisher.emit('restart.topic', { afterRestart: true }, undefined, {
+      messageId: 'restart-recovered',
+    });
+
+    await expect(delivered.promise).resolves.toEqual({ afterRestart: true });
+    expect(
+      loggerCalls(logger, 'warn').some((line) => line.includes('attempt')),
+    ).toBe(true);
+  });
+
   function track<T extends { close(): Promise<void> }>(resource: T): T {
     resources.push(resource);
     return resource;
@@ -226,11 +408,32 @@ function deferred<T>(): {
   return { promise, resolve };
 }
 
-async function waitFor(predicate: () => boolean): Promise<void> {
-  const deadline = Date.now() + 10_000;
+async function waitFor(
+  predicate: () => boolean,
+  timeoutMs = 10_000,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
   while (!predicate()) {
     if (Date.now() > deadline)
       throw new Error('Timed out waiting for delivery');
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
+}
+
+async function waitForMessage(
+  channel: Channel,
+  queue: string,
+): Promise<GetMessage> {
+  const deadline = Date.now() + 10_000;
+  while (Date.now() <= deadline) {
+    const message = await channel.get(queue, { noAck: true });
+    if (message) return message;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  throw new Error(`Timed out waiting for message in ${queue}`);
+}
+
+function loggerCalls(logger: CapLogger, level: 'info' | 'warn'): string[] {
+  const fn = logger[level] as jest.Mock | undefined;
+  return fn?.mock.calls.map(([message]) => String(message)) ?? [];
 }

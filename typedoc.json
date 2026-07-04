@@ -17,6 +17,7 @@
     "libs/cap-dashboard-express/src/index.ts"
   ],
   "entryPointStrategy": "expand",
+  "basePath": "libs",
   "name": "CAP Node.js API",
   "tsconfig": "tsconfig.typedoc.json",
   "out": "docs/api",

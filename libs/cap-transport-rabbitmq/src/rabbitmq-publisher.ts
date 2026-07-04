@@ -13,7 +13,11 @@ import type {
   RabbitMqOptions,
   ResolvedRabbitMqOptions,
 } from './rabbitmq-options';
-import { reportConnectionError, retryConnection } from './rabbitmq-retry';
+import {
+  isRabbitMqRetryCancelled,
+  reportConnectionError,
+  retryConnection,
+} from './rabbitmq-retry';
 import type {
   RabbitMqConfirmChannel,
   RabbitMqConnection,
@@ -187,6 +191,7 @@ export class RabbitMqPublisher implements PublisherPort {
       const cleanup = (): void => {
         clearTimeout(timer);
         channel.removeListener('drain', onDrain);
+        channel.removeListener('close', onClose);
       };
       const succeedIfReady = (): void => {
         if (confirmed && drained && !settled) {
@@ -205,6 +210,9 @@ export class RabbitMqPublisher implements PublisherPort {
         drained = true;
         succeedIfReady();
       };
+      const onClose = (): void => {
+        fail(new RabbitMqDisconnectedError('in-flight publish confirmation'));
+      };
       const timer = setTimeout(
         () =>
           fail(new RabbitMqConfirmTimeoutError(this.options.confirmTimeoutMs)),
@@ -212,6 +220,7 @@ export class RabbitMqPublisher implements PublisherPort {
       );
 
       try {
+        channel.once('close', onClose);
         drained = channel.publish(
           this.options.exchangeName,
           topic,
@@ -239,8 +248,10 @@ export class RabbitMqPublisher implements PublisherPort {
       () => this.connect(),
       this.options,
       'RabbitMQ publisher recovery',
+      () => this.disposed,
     )
       .catch((error) => {
+        if (isRabbitMqRetryCancelled(error)) return;
         this.options.logger?.error?.(
           'RabbitMQ publisher recovery stopped after bounded retries',
           error,

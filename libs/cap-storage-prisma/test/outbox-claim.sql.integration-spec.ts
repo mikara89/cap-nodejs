@@ -10,7 +10,9 @@ import { PrismaPublishStorage } from '../src/prisma-publish-storage';
 import { PrismaReceivedStorage } from '../src/prisma-received-storage';
 import type { PrismaStorageProvider } from '../src/prisma-storage-options';
 
-jest.mock('archiver', () => ({ __esModule: true, default: jest.fn() }));
+jest.mock('archiver', () => ({ __esModule: true, default: jest.fn() }), {
+  virtual: true,
+});
 jest.setTimeout(180000);
 
 interface IntegrationClient extends PrismaCapClient {

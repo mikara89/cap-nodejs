@@ -137,6 +137,7 @@ export class FakeConfirmChannel
 
   close(): Promise<void> {
     this.closed = true;
+    this.emit('close');
     this.broker.confirmChannels.delete(this);
     return Promise.resolve();
   }
@@ -179,6 +180,7 @@ export class FakeConsumerChannel
 
   close(): Promise<void> {
     this.closed = true;
+    this.emit('close');
     this.broker.consumerChannels.delete(this);
     return Promise.resolve();
   }

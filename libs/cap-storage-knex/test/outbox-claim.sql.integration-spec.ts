@@ -6,7 +6,9 @@ import { createReceivedFixture } from '@mikara89/cap-testing';
 import { KnexPublishStorage } from '../src/knex-publish-storage';
 import { KnexReceivedStorage } from '../src/knex-received-storage';
 
-jest.mock('archiver', () => ({ __esModule: true, default: jest.fn() }));
+jest.mock('archiver', () => ({ __esModule: true, default: jest.fn() }), {
+  virtual: true,
+});
 jest.setTimeout(120000);
 
 interface StartedDatabase {

@@ -6,7 +6,7 @@
 
 # Interface: TransportContractPublishedMessage
 
-Defined in: cap-testing/src/contracts/transport-contract.ts:10
+Defined in: [cap-testing/src/contracts/transport-contract.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L10)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-testing/src/contracts/transport-contract.ts:10
 
 > `optional` **headers?**: [`CapHeaders`](../../../cap-nest/src/type-aliases/CapHeaders.md)
 
-Defined in: cap-testing/src/contracts/transport-contract.ts:13
+Defined in: [cap-testing/src/contracts/transport-contract.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L13)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-testing/src/contracts/transport-contract.ts:13
 
 > `optional` **metadata?**: [`PublishMetadata`](../../../cap-nest/src/interfaces/PublishMetadata.md)
 
-Defined in: cap-testing/src/contracts/transport-contract.ts:14
+Defined in: [cap-testing/src/contracts/transport-contract.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L14)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: cap-testing/src/contracts/transport-contract.ts:14
 
 > **payload**: `unknown`
 
-Defined in: cap-testing/src/contracts/transport-contract.ts:12
+Defined in: [cap-testing/src/contracts/transport-contract.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L12)
 
 ***
 
@@ -38,4 +38,4 @@ Defined in: cap-testing/src/contracts/transport-contract.ts:12
 
 > **topic**: `string`
 
-Defined in: cap-testing/src/contracts/transport-contract.ts:11
+Defined in: [cap-testing/src/contracts/transport-contract.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L11)

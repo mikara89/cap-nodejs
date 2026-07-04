@@ -19,3 +19,4 @@
 - [cap-testing/src](cap-testing/src/README.md)
 - [cap-transport-azure-servicebus/src](cap-transport-azure-servicebus/src/README.md)
 - [cap-transport-nestjs-microservices/src](cap-transport-nestjs-microservices/src/README.md)
+- [cap-transport-rabbitmq/src](cap-transport-rabbitmq/src/README.md)
