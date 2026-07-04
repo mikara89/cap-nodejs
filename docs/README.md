@@ -43,9 +43,9 @@ The repository roadmap is on the v2.4 line. The core publish/subscribe path,
 first-party adapters, dashboard package, header propagation, release workflow,
 and PostgreSQL/MySQL multi-instance claim gate are in place. v2.2 added the
 transaction-context foundation; v2.3 adds received-storage contracts and
-current Knex, TypeORM, and Prisma storage adapters alongside MikroORM. v2.4 PR 1
-adds the transport contract foundation; RabbitMQ, Kafka, and AWS SNS/SQS remain
-planned and unavailable. The [roadmap](roadmap.md) tracks later phases and
+current Knex, TypeORM, and Prisma storage adapters alongside MikroORM. v2.4 adds the transport contract foundation alongside
+first-party RabbitMQ and Kafka transport adapters. AWS SNS/SQS remains planned
+and unavailable. The [roadmap](roadmap.md) tracks later phases and
 v2.5+ ecosystem candidates.
 
 ## Documentation Rules
