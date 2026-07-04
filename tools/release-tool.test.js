@@ -1046,7 +1046,6 @@ test('affected validation scripts do not modify versions or create tags', () => 
     'lint:affected',
     'build:affected',
     'test:affected',
-    'test:affected:unit',
     'pack:dry-run:affected',
   ];
   const rootManifest = JSON.parse(

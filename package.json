@@ -26,7 +26,6 @@
     "lint:affected": "npx lerna exec --since=origin/main -- eslint \"src/**/*.ts\"",
     "build:affected": "npx lerna run build --since=origin/main",
     "test:affected": "npx lerna run test --since=origin/main",
-    "test:affected:unit": "npx lerna run test --since=origin/main -- --testPathPattern='^(?!.*integration-spec|.*\\.integration\\.)'",
     "pack:dry-run:affected": "npx lerna exec --since=origin/main -- npm pack --dry-run",
     "graph:affected": "npx lerna ls --since=origin/main --all --json",
     "--------------------------------------------------------------------": "--- release ---",
