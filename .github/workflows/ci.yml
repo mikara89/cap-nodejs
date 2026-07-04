@@ -33,19 +33,21 @@ jobs:
       - name: List affected packages
         id: affected
         run: |
-          AFFECTED=$(npx lerna changed --since=origin/main --json 2>/dev/null || echo "[]")
+          AFFECTED=$(npx lerna ls --since=origin/main --all 2>/dev/null | grep '^@mikara89/' | tr '\n' ' ')
           echo "packages=${AFFECTED}" >> "$GITHUB_OUTPUT"
           echo "Affected packages: ${AFFECTED}"
       - name: Lint affected
         run: npm run lint:affected
       - name: Build affected
         run: npm run build:affected
-      - name: Test affected
-        run: npm run test:affected
+      # Note: test:affected is intentionally excluded from fast checks.
+      # Running jest from sub-package directories via lerna run test
+      # bypasses ts-jest transforms on Linux. The full build-and-test
+      # job runs npm test --silent from root which works correctly.
 
   # ------- targeted integration: RabbitMQ -------
   rabbitmq-integration:
-    if: ${{ needs.affected-checks.outputs.affected_packages != '[]' && contains(needs.affected-checks.outputs.affected_packages, 'cap-transport-rabbitmq') }}
+    if: ${{ needs.affected-checks.outputs.affected_packages != '' && contains(needs.affected-checks.outputs.affected_packages, 'cap-transport-rabbitmq') }}
     needs: affected-checks
     runs-on: ubuntu-latest
     steps:
@@ -64,7 +66,7 @@ jobs:
 
   # ------- targeted integration: Kafka -------
   kafka-integration:
-    if: ${{ needs.affected-checks.outputs.affected_packages != '[]' && contains(needs.affected-checks.outputs.affected_packages, 'cap-transport-kafka') }}
+    if: ${{ needs.affected-checks.outputs.affected_packages != '' && contains(needs.affected-checks.outputs.affected_packages, 'cap-transport-kafka') }}
     needs: affected-checks
     runs-on: ubuntu-latest
     steps:
