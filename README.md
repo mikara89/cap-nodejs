@@ -44,6 +44,7 @@ Root-only milestone changes must produce zero Lerna package candidates.
 | `@mikara89/cap-transport-nestjs-microservices` | Adapter that publishes through existing NestJS `ClientProxy` registrations and exposes an inbound bridge. |
 | `@mikara89/cap-transport-rabbitmq`             | Framework-neutral RabbitMQ adapter with publisher confirms and manual consumer settlement.                |
 | `@mikara89/cap-transport-kafka`                | Framework-neutral Kafka adapter with acknowledged publishing and success-only offset commits.             |
+| `@mikara89/cap-transport-aws-sns-sqs`          | Framework-neutral AWS SNS/SQS adapter with SNS publishing and SQS long-polling.                           |
 | `@mikara89/cap-dashboard-core`                 | Framework-agnostic dashboard DTOs and service logic.                                                      |
 | `@mikara89/cap-dashboard-nest`                 | NestJS dashboard module, REST API, and static dashboard UI.                                               |
 | `@mikara89/cap-dashboard-express`              | Express router for the dashboard service.                                                                 |
@@ -66,15 +67,15 @@ Drizzle, Sequelize, and Mongoose remain future storage candidates. A raw SQL
 adapter or shared SQL-core extraction remains deferred until duplication across
 the current adapters proves that it is worthwhile.
 
-Current first-party transports are Kafka, RabbitMQ, Azure Service Bus, and the
-NestJS microservices bridge. Each runs the adapter-neutral transport contract
-suite. AWS SNS/SQS remains planned; NATS and Pub/Sub remain future.
+Current first-party transports are Kafka, RabbitMQ, Azure Service Bus, AWS
+SNS/SQS, and the NestJS microservices bridge. Each runs the adapter-neutral
+transport contract suite. NATS and Pub/Sub remain future.
 
 v2.2 adds the transaction context foundation, transaction manager extension
 points, publish storage contract tests, and informational storage capability
 types. v2.3 extends storage contract coverage and adds Knex, TypeORM, and
-Prisma storage adapters. v2.4 starts with reusable transport conformance;
-planned transport packages are roadmap items, not installable packages today.
+Prisma storage adapters. v2.4 delivers reusable transport conformance alongside
+RabbitMQ, Kafka, and AWS SNS/SQS transports.
 
 ## Requirements
 

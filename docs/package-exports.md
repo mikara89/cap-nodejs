@@ -70,7 +70,7 @@ TypeORM `EntityManager`, and `Prisma.TransactionClient`, respectively.
 Planned packages are not exported until they are implemented and released. Do
 not import future storage package names such as
 `@mikara89/cap-storage-drizzle`, and do not import future transport package
-names such as `@mikara89/cap-transport-aws-sns-sqs`, unless those packages
+names such as `@mikara89/cap-transport-nats`, unless those packages
 exist in the workspace and are listed here as supported package roots.
 
 ## Nest Wrapper Imports

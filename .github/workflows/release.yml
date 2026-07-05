@@ -119,6 +119,9 @@ jobs:
       - name: Run Kafka integration gate
         run: npm run test:integration:kafka
 
+      - name: Run AWS SNS/SQS integration gate
+        run: npm run test:integration:aws-sns-sqs
+
       - name: Verify package archives
         run: npm run pack:dry-run
 
@@ -127,6 +130,9 @@ jobs:
 
       - name: Verify Kafka package install
         run: npm run pack:smoke:kafka
+
+      - name: Verify AWS SNS/SQS package install
+        run: npm run pack:smoke:aws-sns-sqs
 
   publish:
     needs: validate

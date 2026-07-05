@@ -1,49 +1,49 @@
 {
-  "name": "@mikara89/cap-transport-aws-sns-sqs",
-  "version": "0.0.0",
-  "description": "AWS SNS/SQS transport adapter for CAP",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "license": "MIT",
-  "homepage": "https://mikara89.github.io/cap-nodejs/",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mikara89/cap-nodejs",
-    "directory": "libs/cap-transport-aws-sns-sqs"
-  },
-  "bugs": {
-    "url": "https://github.com/mikara89/cap-nodejs/issues"
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md"
-  ],
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public"
-  },
-  "scripts": {
-    "build": "tsc -p tsconfig.lib.json",
-    "prepack": "npm run build",
-    "test": "jest --testPathPattern=libs/cap-transport-aws-sns-sqs",
-    "lint": "eslint \"src/**/*.ts\" --fix"
-  },
-  "dependencies": {
-    "@aws-sdk/client-sns": "^3.777.0",
-    "@aws-sdk/client-sqs": "^3.777.0",
-    "@mikara89/cap-core": "^2.2.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.0.0",
-    "typescript": "^5.7.0"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+    "name": "@mikara89/cap-transport-aws-sns-sqs",
+    "version": "0.0.0",
+    "description": "AWS SNS/SQS transport adapter for CAP",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "license": "MIT",
+    "homepage": "https://mikara89.github.io/cap-nodejs/",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mikara89/cap-nodejs",
+        "directory": "libs/cap-transport-aws-sns-sqs"
     },
-    "./package.json": "./package.json"
-  }
+    "bugs": {
+        "url": "https://github.com/mikara89/cap-nodejs/issues"
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "CHANGELOG.md"
+    ],
+    "publishConfig": {
+        "registry": "https://registry.npmjs.org/",
+        "access": "public"
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.lib.json",
+        "prepack": "npm run build",
+        "test": "jest --testPathPattern=libs/cap-transport-aws-sns-sqs",
+        "lint": "eslint \"src/**/*.ts\" --fix"
+    },
+    "dependencies": {
+        "@aws-sdk/client-sns": "^3.777.0",
+        "@aws-sdk/client-sqs": "^3.777.0",
+        "@mikara89/cap-core": "^2.2.0"
+    },
+    "devDependencies": {
+        "@types/node": "^22.0.0",
+        "typescript": "^5.7.0"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+    }
 }
