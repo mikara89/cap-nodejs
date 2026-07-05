@@ -72,6 +72,7 @@ export function resolveAwsSnsSqsOptions(
 
   return {
     region,
+    endpoint: options.endpoint,
     credentials: options.credentials,
     topicArn: options.topicArn ?? '',
     queueUrl: options.queueUrl ?? '',
@@ -89,11 +90,13 @@ export function resolveAwsSnsSqsOptions(
 function defaultAwsFactory(
   region: string,
   credentials?: AwsCredentials,
+  endpoint?: string,
 ): AwsClientFactory {
   return {
     snsClient: () => {
       const client = new SNSClient({
         region,
+        endpoint,
         credentials: credentials
           ? {
               accessKeyId: credentials.accessKeyId,
@@ -113,6 +116,7 @@ function defaultAwsFactory(
     sqsClient: () => {
       const client = new SQSClient({
         region,
+        endpoint,
         credentials: credentials
           ? {
               accessKeyId: credentials.accessKeyId,

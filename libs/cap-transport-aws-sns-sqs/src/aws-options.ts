@@ -3,6 +3,7 @@ import type { AwsCredentials, AwsFactory } from './aws-types';
 
 export interface AwsSnsSqsOptions {
   region?: string;
+  endpoint?: string;
   credentials?: AwsCredentials;
   topicArn?: string;
   topicName?: string;
@@ -20,6 +21,7 @@ export interface AwsSnsSqsOptions {
 
 export interface ResolvedAwsSnsSqsOptions {
   region: string;
+  endpoint?: string;
   credentials?: AwsCredentials;
   topicArn: string;
   queueUrl: string;

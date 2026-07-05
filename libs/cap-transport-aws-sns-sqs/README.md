@@ -43,6 +43,7 @@ succeeds.
 | Option               | Default        | Description                                  |
 | -------------------- | -------------- | -------------------------------------------- |
 | `region`             | `us-east-1`    | AWS region                                   |
+| `endpoint`           | -              | Custom endpoint URL (e.g. LocalStack `http://localhost:4566`) |
 | `credentials`        | -              | AWS credentials (accessKeyId, secretAccessKey, optional sessionToken) |
 | `topicArn`           | -              | SNS topic ARN                                |
 | `topicName`          | -              | SNS topic name (for auto-provision)          |
@@ -68,9 +69,22 @@ Configure an SQS redrive policy (DLQ) on the queue to catch messages that
 exceed `maxReceiveCount`. CAP's inbox retry limits and dead-letter state work
 alongside SQS redelivery — they are complementary layers, not replacements.
 
-## Auto-Provisioning
+## LocalStack / Testing
 
-When `autoProvision` is `true` and `topicName`/`queueName` are provided (instead
-of raw ARNs/URLs), the adapter can create SNS topics and SQS queues, and set up
-SNS→SQS subscriptions. Auto-provisioning is opt-in and conservative: it only
-creates, never deletes.
+Set `endpoint` to a LocalStack URL when testing against a local AWS emulator:
+
+```ts
+const options = {
+  region: 'us-east-1',
+  endpoint: 'http://localhost:4566',
+  credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
+  topicArn: 'arn:aws:sns:us-east-1:000000000000:my-topic',
+  queueUrl: 'http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/my-queue',
+};
+
+const publisher = new AwsSnsPublisher(options);
+const subscriber = new AwsSqsSubscriber(options);
+```
+
+The adapter's integration tests use Testcontainers with `localstack/localstack`
+for full broker-level verification.

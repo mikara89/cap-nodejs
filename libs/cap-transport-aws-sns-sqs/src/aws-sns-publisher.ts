@@ -26,6 +26,7 @@ export class AwsSnsPublisher implements PublisherPort {
     this.clients = this.options.factory(
       this.options.region,
       this.options.credentials,
+      this.options.endpoint,
     );
   }
 
@@ -37,6 +38,7 @@ export class AwsSnsPublisher implements PublisherPort {
         this.sns = this.clients.snsClient(
           this.options.region,
           this.options.credentials,
+          this.options.endpoint,
         );
       })
       .finally(() => {

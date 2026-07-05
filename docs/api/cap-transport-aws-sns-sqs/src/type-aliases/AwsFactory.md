@@ -6,7 +6,7 @@
 
 # Type Alias: AwsFactory
 
-> **AwsFactory** = (`region`, `credentials?`) => [`AwsClientFactory`](../interfaces/AwsClientFactory.md)
+> **AwsFactory** = (`region`, `credentials?`, `endpoint?`) => [`AwsClientFactory`](../interfaces/AwsClientFactory.md)
 
 Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L29)
 
@@ -19,6 +19,10 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:29](https://github.com/m
 ### credentials?
 
 [`AwsCredentials`](../interfaces/AwsCredentials.md)
+
+### endpoint?
+
+`string`
 
 ## Returns
 

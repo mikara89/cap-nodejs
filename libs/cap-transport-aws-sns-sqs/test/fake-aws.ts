@@ -27,12 +27,16 @@ export class FakeAwsBroker implements AwsClientFactory {
   pendingPublish?: Promise<never>;
   region?: string;
 
-  readonly factory: AwsFactory = (region, _credentials) => {
+  readonly factory: AwsFactory = (region, _credentials, _endpoint) => {
     this.region = region;
     return this;
   };
 
-  snsClient(_region: string, _credentials?: AwsCredentials): SnsClient {
+  snsClient(
+    _region: string,
+    _credentials?: AwsCredentials,
+    _endpoint?: string,
+  ): SnsClient {
     this.snsClientCount += 1;
     let destroyed = false;
     return {
@@ -62,7 +66,11 @@ export class FakeAwsBroker implements AwsClientFactory {
     };
   }
 
-  sqsClient(_region: string, _credentials?: AwsCredentials): SqsClient {
+  sqsClient(
+    _region: string,
+    _credentials?: AwsCredentials,
+    _endpoint?: string,
+  ): SqsClient {
     this.sqsClientCount += 1;
     let destroyed = false;
     const client: SqsClient = {

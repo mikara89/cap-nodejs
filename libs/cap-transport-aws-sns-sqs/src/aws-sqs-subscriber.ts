@@ -30,6 +30,7 @@ export class AwsSqsSubscriber implements SubscriberPort {
     this.clients = this.options.factory(
       this.options.region,
       this.options.credentials,
+      this.options.endpoint,
     );
   }
 
@@ -44,6 +45,7 @@ export class AwsSqsSubscriber implements SubscriberPort {
       const client = this.clients.sqsClient(
         this.options.region,
         this.options.credentials,
+        this.options.endpoint,
       );
       state = {
         client,
@@ -203,8 +205,13 @@ function decodeMessage(
   body: string,
   rawAttributes?: Record<string, { DataType?: string; StringValue?: string }>,
 ): { payload: unknown; headers?: CapHeaders; messageId?: string } {
+  // SNS → SQS subscriptions wrap the published message inside an SNS
+  // notification JSON envelope.  Detect and unwrap it so downstream
+  // consumers receive the original payload and attributes.
+  const { innerBody, attributes } = unwrapSnsNotification(body, rawAttributes);
+
   const contentType =
-    rawAttributes?.[CONTENT_TYPE]?.StringValue ?? 'application/json';
+    attributes?.[CONTENT_TYPE]?.StringValue ?? 'application/json';
   if (contentType !== 'application/json') {
     throw new AwsSqsMalformedMessageError(
       'AWS SQS message content-type must be application/json',
@@ -213,7 +220,7 @@ function decodeMessage(
 
   let payload: unknown;
   try {
-    payload = JSON.parse(body) as unknown;
+    payload = JSON.parse(innerBody) as unknown;
   } catch (error) {
     throw new AwsSqsMalformedMessageError(
       'AWS SQS message contains invalid JSON',
@@ -223,7 +230,7 @@ function decodeMessage(
 
   const headers: CapHeaders = {};
   let messageId: string | undefined;
-  for (const [name, attr] of Object.entries(rawAttributes ?? {})) {
+  for (const [name, attr] of Object.entries(attributes ?? {})) {
     if (name === CONTENT_TYPE) continue;
     if (name === MESSAGE_ID) {
       messageId = attr.StringValue;
@@ -240,6 +247,65 @@ function decodeMessage(
     payload,
     headers: Object.keys(headers).length ? headers : undefined,
     messageId,
+  };
+}
+
+interface SnsAttribute {
+  Type: string;
+  Value: string;
+}
+
+interface SqsAttribute {
+  DataType?: string;
+  StringValue?: string;
+}
+
+function unwrapSnsNotification(
+  body: string,
+  rawAttributes?: Record<string, SqsAttribute>,
+): {
+  innerBody: string;
+  attributes?: Record<string, SqsAttribute>;
+} {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body) as unknown;
+  } catch {
+    return { innerBody: body, attributes: rawAttributes };
+  }
+
+  if (
+    parsed === null ||
+    typeof parsed !== 'object' ||
+    !('Type' in parsed) ||
+    (parsed as Record<string, unknown>).Type !== 'Notification' ||
+    typeof (parsed as Record<string, unknown>).Message !== 'string'
+  ) {
+    return { innerBody: body, attributes: rawAttributes };
+  }
+
+  const notification = parsed as {
+    Type: string;
+    Message: string;
+    MessageAttributes?: Record<string, SnsAttribute>;
+  };
+
+  // Convert SNS MessageAttributes (Type/Value) to the SQS attribute
+  // shape (DataType/StringValue) expected by the rest of the pipeline.
+  const snsAttrs = notification.MessageAttributes;
+  const converted: Record<string, SqsAttribute> = {};
+  if (snsAttrs) {
+    for (const [key, attr] of Object.entries(snsAttrs)) {
+      converted[key] = {
+        DataType: attr.Type,
+        StringValue: attr.Value,
+      };
+    }
+  }
+
+  return {
+    innerBody: notification.Message,
+    attributes: Object.keys(converted).length ? converted : rawAttributes,
   };
 }
 

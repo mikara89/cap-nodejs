@@ -1,6 +1,5 @@
 import {
   SNSClient,
-  PublishCommand,
   CreateTopicCommand,
   SubscribeCommand,
 } from '@aws-sdk/client-sns';
@@ -172,7 +171,6 @@ describe('AWS SNS/SQS transport integration', () => {
 
   it('does not delete message on handler failure (message returns after visibility timeout)', async () => {
     const shortVisibilityQueue = await createQueue('failure');
-    const topicForFailure = topicArn; // reuse
 
     const subscriber = track(
       new AwsSqsSubscriber(
@@ -194,11 +192,12 @@ describe('AWS SNS/SQS transport integration', () => {
       done.resolve();
     });
 
-    // Publish directly to SNS
-    await snsClient.send(
-      new PublishCommand({
-        TopicArn: topicForFailure,
-        Message: JSON.stringify({ id: 'retry' }),
+    // Publish directly to SQS (bypass SNS) to avoid needing a separate
+    // SNS subscription for the failure-test queue.
+    await sqsClient.send(
+      new SendMessageCommand({
+        QueueUrl: shortVisibilityQueue,
+        MessageBody: JSON.stringify({ id: 'retry' }),
         MessageAttributes: {
           'content-type': {
             DataType: 'String',

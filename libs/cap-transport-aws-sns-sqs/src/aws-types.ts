@@ -16,8 +16,16 @@ export interface SqsClient {
 }
 
 export interface AwsClientFactory {
-  snsClient(region: string, credentials?: AwsCredentials): SnsClient;
-  sqsClient(region: string, credentials?: AwsCredentials): SqsClient;
+  snsClient(
+    region: string,
+    credentials?: AwsCredentials,
+    endpoint?: string,
+  ): SnsClient;
+  sqsClient(
+    region: string,
+    credentials?: AwsCredentials,
+    endpoint?: string,
+  ): SqsClient;
 }
 
 export interface AwsCredentials {
@@ -29,4 +37,5 @@ export interface AwsCredentials {
 export type AwsFactory = (
   region: string,
   credentials?: AwsCredentials,
+  endpoint?: string,
 ) => AwsClientFactory;

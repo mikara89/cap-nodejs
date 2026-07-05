@@ -36,7 +36,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:24](https://gith
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:79](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts#L79)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:81](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts#L81)
 
 #### Returns
 
@@ -48,7 +48,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:79](https://gith
 
 > **emit**(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:48](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts#L48)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:50](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts#L50)
 
 #### Parameters
 
@@ -82,7 +82,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:48](https://gith
 
 > **initialize**(`_options?`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts#L32)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts#L33)
 
 #### Parameters
 
