@@ -174,7 +174,6 @@
     ],
     "rootDir": ".",
     "testRegex": "(src|apps).*\\.spec\\.ts$",
-    "testPathIgnorePatterns": ["/node_modules/", "/test/.*\\.integration\\.spec\\.ts$", "/test/.*\\.integration-spec\\.ts$", "/test/.*\\.e2e-spec\\.ts$"],
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
