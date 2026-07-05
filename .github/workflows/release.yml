@@ -31,6 +31,26 @@ on:
         required: false
         default: ''
         type: string
+      run_rabbitmq_integration:
+        description: 'Run RabbitMQ integration gate (requires Docker)'
+        required: false
+        default: false
+        type: boolean
+      run_kafka_integration:
+        description: 'Run Kafka integration gate (requires Docker)'
+        required: false
+        default: false
+        type: boolean
+      run_aws_sns_sqs_integration:
+        description: 'Run AWS SNS/SQS integration gate (requires Docker)'
+        required: false
+        default: false
+        type: boolean
+      run_servicebus_integration:
+        description: 'Run Azure Service Bus integration gate (requires Azure)'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -114,13 +134,22 @@ jobs:
         run: npm run test:integration:db
 
       - name: Run RabbitMQ integration gate
+        if: ${{ inputs.run_rabbitmq_integration }}
         run: npm run test:integration:rabbitmq
 
       - name: Run Kafka integration gate
+        if: ${{ inputs.run_kafka_integration }}
         run: npm run test:integration:kafka
 
       - name: Run AWS SNS/SQS integration gate
+        if: ${{ inputs.run_aws_sns_sqs_integration }}
         run: npm run test:integration:aws-sns-sqs
+
+      - name: Run Azure Service Bus integration gate
+        if: ${{ inputs.run_servicebus_integration }}
+        env:
+          SERVICEBUS_CONNECTION_STRING: ${{ secrets.SERVICEBUS_CONNECTION_STRING }}
+        run: npm run test:integration:servicebus
 
       - name: Verify package archives
         run: npm run pack:dry-run

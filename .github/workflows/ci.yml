@@ -7,9 +7,24 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      run_rabbitmq_integration:
+        description: 'Run RabbitMQ integration gate (requires Docker)'
+        required: false
+        default: false
+        type: boolean
+      run_kafka_integration:
+        description: 'Run Kafka integration gate (requires Docker)'
+        required: false
+        default: false
+        type: boolean
+      run_aws_sns_sqs_integration:
+        description: 'Run AWS SNS/SQS integration gate (requires Docker)'
+        required: false
+        default: false
+        type: boolean
       run_servicebus_integration:
-        description: 'Run external Azure Service Bus integration gate'
-        required: true
+        description: 'Run Azure Service Bus integration gate (requires Azure)'
+        required: false
         default: false
         type: boolean
 
@@ -47,7 +62,7 @@ jobs:
 
   # ------- targeted integration: RabbitMQ -------
   rabbitmq-integration:
-    if: ${{ needs.affected-checks.outputs.affected_packages != '' && contains(needs.affected-checks.outputs.affected_packages, 'cap-transport-rabbitmq') }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_rabbitmq_integration }}
     needs: affected-checks
     runs-on: ubuntu-latest
     steps:
@@ -62,13 +77,13 @@ jobs:
       - name: Install
         run: npm ci --package-lock=true
       - name: Build
-        run: npm run build:affected
+        run: npm run build
       - name: Run RabbitMQ integration gate
         run: npm run test:integration:rabbitmq
 
   # ------- targeted integration: Kafka -------
   kafka-integration:
-    if: ${{ needs.affected-checks.outputs.affected_packages != '' && contains(needs.affected-checks.outputs.affected_packages, 'cap-transport-kafka') }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_kafka_integration }}
     needs: affected-checks
     runs-on: ubuntu-latest
     steps:
@@ -83,9 +98,30 @@ jobs:
       - name: Install
         run: npm ci --package-lock=true
       - name: Build
-        run: npm run build:affected
+        run: npm run build
       - name: Run Kafka integration gate
         run: npm run test:integration:kafka
+
+  # ------- targeted integration: AWS SNS/SQS -------
+  aws-sns-sqs-integration:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_aws_sns_sqs_integration }}
+    needs: affected-checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install
+        run: npm ci --package-lock=true
+      - name: Build
+        run: npm run build
+      - name: Run AWS SNS/SQS integration gate
+        run: npm run test:integration:aws-sns-sqs
 
   # ------- full validation (PR and push gate) -------
   build-and-test:
@@ -129,7 +165,14 @@ jobs:
       - name: Run DB integration gate
         run: npm run test:integration:db
       - name: Run Kafka integration gate
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_kafka_integration }}
         run: npm run test:integration:kafka
+      - name: Run RabbitMQ integration gate
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_rabbitmq_integration }}
+        run: npm run test:integration:rabbitmq
+      - name: Run AWS SNS/SQS integration gate
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_aws_sns_sqs_integration }}
+        run: npm run test:integration:aws-sns-sqs
       - name: Verify package contents
         run: npm run pack:dry-run
       - name: Verify Kafka package install

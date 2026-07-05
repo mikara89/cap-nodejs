@@ -83,6 +83,23 @@ remains historical, while the 14 independent tags at the npm `gitHead` become
 Lerna's per-package Conventional Commits boundary. Already released commits are
 therefore excluded from future recommendations.
 
+## Integration gates
+
+Heavy transport integration gates (RabbitMQ, Kafka, AWS SNS/SQS, Azure Service
+Bus) are manual/on-request by default because they require Docker containers or
+cloud credentials. Unit tests, contract tests, pack smoke tests, and all other
+validation remain always-on.
+
+The release workflow exposes boolean inputs for each transport:
+
+- `run_rabbitmq_integration` (default `false`)
+- `run_kafka_integration` (default `false`)
+- `run_aws_sns_sqs_integration` (default `false`)
+- `run_servicebus_integration` (default `false`)
+
+Before a final GA release, maintainers should run all transport integration
+gates manually by setting each input to `true`.
+
 ## Normal releases
 
 Run `operation=release`, `coordinated_major=false`, and choose a channel.

@@ -99,14 +99,24 @@ try {
     );
     writeJson(path.join(projectDir, 'tsconfig.json'), {
         compilerOptions: {
-            strict: true,
+            target: 'ES2022',
             module: 'commonjs',
             moduleResolution: 'node',
-            esModuleInterop: true,
-            skipLibCheck: true,
+            strict: true,
+            noEmit: true,
+            skipLibCheck: false,
         },
+        include: ['usage.ts'],
     });
-    run(process.execPath, ['-r', 'typescript/bin/tsc', '--noEmit'], projectDir);
+    run(
+        process.execPath,
+        [
+            path.join(rootDir, 'node_modules', 'typescript', 'bin', 'tsc'),
+            '-p',
+            'tsconfig.json',
+        ],
+        projectDir,
+    );
 
     console.log(`✅ ${packageName} pack smoke passed`);
 } finally {
