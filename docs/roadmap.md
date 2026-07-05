@@ -88,7 +88,7 @@ logic.
 ## v2.4 Transport Reach
 
 The v2.4 repository roadmap milestone expands transport reach in five ordered
-PR phases. The transport foundation, RabbitMQ, and Kafka phases are delivered.
+PR phases. All five phases are delivered.
 
 1. **PR 1 - transport contract foundation:** verify the existing core ports,
    add the adapter-neutral `defineTransportContract` suite, qualify Azure
@@ -100,8 +100,9 @@ PR phases. The transport foundation, RabbitMQ, and Kafka phases are delivered.
 3. **PR 3 - Kafka transport (delivered):** implement and qualify
    `@mikara89/cap-transport-kafka` with acknowledged publishing, native
    consumer groups, and success-only manual offset commits.
-4. **PR 4 - AWS SNS/SQS transport:** implement and qualify the planned
-   `@mikara89/cap-transport-aws-sns-sqs` package.
+4. **PR 4 - AWS SNS/SQS transport (delivered):** implement and qualify the
+   `@mikara89/cap-transport-aws-sns-sqs` package with SNS publishing, SQS
+   long-polling, and success-only message deletion.
 5. **PR 5 - docs, examples, compatibility and release review:** complete the
    adapter matrix and examples, verify compatibility, and perform release
    readiness review.

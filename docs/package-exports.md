@@ -26,6 +26,7 @@ import { PrismaPublishStorage } from '@mikara89/cap-storage-prisma';
 import { ServiceBusPublisher } from '@mikara89/cap-transport-azure-servicebus';
 import { NestjsMicroservicesTransportModule } from '@mikara89/cap-transport-nestjs-microservices';
 import { KafkaPublisher, KafkaSubscriber } from '@mikara89/cap-transport-kafka';
+import { AwsSnsPublisher, AwsSqsSubscriber } from '@mikara89/cap-transport-aws-sns-sqs';
 import { CapDashboardModule } from '@mikara89/cap-dashboard-nest';
 import { createCapDashboardRouter } from '@mikara89/cap-dashboard-express';
 ```
@@ -44,6 +45,7 @@ The supported package roots are:
 - `@mikara89/cap-transport-nestjs-microservices`
 - `@mikara89/cap-transport-rabbitmq`
 - `@mikara89/cap-transport-kafka`
+- `@mikara89/cap-transport-aws-sns-sqs`
 - `@mikara89/cap-dashboard-core`
 - `@mikara89/cap-dashboard-nest`
 - `@mikara89/cap-dashboard-express`

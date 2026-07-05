@@ -158,7 +158,7 @@ Important subscriber invariant:
 | NestJS microservices   | Current bridge adapter: `@mikara89/cap-transport-nestjs-microservices`.  |
 | RabbitMQ               | Current first-party adapter: `@mikara89/cap-transport-rabbitmq`.         |
 | Kafka                  | Current first-party adapter: `@mikara89/cap-transport-kafka`.            |
-| AWS SNS/SQS            | Planned v2.4: `@mikara89/cap-transport-aws-sns-sqs`.                     |
+| AWS SNS/SQS            | Current first-party adapter: `@mikara89/cap-transport-aws-sns-sqs`.      |
 | Google Pub/Sub         | Likely v2.5 candidate.                                                   |
 | NATS JetStream         | Likely v2.5 candidate.                                                   |
 | Redis Streams and MQTT | Later optional candidates.                                               |

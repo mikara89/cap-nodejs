@@ -64,12 +64,19 @@ test('repository roadmap version belongs only to the private workspace root', ()
       ?.version,
     '0.0.0',
   );
+  assert.equal(
+    packages.find(
+      (pkg) => pkg.name === '@mikara89/cap-transport-aws-sns-sqs',
+    )?.version,
+    '0.0.0',
+  );
   assert.ok(
     packages
       .filter(
         (pkg) =>
           pkg.name !== '@mikara89/cap-transport-rabbitmq' &&
-          pkg.name !== '@mikara89/cap-transport-kafka',
+          pkg.name !== '@mikara89/cap-transport-kafka' &&
+          pkg.name !== '@mikara89/cap-transport-aws-sns-sqs',
       )
       .every((pkg) => pkg.version === '2.2.0'),
   );
@@ -104,6 +111,37 @@ test('first Kafka feature beta selects only 0.1.0-beta.0', () => {
 
   assert.equal(plan['@fixture/core'].version, '2.2.0');
   assert.equal(plan['@fixture/kafka'].version, '0.1.0-beta.0');
+});
+
+test('first AWS SNS/SQS feat selects only the independent package at 0.1.0', () => {
+  const cwd = createFixture([
+    { id: 'core', name: '@fixture/core', version: '2.2.0' },
+    { id: 'aws', name: '@fixture/aws', version: '0.0.0' },
+  ]);
+
+  addCommit(cwd, 'aws', 'feat(aws): add AWS SNS/SQS transport');
+  const plan = runVersion(cwd, ['--conventional-commits']);
+
+  assert.equal(plan['@fixture/core'].version, '2.2.0');
+  assert.equal(plan['@fixture/aws'].version, '0.1.0');
+});
+
+test('first AWS SNS/SQS feature beta selects only 0.1.0-beta.0', () => {
+  const cwd = createFixture([
+    { id: 'core', name: '@fixture/core', version: '2.2.0' },
+    { id: 'aws', name: '@fixture/aws', version: '0.0.0' },
+  ]);
+
+  addCommit(cwd, 'aws', 'feat(aws): add AWS SNS/SQS transport');
+  const plan = runVersion(cwd, [
+    '--conventional-commits',
+    '--conventional-prerelease',
+    '--preid',
+    'beta',
+  ]);
+
+  assert.equal(plan['@fixture/core'].version, '2.2.0');
+  assert.equal(plan['@fixture/aws'].version, '0.1.0-beta.0');
 });
 
 test('first RabbitMQ feat selects only the independent package at 0.1.0', () => {

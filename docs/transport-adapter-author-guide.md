@@ -47,13 +47,13 @@ tested without weakening either broker's guarantees.
 
 ## Current Adapter Behavior
 
-| Behavior         | RabbitMQ                            | Kafka                                       | Azure Service Bus                | NestJS bridge              |
-| ---------------- | ----------------------------------- | ------------------------------------------- | -------------------------------- | -------------------------- |
-| Publish success  | Confirm callback plus channel drain | Delivery promise honors configured acks     | `sendMessages()` resolves        | Emit observable resolves   |
-| Inbound identity | Broker ID and exchange/group key    | Header ID and topic/group key               | Broker ID and resource/group key | Application metadata       |
-| Handler failure  | Manual nack; no requeue by default  | Propagated; offset is not committed         | Rethrown to SDK callback         | Rejected from `dispatch()` |
-| Recovery         | Bounded adapter reconnect           | Maintained client reconnect/rebalance       | Client-owned                     | Transporter-owned          |
-| Settlement       | Ack after callback resolves         | Commit `offset + 1` after callback resolves | SDK receiver configuration       | Transporter-owned          |
+| Behavior         | RabbitMQ                            | Kafka                                       | AWS SNS/SQS                             | Azure Service Bus                | NestJS bridge              |
+| ---------------- | ----------------------------------- | ------------------------------------------- | --------------------------------------- | -------------------------------- | -------------------------- |
+| Publish success  | Confirm callback plus channel drain | Delivery promise honors configured acks     | SNS Publish resolves                   | `sendMessages()` resolves        | Emit observable resolves   |
+| Inbound identity | Broker ID and exchange/group key    | Header ID and topic/group key               | SQS MessageId and topic/group key      | Broker ID and resource/group key | Application metadata       |
+| Handler failure  | Manual nack; no requeue by default  | Propagated; offset is not committed         | Not deleted; visibility timeout return | Rethrown to SDK callback         | Rejected from `dispatch()` |
+| Recovery         | Bounded adapter reconnect           | Maintained client reconnect/rebalance       | Polling loop retry on error            | Client-owned                     | Transporter-owned          |
+| Settlement       | Ack after callback resolves         | Commit `offset + 1` after callback resolves | Delete after callback resolves         | SDK receiver configuration       | Transporter-owned          |
 
 The Nest bridge's emit completion is client-library acceptance, not a portable
 durable broker acknowledgement. Azure resource provisioning is adapter-specific
