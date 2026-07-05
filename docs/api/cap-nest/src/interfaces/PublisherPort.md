@@ -8,6 +8,10 @@
 
 Defined in: cap-core/dist/ports/publisher.port.d.ts:9
 
+## Extended by
+
+- [`TransportContractPublisher`](../../../cap-testing/src/interfaces/TransportContractPublisher.md)
+
 ## Methods
 
 ### emit()

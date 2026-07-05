@@ -1,0 +1,29 @@
+[**CAP Node.js API**](../../../README.md)
+
+***
+
+[CAP Node.js API](../../../README.md) / [cap-testing/src](../README.md) / defineTransportContract
+
+# Function: defineTransportContract()
+
+> **defineTransportContract**(`name`, `setup`, `capabilities`): `void`
+
+Defined in: [cap-testing/src/contracts/transport-contract.ts:52](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L52)
+
+## Parameters
+
+### name
+
+`string`
+
+### setup
+
+() => `Promise`\<[`TransportContractSetup`](../interfaces/TransportContractSetup.md)\>
+
+### capabilities
+
+[`TransportContractCapabilities`](../interfaces/TransportContractCapabilities.md)
+
+## Returns
+
+`void`

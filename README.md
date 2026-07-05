@@ -13,18 +13,21 @@ Application code
   -> CAP reliable publish / subscribe
       -> outbox + inbox storage
       -> transport adapter
-          -> Azure Service Bus, NestJS ClientProxy, or custom transport
+          -> Kafka, RabbitMQ, Azure Service Bus, NestJS ClientProxy, or custom transport
 ```
 
 ## Status
 
-This repository contains the `v2.3` package set. The core messaging path,
-first-party adapters, dashboard auth extension points, header propagation, and
-release workflow are implemented for the supported boundaries documented
-below.
+The repository roadmap is at the `v2.4` milestone, beginning with the transport
+contract foundation. The core messaging path, current first-party adapters,
+dashboard auth extension points, header propagation, and release workflow are
+implemented for the supported boundaries documented below.
 
-The root workspace package is private. The publishable packages live under
-`libs/*`.
+The root workspace package is private and its `2.4.0` version tracks repository
+roadmap progress. It is not an npm package version and does not imply that all
+libraries are version `2.4.0`. Publishable packages live under `libs/*`, remain
+independently versioned by Lerna, and keep their current release baselines.
+Root-only milestone changes must produce zero Lerna package candidates.
 
 ## Packages
 
@@ -39,6 +42,9 @@ The root workspace package is private. The publishable packages live under
 | `@mikara89/cap-storage-prisma`                 | Model-free Prisma storage adapter for outbox and inbox records.                                           |
 | `@mikara89/cap-transport-azure-servicebus`     | Azure Service Bus transport adapter.                                                                      |
 | `@mikara89/cap-transport-nestjs-microservices` | Adapter that publishes through existing NestJS `ClientProxy` registrations and exposes an inbound bridge. |
+| `@mikara89/cap-transport-rabbitmq`             | Framework-neutral RabbitMQ adapter with publisher confirms and manual consumer settlement.                |
+| `@mikara89/cap-transport-kafka`                | Framework-neutral Kafka adapter with acknowledged publishing and success-only offset commits.             |
+| `@mikara89/cap-transport-aws-sns-sqs`          | Framework-neutral AWS SNS/SQS adapter with SNS publishing and SQS long-polling.                           |
 | `@mikara89/cap-dashboard-core`                 | Framework-agnostic dashboard DTOs and service logic.                                                      |
 | `@mikara89/cap-dashboard-nest`                 | NestJS dashboard module, REST API, and static dashboard UI.                                               |
 | `@mikara89/cap-dashboard-express`              | Express router for the dashboard service.                                                                 |
@@ -61,15 +67,15 @@ Drizzle, Sequelize, and Mongoose remain future storage candidates. A raw SQL
 adapter or shared SQL-core extraction remains deferred until duplication across
 the current adapters proves that it is worthwhile.
 
-Current first-party transports are Azure Service Bus and the NestJS
-microservices bridge. RabbitMQ, Kafka, and AWS SNS/SQS transports are planned
-for v2.4 after transport conformance tests and capability metadata are added.
+Current first-party transports are Kafka, RabbitMQ, Azure Service Bus, AWS
+SNS/SQS, and the NestJS microservices bridge. Each runs the adapter-neutral
+transport contract suite. NATS and Pub/Sub remain future.
 
 v2.2 adds the transaction context foundation, transaction manager extension
 points, publish storage contract tests, and informational storage capability
 types. v2.3 extends storage contract coverage and adds Knex, TypeORM, and
-Prisma storage adapters. Planned v2.4 transport packages are roadmap items,
-not installable packages today.
+Prisma storage adapters. v2.4 delivers reusable transport conformance alongside
+RabbitMQ, Kafka, and AWS SNS/SQS transports.
 
 ## Requirements
 
@@ -86,6 +92,10 @@ Adapter-specific requirements:
 - `@mikara89/cap-storage-prisma` requires a generated Prisma Client 6.
 - `@mikara89/cap-transport-azure-servicebus` requires Azure Service Bus credentials or
   an emulator path for external integration testing.
+- `@mikara89/cap-transport-rabbitmq` requires RabbitMQ 4.x-compatible AMQP 0-9-1
+  connectivity; its integration gate uses the pinned `rabbitmq:4.1.0-alpine` image.
+- `@mikara89/cap-transport-kafka` uses Confluent's maintained librdkafka-backed
+  client; its integration gate uses pinned `apache/kafka:3.9.1`.
 
 ## Installation
 
@@ -106,6 +116,18 @@ For durable MikroORM storage and Azure Service Bus transport:
 
 ```sh
 npm install @mikara89/cap-nest @mikara89/cap-storage-mikro-orm @mikara89/cap-transport-azure-servicebus
+```
+
+For RabbitMQ transport:
+
+```sh
+npm install @mikara89/cap-transport-rabbitmq
+```
+
+For Kafka transport:
+
+```sh
+npm install @mikara89/cap-transport-kafka
 ```
 
 For durable Knex storage, install Knex and a dialect driver such as `pg`,
@@ -366,6 +388,7 @@ npm run docs:api
 - [Transactions](docs/transactions.md)
 - [Architecture](docs/architecture.md)
 - [Adapters](docs/adapters.md)
+- [Transport adapter author guide](docs/transport-adapter-author-guide.md)
 - [Dashboard](docs/cap-dashboard.md)
 - [API reference](docs/api/README.md)
 - [Package export surface](docs/package-exports.md)

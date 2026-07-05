@@ -9,7 +9,9 @@ import {
 import { type CapPublishEvent } from '@mikara89/cap-core';
 import { MikroPublishStorage } from '../src/storage/mikro-publish-storage';
 
-jest.mock('archiver', () => ({ __esModule: true, default: jest.fn() }));
+jest.mock('archiver', () => ({ __esModule: true, default: jest.fn() }), {
+  virtual: true,
+});
 jest.setTimeout(120000);
 
 type Deferred<T = void> = {

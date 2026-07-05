@@ -108,6 +108,19 @@ first-party adapter readiness rules.
 - optional `initialize(options)`
 - optional `close()`
 
+### Transport Conformance
+
+v2.4 PR 1 adds `defineTransportContract()` to
+`@mikara89/cap-testing`. Transport adapters should run it against fast client
+fakes while retaining emulator or broker integration tests. It covers publish
+mapping, headers and message identity, errors, inbound handler registration,
+delivery metadata, supported repeated lifecycle calls, and resource cleanup.
+
+Lifecycle capabilities are explicit contract options, so unsupported checks
+are skipped visibly. No core transport capability model is added yet: the
+current adapters have not proven a portable caller-facing requirement beyond
+the existing ports.
+
 Subscriber metadata should include a stable `messageId` when the broker exposes
 one. If a transport can provide a stronger idempotency identity, it should pass
 `dedupeKey`; CAP stores `messageId` for traceability but first-party durable
@@ -126,26 +139,26 @@ Important subscriber invariant:
 
 ## Storage Adapter Matrix
 
-| Adapter | Status | Adapter style | Transaction context |
-| ------- | ------ | ------------- | ------------------- |
-| MikroORM | Current: `@mikara89/cap-storage-mikro-orm` | ORM-specific adapter | `MikroORM EntityManager` |
-| Knex | Current: `@mikara89/cap-storage-knex` | SQL query-builder adapter | `Knex.Transaction` |
-| TypeORM | Current: `@mikara89/cap-storage-typeorm` | ORM adapter | `TypeORM EntityManager` |
-| Prisma | Current: `@mikara89/cap-storage-prisma` | Raw-SQL Prisma Client adapter; CAP models are not required in the Prisma schema | `Prisma.TransactionClient` |
-| Drizzle | Future candidate | Not implemented | Not defined |
-| Sequelize | Future candidate | Not implemented | Not defined |
-| Mongoose | Future candidate | Not implemented | Not defined |
-| raw SQL / SQL-core | Deferred until current adapters prove enough duplication | Not implemented | Not defined |
+| Adapter            | Status                                                   | Adapter style                                                                   | Transaction context        |
+| ------------------ | -------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------- |
+| MikroORM           | Current: `@mikara89/cap-storage-mikro-orm`               | ORM-specific adapter                                                            | `MikroORM EntityManager`   |
+| Knex               | Current: `@mikara89/cap-storage-knex`                    | SQL query-builder adapter                                                       | `Knex.Transaction`         |
+| TypeORM            | Current: `@mikara89/cap-storage-typeorm`                 | ORM adapter                                                                     | `TypeORM EntityManager`    |
+| Prisma             | Current: `@mikara89/cap-storage-prisma`                  | Raw-SQL Prisma Client adapter; CAP models are not required in the Prisma schema | `Prisma.TransactionClient` |
+| Drizzle            | Future candidate                                         | Not implemented                                                                 | Not defined                |
+| Sequelize          | Future candidate                                         | Not implemented                                                                 | Not defined                |
+| Mongoose           | Future candidate                                         | Not implemented                                                                 | Not defined                |
+| raw SQL / SQL-core | Deferred until current adapters prove enough duplication | Not implemented                                                                 | Not defined                |
 
-## Planned Transport Adapter Matrix
+## Transport Adapter Matrix
 
 | Adapter                | Status                                                                   |
 | ---------------------- | ------------------------------------------------------------------------ |
 | Azure Service Bus      | Current first-party adapter: `@mikara89/cap-transport-azure-servicebus`. |
 | NestJS microservices   | Current bridge adapter: `@mikara89/cap-transport-nestjs-microservices`.  |
-| RabbitMQ               | Planned v2.4: `@mikara89/cap-transport-rabbitmq`.                        |
-| Kafka                  | Planned v2.4: `@mikara89/cap-transport-kafka`.                           |
-| AWS SNS/SQS            | Planned v2.4: `@mikara89/cap-transport-aws-sns-sqs`.                     |
+| RabbitMQ               | Current first-party adapter: `@mikara89/cap-transport-rabbitmq`.         |
+| Kafka                  | Current first-party adapter: `@mikara89/cap-transport-kafka`.            |
+| AWS SNS/SQS            | Current first-party adapter: `@mikara89/cap-transport-aws-sns-sqs`.      |
 | Google Pub/Sub         | Likely v2.5 candidate.                                                   |
 | NATS JetStream         | Likely v2.5 candidate.                                                   |
 | Redis Streams and MQTT | Later optional candidates.                                               |
@@ -285,12 +298,49 @@ Important reliability note: `ClientProxy.emit()` semantics vary by broker and
 configuration. CAP treats completion as client-library acceptance, not a
 portable durable broker acknowledgment.
 
+## First-Party Transport: RabbitMQ
+
+Package: `@mikara89/cap-transport-rabbitmq`
+
+The RabbitMQ adapter provides:
+
+- a framework-neutral `amqplib` publisher and subscriber
+- persistent JSON publishing to a durable topic exchange
+- publisher confirms with timeout, nack propagation, and channel-drain handling
+- durable group queues, topic bindings, prefetch, and manual acknowledgements
+- classic queues by default and opt-in quorum/dead-letter arguments
+- bounded reconnect with topology, binding, and consumer restoration
+- fail-fast publishes while disconnected; no hidden reconnect buffer
+
+A publisher confirmation proves broker acceptance only. It does not prove a
+queue matched or a consumer processed the message. Mandatory publishing remains
+disabled because returned-message correlation is not implemented.
+
+CAP inbox retries remain authoritative. The adapter acknowledges after the CAP
+inbound callback resolves, including when CAP has persisted an application
+handler failure for inbox retry. Boundary rejection nacks without requeue by
+default. Malformed payloads are never requeued indefinitely.
+
+## First-Party Transport: Kafka
+
+Package: `@mikara89/cap-transport-kafka`
+
+The Kafka adapter publishes JSON with CAP headers, content type, and message
+identity through the maintained `@confluentinc/kafka-javascript` client.
+Producer acks are configurable and default to all in-sync replicas. Consumers
+use native groups with auto-commit disabled: offsets advance only after handler
+success. Handler failure is propagated without a commit. Malformed messages are
+logged, skipped, and committed once to prevent poison-message loops. Topic
+creation is opt-in and configurable, so ordinary runtime needs no admin access.
+
 ## Adapter Authoring Rules
 
 - Bind and export the CAP Symbol tokens, not string literals.
 - Implement claim/lease outbox dispatch atomically for production stores.
 - Run the publish-storage contract tests from `@mikara89/cap-testing`.
 - Run the received-storage contract tests from `@mikara89/cap-testing`.
+- Run the transport contract tests from `@mikara89/cap-testing` for transport
+  adapters.
 - Implement `CapabilityAwareStoragePort` when the adapter can report its
   behavior without guessing.
 - Enforce inbox idempotency with a stable `dedupeKey`.
@@ -298,3 +348,6 @@ portable durable broker acknowledgment.
 - Return due inbox retries only when `status = failed` and `nextRetry <= now`.
 - Provide dashboard list/find helpers for production adapters.
 - Document resource naming, provisioning, and failure semantics.
+
+See the [transport adapter author guide](transport-adapter-author-guide.md) for
+the verified common contract and settlement boundary.

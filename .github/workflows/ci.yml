@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
@@ -7,14 +10,126 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      run_rabbitmq_integration:
+        description: 'Run RabbitMQ integration gate (requires Docker)'
+        required: false
+        default: false
+        type: boolean
+      run_kafka_integration:
+        description: 'Run Kafka integration gate (requires Docker)'
+        required: false
+        default: false
+        type: boolean
+      run_aws_sns_sqs_integration:
+        description: 'Run AWS SNS/SQS integration gate (requires Docker)'
+        required: false
+        default: false
+        type: boolean
       run_servicebus_integration:
-        description: 'Run external Azure Service Bus integration gate'
-        required: true
+        description: 'Run Azure Service Bus integration gate (requires Azure)'
+        required: false
         default: false
         type: boolean
 
 jobs:
+  # ------- fast affected checks -------
+  affected-checks:
+    runs-on: ubuntu-latest
+    outputs:
+      affected_packages: ${{ steps.affected.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install
+        run: npm ci --package-lock=true
+      - name: List affected packages
+        id: affected
+        run: |
+          AFFECTED=$(npx lerna ls --since=origin/main --all 2>/dev/null | grep '^@mikara89/' | tr '\n' ' ')
+          echo "packages=${AFFECTED}" >> "$GITHUB_OUTPUT"
+          echo "Affected packages: ${AFFECTED}"
+      - name: Lint affected
+        run: npm run lint:affected
+      - name: Build affected
+        run: npm run build:affected
+      # Note: test:affected is intentionally excluded from fast checks.
+      # Running jest from sub-package directories via lerna run test
+      # bypasses ts-jest transforms on Linux. The full build-and-test
+      # job runs npm test --silent from root which works correctly.
+
+  # ------- targeted integration: RabbitMQ -------
+  rabbitmq-integration:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_rabbitmq_integration }}
+    needs: affected-checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install
+        run: npm ci --package-lock=true
+      - name: Build
+        run: npm run build
+      - name: Run RabbitMQ integration gate
+        run: npm run test:integration:rabbitmq
+
+  # ------- targeted integration: Kafka -------
+  kafka-integration:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_kafka_integration }}
+    needs: affected-checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install
+        run: npm ci --package-lock=true
+      - name: Build
+        run: npm run build
+      - name: Run Kafka integration gate
+        run: npm run test:integration:kafka
+
+  # ------- targeted integration: AWS SNS/SQS -------
+  aws-sns-sqs-integration:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_aws_sns_sqs_integration }}
+    needs: affected-checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install
+        run: npm ci --package-lock=true
+      - name: Build
+        run: npm run build
+      - name: Run AWS SNS/SQS integration gate
+        run: npm run test:integration:aws-sns-sqs
+
+  # ------- full validation (PR and push gate) -------
   build-and-test:
+    needs: affected-checks
+    if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +169,12 @@ jobs:
         run: npm run test:integration:db
       - name: Verify package contents
         run: npm run pack:dry-run
+      - name: Verify RabbitMQ package install
+        run: npm run pack:smoke:rabbitmq
+      - name: Verify Kafka package install
+        run: npm run pack:smoke:kafka
+      - name: Verify AWS SNS/SQS package install
+        run: npm run pack:smoke:aws-sns-sqs
 
   servicebus-integration:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_servicebus_integration }}

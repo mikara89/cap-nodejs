@@ -17,7 +17,17 @@ Package-specific changelogs are maintained with each publishable package:
 - [@mikara89/cap-dashboard-nest](libs/cap-dashboard-nest/CHANGELOG.md)
 - [@mikara89/cap-dashboard](libs/cap-dashboard/CHANGELOG.md)
 
-## Unreleased
+## 2.4.0 (Unreleased)
+
+- Started the v2.4 repository roadmap milestone. The private root version is
+  roadmap metadata only; publishable libraries remain independently versioned.
+- Added the adapter-neutral `defineTransportContract()` foundation and applied
+  it to Azure Service Bus and the NestJS Microservices bridge with fast fakes.
+- Documented the verified transport boundary, including message identity,
+  headers, lifecycle support, handler failure propagation, and adapter-owned
+  broker settlement.
+- Kept RabbitMQ, Kafka, and AWS SNS/SQS as unavailable later v2.4 phases; Google
+  Pub/Sub and NATS remain later candidates.
 
 - Restored Lerna independent versioning as the release authority, including
   Conventional Commits planning, independent tags and GitHub releases,

@@ -100,6 +100,24 @@
       "@mikara89/cap-transport-nestjs-microservices/*": [
         "./libs/cap-transport-nestjs-microservices/dist/*"
       ],
+      "@mikara89/cap-transport-rabbitmq": [
+        "./libs/cap-transport-rabbitmq/dist"
+      ],
+      "@mikara89/cap-transport-rabbitmq/*": [
+        "./libs/cap-transport-rabbitmq/dist/*"
+      ],
+      "@mikara89/cap-transport-kafka": [
+        "./libs/cap-transport-kafka/dist"
+      ],
+      "@mikara89/cap-transport-kafka/*": [
+        "./libs/cap-transport-kafka/dist/*"
+      ],
+      "@mikara89/cap-transport-aws-sns-sqs": [
+        "./libs/cap-transport-aws-sns-sqs/dist"
+      ],
+      "@mikara89/cap-transport-aws-sns-sqs/*": [
+        "./libs/cap-transport-aws-sns-sqs/dist/*"
+      ],
       "@mikara89/cap-dashboard": [
         "./libs/cap-dashboard/dist"
       ],

@@ -60,8 +60,10 @@ export class MailHandler {
 
 ## Production-Style Setup
 
-Production apps should provide durable storage and an external transport. The
-first-party packages are MikroORM storage and Azure Service Bus transport.
+Production apps should provide durable storage and an external transport.
+First-party adapters include MikroORM, Knex, TypeORM, and Prisma storage, and
+Azure Service Bus, NestJS microservices, RabbitMQ, Kafka, and AWS SNS/SQS
+transport. See [Adapters](adapters.md) for the full list and setup details.
 
 > Warning: multi-instance durable outbox dispatch requires a lock-capable
 > MikroORM SQL driver such as PostgreSQL or MySQL, or a custom storage adapter

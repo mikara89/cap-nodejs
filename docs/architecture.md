@@ -33,8 +33,9 @@ runtime:
 - `PUBLISH_STORAGE` and `RECEIVED_STORAGE`
 - `PUBLISHER` and `SUBSCRIBER`
 
-First-party adapters currently exist for MikroORM storage, Azure Service Bus
-transport, and NestJS microservices `ClientProxy` transport. Applications can
+First-party adapters currently exist for MikroORM, Knex, TypeORM, and Prisma
+storage, and Azure Service Bus, NestJS microservices, RabbitMQ, Kafka, and
+AWS SNS/SQS transport. Applications can
 provide different adapters by implementing the same interfaces.
 
 `CapModule` is intentionally global for v1. Register it once at the application
@@ -93,6 +94,29 @@ through the `dto` option on `@CapSubscribe`.
 
 Handlers receive headers either as the second argument or through the
 `@CapHeaders()` parameter decorator.
+
+## Transport Contract Boundary
+
+The adapter-neutral transport surface is intentionally small. Publishers map a
+logical topic, JSON-compatible payload, CAP headers, and stable message ID to a
+client send operation. Subscribers register a logical `topic + group` handler
+and pass payload, headers, and available message/deduplication identity inward.
+Transport errors remain observable at this boundary.
+
+CAP owns durable outbox/inbox records and application-handler retry. The public
+subscriber port exposes no acknowledgement or delivery-handle API, so broker
+settlement, commits, and broker redelivery remain adapter/client-owned. The
+common conformance suite verifies handler success and failure propagation; it
+does not claim portable acknowledgement semantics.
+
+Optional initialization and subscriber disposal are tested only when an
+adapter declares support. Publisher disposal is not part of `PublisherPort`;
+the Azure adapter's sender cleanup is an adapter lifecycle extension. No core
+transport capability interface is introduced until real adapter variation is
+both implemented and testable.
+
+See the [transport adapter author guide](transport-adapter-author-guide.md) for
+the verified behavior of the current adapters.
 
 ## Retry Scheduler
 
