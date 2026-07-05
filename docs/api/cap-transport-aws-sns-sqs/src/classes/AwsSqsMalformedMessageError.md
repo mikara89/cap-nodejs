@@ -2,11 +2,11 @@
 
 ***
 
-[CAP Node.js API](../../../README.md) / [cap-transport-kafka/src](../README.md) / KafkaDisconnectedError
+[CAP Node.js API](../../../README.md) / [cap-transport-aws-sns-sqs/src](../README.md) / AwsSqsMalformedMessageError
 
-# Class: KafkaDisconnectedError
+# Class: AwsSqsMalformedMessageError
 
-Defined in: [cap-transport-kafka/src/kafka-errors.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-errors.ts#L1)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-errors.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-errors.ts#L15)
 
 ## Extends
 
@@ -16,19 +16,23 @@ Defined in: [cap-transport-kafka/src/kafka-errors.ts:1](https://github.com/mikar
 
 ### Constructor
 
-> **new KafkaDisconnectedError**(`operation`): `KafkaDisconnectedError`
+> **new AwsSqsMalformedMessageError**(`message`, `cause?`): `AwsSqsMalformedMessageError`
 
-Defined in: [cap-transport-kafka/src/kafka-errors.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-errors.ts#L2)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-errors.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-errors.ts#L16)
 
 #### Parameters
 
-##### operation
+##### message
 
 `string`
 
+##### cause?
+
+`unknown`
+
 #### Returns
 
-`KafkaDisconnectedError`
+`AwsSqsMalformedMessageError`
 
 #### Overrides
 

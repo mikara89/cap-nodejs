@@ -33,8 +33,9 @@ runtime:
 - `PUBLISH_STORAGE` and `RECEIVED_STORAGE`
 - `PUBLISHER` and `SUBSCRIBER`
 
-First-party adapters currently exist for MikroORM storage, Azure Service Bus
-transport, and NestJS microservices `ClientProxy` transport. Applications can
+First-party adapters currently exist for MikroORM, Knex, TypeORM, and Prisma
+storage, and Azure Service Bus, NestJS microservices, RabbitMQ, Kafka, and
+AWS SNS/SQS transport. Applications can
 provide different adapters by implementing the same interfaces.
 
 `CapModule` is intentionally global for v1. Register it once at the application

@@ -6,7 +6,7 @@
 
 # Interface: KafkaClientFactory
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:55
+Defined in: [cap-transport-kafka/src/kafka-types.ts:55](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L55)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-transport-kafka/src/kafka-types.ts:55
 
 > **admin**(): [`KafkaAdminClient`](KafkaAdminClient.md)
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:58
+Defined in: [cap-transport-kafka/src/kafka-types.ts:58](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L58)
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: cap-transport-kafka/src/kafka-types.ts:58
 
 > **consumer**(`config`): [`KafkaConsumerClient`](KafkaConsumerClient.md)
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:57
+Defined in: [cap-transport-kafka/src/kafka-types.ts:57](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L57)
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: cap-transport-kafka/src/kafka-types.ts:57
 
 > **producer**(`config`): [`KafkaProducerClient`](KafkaProducerClient.md)
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:56
+Defined in: [cap-transport-kafka/src/kafka-types.ts:56](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L56)
 
 #### Parameters
 

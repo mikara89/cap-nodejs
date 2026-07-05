@@ -2,11 +2,11 @@
 
 ***
 
-[CAP Node.js API](../../../README.md) / [cap-transport-kafka/src](../README.md) / KafkaDisconnectedError
+[CAP Node.js API](../../../README.md) / [cap-transport-aws-sns-sqs/src](../README.md) / AwsSnsPublishTimeoutError
 
-# Class: KafkaDisconnectedError
+# Class: AwsSnsPublishTimeoutError
 
-Defined in: [cap-transport-kafka/src/kafka-errors.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-errors.ts#L1)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-errors.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-errors.ts#L8)
 
 ## Extends
 
@@ -16,19 +16,19 @@ Defined in: [cap-transport-kafka/src/kafka-errors.ts:1](https://github.com/mikar
 
 ### Constructor
 
-> **new KafkaDisconnectedError**(`operation`): `KafkaDisconnectedError`
+> **new AwsSnsPublishTimeoutError**(`timeoutMs`): `AwsSnsPublishTimeoutError`
 
-Defined in: [cap-transport-kafka/src/kafka-errors.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-errors.ts#L2)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-errors.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-errors.ts#L9)
 
 #### Parameters
 
-##### operation
+##### timeoutMs
 
-`string`
+`number`
 
 #### Returns
 
-`KafkaDisconnectedError`
+`AwsSnsPublishTimeoutError`
 
 #### Overrides
 

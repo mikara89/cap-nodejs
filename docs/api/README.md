@@ -17,6 +17,7 @@
 - [cap-storage-prisma/src](cap-storage-prisma/src/README.md)
 - [cap-storage-typeorm/src](cap-storage-typeorm/src/README.md)
 - [cap-testing/src](cap-testing/src/README.md)
+- [cap-transport-aws-sns-sqs/src](cap-transport-aws-sns-sqs/src/README.md)
 - [cap-transport-azure-servicebus/src](cap-transport-azure-servicebus/src/README.md)
 - [cap-transport-kafka/src](cap-transport-kafka/src/README.md)
 - [cap-transport-nestjs-microservices/src](cap-transport-nestjs-microservices/src/README.md)

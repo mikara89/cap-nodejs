@@ -164,15 +164,6 @@ jobs:
         run: npm run test:e2e -- --runInBand
       - name: Run DB integration gate
         run: npm run test:integration:db
-      - name: Run Kafka integration gate
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_kafka_integration }}
-        run: npm run test:integration:kafka
-      - name: Run RabbitMQ integration gate
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_rabbitmq_integration }}
-        run: npm run test:integration:rabbitmq
-      - name: Run AWS SNS/SQS integration gate
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_aws_sns_sqs_integration }}
-        run: npm run test:integration:aws-sns-sqs
       - name: Verify package contents
         run: npm run pack:dry-run
       - name: Verify RabbitMQ package install

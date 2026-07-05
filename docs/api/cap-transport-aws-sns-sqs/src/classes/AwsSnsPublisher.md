@@ -2,11 +2,11 @@
 
 ***
 
-[CAP Node.js API](../../../README.md) / [cap-transport-kafka/src](../README.md) / KafkaPublisher
+[CAP Node.js API](../../../README.md) / [cap-transport-aws-sns-sqs/src](../README.md) / AwsSnsPublisher
 
-# Class: KafkaPublisher
+# Class: AwsSnsPublisher
 
-Defined in: [cap-transport-kafka/src/kafka-publisher.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-publisher.ts#L27)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts#L18)
 
 ## Implements
 
@@ -16,19 +16,19 @@ Defined in: [cap-transport-kafka/src/kafka-publisher.ts:27](https://github.com/m
 
 ### Constructor
 
-> **new KafkaPublisher**(`options?`): `KafkaPublisher`
+> **new AwsSnsPublisher**(`options?`): `AwsSnsPublisher`
 
-Defined in: [cap-transport-kafka/src/kafka-publisher.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-publisher.ts#L34)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts#L24)
 
 #### Parameters
 
 ##### options?
 
-[`KafkaOptions`](../interfaces/KafkaOptions.md) = `{}`
+[`AwsSnsSqsOptions`](../interfaces/AwsSnsSqsOptions.md) = `{}`
 
 #### Returns
 
-`KafkaPublisher`
+`AwsSnsPublisher`
 
 ## Methods
 
@@ -36,7 +36,7 @@ Defined in: [cap-transport-kafka/src/kafka-publisher.ts:34](https://github.com/m
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-publisher.ts:89](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-publisher.ts#L89)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:79](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts#L79)
 
 #### Returns
 
@@ -48,7 +48,7 @@ Defined in: [cap-transport-kafka/src/kafka-publisher.ts:89](https://github.com/m
 
 > **emit**(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-publisher.ts:62](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-publisher.ts#L62)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:48](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts#L48)
 
 #### Parameters
 
@@ -82,7 +82,7 @@ Defined in: [cap-transport-kafka/src/kafka-publisher.ts:62](https://github.com/m
 
 > **initialize**(`_options?`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-publisher.ts:40](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-publisher.ts#L40)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sns-publisher.ts#L32)
 
 #### Parameters
 

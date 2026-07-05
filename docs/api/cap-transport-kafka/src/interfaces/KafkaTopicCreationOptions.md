@@ -6,7 +6,7 @@
 
 # Interface: KafkaTopicCreationOptions
 
-Defined in: cap-transport-kafka/src/kafka-options.ts:9
+Defined in: [cap-transport-kafka/src/kafka-options.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L9)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-transport-kafka/src/kafka-options.ts:9
 
 > `optional` **config?**: `Record`\<`string`, `string`\>
 
-Defined in: cap-transport-kafka/src/kafka-options.ts:12
+Defined in: [cap-transport-kafka/src/kafka-options.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L12)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-transport-kafka/src/kafka-options.ts:12
 
 > `optional` **partitions?**: `number`
 
-Defined in: cap-transport-kafka/src/kafka-options.ts:10
+Defined in: [cap-transport-kafka/src/kafka-options.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L10)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: cap-transport-kafka/src/kafka-options.ts:10
 
 > `optional` **replicationFactor?**: `number`
 
-Defined in: cap-transport-kafka/src/kafka-options.ts:11
+Defined in: [cap-transport-kafka/src/kafka-options.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L11)

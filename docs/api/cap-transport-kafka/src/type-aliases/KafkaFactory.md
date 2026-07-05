@@ -8,7 +8,7 @@
 
 > **KafkaFactory** = (`config`) => [`KafkaClientFactory`](../interfaces/KafkaClientFactory.md)
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:61
+Defined in: [cap-transport-kafka/src/kafka-types.ts:61](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L61)
 
 ## Parameters
 
