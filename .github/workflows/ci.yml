@@ -175,8 +175,12 @@ jobs:
         run: npm run test:integration:aws-sns-sqs
       - name: Verify package contents
         run: npm run pack:dry-run
+      - name: Verify RabbitMQ package install
+        run: npm run pack:smoke:rabbitmq
       - name: Verify Kafka package install
         run: npm run pack:smoke:kafka
+      - name: Verify AWS SNS/SQS package install
+        run: npm run pack:smoke:aws-sns-sqs
 
   servicebus-integration:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_servicebus_integration }}

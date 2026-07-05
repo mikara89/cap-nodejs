@@ -72,9 +72,9 @@
     "pack:smoke:kafka": "node tools/verify-kafka-pack.js",
     "pack:smoke:aws-sns-sqs": "node tools/verify-aws-sns-sqs-pack.js",
     "test:integration:servicebus": "node tools/run-servicebus-integration.js",
-    "test:integration:rabbitmq": "jest --testPathPattern=rabbitmq.integration.spec.ts --runInBand",
-    "test:integration:kafka": "jest --testPathPattern=kafka.integration.spec.ts --runInBand",
-    "test:integration:aws-sns-sqs": "jest --testPathPattern=aws-sns-sqs.integration.spec.ts --runInBand",
+    "test:integration:rabbitmq": "jest --testRegex=rabbitmq\\.integration\\.spec\\.ts$ --runInBand",
+    "test:integration:kafka": "jest --testRegex=kafka\\.integration\\.spec\\.ts$ --runInBand",
+    "test:integration:aws-sns-sqs": "jest --testRegex=aws-sns-sqs\\.integration\\.spec\\.ts$ --runInBand",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -173,7 +173,8 @@
       "ts"
     ],
     "rootDir": ".",
-    "testRegex": ".*\\.spec\\.ts$",
+    "testRegex": "(src|apps).*\\.spec\\.ts$",
+    "testPathIgnorePatterns": ["/node_modules/", "/test/.*\\.integration\\.spec\\.ts$", "/test/.*\\.integration-spec\\.ts$", "/test/.*\\.e2e-spec\\.ts$"],
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
