@@ -58,7 +58,6 @@ describe('AWS SNS/SQS transport integration', () => {
         accessKeyId: 'test',
         secretAccessKey: 'test',
       },
-      forcePathStyle: true,
     });
 
     sqsClient = new SQSClient({
