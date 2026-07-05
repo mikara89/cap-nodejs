@@ -1090,6 +1090,7 @@ async function buildBootstrapPackages(packages, options = {}) {
       );
     }
     let target = published?.gitHead || currentHead;
+    let headAnchored = false;
     // When source files haven't changed between the npmjs-recorded commit
     // and HEAD, anchor the tag at HEAD. This prevents administrative commits
     // (version bumps and their reverts) from becoming spurious semantic
@@ -1098,7 +1099,7 @@ async function buildBootstrapPackages(packages, options = {}) {
     if (
       published?.gitHead &&
       published.gitHead !== currentHead &&
-      !sourceFilesChanged(
+      !(options.sourceFilesChanged || sourceFilesChanged)(
         published.gitHead,
         currentHead,
         pkg,
@@ -1107,6 +1108,7 @@ async function buildBootstrapPackages(packages, options = {}) {
       )
     ) {
       target = currentHead;
+      headAnchored = true;
     }
     if (published && !published.gitHead)
       fail(
@@ -1160,15 +1162,37 @@ async function buildBootstrapPackages(packages, options = {}) {
       tag,
       options.cwd || rootDir,
     );
-    if (existing && existing !== target)
-      fail(`${tag} points to ${existing}, expected ${target}.`);
+    if (existing && existing !== target) {
+      // When source files haven't changed and we anchored the tag at HEAD,
+      // allow the existing tag to move.  Handles two cases:
+      //   1. Tag is at the recorded npm gitHead (the normal case).
+      //   2. Tag is at a different commit, but source files are also
+      //      unchanged between the npm gitHead and that commit (the tag
+      //      was placed at an equivalent administrative commit).
+      const tagAtRecordedHead =
+        published?.gitHead && existing === published.gitHead;
+      const tagAtEquivalentCommit =
+        headAnchored &&
+        published?.gitHead &&
+        existing !== published.gitHead &&
+        !(options.sourceFilesChanged || sourceFilesChanged)(
+          published.gitHead,
+          existing,
+          pkg,
+          options.cwd || rootDir,
+          pkg.version,
+        );
+      if (!tagAtRecordedHead && !tagAtEquivalentCommit) {
+        fail(`${tag} points to ${existing}, expected ${target}.`);
+      }
+    }
     items.push({
       name: pkg.name,
       oldVersion: pkg.version,
       newVersion: pkg.version,
       tag,
       tagTarget: target,
-      tagAction: existing ? 'keep' : 'create',
+      tagAction: existing ? (existing !== target ? 'move' : 'keep') : 'create',
       npmAction: published ? 'skip-existing' : 'publish',
       previouslyPublished: Boolean(published),
       sourceRegistry: registry,
@@ -1429,22 +1453,33 @@ function createBootstrapTags(plan, options = {}) {
     ? new Set(options.packageNames)
     : undefined;
   const created = [];
+  const moved = [];
   for (const pkg of plan.packages) {
     if (packageNames && !packageNames.has(pkg.name)) continue;
     const existing = tagCommit(pkg.tag, cwd);
-    if (existing && existing !== pkg.tagTarget)
-      fail(`${pkg.tag} moved after planning.`);
-    if (!existing) {
+    if (existing && existing !== pkg.tagTarget) {
+      if (pkg.tagAction === 'move') {
+        run('git', ['tag', '-d', pkg.tag], { cwd, allowFailure: true });
+        moved.push(pkg.tag);
+      } else {
+        fail(`${pkg.tag} moved after planning.`);
+      }
+    }
+    if (!existing || pkg.tagAction === 'move') {
       run(
         'git',
         ['tag', '-a', pkg.tag, pkg.tagTarget, '-m', `Baseline ${pkg.tag}`],
         { cwd },
       );
-      created.push(pkg.tag);
+      if (pkg.tagAction !== 'move') created.push(pkg.tag);
     }
   }
-  if (created.length > 0 && options.push !== false)
-    run('git', ['push', 'origin', ...created], { cwd, inherit: true });
+  if (options.push !== false) {
+    if (created.length > 0)
+      run('git', ['push', 'origin', ...created], { cwd, inherit: true });
+    for (const tag of moved)
+      run('git', ['push', '--force', 'origin', tag], { cwd, inherit: true });
+  }
   return created;
 }
 

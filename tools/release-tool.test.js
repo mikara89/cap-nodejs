@@ -914,6 +914,141 @@ test('bootstrap refuses absent source packages and historical source rebuilds', 
   );
 });
 
+test('head-anchored bootstrap accepts published package with older gitHead and no source changes', async () => {
+  const options = {
+    ...bootstrapTestOptions(),
+    head: 'head',
+    sourceFilesChanged: () => false,
+    fetchImpl: async () => ({
+      status: 200,
+      ok: true,
+      json: async () => ({
+        versions: {
+          '1.0.0': {
+            gitHead: 'old-head',
+            dist: {
+              tarball: 'https://registry.npmjs.org/x/-/x-1.0.0.tgz',
+              integrity: 'sha512-test',
+            },
+          },
+        },
+        'dist-tags': { latest: '1.0.0' },
+      }),
+    }),
+    getTagCommit: (tag) =>
+      tag === '@fixture/a@1.0.0' ? 'old-head' : undefined,
+  };
+  const items = await buildBootstrapPackages(
+    [{ name: '@fixture/a', version: '1.0.0' }],
+    options,
+  );
+  assert.equal(items.length, 1);
+  assert.equal(items[0].tag, '@fixture/a@1.0.0');
+  assert.equal(items[0].tagTarget, 'head');
+  assert.equal(items[0].tagAction, 'move');
+  assert.equal(items[0].npmAction, 'skip-existing');
+});
+
+test('head-anchored bootstrap accepts tag at different commit when source is unchanged', async () => {
+  // npm gitHead is 'npm-head' but the tag was placed at 'tag-commit'.
+  // Source files are unchanged between both pairs — bootstrap should
+  // anchor at HEAD and plan to move the tag.
+  const options = {
+    ...bootstrapTestOptions(),
+    head: 'head',
+    sourceFilesChanged: () => false,
+    fetchImpl: async () => ({
+      status: 200,
+      ok: true,
+      json: async () => ({
+        versions: {
+          '1.0.0': {
+            gitHead: 'npm-head',
+            dist: {
+              tarball: 'https://registry.npmjs.org/x/-/x-1.0.0.tgz',
+              integrity: 'sha512-test',
+            },
+          },
+        },
+        'dist-tags': { latest: '1.0.0' },
+      }),
+    }),
+    getTagCommit: (tag) =>
+      tag === '@fixture/a@1.0.0' ? 'tag-commit' : undefined,
+  };
+  const items = await buildBootstrapPackages(
+    [{ name: '@fixture/a', version: '1.0.0' }],
+    options,
+  );
+  assert.equal(items.length, 1);
+  assert.equal(items[0].tagTarget, 'head');
+  assert.equal(items[0].tagAction, 'move');
+});
+
+test('head-anchored bootstrap fails when published package has source changes', async () => {
+  const options = {
+    ...bootstrapTestOptions(),
+    head: 'head',
+    sourceFilesChanged: () => true,
+    fetchImpl: async () => ({
+      status: 200,
+      ok: true,
+      json: async () => ({
+        versions: {
+          '1.0.0': {
+            gitHead: 'old-head',
+            dist: {
+              tarball: 'https://registry.npmjs.org/x/-/x-1.0.0.tgz',
+              integrity: 'sha512-test',
+            },
+          },
+        },
+        'dist-tags': { latest: '1.0.0' },
+      }),
+    }),
+    getTagCommit: (tag) =>
+      tag === '@fixture/a@1.0.0' ? 'old-head' : undefined,
+  };
+  const items = await buildBootstrapPackages(
+    [{ name: '@fixture/a', version: '1.0.0' }],
+    options,
+  );
+  assert.equal(items.length, 1);
+  assert.equal(items[0].tagTarget, 'old-head');
+  assert.equal(items[0].tagAction, 'keep');
+});
+
+test('existing npm gitHead equal to HEAD still passes', async () => {
+  const options = {
+    ...bootstrapTestOptions(),
+    head: 'same-head',
+    fetchImpl: async () => ({
+      status: 200,
+      ok: true,
+      json: async () => ({
+        versions: {
+          '1.0.0': {
+            gitHead: 'same-head',
+            dist: {
+              tarball: 'https://registry.npmjs.org/x/-/x-1.0.0.tgz',
+              integrity: 'sha512-test',
+            },
+          },
+        },
+        'dist-tags': { latest: '1.0.0' },
+      }),
+    }),
+    getTagCommit: () => 'same-head',
+  };
+  const items = await buildBootstrapPackages(
+    [{ name: '@fixture/a', version: '1.0.0' }],
+    options,
+  );
+  assert.equal(items.length, 1);
+  assert.equal(items[0].tagTarget, 'same-head');
+  assert.equal(items[0].tagAction, 'keep');
+});
+
 test('partial publication recovery uses from-git without another version bump', () => {
   const commandLine = recoveryCommand('rc').join(' ');
   assert.match(commandLine, /lerna publish from-git/);
