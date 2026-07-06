@@ -1195,6 +1195,20 @@ test('release workflow exposes only validated Lerna modes and protects publicati
   assert.match(workflow, /release-tool\.js plan/);
   assert.match(workflow, /release-tool\.js execute/);
   assert.match(workflow, /cancel-in-progress: false/);
+  // Publish job must build workspace before executing the Lerna plan
+  // so inter-package dist references (e.g. cap-core/dist) are resolved
+  // during prepack builds.
+  assert.match(
+    workflow.slice(workflow.indexOf('publish:')),
+    /npm run build/,
+  );
+  const publishSection = workflow.slice(workflow.indexOf('publish:'));
+  const executeIndex = publishSection.indexOf('release-tool.js execute');
+  const buildIndex = publishSection.indexOf('npm run build');
+  assert.ok(
+    buildIndex >= 0 && buildIndex < executeIndex,
+    'Publish job must run workspace build before executing the Lerna plan',
+  );
   const ci = fs.readFileSync(
     path.join(rootDir, '.github', 'workflows', 'ci.yml'),
     'utf8',
