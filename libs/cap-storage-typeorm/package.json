@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-storage-typeorm",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "TypeORM storage adapter for CAP",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
