@@ -35,6 +35,14 @@ const {
 
 const rootDir = path.resolve(__dirname, '..');
 const lernaCli = path.join(rootDir, 'node_modules', 'lerna', 'dist', 'cli.js');
+const releaseWorkflow = fs.readFileSync(
+  path.join(rootDir, '.github', 'workflows', 'release.yml'),
+  'utf8',
+);
+const ciWorkflow = fs.readFileSync(
+  path.join(rootDir, '.github', 'workflows', 'ci.yml'),
+  'utf8',
+);
 
 test('repository roadmap version belongs only to the private workspace root', () => {
   const manifest = JSON.parse(
@@ -82,98 +90,47 @@ test('repository roadmap version belongs only to the private workspace root', ()
   );
 });
 
-test('first Kafka feat selects only the independent package at 0.1.0', () => {
-  const cwd = createFixture([
-    { id: 'core', name: '@fixture/core', version: '2.2.0' },
-    { id: 'kafka', name: '@fixture/kafka', version: '0.0.0' },
-  ]);
+// --- Independent transport baseline tests ---
+// Each new 0.0.0 transport must produce 0.1.0 on first feat
+// (or 0.1.0-beta.0 on prerelease) without disturbing stable packages.
+for (const [label, pkgId, pkgName, commitMsg] of [
+  ['Kafka', 'kafka', '@fixture/kafka', 'feat: add Kafka transport'],
+  ['AWS SNS/SQS', 'aws', '@fixture/aws', 'feat(aws): add AWS SNS/SQS transport'],
+  ['RabbitMQ', 'rabbitmq', '@fixture/rabbitmq', 'feat: add RabbitMQ transport'],
+]) {
+  test(`first ${label} feat selects only the independent package at 0.1.0`, () =>
+    withFixture(
+      [
+        { id: 'core', name: '@fixture/core', version: '2.2.0' },
+        { id: pkgId, name: pkgName, version: '0.0.0' },
+      ],
+      (cwd) => {
+        addCommit(cwd, pkgId, commitMsg);
+        const plan = runVersion(cwd, ['--conventional-commits']);
+        assert.equal(plan['@fixture/core'].version, '2.2.0');
+        assert.equal(plan[pkgName].version, '0.1.0');
+      },
+    ));
 
-  addCommit(cwd, 'kafka', 'feat: add Kafka transport');
-  const plan = runVersion(cwd, ['--conventional-commits']);
-
-  assert.equal(plan['@fixture/core'].version, '2.2.0');
-  assert.equal(plan['@fixture/kafka'].version, '0.1.0');
-});
-
-test('first Kafka feature beta selects only 0.1.0-beta.0', () => {
-  const cwd = createFixture([
-    { id: 'core', name: '@fixture/core', version: '2.2.0' },
-    { id: 'kafka', name: '@fixture/kafka', version: '0.0.0' },
-  ]);
-
-  addCommit(cwd, 'kafka', 'feat: add Kafka transport');
-  const plan = runVersion(cwd, [
-    '--conventional-commits',
-    '--conventional-prerelease',
-    '--preid',
-    'beta',
-  ]);
-
-  assert.equal(plan['@fixture/core'].version, '2.2.0');
-  assert.equal(plan['@fixture/kafka'].version, '0.1.0-beta.0');
-});
-
-test('first AWS SNS/SQS feat selects only the independent package at 0.1.0', () => {
-  const cwd = createFixture([
-    { id: 'core', name: '@fixture/core', version: '2.2.0' },
-    { id: 'aws', name: '@fixture/aws', version: '0.0.0' },
-  ]);
-
-  addCommit(cwd, 'aws', 'feat(aws): add AWS SNS/SQS transport');
-  const plan = runVersion(cwd, ['--conventional-commits']);
-
-  assert.equal(plan['@fixture/core'].version, '2.2.0');
-  assert.equal(plan['@fixture/aws'].version, '0.1.0');
-});
-
-test('first AWS SNS/SQS feature beta selects only 0.1.0-beta.0', () => {
-  const cwd = createFixture([
-    { id: 'core', name: '@fixture/core', version: '2.2.0' },
-    { id: 'aws', name: '@fixture/aws', version: '0.0.0' },
-  ]);
-
-  addCommit(cwd, 'aws', 'feat(aws): add AWS SNS/SQS transport');
-  const plan = runVersion(cwd, [
-    '--conventional-commits',
-    '--conventional-prerelease',
-    '--preid',
-    'beta',
-  ]);
-
-  assert.equal(plan['@fixture/core'].version, '2.2.0');
-  assert.equal(plan['@fixture/aws'].version, '0.1.0-beta.0');
-});
-
-test('first RabbitMQ feat selects only the independent package at 0.1.0', () => {
-  const cwd = createFixture([
-    { id: 'core', name: '@fixture/core', version: '2.2.0' },
-    { id: 'rabbitmq', name: '@fixture/rabbitmq', version: '0.0.0' },
-  ]);
-
-  addCommit(cwd, 'rabbitmq', 'feat: add RabbitMQ transport');
-  const plan = runVersion(cwd, ['--conventional-commits']);
-
-  assert.equal(plan['@fixture/core'].version, '2.2.0');
-  assert.equal(plan['@fixture/rabbitmq'].version, '0.1.0');
-});
-
-test('first RabbitMQ feature beta selects only 0.1.0-beta.0', () => {
-  const cwd = createFixture([
-    { id: 'core', name: '@fixture/core', version: '2.2.0' },
-    { id: 'rabbitmq', name: '@fixture/rabbitmq', version: '0.0.0' },
-  ]);
-
-  addCommit(cwd, 'rabbitmq', 'feat: add RabbitMQ transport');
-  const plan = runVersion(cwd, [
-    '--conventional-commits',
-    '--conventional-prerelease',
-    '--preid',
-    'beta',
-  ]);
-
-  assert.equal(plan['@fixture/core'].version, '2.2.0');
-  assert.equal(plan['@fixture/rabbitmq'].version, '0.1.0-beta.0');
-});
+  test(`first ${label} feature beta selects only 0.1.0-beta.0`, () =>
+    withFixture(
+      [
+        { id: 'core', name: '@fixture/core', version: '2.2.0' },
+        { id: pkgId, name: pkgName, version: '0.0.0' },
+      ],
+      (cwd) => {
+        addCommit(cwd, pkgId, commitMsg);
+        const plan = runVersion(cwd, [
+          '--conventional-commits',
+          '--conventional-prerelease',
+          '--preid',
+          'beta',
+        ]);
+        assert.equal(plan['@fixture/core'].version, '2.2.0');
+        assert.equal(plan[pkgName].version, '0.1.0-beta.0');
+      },
+    ));
+}
 
 test('root, docs, and admin-only changes select no package candidates', () => {
   const cwd = createFixture([
@@ -1173,69 +1130,44 @@ test('plan invariants reject accidental latest prereleases and unrelated RC base
 });
 
 test('release workflow exposes only validated Lerna modes and protects publication', () => {
-  const workflow = fs.readFileSync(
-    path.join(rootDir, '.github', 'workflows', 'release.yml'),
-    'utf8',
-  );
   for (const input of [
     'operation:',
     'channel:',
     'coordinated_major:',
     'confirmation:',
   ]) {
-    assert.match(workflow, new RegExp(`^      ${input}`, 'm'));
+    assert.match(releaseWorkflow, new RegExp(`^      ${input}`, 'm'));
   }
   assert.doesNotMatch(
-    workflow,
+    releaseWorkflow,
     /release_package|bootstrap_npm|bootstrap_confirmation/,
   );
-  assert.equal((workflow.match(/fetch-depth: 0/g) || []).length, 2);
-  assert.match(workflow, /environment: npm-production/);
-  assert.match(workflow, /contents: write/);
-  assert.match(workflow, /id-token: write/);
-  assert.match(workflow, /GH_TOKEN: \$\{\{ secrets\.RELEASE_GITHUB_TOKEN \}\}/);
-  assert.match(workflow, /if: \$\{\{ inputs\.operation == 'bootstrap' \}\}/);
-  // Bootstrap token configuration must fail closed when the token is absent.
-  assert.match(workflow, /Configure temporary npm token for bootstrap/);
-  assert.match(workflow, /NPM_TOKEN is required for bootstrap publishing/);
-  // Bootstrap execute step must forward NODE_AUTH_TOKEN to the Lerna process.
-  assert.match(
-    workflow,
-    /Execute approved Lerna bootstrap plan[\s\S]*?NODE_AUTH_TOKEN:\s*\$\{\{\s*secrets\.NPM_TOKEN\s*\}\}/,
-  );
-  // OIDC execute step must not receive NODE_AUTH_TOKEN.
-  const oidcBlock = workflow.match(
-    /Execute approved Lerna release plan with npm OIDC[\s\S]*?env:[\s\S]*?run: node tools\/release-tool\.js execute/,
-  );
-  assert.ok(oidcBlock, 'Expected an OIDC execute step for non-bootstrap releases');
-  assert.ok(
-    !/NODE_AUTH_TOKEN/.test(oidcBlock[0]),
-    'The OIDC execute step must not include NODE_AUTH_TOKEN',
-  );
-  assert.match(workflow, /test:release-tooling/);
-  assert.match(workflow, /release-tool\.js plan/);
-  assert.match(workflow, /release-tool\.js execute/);
-  assert.match(workflow, /cancel-in-progress: false/);
+  assert.equal((releaseWorkflow.match(/fetch-depth: 0/g) || []).length, 2);
+  assert.match(releaseWorkflow, /environment: npm-production/);
+  assert.match(releaseWorkflow, /contents: write/);
+  assert.match(releaseWorkflow, /id-token: write/);
+  assert.match(releaseWorkflow, /GH_TOKEN: \$\{\{ secrets\.RELEASE_GITHUB_TOKEN \}\}/);
+  assert.match(releaseWorkflow, /if: \$\{\{ inputs\.operation == 'bootstrap' \}\}/);
+  assert.match(releaseWorkflow, /test:release-tooling/);
+  assert.match(releaseWorkflow, /release-tool\.js plan/);
+  assert.match(releaseWorkflow, /release-tool\.js execute/);
+  assert.match(releaseWorkflow, /cancel-in-progress: false/);
   // Publish job must build workspace before executing the Lerna plan
   // so inter-package dist references (e.g. cap-core/dist) are resolved
   // during prepack builds.
   assert.match(
-    workflow.slice(workflow.indexOf('publish:')),
+    releaseWorkflow.slice(releaseWorkflow.indexOf('publish:')),
     /npm run build/,
   );
-  const publishSection = workflow.slice(workflow.indexOf('publish:'));
+  const publishSection = releaseWorkflow.slice(releaseWorkflow.indexOf('publish:'));
   const executeIndex = publishSection.indexOf('release-tool.js execute');
   const buildIndex = publishSection.indexOf('npm run build');
   assert.ok(
     buildIndex >= 0 && buildIndex < executeIndex,
     'Publish job must run workspace build before executing the Lerna plan',
   );
-  const ci = fs.readFileSync(
-    path.join(rootDir, '.github', 'workflows', 'ci.yml'),
-    'utf8',
-  );
-  assert.match(ci, /npm run release:verify/);
-  assert.match(ci, /npm run test:release-tooling/);
+  assert.match(ciWorkflow, /npm run release:verify/);
+  assert.match(ciWorkflow, /npm run test:release-tooling/);
 });
 
 test('sourceFilesChanged returns false when both commits are identical', () =>
@@ -1278,36 +1210,28 @@ test('affected validation scripts do not modify versions or create tags', () => 
 });
 
 test('release workflow trigger remains manual-only (workflow_dispatch)', () => {
-  const workflow = fs.readFileSync(
-    path.join(rootDir, '.github', 'workflows', 'release.yml'),
-    'utf8',
-  );
   // Must only trigger on workflow_dispatch (no push/pull_request)
-  const onSection = workflow.slice(0, workflow.indexOf('jobs:'));
+  const onSection = releaseWorkflow.slice(0, releaseWorkflow.indexOf('jobs:'));
   assert.match(onSection, /workflow_dispatch/);
   assert.doesNotMatch(onSection, /push:/);
   assert.doesNotMatch(onSection, /pull_request:/);
   assert.doesNotMatch(onSection, /schedule:/);
   // Must have npm-production environment protection
-  assert.match(workflow, /environment:\s*npm-production/);
+  assert.match(releaseWorkflow, /environment:\s*npm-production/);
   // Must have concurrency gate
-  assert.match(workflow, /concurrency:/);
-  assert.match(workflow, /cancel-in-progress:\s*false/);
+  assert.match(releaseWorkflow, /concurrency:/);
+  assert.match(releaseWorkflow, /cancel-in-progress:\s*false/);
 });
 
 test('CI workflow exists and does not publish', () => {
-  const ci = fs.readFileSync(
-    path.join(rootDir, '.github', 'workflows', 'ci.yml'),
-    'utf8',
-  );
   // CI must never publish
-  assert.doesNotMatch(ci, /npm\s+publish/);
-  assert.doesNotMatch(ci, /lerna\s+publish/);
-  assert.doesNotMatch(ci, /npm-production/);
-  assert.doesNotMatch(ci, /id-token:\s*write/);
+  assert.doesNotMatch(ciWorkflow, /npm\s+publish/);
+  assert.doesNotMatch(ciWorkflow, /lerna\s+publish/);
+  assert.doesNotMatch(ciWorkflow, /npm-production/);
+  assert.doesNotMatch(ciWorkflow, /id-token:\s*write/);
   // CI must validate release configuration
-  assert.match(ci, /release:verify/);
-  assert.match(ci, /test:release-tooling/);
+  assert.match(ciWorkflow, /release:verify/);
+  assert.match(ciWorkflow, /test:release-tooling/);
 });
 
 test('new transport package baseline at version 0.0.0 is publish-ready', () => {
@@ -1932,25 +1856,15 @@ test('sourceFilesChanged: bootstrap manifest/registry version mismatch fails clo
   }));
 
 test('bootstrap execute step must receive NODE_AUTH_TOKEN; non-bootstrap must not', () => {
-  const workflowPath = path.join(
-    rootDir,
-    '.github',
-    'workflows',
-    'release.yml',
-  );
-  const workflow = fs.readFileSync(workflowPath, 'utf8');
-
   // The bootstrap execute step must forward NODE_AUTH_TOKEN so npm can
   // resolve the ${NODE_AUTH_TOKEN} placeholder in the temporary .npmrc.
-  const bootstrapExecutePattern =
-    /Execute approved Lerna bootstrap plan[\s\S]*?env:[\s\S]*?NODE_AUTH_TOKEN:\s*\$\{\{\s*secrets\.NPM_TOKEN\s*\}\}/;
-  assert.ok(
-    bootstrapExecutePattern.test(workflow),
-    'The "Execute approved Lerna bootstrap plan" step must include NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} in its env block',
+  assert.match(
+    releaseWorkflow,
+    /Execute approved Lerna bootstrap plan[\s\S]*?NODE_AUTH_TOKEN:\s*\$\{\{\s*secrets\.NPM_TOKEN\s*\}\}/,
   );
 
   // The non-bootstrap (OIDC) execute step must NOT leak NODE_AUTH_TOKEN.
-  const oidcExecuteBlock = workflow.match(
+  const oidcExecuteBlock = releaseWorkflow.match(
     /Execute approved Lerna release plan with npm OIDC[\s\S]*?run:\s*node tools\/release-tool\.js execute/,
   );
   assert.ok(oidcExecuteBlock, 'Expected an OIDC execute step for non-bootstrap releases');
@@ -1960,28 +1874,22 @@ test('bootstrap execute step must receive NODE_AUTH_TOKEN; non-bootstrap must no
   );
 
   // The bootstrap config step must fail closed when the token is absent.
-  const configStepBlock = workflow.match(
-    /Configure temporary npm token for bootstrap[\s\S]*?run:\s*\|[\s\S]*?exit 1/,
-  );
-  assert.ok(
-    configStepBlock,
-    'The bootstrap config step must exit 1 when NPM_TOKEN is absent',
+  assert.match(
+    releaseWorkflow,
+    /Configure temporary npm token for bootstrap[\s\S]*?exit 1/,
   );
 
   // The bootstrap verify step must fail closed when the token is absent.
-  const verifyStepBlock = workflow.match(
-    /Verify bootstrap npm authentication[\s\S]*?run:\s*\|[\s\S]*?exit 1/,
-  );
-  assert.ok(
-    verifyStepBlock,
-    'The bootstrap verify step must exit 1 when NPM_TOKEN is absent',
+  assert.match(
+    releaseWorkflow,
+    /Verify bootstrap npm authentication[\s\S]*?exit 1/,
   );
 
   // The validate job must use the same Node version as the publish job.
-  const validateNodeVersion = workflow.match(
+  const validateNodeVersion = releaseWorkflow.match(
     /jobs:[\s\S]*?validate:[\s\S]*?Setup Node[\s\S]*?node-version:\s*(\S+)/,
   );
-  const publishNodeVersion = workflow.match(
+  const publishNodeVersion = releaseWorkflow.match(
     /jobs:[\s\S]*?publish:[\s\S]*?Setup Node[\s\S]*?node-version:\s*(\S+)/,
   );
   assert.ok(validateNodeVersion, 'Could not find validate job node-version');
