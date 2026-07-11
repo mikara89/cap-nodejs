@@ -28,6 +28,12 @@ a breaking change in this installed version.
   `beta` or `rc` dist-tag.
 - `.github/workflows/release.yml` is manual, serialized by concurrency, and
   publishes only after the protected `npm-production` environment is approved.
+- Before approval and again immediately before publication, the release tool
+  simulates Lerna's versioning in a temporary checkout. The generated
+  independent-version state must pass release configuration plus
+  manifest/lockfile validation; any failure aborts before Lerna can publish,
+  create a release commit, or push tags. The private root roadmap version is
+  deliberately not a package-version baseline.
 
 ## One-time baseline bootstrap
 

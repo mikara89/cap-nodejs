@@ -79,7 +79,11 @@ function discoverPackages(cwd = rootDir) {
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
-function verifyConfiguration(cwd = rootDir) {
+function verifyConfiguration(cwd = rootDir, options = {}) {
+  // A Lerna version simulation runs in a temporary Git clone that deliberately
+  // shares the checked-out toolchain instead of installing dependencies again.
+  // Keep the generated repository state and its installed toolchain explicit.
+  const dependencyRoot = options.dependencyRoot || cwd;
   const rootManifest = readJson(path.join(cwd, 'package.json'));
   const lerna = readJson(path.join(cwd, 'lerna.json'));
   if (rootManifest.private !== true) {
@@ -111,14 +115,14 @@ function verifyConfiguration(cwd = rootDir) {
   }
 
   const installedLerna = readJson(
-    path.join(cwd, 'node_modules', 'lerna', 'package.json'),
+    path.join(dependencyRoot, 'node_modules', 'lerna', 'package.json'),
   ).version;
   if (installedLerna !== '9.0.7') {
     fail(`Unsupported Lerna ${installedLerna}; expected exactly 9.0.7.`);
   }
   const installedPreset = readJson(
     path.join(
-      cwd,
+      dependencyRoot,
       'node_modules',
       'conventional-changelog-conventionalcommits',
       'package.json',
@@ -131,11 +135,17 @@ function verifyConfiguration(cwd = rootDir) {
   }
 
   const installedSource = fs.readFileSync(
-    path.join(cwd, 'node_modules', 'lerna', 'dist', 'index.js'),
+    path.join(dependencyRoot, 'node_modules', 'lerna', 'dist', 'index.js'),
     'utf8',
   );
   const installedSchema = fs.readFileSync(
-    path.join(cwd, 'node_modules', 'lerna', 'schemas', 'lerna-schema.json'),
+    path.join(
+      dependencyRoot,
+      'node_modules',
+      'lerna',
+      'schemas',
+      'lerna-schema.json',
+    ),
     'utf8',
   );
   if (!installedSchema.includes('"excludeDependents"')) {
@@ -228,6 +238,14 @@ function verifyConfiguration(cwd = rootDir) {
   }
 
   return { installedLerna, installedPreset, packages };
+}
+
+// This is intentionally narrower than running the full release-tooling suite:
+// the suite itself creates Lerna simulations, so invoking it from a simulated
+// checkout would recurse. It verifies the release configuration and the
+// manifest/lockfile/package-version invariants of the generated checkout.
+function validatePostVersionState(cwd = rootDir, options = {}) {
+  return verifyConfiguration(cwd, options);
 }
 
 function normalizeInputs(input) {
@@ -921,7 +939,7 @@ function cloneForSimulation(cwd = rootDir) {
   return { tempRoot, clone };
 }
 
-function simulateLernaVersions(publishArgs, cwd = rootDir) {
+function simulateLernaVersions(publishArgs, cwd = rootDir, options = {}) {
   const { tempRoot, clone } = cloneForSimulation(cwd);
   try {
     const before = new Map(
@@ -936,6 +954,9 @@ function simulateLernaVersions(publishArgs, cwd = rootDir) {
     const combined = [result.stdout, result.stderr].filter(Boolean).join('\n');
     if (result.status !== 0)
       fail(`Lerna plan simulation failed.\n${combined.trim()}`);
+    (options.validatePostVersionState || validatePostVersionState)(clone, {
+      dependencyRoot: options.dependencyRoot || cwd,
+    });
     const after = discoverPackages(clone);
     return after
       .filter((pkg) => before.get(pkg.name) !== pkg.version)
@@ -948,6 +969,24 @@ function simulateLernaVersions(publishArgs, cwd = rootDir) {
       }));
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function assertSimulatedPlanMatches(plan, simulatedPackages) {
+  const expected = plan.packages.map((pkg) => ({
+    name: pkg.name,
+    oldVersion: pkg.oldVersion,
+    newVersion: pkg.newVersion,
+  }));
+  const actual = simulatedPackages.map((pkg) => ({
+    name: pkg.name,
+    oldVersion: pkg.oldVersion,
+    newVersion: pkg.newVersion,
+  }));
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    fail(
+      'Simulated post-version state no longer matches the approved release plan; generate a new plan.',
+    );
   }
 }
 
@@ -1490,6 +1529,24 @@ async function executePlan(plan, options = {}) {
     console.log('No packages selected; nothing to publish.');
     return;
   }
+  const cwd = options.cwd || rootDir;
+  const validateGeneratedState =
+    options.validatePostVersionState || validatePostVersionState;
+  if (plan.inputs.operation === 'bootstrap') {
+    validateGeneratedState(cwd, {
+      dependencyRoot: options.dependencyRoot || cwd,
+    });
+  } else {
+    const simulated = (options.simulate || simulateLernaVersions)(
+      plan.command.args,
+      cwd,
+      {
+        dependencyRoot: options.dependencyRoot || cwd,
+        validatePostVersionState: validateGeneratedState,
+      },
+    );
+    assertSimulatedPlanMatches(plan, simulated);
+  }
   if (plan.inputs.operation === 'bootstrap') {
     if (options.checkRemote !== false) {
       run('git', ['fetch', '--tags', '--force', 'origin'], {
@@ -1530,8 +1587,8 @@ async function executePlan(plan, options = {}) {
       .map((pkg) => pkg.name);
     createBootstrapTags(plan, { ...options, packageNames: existingNames });
   }
-  run(process.execPath, [lernaCli, ...plan.command.args], {
-    cwd: options.cwd || rootDir,
+  (options.run || run)(process.execPath, [lernaCli, ...plan.command.args], {
+    cwd,
     env: { GH_TOKEN: process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '' },
     inherit: true,
   });
@@ -1660,6 +1717,7 @@ async function main() {
 module.exports = {
   ReleaseToolError,
   assertPlanInvariants,
+  assertSimulatedPlanMatches,
   assertCleanTree,
   bootstrapConfirmation,
   buildBootstrapPackages,
@@ -1683,6 +1741,7 @@ module.exports = {
   requiredDependents,
   registry,
   sourceFilesChanged,
+  simulateLernaVersions,
   normalizePackageForBootstrap,
   normalizePublishConfigForBootstrap,
   normalizeDevDepFileRefs,
@@ -1691,6 +1750,7 @@ module.exports = {
   validatePlanFile,
   verifyRegistryArtifact,
   verifyConfiguration,
+  validatePostVersionState,
   verifyHead,
   versionArgsFromPublish,
 };

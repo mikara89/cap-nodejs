@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -19,6 +20,7 @@ const {
   createBootstrapTags,
   discoverPackages,
   distTagFor,
+  executePlan,
   hasReleaseRelevantCommit,
   isReleaseCommit,
   normalizeInputs,
@@ -30,7 +32,9 @@ const {
   requiredDependents,
   recoveryCommand,
   sourceFilesChanged,
+  simulateLernaVersions,
   validatePlanFile,
+  validatePostVersionState,
 } = require('./release-tool');
 
 const rootDir = path.resolve(__dirname, '..');
@@ -43,7 +47,7 @@ const ciWorkflow = fs.readFileSync(
   path.join(rootDir, '.github', 'workflows', 'ci.yml'),
   'utf8',
 );
-const commandTimeoutMs = 30_000;
+const commandTimeoutMs = 60_000;
 
 test('repository roadmap version belongs only to the private workspace root', () => {
   const manifest = JSON.parse(
@@ -79,15 +83,25 @@ test('repository roadmap version belongs only to the private workspace root', ()
     )?.version,
     '0.0.0',
   );
+  assert.equal(
+    packages.find((pkg) => pkg.name === '@mikara89/cap-core')?.version,
+    '2.2.0',
+  );
+  for (const name of [
+    '@mikara89/cap-storage-knex',
+    '@mikara89/cap-storage-prisma',
+    '@mikara89/cap-storage-typeorm',
+  ]) {
+    const pkg = packages.find((candidate) => candidate.name === name);
+    assert.equal(pkg?.version, '2.2.1');
+    const lockfile = JSON.parse(
+      fs.readFileSync(path.join(rootDir, 'package-lock.json'), 'utf8'),
+    );
+    assert.equal(lockfile.packages[pkg.relativeDir].version, pkg.version);
+  }
   assert.ok(
-    packages
-      .filter(
-        (pkg) =>
-          pkg.name !== '@mikara89/cap-transport-rabbitmq' &&
-          pkg.name !== '@mikara89/cap-transport-kafka' &&
-          pkg.name !== '@mikara89/cap-transport-aws-sns-sqs',
-      )
-      .every((pkg) => pkg.version !== manifest.version),
+    packages.every((pkg) => pkg.version !== manifest.version),
+    'The private root roadmap version must not synchronize package versions.',
   );
 });
 
@@ -350,6 +364,171 @@ function withFixture(specs, fn) {
     });
   }
 }
+
+function withPostVersionFixture(fn) {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-post-version-test-'));
+  for (const file of ['package.json', 'package-lock.json', 'lerna.json']) {
+    fs.copyFileSync(path.join(rootDir, file), path.join(cwd, file));
+  }
+  for (const pkg of discoverPackages(rootDir)) {
+    const manifestPath = path.join(cwd, pkg.relativeDir, 'package.json');
+    fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+    fs.copyFileSync(pkg.manifestPath, manifestPath);
+  }
+  try {
+    return fn(cwd);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+}
+
+function withRepositoryClone(fn) {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-release-clone-'));
+  const cwd = path.join(tempRoot, 'repo');
+  command('git', ['clone', '--quiet', '--shared', rootDir, cwd], rootDir);
+  command('git', ['config', 'user.email', 'release-test@example.com'], cwd);
+  command('git', ['config', 'user.name', 'Release Test'], cwd);
+  try {
+    return fn(cwd);
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function bumpFixturePackage(cwd, name, version) {
+  const pkg = discoverPackages(cwd).find((candidate) => candidate.name === name);
+  assert.ok(pkg, `Missing fixture package ${name}`);
+  const manifest = JSON.parse(fs.readFileSync(pkg.manifestPath, 'utf8'));
+  manifest.version = version;
+  writeJson(pkg.manifestPath, manifest);
+  const lockfilePath = path.join(cwd, 'package-lock.json');
+  const lockfile = JSON.parse(fs.readFileSync(lockfilePath, 'utf8'));
+  lockfile.packages[pkg.relativeDir].version = version;
+  writeJson(lockfilePath, lockfile);
+}
+
+test('valid simulated patch release state passes post-version validation', () =>
+  withPostVersionFixture((cwd) => {
+    bumpFixturePackage(cwd, '@mikara89/cap-storage-knex', '2.2.2');
+    const result = validatePostVersionState(cwd, { dependencyRoot: rootDir });
+    assert.equal(
+      result.packages.find((pkg) => pkg.name === '@mikara89/cap-storage-knex')
+        ?.version,
+      '2.2.2',
+    );
+  }));
+
+test('Lerna-generated independent patch state passes post-version validation', () =>
+  withRepositoryClone((cwd) => {
+    const sourcePath = path.join(
+      cwd,
+      'libs',
+      'cap-storage-knex',
+      'src',
+      'index.ts',
+    );
+    fs.appendFileSync(sourcePath, '\n// simulated independent patch release\n');
+    command('git', ['add', sourcePath], cwd);
+    command(
+      'git',
+      ['commit', '--quiet', '-m', 'fix(knex): simulated patch release'],
+      cwd,
+    );
+    const planned = simulateLernaVersions(
+      [
+        'publish',
+        '--conventional-commits',
+        '--create-release',
+        'github',
+        '--yes',
+        '--registry',
+        'https://registry.npmjs.org/',
+        '--dist-tag',
+        'latest',
+      ],
+      cwd,
+      { dependencyRoot: rootDir },
+    );
+    assert.deepEqual(planned, [
+      {
+        name: '@mikara89/cap-storage-knex',
+        oldVersion: '2.2.1',
+        newVersion: '2.2.2',
+        tag: '@mikara89/cap-storage-knex@2.2.2',
+        githubRelease: '@mikara89/cap-storage-knex@2.2.2',
+      },
+    ]);
+  }));
+
+test('post-version validation rejects manifest and lockfile mismatch', () =>
+  withPostVersionFixture((cwd) => {
+    const pkg = discoverPackages(cwd).find(
+      (candidate) => candidate.name === '@mikara89/cap-storage-prisma',
+    );
+    const manifest = JSON.parse(fs.readFileSync(pkg.manifestPath, 'utf8'));
+    manifest.version = '2.2.2';
+    writeJson(pkg.manifestPath, manifest);
+    assert.throws(
+      () => validatePostVersionState(cwd, { dependencyRoot: rootDir }),
+      /package-lock\.json does not match @mikara89\/cap-storage-prisma@2\.2\.2/,
+    );
+  }));
+
+test('post-version validation rejects invalid package versions', () =>
+  withPostVersionFixture((cwd) => {
+    bumpFixturePackage(cwd, '@mikara89/cap-storage-typeorm', 'not-a-version');
+    assert.throws(
+      () => validatePostVersionState(cwd, { dependencyRoot: rootDir }),
+      /@mikara89\/cap-storage-typeorm has invalid version not-a-version/,
+    );
+  }));
+
+function signedPlan(plan) {
+  const copy = { ...plan };
+  delete copy.integrity;
+  return {
+    ...plan,
+    integrity: crypto.createHash('sha256').update(JSON.stringify(copy)).digest('hex'),
+  };
+}
+
+test('release executor does not invoke publish when post-version validation fails', async () => {
+  let published = false;
+  const plan = signedPlan({
+    schemaVersion: 1,
+    headSha: command('git', ['rev-parse', 'HEAD'], rootDir).trim(),
+    inputs: {
+      operation: 'release',
+      channel: 'stable',
+      coordinatedMajor: false,
+      confirmation: '',
+    },
+    noChanges: false,
+    packages: [
+      {
+        name: '@mikara89/cap-storage-knex',
+        oldVersion: '2.2.1',
+        newVersion: '2.2.2',
+      },
+    ],
+    command: { args: ['publish', '--yes'] },
+  });
+  await assert.rejects(
+    executePlan(plan, {
+      cwd: rootDir,
+      checkClean: false,
+      checkRemote: false,
+      simulate: () => {
+        throw new ReleaseToolError('simulated manifest/lockfile mismatch');
+      },
+      run: () => {
+        published = true;
+      },
+    }),
+    /simulated manifest\/lockfile mismatch/,
+  );
+  assert.equal(published, false);
+});
 
 test('root-only roadmap version change creates zero Lerna candidates', () =>
   withFixture(
