@@ -12,12 +12,18 @@
       "ignoreChanges": [
         "**/*.spec.ts",
         "**/*.test.ts",
+        "**/*.spec.js",
+        "**/*.test.js",
         "**/test/**",
         "**/tests/**",
         "**/__tests__/**",
         "**/fixtures/**",
         "**/*.md",
-        "**/tsconfig*.json"
+        "**/tsconfig.eslint.json",
+        "**/tsconfig.lint.json",
+        "**/tsconfig.test.json",
+        "**/tsconfig.spec.json",
+        "**/tsconfig.typedoc.json"
       ]
     }
   },

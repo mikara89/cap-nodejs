@@ -118,13 +118,73 @@ npx lerna publish --conventional-commits --create-release github --yes \
 
 Beta adds `--conventional-prerelease --preid beta --dist-tag beta`; RC adds
 `--conventional-prerelease --preid rc --dist-tag rc`. Verified Lerna
-configuration ignores package-local tests, fixtures, Markdown, and TypeScript
-configuration files and disables automatic transitive-dependent selection. The
-planner rejects publishable package changes that have no release-signaling
+configuration ignores package-local tests, fixtures, Markdown, and explicitly
+test-, lint-, or documentation-only TypeScript configurations. It does not use
+a blanket `tsconfig*.json` rule: `tsconfig.json`, `tsconfig.build.json`, and
+`tsconfig.lib.json` are build-consumed and therefore release-significant.
+Runtime source, public declarations, exports and entry points, runtime and peer
+dependencies, artifact-affecting package metadata, `.npmignore`, included
+schemas/migrations, and other packed-artifact inputs are package-owned release
+paths. README files, changelogs, tests, fixtures, and documentation alone are
+not.
+
+The planner rejects publishable package changes that have no release-signaling
 commit, then lets Lerna select packages and calculate versions. It explicitly
 forces only stable-release dependents whose internal range would otherwise
 become invalid. A prerelease never pulls unchanged stable packages into beta or
 RC merely to widen their ranges. No-change requests succeed without publishing.
+
+Package changelog ownership is path-based, not scope-based. Before the Lerna
+publish step, the release tool produces a package section from Lerna's normal
+independent-version simulation and retains only commits that changed an
+artifact-significant path in that package. Lerna still calculates versions,
+creates tags, and publishes. This keeps valid package fixes, features,
+breaking-change notes, and package-owned reverts while excluding root and
+sibling-package commits. Existing published changelog sections are historical
+artifacts and are never rewritten.
+
+For example, a root-only commit such as:
+
+```text
+fix(release): adjust workflow
+```
+
+that touches only `tools/**` or `.github/**` releases no package and appears in
+no package changelog. Conversely:
+
+```text
+fix(storage-knex): correct transaction behavior
+```
+
+that changes Knex runtime source releases only Knex and appears only in Knex's
+changelog; the scope is descriptive, while the changed package path is the
+ownership proof.
+
+Commit attribution to packages uses changed file paths, not Conventional Commit
+scopes.  A path is classified by the single `isArtifactSignificantPath` policy
+in `tools/release-tool.js`, which is also the classifier used by bootstrap
+artifact comparison, release-signal validation, and changelog sanitization.
+Paths are divided into three categories:
+
+- **Artifact-significant** (release-significant): runtime source, public
+  declarations, package exports, entry points, runtime and peer dependencies,
+  `.npmignore`, build-consumed TypeScript configuration (`tsconfig.json`,
+  `tsconfig.build.json`, `tsconfig.lib.json`), schema or migration files
+  included in the package, and any other files affecting the packed artifact.
+
+- **Non-release-significant by themselves**: `README.md`, `CHANGELOG.md`, unit
+  tests, integration tests, contract tests, fixtures, test-only configuration,
+  lint-only configuration, API documentation output, and package-local docs
+  that do not alter runtime artifacts.  Test- and lint-only tsconfig files
+  (`tsconfig.eslint.json`, `tsconfig.lint.json`, `tsconfig.test.json`,
+  `tsconfig.spec.json`, `tsconfig.typedoc.json`) are explicitly excluded.
+
+- **Repository-only** (never release a package): `.github/**`, `tools/**`, root
+  release documentation, root roadmap documentation, private root version
+  changes, release-plan files, CI-only files, and repository administration.
+
+Revert commits are attributed to the package whose behavior they revert, based
+on the changed paths in the revert commit itself (not the original commit).
 
 Expected progression:
 

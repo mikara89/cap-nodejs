@@ -7,6 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const test = require('node:test');
+const semver = require('semver');
 
 const {
   ReleaseToolError,
@@ -23,6 +24,7 @@ const {
   distTagFor,
   executePlan,
   hasReleaseRelevantCommit,
+  isArtifactSignificantPath,
   isReleaseCommit,
   normalizeInputs,
   normalizeDevDepFileRefs,
@@ -30,6 +32,7 @@ const {
   normalizePublishConfigForBootstrap,
   packageJsonSemanticallyChanged,
   packageTag,
+  preparePackageOwnedChangelogs,
   requiredDependents,
   recoveryCommand,
   sourceFilesChanged,
@@ -112,7 +115,7 @@ for (const [label, pkgId, pkgName, commitMsg] of [
     ));
 }
 
-test('root, docs, and admin-only changes select no package candidates', () => {
+test('root-only fix(release), docs, and admin changes select no package candidates', () => {
   const cwd = createFixture([
     { id: 'core', name: '@fixture/core', version: '2.2.0' },
     { id: 'rabbitmq', name: '@fixture/rabbitmq', version: '0.0.0' },
@@ -134,7 +137,7 @@ test('root, docs, and admin-only changes select no package candidates', () => {
   command('git', ['add', '.'], cwd);
   command(
     'git',
-    ['commit', '--quiet', '-m', 'chore: update roadmap docs'],
+    ['commit', '--quiet', '-m', 'fix(release): update workflow roadmap docs'],
     cwd,
   );
 
@@ -216,18 +219,25 @@ function createFixture(specs) {
     command: {
       version: {
         conventionalCommits: true,
+        createRelease: 'github',
         allowBranch: 'main',
         changelogPreset: 'conventionalcommits',
         excludeDependents: true,
         ignoreChanges: [
           '**/*.spec.ts',
           '**/*.test.ts',
+          '**/*.spec.js',
+          '**/*.test.js',
           '**/test/**',
           '**/tests/**',
           '**/__tests__/**',
           '**/fixtures/**',
           '**/*.md',
-          '**/tsconfig*.json',
+          '**/tsconfig.eslint.json',
+          '**/tsconfig.lint.json',
+          '**/tsconfig.test.json',
+          '**/tsconfig.spec.json',
+          '**/tsconfig.typedoc.json',
         ],
       },
     },
@@ -353,12 +363,18 @@ function createPostVersionFixture(specs) {
         ignoreChanges: [
           '**/*.spec.ts',
           '**/*.test.ts',
+          '**/*.spec.js',
+          '**/*.test.js',
           '**/test/**',
           '**/tests/**',
           '**/__tests__/**',
           '**/fixtures/**',
           '**/*.md',
-          '**/tsconfig*.json',
+          '**/tsconfig.eslint.json',
+          '**/tsconfig.lint.json',
+          '**/tsconfig.test.json',
+          '**/tsconfig.spec.json',
+          '**/tsconfig.typedoc.json',
         ],
       },
     },
@@ -572,6 +588,61 @@ test('release executor does not invoke publish when post-version validation fail
   );
   assert.equal(published, false);
 });
+
+test('package ownership classifier distinguishes build inputs from test and documentation inputs', () => {
+  for (const file of [
+    'libs/a/src/index.ts',
+    'libs/a/.npmignore',
+    'libs/a/tsconfig.json',
+    'libs/a/tsconfig.build.json',
+    'libs/a/tsconfig.lib.json',
+    'libs/a/package.json',
+  ]) {
+    assert.equal(isArtifactSignificantPath(file), true, file);
+  }
+  for (const file of [
+    'libs/a/README.md',
+    'libs/a/CHANGELOG.md',
+    'libs/a/src/index.spec.ts',
+    'libs/a/test/fixture.ts',
+    'libs/a/fixtures/event.json',
+    'libs/a/tsconfig.eslint.json',
+    'libs/a/tsconfig.lint.json',
+    'libs/a/tsconfig.test.json',
+  ]) {
+    assert.equal(isArtifactSignificantPath(file), false, file);
+  }
+});
+
+test('prepared package changelog excludes root conventional commits and sibling commits', () =>
+  withFixture(
+    [
+      { id: 'a', name: '@fixture/a', version: '1.0.0' },
+      { id: 'b', name: '@fixture/b', version: '1.0.0' },
+    ],
+    (cwd) => {
+      fs.writeFileSync(path.join(cwd, 'release-note.txt'), 'root only\n');
+      command('git', ['add', '.'], cwd);
+      command('git', ['commit', '--quiet', '-m', 'fix(release): adjust workflow'], cwd);
+      addCommit(cwd, 'a', 'fix(a): correct package behavior');
+      addCommit(cwd, 'b', 'feat(b): add sibling behavior');
+
+      const commandSpec = buildReleaseCommand({ operation: 'release', channel: 'stable' });
+      preparePackageOwnedChangelogs(
+        commandSpec.args,
+        [
+          { name: '@fixture/a', oldVersion: '1.0.0', newVersion: '1.0.1' },
+          { name: '@fixture/b', oldVersion: '1.0.0', newVersion: '1.1.0' },
+        ],
+        cwd,
+        { dependencyRoot: rootDir, fixture: true },
+      );
+
+      const changelog = fs.readFileSync(path.join(cwd, 'libs', 'a', 'CHANGELOG.md'), 'utf8');
+      assert.match(changelog, /correct package behavior/);
+      assert.doesNotMatch(changelog, /adjust workflow|add sibling behavior/);
+    },
+  ));
 
 test('release executor does not invoke publish when generated versions drift from plan', async () => {
   let published = false;
@@ -2280,3 +2351,191 @@ test('head-anchored bootstrap tags HEAD, normal release selects zero, fix/feat/b
   // Compatible dependent stays unchanged; dependency range stays compatible
   assert.equal(majorPlan['@fixture/a'].dependencies?.['@fixture/b'], '^1.0.0');
 });
+
+// --- Package-owned changelog and candidate-selection tests ---
+
+test('isolated root-only fix(release) commit produces zero package candidates', () =>
+  withFixture(
+    [
+      { id: 'a', name: '@fixture/a', version: '1.0.0' },
+      { id: 'b', name: '@fixture/b', version: '1.0.0' },
+    ],
+    (cwd) => {
+      fs.mkdirSync(path.join(cwd, '.github', 'workflows'), { recursive: true });
+      fs.writeFileSync(
+        path.join(cwd, '.github', 'workflows', 'ci.yml'),
+        'name: fixture-ci\n',
+      );
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'fix(release): adjust ci workflow'],
+        cwd,
+      );
+
+      const versions = runVersion(cwd, ['--conventional-commits']);
+      assert.equal(versions['@fixture/a'].version, '1.0.0');
+      assert.equal(versions['@fixture/b'].version, '1.0.0');
+    },
+  ));
+
+test('isolated root-only feat(release) commit produces zero package candidates', () =>
+  withFixture(
+    [
+      { id: 'a', name: '@fixture/a', version: '1.0.0' },
+      { id: 'b', name: '@fixture/b', version: '1.0.0' },
+    ],
+    (cwd) => {
+      fs.mkdirSync(path.join(cwd, '.github', 'workflows'), { recursive: true });
+      fs.writeFileSync(
+        path.join(cwd, '.github', 'workflows', 'release.yml'),
+        'name: fixture-release\n',
+      );
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'feat(release): add release automation'],
+        cwd,
+      );
+
+      const versions = runVersion(cwd, ['--conventional-commits']);
+      assert.equal(versions['@fixture/a'].version, '1.0.0');
+      assert.equal(versions['@fixture/b'].version, '1.0.0');
+    },
+  ));
+
+test('root-only revert produces zero package candidates', () =>
+  withFixture(
+    [
+      { id: 'a', name: '@fixture/a', version: '1.0.0' },
+      { id: 'b', name: '@fixture/b', version: '1.0.0' },
+    ],
+    (cwd) => {
+      // Create a root-only change and then revert it.
+      fs.writeFileSync(path.join(cwd, 'ROADMAP.md'), '# Roadmap\n');
+      command('git', ['add', 'ROADMAP.md'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'chore: roadmap placeholder'],
+        cwd,
+      );
+      command('git', ['revert', '--no-edit', 'HEAD'], cwd);
+
+      const versions = runVersion(cwd, ['--conventional-commits']);
+      assert.equal(versions['@fixture/a'].version, '1.0.0');
+      assert.equal(versions['@fixture/b'].version, '1.0.0');
+    },
+  ));
+
+test('prepared package changelog includes own fix, feat, breaking, and revert entries', () =>
+  withFixture(
+    [
+      { id: 'a', name: '@fixture/a', version: '1.0.0' },
+      { id: 'b', name: '@fixture/b', version: '1.0.0' },
+    ],
+    (cwd) => {
+      addCommit(cwd, 'a', 'fix(a): correct behavior');
+      addCommit(cwd, 'a', 'feat(a): add capability');
+      addCommit(cwd, 'a', 'feat(a)!: break old contract');
+      // Use a proper revert: conventional commit type that touches the package.
+      fs.appendFileSync(path.join(cwd, 'libs', 'a', 'index.js'), '// revert fix\n');
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        [
+          'commit',
+          '--quiet',
+          '-m',
+          'revert: "fix(a): correct behavior"',
+          '-m',
+          'This reverts the earlier fix.',
+        ],
+        cwd,
+      );
+
+      const commandSpec = buildReleaseCommand({ operation: 'release', channel: 'stable' });
+      // The breaking feat(a)!: commit produces a major bump to 2.0.0.
+      preparePackageOwnedChangelogs(
+        commandSpec.args,
+        [
+          { name: '@fixture/a', oldVersion: '1.0.0', newVersion: '2.0.0' },
+        ],
+        cwd,
+        { dependencyRoot: rootDir, fixture: true },
+      );
+
+      const changelog = fs.readFileSync(path.join(cwd, 'libs', 'a', 'CHANGELOG.md'), 'utf8');
+      assert.match(changelog, /correct behavior/);
+      assert.match(changelog, /add capability/);
+      assert.match(changelog, /break old contract/);
+      assert.match(changelog, /Revert/);
+    },
+  ));
+
+test('generated-state validation rejects unrelated changelog commit', () =>
+  withPostVersionFixture((cwd) => {
+    // Create a root-only commit so we have a real SHA that does not touch the package.
+    fs.writeFileSync(path.join(cwd, 'ROADMAP.md'), '# Root roadmap\n');
+    command('git', ['add', 'ROADMAP.md'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'docs: roadmap'], cwd);
+    const rootSha = command('git', ['rev-parse', 'HEAD'], cwd).trim();
+
+    const knexPath = path.join(cwd, 'libs', 'storage-knex', 'CHANGELOG.md');
+    fs.mkdirSync(path.dirname(knexPath), { recursive: true });
+    // Write a changelog that references the root-only commit
+    fs.writeFileSync(
+      knexPath,
+      `# Changelog\n\n## [2.2.2](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-storage-knex@2.2.1...@mikara89/cap-storage-knex@2.2.2) (2026-07-11)\n\n### Bug Fixes\n\n- **docs:** roadmap ([/commit/${rootSha}](https://github.com/mikara89/cap-nodejs/commit/${rootSha}))\n`,
+    );
+    bumpFixturePackage(cwd, '@mikara89/cap-storage-knex', '2.2.2');
+
+    const beforeState = new Map([
+      [
+        '@mikara89/cap-storage-knex',
+        { version: '2.2.1', changelog: '' },
+      ],
+    ]);
+    assert.throws(
+      () =>
+        validatePostVersionState(cwd, {
+          dependencyRoot: rootDir,
+          beforeState,
+        }),
+      /cap-storage-knex changelog contains unrelated commit/,
+    );
+  }));
+
+test('generated-state validation error reports package, commit SHA, and reason', () =>
+  withPostVersionFixture((cwd) => {
+    // Create a root-only commit so we have a real SHA that does not touch the package.
+    fs.writeFileSync(path.join(cwd, 'ROADMAP.md'), '# Root roadmap\n');
+    command('git', ['add', 'ROADMAP.md'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'docs: roadmap'], cwd);
+    const rootSha = command('git', ['rev-parse', 'HEAD'], cwd).trim();
+
+    const knexPath = path.join(cwd, 'libs', 'storage-knex', 'CHANGELOG.md');
+    fs.mkdirSync(path.dirname(knexPath), { recursive: true });
+    fs.writeFileSync(
+      knexPath,
+      `# Changelog\n\n## [2.2.2](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-storage-knex@2.2.1...@mikara89/cap-storage-knex@2.2.2) (2026-07-11)\n\n### Bug Fixes\n\n- **docs:** roadmap ([/commit/${rootSha}](https://github.com/mikara89/cap-nodejs/commit/${rootSha}))\n`,
+    );
+    bumpFixturePackage(cwd, '@mikara89/cap-storage-knex', '2.2.2');
+
+    const beforeState = new Map([
+      [
+        '@mikara89/cap-storage-knex',
+        { version: '2.2.1', changelog: '' },
+      ],
+    ]);
+    try {
+      validatePostVersionState(cwd, {
+        dependencyRoot: rootDir,
+        beforeState,
+      });
+      assert.fail('Expected validation to reject the unrelated commit');
+    } catch (error) {
+      assert.match(error.message, /@mikara89\/cap-storage-knex/);
+      assert.match(error.message, new RegExp(rootSha.slice(0, 7)));
+      assert.match(error.message, /no artifact-significant path owned by/);
+    }
+  }));

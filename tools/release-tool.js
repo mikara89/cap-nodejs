@@ -16,12 +16,20 @@ const coordinatedMajorConfirmation = 'PUBLISH_COORDINATED_MAJOR';
 const ignoredReleaseChanges = [
   '**/*.spec.ts',
   '**/*.test.ts',
+  '**/*.spec.js',
+  '**/*.test.js',
   '**/test/**',
   '**/tests/**',
   '**/__tests__/**',
   '**/fixtures/**',
   '**/*.md',
-  '**/tsconfig*.json',
+  // Build tsconfigs are part of the package artifact. Only configurations
+  // that are explicitly test-, lint-, or documentation-only are ignored.
+  '**/tsconfig.eslint.json',
+  '**/tsconfig.lint.json',
+  '**/tsconfig.test.json',
+  '**/tsconfig.spec.json',
+  '**/tsconfig.typedoc.json',
 ];
 const lernaCli = path.join(rootDir, 'node_modules', 'lerna', 'dist', 'cli.js');
 
@@ -179,60 +187,63 @@ function verifyConfiguration(cwd = rootDir, options = {}) {
   if (packages.length === 0) fail('No publishable packages were discovered.');
   const names = new Set();
   for (const pkg of packages) {
-    if (!pkg.name?.startsWith('@mikara89/cap-'))
+    if (!options.fixture && !pkg.name?.startsWith('@mikara89/cap-'))
       fail(`Unexpected publishable package ${pkg.name}.`);
     if (names.has(pkg.name)) fail(`Duplicate package name ${pkg.name}.`);
     names.add(pkg.name);
     if (!semver.valid(pkg.version))
       fail(`${pkg.name} has invalid version ${pkg.version}.`);
     if (
-      pkg.manifest.publishConfig?.registry !== registry ||
-      pkg.manifest.publishConfig?.access !== 'public'
+      !options.fixture &&
+      (pkg.manifest.publishConfig?.registry !== registry ||
+        pkg.manifest.publishConfig?.access !== 'public')
     ) {
       fail(`${pkg.name} must publish publicly to ${registry}.`);
     }
-    if (pkg.manifest.repository?.url !== repositoryUrl) {
+    if (!options.fixture && pkg.manifest.repository?.url !== repositoryUrl) {
       fail(`${pkg.name} repository URL must be ${repositoryUrl}.`);
     }
   }
 
   const byName = new Map(packages.map((pkg) => [pkg.name, pkg]));
-  const lockfile = readJson(path.join(cwd, 'package-lock.json'));
-  for (const pkg of packages) {
-    const locked = lockfile.packages?.[pkg.relativeDir];
-    if (!locked || locked.version !== pkg.version) {
-      fail(`package-lock.json does not match ${pkg.name}@${pkg.version}.`);
-    }
-    for (const section of [
-      'peerDependencies',
-      'devDependencies',
-      'optionalDependencies',
-    ]) {
-      for (const name of Object.keys(pkg.manifest[section] || {})) {
-        if (byName.has(name)) {
-          fail(
-            `${pkg.name} must declare internal ${name} in dependencies, not ${section}; duplicate/local-only ranges prevent Lerna from updating published ranges.`,
-          );
+  if (!options.fixture) {
+    const lockfile = readJson(path.join(cwd, 'package-lock.json'));
+    for (const pkg of packages) {
+      const locked = lockfile.packages?.[pkg.relativeDir];
+      if (!locked || locked.version !== pkg.version) {
+        fail(`package-lock.json does not match ${pkg.name}@${pkg.version}.`);
+      }
+      for (const section of [
+        'peerDependencies',
+        'devDependencies',
+        'optionalDependencies',
+      ]) {
+        for (const name of Object.keys(pkg.manifest[section] || {})) {
+          if (byName.has(name)) {
+            fail(
+              `${pkg.name} must declare internal ${name} in dependencies, not ${section}; duplicate/local-only ranges prevent Lerna from updating published ranges.`,
+            );
+          }
         }
       }
-    }
-    for (const [name, range] of Object.entries(
-      pkg.manifest.dependencies || {},
-    )) {
-      const target = byName.get(name);
-      if (!target) continue;
-      if (
-        !semver.validRange(range) ||
-        !semver.satisfies(target.version, range)
-      ) {
-        fail(
-          `${pkg.name} internal dependency ${name}@${range} does not include ${target.version}.`,
-        );
-      }
-      if (locked.dependencies?.[name] !== range) {
-        fail(
-          `package-lock.json range for ${pkg.name} -> ${name} does not match ${range}.`,
-        );
+      for (const [name, range] of Object.entries(
+        pkg.manifest.dependencies || {},
+      )) {
+        const target = byName.get(name);
+        if (!target) continue;
+        if (
+          !semver.validRange(range) ||
+          !semver.satisfies(target.version, range)
+        ) {
+          fail(
+            `${pkg.name} internal dependency ${name}@${range} does not include ${target.version}.`,
+          );
+        }
+        if (locked.dependencies?.[name] !== range) {
+          fail(
+            `package-lock.json range for ${pkg.name} -> ${name} does not match ${range}.`,
+          );
+        }
       }
     }
   }
@@ -240,12 +251,113 @@ function verifyConfiguration(cwd = rootDir, options = {}) {
   return { installedLerna, installedPreset, packages };
 }
 
+function readPackageChangelog(pkg) {
+  const changelogPath = path.join(pkg.dir, 'CHANGELOG.md');
+  return fs.existsSync(changelogPath) ? fs.readFileSync(changelogPath, 'utf8') : '';
+}
+
+function snapshotGeneratedState(cwd = rootDir) {
+  return new Map(
+    discoverPackages(cwd).map((pkg) => [pkg.name, {
+      version: pkg.version,
+      changelog: readPackageChangelog(pkg),
+    }]),
+  );
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
+
+function changelogSection(changelog, version) {
+  // Lerna writes "## [version]". Keep a plain-version fallback for package
+  // changelogs that use a hand-maintained heading style.
+  const start = changelog.search(
+    new RegExp(`^## (?:\\[)?${escapeRegExp(version)}(?:\\])?[^\\n]*$`, 'mu'),
+  );
+  if (start < 0) return undefined;
+  const endMatch = /\r?\n## /gu.exec(changelog.slice(start + 1));
+  const end = endMatch ? start + 1 + endMatch.index : changelog.length;
+  return { start, end, text: changelog.slice(start, end) };
+}
+
+function packageOwnsCommit(pkg, sha, cwd = rootDir) {
+  return commitFiles(sha, pkg, cwd).some((file) => {
+    if (!/[/\\]package\.json$/u.test(file)) {
+      return isArtifactSignificantPath(file);
+    }
+    const parent = run('git', ['rev-parse', `${sha}^`], { cwd, allowFailure: true });
+    if (parent.status !== 0) return true;
+    const before = packageManifestAtCommit(pkg, parent.stdout.trim(), cwd);
+    const after = packageManifestAtCommit(pkg, sha, cwd);
+    if (!before || !after) return true;
+    // A Lerna-generated manifest version is release bookkeeping, not package
+    // behavior. Every other manifest change remains artifact-significant.
+    delete before.version;
+    delete after.version;
+    return JSON.stringify(before) !== JSON.stringify(after);
+  });
+}
+
+function commitSubject(sha, cwd = rootDir) {
+  return run('git', ['show', '-s', '--format=%s', sha], { cwd }).stdout.trim();
+}
+
+function sanitizeGeneratedChangelogs(cwd, beforeState) {
+  for (const pkg of discoverPackages(cwd)) {
+    const before = beforeState.get(pkg.name);
+    if (!before || before.version === pkg.version) continue;
+    const changelogPath = path.join(pkg.dir, 'CHANGELOG.md');
+    const changelog = readPackageChangelog(pkg);
+    const section = changelogSection(changelog, pkg.version);
+    if (!section) continue;
+    const clean = section.text.replace(
+      /^.*\/commit\/([0-9a-f]{7,40}).*$(?:\r?\n)?/gimu,
+      (line, sha) => packageOwnsCommit(pkg, sha, cwd) ? line : '',
+    );
+    if (clean !== section.text) {
+      fs.writeFileSync(
+        changelogPath,
+        `${changelog.slice(0, section.start)}${clean}${changelog.slice(section.end)}`,
+      );
+    }
+  }
+}
+
+function validateGeneratedState(cwd, beforeState) {
+  for (const pkg of discoverPackages(cwd)) {
+    const before = beforeState.get(pkg.name);
+    if (!before) continue;
+    const changelog = readPackageChangelog(pkg);
+    if (before.version === pkg.version) {
+      if (before.changelog !== changelog) {
+        fail(`${pkg.name} was unchanged but its generated changelog changed.`);
+      }
+      continue;
+    }
+    const section = changelogSection(changelog, pkg.version);
+    if (!section) {
+      fail(`${pkg.name}@${pkg.version} has no generated changelog section.`);
+    }
+    for (const match of section.text.matchAll(/\/commit\/([0-9a-f]{7,40})/giu)) {
+      const sha = match[1];
+      if (!packageOwnsCommit(pkg, sha, cwd)) {
+        fail(
+          `${pkg.name} changelog contains unrelated commit ${sha} (${commitSubject(sha, cwd)}): it changes no artifact-significant path owned by ${pkg.relativeDir}.`,
+        );
+      }
+    }
+  }
+}
+
 // This is intentionally narrower than running the full release-tooling suite:
 // the suite itself creates Lerna simulations, so invoking it from a simulated
-// checkout would recurse. It verifies the release configuration and the
-// manifest/lockfile/package-version invariants of the generated checkout.
+// checkout would recurse. It verifies release configuration plus generated
+// package version, lockfile, and changelog ownership invariants.
 function validatePostVersionState(cwd = rootDir, options = {}) {
-  return verifyConfiguration(cwd, options);
+  const result = verifyConfiguration(cwd, options);
+  if (options.beforeState) validateGeneratedState(cwd, options.beforeState);
+  return result;
 }
 
 function normalizeInputs(input) {
@@ -487,17 +599,34 @@ function commitsSinceTag(pkg, tag, cwd = rootDir) {
     });
 }
 
-function isIgnoredReleasePath(filePath) {
+/**
+ * The single path ownership policy used by release-signal validation,
+ * bootstrap artifact comparison, and changelog attribution. A path that is
+ * not artifact-significant cannot independently select a package or appear
+ * in that package's generated changelog.
+ */
+function isArtifactSignificantPath(filePath) {
   const normalized = filePath.replaceAll('\\', '/');
   const fileName = normalized.split('/').pop();
-  return (
-    /\.(spec|test)\.ts$/u.test(fileName) ||
-    /\.md$/u.test(fileName) ||
-    /^tsconfig.*\.json$/u.test(fileName) ||
-    normalized
-      .split('/')
-      .some((part) => ['test', 'tests', '__tests__', 'fixtures'].includes(part))
-  );
+  const segments = normalized.split('/');
+
+  if (
+    segments.some((part) =>
+      ['test', 'tests', '__tests__', 'fixtures'].includes(part),
+    ) ||
+    /\.(spec|test)\.[cm]?[jt]sx?$/u.test(fileName) ||
+    /\.md$/u.test(fileName)
+  ) {
+    return false;
+  }
+
+  // Keep this narrower than the old **/tsconfig*.json rule: tsconfig.json,
+  // tsconfig.build.json, and tsconfig.lib.json can change emitted output.
+  if (/^tsconfig\.(eslint|lint|test|spec|typedoc)\.json$/u.test(fileName)) {
+    return false;
+  }
+
+  return true;
 }
 
 function changedFiles(ref, pkg, cwd = rootDir) {
@@ -526,11 +655,13 @@ function commitFiles(sha, pkg, cwd = rootDir) {
  * an existing npmjs baseline tag can be placed at the current HEAD instead of
  * the older recorded gitHead.
  *
- * package.json is compared structurally after normalizing approved
+ * Path classification delegates to the single isArtifactSignificantPath
+ * policy.  package.json is compared structurally after normalizing approved
  * administrative fields (version bump+restore, publishConfig.registry
- * migration, repository metadata correction).  README.md and CHANGELOG.md
- * are non-semantic.  .npmignore, build-consumed tsconfig files, and all other
- * source / declaration files are always significant.
+ * migration, repository metadata correction).  Every other significant file
+ * (source, declaration, build-consumed tsconfig, .npmignore, etc.) triggers
+ * a change.  README.md, CHANGELOG.md, tests, fixtures, and documentation are
+ * non-significant by definition.
  */
 function sourceFilesChanged(
   baseCommit,
@@ -569,31 +700,9 @@ function sourceFilesChanged(
     .map((f) => f.trim())
     .filter(Boolean);
 
-  // Per-file classification patterns.
-  const readmePattern = /[/\\]README\.md$/u;
-  const changelogPattern = /[/\\]CHANGELOG\.md$/u;
   const packageJsonPattern = /[/\\]package\.json$/u;
-  const npmignorePattern = /[/\\]\.npmignore$/u;
-  // Build-consumed tsconfigs (tsconfig.json, tsconfig.build.json,
-  // tsconfig.lib.json).  Lint/doc-only tsconfigs are not build-consumed.
-  const buildTsconfigPattern =
-    /[/\\]tsconfig(\.(build|lib))?\.json$/u;
 
   for (const file of files) {
-    // Non-semantic documentation files.
-    if (readmePattern.test(file) || changelogPattern.test(file)) continue;
-
-    // .npmignore always affects the published artifact — check before
-    // isIgnoredReleasePath which would otherwise mask it.
-    if (npmignorePattern.test(file)) return true;
-
-    // Build-consumed tsconfig changes affect compilation output — check
-    // before isIgnoredReleasePath which treats all tsconfigs as ignored.
-    if (buildTsconfigPattern.test(file)) return true;
-
-    // Test / fixture / markdown patterns from the global ignore list.
-    if (isIgnoredReleasePath(file)) continue;
-
     // package.json — compare structurally after administrative normalization.
     if (packageJsonPattern.test(file)) {
       if (
@@ -609,8 +718,11 @@ function sourceFilesChanged(
       continue;
     }
 
-    // Any other changed file (source, declaration, etc.) is significant.
-    return true;
+    // All other files delegate to the single isArtifactSignificantPath
+    // policy.  README.md, CHANGELOG.md, tests, fixtures, documentation-only
+    // tsconfigs, and markdown are non-significant.  Source files, .npmignore,
+    // build-consumed tsconfigs, and declarations are significant.
+    if (isArtifactSignificantPath(file)) return true;
   }
 
   return false;
@@ -813,17 +925,12 @@ function validateReleaseSignals(packages, cwd = rootDir) {
       fail(
         `Missing baseline tag ${tag}; run bootstrap before a normal release.`,
       );
-    const artifactChanges = changedFiles(`${tag}..HEAD`, pkg, cwd).filter(
-      (file) => !isIgnoredReleasePath(file),
-    );
-    if (artifactChanges.length === 0) continue;
+    if (!sourceFilesChanged(tag, 'HEAD', pkg, cwd)) continue;
     const commits = commitsSinceTag(pkg, tag, cwd);
     const qualified = commits.some(
       (commit) =>
         isReleaseCommit(commit.subject, commit.body) &&
-        commitFiles(commit.sha, pkg, cwd).some(
-          (file) => !isIgnoredReleasePath(file),
-        ),
+        packageOwnsCommit(pkg, commit.sha, cwd),
     );
     if (!qualified) {
       fail(
@@ -854,6 +961,9 @@ function coordinatedTagCommit(
 function commonPublishArgs(distTag) {
   return [
     '--conventional-commits',
+    // The release tool prepares path-owned changelogs immediately before
+    // publishing; Lerna remains the version, tag, and publish authority.
+    '--no-changelog',
     '--create-release',
     'github',
     '--yes',
@@ -923,6 +1033,8 @@ function versionArgsFromPublish(publishArgs) {
       continue;
     }
     if (value === 'from-package' || value === 'from-git') continue;
+    // Simulations generate sections so they can be filtered and validated.
+    if (value === '--no-changelog') continue;
     result.push(value);
   }
   result.push('--no-git-tag-version', '--no-push', '--ignore-scripts');
@@ -942,6 +1054,7 @@ function cloneForSimulation(cwd = rootDir) {
 function simulateLernaVersions(publishArgs, cwd = rootDir, options = {}) {
   const { tempRoot, clone } = cloneForSimulation(cwd);
   try {
+    const beforeState = snapshotGeneratedState(clone);
     const before = new Map(
       discoverPackages(clone).map((pkg) => [pkg.name, pkg.version]),
     );
@@ -954,8 +1067,10 @@ function simulateLernaVersions(publishArgs, cwd = rootDir, options = {}) {
     const combined = [result.stdout, result.stderr].filter(Boolean).join('\n');
     if (result.status !== 0)
       fail(`Lerna plan simulation failed.\n${combined.trim()}`);
+    sanitizeGeneratedChangelogs(clone, beforeState);
     (options.validatePostVersionState || validatePostVersionState)(clone, {
       dependencyRoot: options.dependencyRoot || cwd,
+      beforeState,
     });
     const after = discoverPackages(clone);
     return after
@@ -967,6 +1082,44 @@ function simulateLernaVersions(publishArgs, cwd = rootDir, options = {}) {
         tag: packageTag(pkg.name, pkg.version),
         githubRelease: packageTag(pkg.name, pkg.version),
       }));
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function preparePackageOwnedChangelogs(publishArgs, expectedPackages, cwd = rootDir, options = {}) {
+  const { tempRoot, clone } = cloneForSimulation(cwd);
+  try {
+    const beforeState = snapshotGeneratedState(clone);
+    const result = run(process.execPath, [lernaCli, ...versionArgsFromPublish(publishArgs)], {
+      cwd: clone,
+      env: { CI: 'true', GH_TOKEN: '' },
+      allowFailure: true,
+    });
+    const combined = [result.stdout, result.stderr].filter(Boolean).join('\n');
+    if (result.status !== 0) {
+      fail(`Lerna changelog preparation failed.\n${combined.trim()}`);
+    }
+    sanitizeGeneratedChangelogs(clone, beforeState);
+    validatePostVersionState(clone, {
+      dependencyRoot: options.dependencyRoot || cwd,
+      fixture: options.fixture,
+      beforeState,
+    });
+    const planned = discoverPackages(clone)
+      .filter((pkg) => beforeState.get(pkg.name)?.version !== pkg.version)
+      .map((pkg) => ({
+        name: pkg.name,
+        oldVersion: beforeState.get(pkg.name).version,
+        newVersion: pkg.version,
+      }));
+    assertSimulatedPlanMatches({ packages: expectedPackages }, planned);
+    for (const pkg of discoverPackages(clone)) {
+      if (beforeState.get(pkg.name)?.version === pkg.version) continue;
+      const source = path.join(pkg.dir, 'CHANGELOG.md');
+      const target = path.join(cwd, pkg.relativeDir, 'CHANGELOG.md');
+      if (fs.existsSync(source)) fs.copyFileSync(source, target);
+    }
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   }
@@ -1546,6 +1699,12 @@ async function executePlan(plan, options = {}) {
       },
     );
     assertSimulatedPlanMatches(plan, simulated);
+    (options.prepareChangelogs || preparePackageOwnedChangelogs)(
+      plan.command.args,
+      plan.packages,
+      cwd,
+      { dependencyRoot: options.dependencyRoot || cwd },
+    );
   }
   if (plan.inputs.operation === 'bootstrap') {
     if (options.checkRemote !== false) {
@@ -1731,6 +1890,7 @@ module.exports = {
   distTagFor,
   executePlan,
   hasReleaseRelevantCommit,
+  isArtifactSignificantPath,
   isReleaseCommit,
   normalizeInputs,
   packageArtifactFromTarball,
@@ -1742,6 +1902,7 @@ module.exports = {
   registry,
   sourceFilesChanged,
   simulateLernaVersions,
+  preparePackageOwnedChangelogs,
   normalizePackageForBootstrap,
   normalizePublishConfigForBootstrap,
   normalizeDevDepFileRefs,
