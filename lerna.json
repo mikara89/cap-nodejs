@@ -7,7 +7,7 @@
       "conventionalCommits": true,
       "createRelease": "github",
       "allowBranch": "main",
-      "changelogPreset": "conventionalcommits",
+      "changelogPreset": "./tools/package-owned-changelog-preset.js",
       "excludeDependents": true,
       "ignoreChanges": [
         "**/*.spec.ts",

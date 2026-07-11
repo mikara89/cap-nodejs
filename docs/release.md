@@ -134,14 +134,16 @@ forces only stable-release dependents whose internal range would otherwise
 become invalid. A prerelease never pulls unchanged stable packages into beta or
 RC merely to widen their ranges. No-change requests succeed without publishing.
 
-Package changelog ownership is path-based, not scope-based. Lerna generates
-each independent package section from that package's changed paths, while the
-release tool validates every generated commit reference against the same
-artifact-significance policy. Lerna calculates versions, generates changelogs,
-creates tags, and publishes. This keeps valid package fixes, features,
-breaking-change notes, and package-owned reverts while excluding root and
-sibling-package commits. Existing published changelog sections are historical
-artifacts and are never rewritten.
+Package changelog ownership is path-based, not scope-based. Lerna loads the
+repository-private package-owned Conventional Commits preset and generates each
+independent package section while retaining only commits that change an
+artifact-significant path in that package. The release tool then validates
+every generated commit reference against the same policy. Lerna calculates
+versions, generates changelogs, creates tags, and publishes. This keeps valid
+package fixes, features, breaking-change notes, and package-owned reverts while
+excluding root, documentation-only, test-only, and sibling-package commits.
+Existing published changelog sections are historical artifacts and are never
+rewritten.
 
 For example, a root-only commit such as:
 
@@ -161,7 +163,7 @@ changelog; the scope is descriptive, while the changed package path is the
 ownership proof.
 
 Commit attribution to packages uses changed file paths, not Conventional Commit
-scopes.  A path is classified by the single `isArtifactSignificantPath` policy
+scopes. A path is classified by the single `isArtifactSignificantPath` policy
 in `tools/release-tool.js`, which is also the classifier used by bootstrap
 artifact comparison, release-signal validation, and generated-changelog
 validation.
@@ -176,7 +178,7 @@ Paths are divided into three categories:
 - **Non-release-significant by themselves**: `README.md`, `CHANGELOG.md`, unit
   tests, integration tests, contract tests, fixtures, test-only configuration,
   lint-only configuration, API documentation output, and package-local docs
-  that do not alter runtime artifacts.  Test- and lint-only tsconfig files
+  that do not alter runtime artifacts. Test- and lint-only tsconfig files
   (`tsconfig.eslint.json`, `tsconfig.lint.json`, `tsconfig.test.json`,
   `tsconfig.spec.json`, `tsconfig.typedoc.json`) are explicitly excluded.
 

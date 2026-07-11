@@ -77,7 +77,12 @@ test('current repository accepts independent package versions', () => {
 // (or 0.1.0-beta.0 on prerelease) without disturbing stable packages.
 for (const [label, pkgId, pkgName, commitMsg] of [
   ['Kafka', 'kafka', '@fixture/kafka', 'feat: add Kafka transport'],
-  ['AWS SNS/SQS', 'aws', '@fixture/aws', 'feat(aws): add AWS SNS/SQS transport'],
+  [
+    'AWS SNS/SQS',
+    'aws',
+    '@fixture/aws',
+    'feat(aws): add AWS SNS/SQS transport',
+  ],
   ['RabbitMQ', 'rabbitmq', '@fixture/rabbitmq', 'feat: add RabbitMQ transport'],
 ]) {
   test(`first ${label} feat selects only the independent package at 0.1.0`, () =>
@@ -155,7 +160,12 @@ function command(commandName, args, cwd, options = {}) {
   const result = spawnSync(commandName, args, {
     cwd,
     encoding: 'utf8',
-    env: { ...process.env, CI: 'true', GH_TOKEN: '' },
+    env: {
+      ...process.env,
+      CI: 'true',
+      GH_TOKEN: '',
+      ...options.env,
+    },
     stdio: ['ignore', 'pipe', 'pipe'],
     timeout,
     killSignal: 'SIGTERM',
@@ -220,7 +230,7 @@ function createFixture(specs) {
         conventionalCommits: true,
         createRelease: 'github',
         allowBranch: 'main',
-        changelogPreset: 'conventionalcommits',
+        changelogPreset: './tools/package-owned-changelog-preset.js',
         excludeDependents: true,
         ignoreChanges: [
           '**/*.spec.ts',
@@ -241,6 +251,11 @@ function createFixture(specs) {
       },
     },
   });
+  fs.mkdirSync(path.join(cwd, 'tools'), { recursive: true });
+  fs.copyFileSync(
+    path.join(rootDir, 'tools', 'package-owned-changelog-preset.js'),
+    path.join(cwd, 'tools', 'package-owned-changelog-preset.js'),
+  );
 
   for (const spec of specs) {
     const dir = path.join(cwd, 'libs', spec.id);
@@ -314,6 +329,7 @@ function runVersion(cwd, args) {
       '--ignore-scripts',
     ],
     cwd,
+    { env: { CAP_RELEASE_DEPENDENCY_ROOT: rootDir } },
   );
   const versions = {};
   for (const entry of fs.readdirSync(path.join(cwd, 'libs'))) {
@@ -357,7 +373,7 @@ function createPostVersionFixture(specs) {
         conventionalCommits: true,
         createRelease: 'github',
         allowBranch: 'main',
-        changelogPreset: 'conventionalcommits',
+        changelogPreset: './tools/package-owned-changelog-preset.js',
         excludeDependents: true,
         ignoreChanges: [
           '**/*.spec.ts',
@@ -378,6 +394,11 @@ function createPostVersionFixture(specs) {
       },
     },
   });
+  fs.mkdirSync(path.join(cwd, 'tools'), { recursive: true });
+  fs.copyFileSync(
+    path.join(rootDir, 'tools', 'package-owned-changelog-preset.js'),
+    path.join(cwd, 'tools', 'package-owned-changelog-preset.js'),
+  );
   const lockfile = {
     name: rootManifest.name,
     version: rootManifest.version,
@@ -450,7 +471,9 @@ function withPostVersionFixture(fn) {
 }
 
 function bumpFixturePackage(cwd, name, version) {
-  const pkg = discoverPackages(cwd).find((candidate) => candidate.name === name);
+  const pkg = discoverPackages(cwd).find(
+    (candidate) => candidate.name === name,
+  );
   assert.ok(pkg, `Missing fixture package ${name}`);
   const manifest = JSON.parse(fs.readFileSync(pkg.manifestPath, 'utf8'));
   manifest.version = version;
@@ -546,7 +569,10 @@ function signedPlan(plan) {
   delete copy.integrity;
   return {
     ...plan,
-    integrity: crypto.createHash('sha256').update(JSON.stringify(copy)).digest('hex'),
+    integrity: crypto
+      .createHash('sha256')
+      .update(JSON.stringify(copy))
+      .digest('hex'),
   };
 }
 
@@ -622,15 +648,45 @@ test('Lerna-generated package changelog excludes root conventional commits and s
     (cwd) => {
       fs.writeFileSync(path.join(cwd, 'release-note.txt'), 'root only\n');
       command('git', ['add', '.'], cwd);
-      command('git', ['commit', '--quiet', '-m', 'fix(release): adjust workflow'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'fix(release): adjust workflow'],
+        cwd,
+      );
+      fs.writeFileSync(
+        path.join(cwd, 'libs', 'a', 'README.md'),
+        '# Package A documentation\n',
+      );
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'fix(a-docs): clarify package usage'],
+        cwd,
+      );
+      fs.writeFileSync(
+        path.join(cwd, 'libs', 'a', 'index.spec.js'),
+        "'use strict';\n",
+      );
+      command('git', ['add', '.'], cwd);
+      command(
+        'git',
+        ['commit', '--quiet', '-m', 'fix(a-tests): cover package behavior'],
+        cwd,
+      );
       addCommit(cwd, 'a', 'fix(a): correct package behavior');
       addCommit(cwd, 'b', 'feat(b): add sibling behavior');
 
       runVersion(cwd, ['--conventional-commits']);
 
-      const changelog = fs.readFileSync(path.join(cwd, 'libs', 'a', 'CHANGELOG.md'), 'utf8');
+      const changelog = fs.readFileSync(
+        path.join(cwd, 'libs', 'a', 'CHANGELOG.md'),
+        'utf8',
+      );
       assert.match(changelog, /correct package behavior/);
-      assert.doesNotMatch(changelog, /adjust workflow|add sibling behavior/);
+      assert.doesNotMatch(
+        changelog,
+        /adjust workflow|clarify package usage|cover package behavior|add sibling behavior/,
+      );
     },
   ));
 
@@ -1526,8 +1582,14 @@ test('release workflow exposes only validated Lerna modes and protects publicati
   assert.match(releaseWorkflow, /environment: npm-production/);
   assert.match(releaseWorkflow, /contents: write/);
   assert.match(releaseWorkflow, /id-token: write/);
-  assert.match(releaseWorkflow, /GH_TOKEN: \$\{\{ secrets\.RELEASE_GITHUB_TOKEN \}\}/);
-  assert.match(releaseWorkflow, /if: \$\{\{ inputs\.operation == 'bootstrap' \}\}/);
+  assert.match(
+    releaseWorkflow,
+    /GH_TOKEN: \$\{\{ secrets\.RELEASE_GITHUB_TOKEN \}\}/,
+  );
+  assert.match(
+    releaseWorkflow,
+    /if: \$\{\{ inputs\.operation == 'bootstrap' \}\}/,
+  );
   assert.match(releaseWorkflow, /test:release-tooling/);
   assert.match(releaseWorkflow, /release-tool\.js plan/);
   assert.match(releaseWorkflow, /release-tool\.js execute/);
@@ -1539,7 +1601,9 @@ test('release workflow exposes only validated Lerna modes and protects publicati
     releaseWorkflow.slice(releaseWorkflow.indexOf('publish:')),
     /npm run build/,
   );
-  const publishSection = releaseWorkflow.slice(releaseWorkflow.indexOf('publish:'));
+  const publishSection = releaseWorkflow.slice(
+    releaseWorkflow.indexOf('publish:'),
+  );
   const executeIndex = publishSection.indexOf('release-tool.js execute');
   const buildIndex = publishSection.indexOf('npm run build');
   assert.ok(
@@ -2247,7 +2311,10 @@ test('bootstrap execute step must receive NODE_AUTH_TOKEN; non-bootstrap must no
   const oidcExecuteBlock = releaseWorkflow.match(
     /Execute approved Lerna release plan with npm OIDC[\s\S]*?run:\s*node tools\/release-tool\.js execute/,
   );
-  assert.ok(oidcExecuteBlock, 'Expected an OIDC execute step for non-bootstrap releases');
+  assert.ok(
+    oidcExecuteBlock,
+    'Expected an OIDC execute step for non-bootstrap releases',
+  );
   assert.ok(
     !/NODE_AUTH_TOKEN/.test(oidcExecuteBlock[0]),
     'The OIDC execute step must not include NODE_AUTH_TOKEN',
@@ -2428,7 +2495,10 @@ test('Lerna-generated package changelog includes own fix, feat, breaking, and re
       addCommit(cwd, 'a', 'feat(a): add capability');
       addCommit(cwd, 'a', 'feat(a)!: break old contract');
       // Use a proper revert: conventional commit type that touches the package.
-      fs.appendFileSync(path.join(cwd, 'libs', 'a', 'index.js'), '// revert fix\n');
+      fs.appendFileSync(
+        path.join(cwd, 'libs', 'a', 'index.js'),
+        '// revert fix\n',
+      );
       command('git', ['add', '.'], cwd);
       command(
         'git',
@@ -2446,7 +2516,10 @@ test('Lerna-generated package changelog includes own fix, feat, breaking, and re
       // The breaking feat(a)!: commit produces a major bump to 2.0.0.
       runVersion(cwd, ['--conventional-commits']);
 
-      const changelog = fs.readFileSync(path.join(cwd, 'libs', 'a', 'CHANGELOG.md'), 'utf8');
+      const changelog = fs.readFileSync(
+        path.join(cwd, 'libs', 'a', 'CHANGELOG.md'),
+        'utf8',
+      );
       assert.match(changelog, /correct behavior/);
       assert.match(changelog, /add capability/);
       assert.match(changelog, /break old contract/);
@@ -2472,10 +2545,7 @@ test('generated-state validation rejects unrelated changelog commit', () =>
     bumpFixturePackage(cwd, '@mikara89/cap-storage-knex', '2.2.2');
 
     const beforeState = new Map([
-      [
-        '@mikara89/cap-storage-knex',
-        { version: '2.2.1', changelog: '' },
-      ],
+      ['@mikara89/cap-storage-knex', { version: '2.2.1', changelog: '' }],
     ]);
     assert.throws(
       () =>
@@ -2504,10 +2574,7 @@ test('generated-state validation error reports package, commit SHA, and reason',
     bumpFixturePackage(cwd, '@mikara89/cap-storage-knex', '2.2.2');
 
     const beforeState = new Map([
-      [
-        '@mikara89/cap-storage-knex',
-        { version: '2.2.1', changelog: '' },
-      ],
+      ['@mikara89/cap-storage-knex', { version: '2.2.1', changelog: '' }],
     ]);
     try {
       validatePostVersionState(cwd, {

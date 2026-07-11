@@ -13,6 +13,7 @@ const registry = 'https://registry.npmjs.org/';
 const repositoryUrl = 'https://github.com/mikara89/cap-nodejs';
 const bootstrapConfirmation = 'PUBLISH_ALL_TO_NPM';
 const coordinatedMajorConfirmation = 'PUBLISH_COORDINATED_MAJOR';
+const changelogPreset = './tools/package-owned-changelog-preset.js';
 const ignoredReleaseChanges = [
   '**/*.spec.ts',
   '**/*.test.ts',
@@ -33,7 +34,7 @@ const ignoredReleaseChanges = [
 ];
 const lernaCli = path.join(rootDir, 'node_modules', 'lerna', 'dist', 'cli.js');
 
-class ReleaseToolError extends Error { }
+class ReleaseToolError extends Error {}
 
 function fail(message) {
   throw new ReleaseToolError(message);
@@ -112,14 +113,17 @@ function verifyConfiguration(cwd = rootDir, options = {}) {
     version?.conventionalCommits !== true ||
     version?.createRelease !== 'github' ||
     version?.allowBranch !== 'main' ||
-    version?.changelogPreset !== 'conventionalcommits' ||
+    version?.changelogPreset !== changelogPreset ||
     version?.excludeDependents !== true ||
     JSON.stringify(version?.ignoreChanges) !==
-    JSON.stringify(ignoredReleaseChanges)
+      JSON.stringify(ignoredReleaseChanges)
   ) {
     fail(
-      'lerna.json command.version must enable Conventional Commits, GitHub releases, main-only releases, the conventionalcommits preset, dependent exclusion, and verified non-artifact ignore patterns.',
+      'lerna.json command.version must enable Conventional Commits, GitHub releases, main-only releases, the package-owned changelog preset, dependent exclusion, and verified non-artifact ignore patterns.',
     );
+  }
+  if (!fs.existsSync(path.resolve(cwd, changelogPreset))) {
+    fail(`Missing package-owned changelog preset ${changelogPreset}.`);
   }
 
   const installedLerna = readJson(
@@ -253,15 +257,20 @@ function verifyConfiguration(cwd = rootDir, options = {}) {
 
 function readPackageChangelog(pkg) {
   const changelogPath = path.join(pkg.dir, 'CHANGELOG.md');
-  return fs.existsSync(changelogPath) ? fs.readFileSync(changelogPath, 'utf8') : '';
+  return fs.existsSync(changelogPath)
+    ? fs.readFileSync(changelogPath, 'utf8')
+    : '';
 }
 
 function snapshotGeneratedState(cwd = rootDir) {
   return new Map(
-    discoverPackages(cwd).map((pkg) => [pkg.name, {
-      version: pkg.version,
-      changelog: readPackageChangelog(pkg),
-    }]),
+    discoverPackages(cwd).map((pkg) => [
+      pkg.name,
+      {
+        version: pkg.version,
+        changelog: readPackageChangelog(pkg),
+      },
+    ]),
   );
 }
 
@@ -286,7 +295,10 @@ function packageOwnsCommit(pkg, sha, cwd = rootDir) {
     if (!/[/\\]package\.json$/u.test(file)) {
       return isArtifactSignificantPath(file);
     }
-    const parent = run('git', ['rev-parse', `${sha}^`], { cwd, allowFailure: true });
+    const parent = run('git', ['rev-parse', `${sha}^`], {
+      cwd,
+      allowFailure: true,
+    });
     if (parent.status !== 0) return true;
     const before = packageManifestAtCommit(pkg, parent.stdout.trim(), cwd);
     const after = packageManifestAtCommit(pkg, sha, cwd);
@@ -318,7 +330,9 @@ function validateGeneratedState(cwd, beforeState) {
     if (!section) {
       fail(`${pkg.name}@${pkg.version} has no generated changelog section.`);
     }
-    for (const match of section.text.matchAll(/\/commit\/([0-9a-f]{7,40})/giu)) {
+    for (const match of section.text.matchAll(
+      /\/commit\/([0-9a-f]{7,40})/giu,
+    )) {
       const sha = match[1];
       if (!packageOwnsCommit(pkg, sha, cwd)) {
         fail(
@@ -450,7 +464,7 @@ function packageArtifactFromTarball(buffer) {
   } catch (error) {
     fail(`npm artifact is not a valid gzip archive: ${error.message}`);
   }
-  for (let offset = 0; offset + 512 <= archive.length;) {
+  for (let offset = 0; offset + 512 <= archive.length; ) {
     const header = archive.subarray(offset, offset + 512);
     if (header.every((value) => value === 0)) break;
     const readString = (start, length) =>
@@ -651,14 +665,7 @@ function sourceFilesChanged(
 ) {
   const result = run(
     'git',
-    [
-      'diff',
-      '--name-only',
-      baseCommit,
-      headCommit,
-      '--',
-      pkg.relativeDir,
-    ],
+    ['diff', '--name-only', baseCommit, headCommit, '--', pkg.relativeDir],
     { cwd, allowFailure: true },
   );
   // When either ref is unavailable (e.g. mock SHAs in tests), conservatively
@@ -812,8 +819,7 @@ function normalizePublishConfigForBootstrap(publishConfig) {
   if (!publishConfig) return publishConfig;
   const normalized = { ...publishConfig };
 
-  const isNpmjsRegistry = (value) =>
-    value === 'https://registry.npmjs.org/';
+  const isNpmjsRegistry = (value) => value === 'https://registry.npmjs.org/';
   const isGitHubRegistry = (value) =>
     typeof value === 'string' && value.includes('npm.pkg.github.com');
 
@@ -1035,7 +1041,11 @@ function simulateLernaVersions(publishArgs, cwd = rootDir, options = {}) {
     const args = versionArgsFromPublish(publishArgs);
     const result = run(process.execPath, [lernaCli, ...args], {
       cwd: clone,
-      env: { CI: 'true', GH_TOKEN: '' },
+      env: {
+        CI: 'true',
+        GH_TOKEN: '',
+        CAP_RELEASE_DEPENDENCY_ROOT: options.dependencyRoot || cwd,
+      },
       allowFailure: true,
     });
     const combined = [result.stdout, result.stderr].filter(Boolean).join('\n');
@@ -1279,10 +1289,10 @@ async function buildBootstrapPackages(packages, options = {}) {
     }
     const artifact = published
       ? await (options.verifyArtifact || verifyRegistryArtifact)(
-        pkg,
-        published,
-        options,
-      )
+          pkg,
+          published,
+          options,
+        )
       : undefined;
     const tag = packageTag(pkg.name, pkg.version);
     const existing = (options.getTagCommit || tagCommit)(
@@ -1444,7 +1454,7 @@ async function createPlan(input, options = {}) {
       const directCommand = buildReleaseCommand(inputs, commandOptions);
       plannedPackages = simulate(directCommand.args, cwd);
       if (inputs.channel === 'stable') {
-        for (; ;) {
+        for (;;) {
           const additions = requiredDependents(
             packages,
             plannedPackages,
@@ -1677,7 +1687,10 @@ async function executePlan(plan, options = {}) {
   }
   (options.run || run)(process.execPath, [lernaCli, ...plan.command.args], {
     cwd,
-    env: { GH_TOKEN: process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '' },
+    env: {
+      GH_TOKEN: process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '',
+      CAP_RELEASE_DEPENDENCY_ROOT: options.dependencyRoot || cwd,
+    },
     inherit: true,
   });
   if (plan.inputs.operation === 'bootstrap') {
@@ -1835,6 +1848,7 @@ module.exports = {
   normalizePublishConfigForBootstrap,
   normalizeDevDepFileRefs,
   packageJsonSemanticallyChanged,
+  packageOwnsCommit,
   stableBase,
   validatePlanFile,
   verifyRegistryArtifact,
