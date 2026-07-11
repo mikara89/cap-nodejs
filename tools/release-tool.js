@@ -973,16 +973,16 @@ function simulateLernaVersions(publishArgs, cwd = rootDir, options = {}) {
 }
 
 function assertSimulatedPlanMatches(plan, simulatedPackages) {
-  const expected = plan.packages.map((pkg) => ({
-    name: pkg.name,
-    oldVersion: pkg.oldVersion,
-    newVersion: pkg.newVersion,
-  }));
-  const actual = simulatedPackages.map((pkg) => ({
-    name: pkg.name,
-    oldVersion: pkg.oldVersion,
-    newVersion: pkg.newVersion,
-  }));
+  const normalize = (packages) =>
+    packages
+      .map((pkg) => ({
+        name: pkg.name,
+        oldVersion: pkg.oldVersion,
+        newVersion: pkg.newVersion,
+      }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  const expected = normalize(plan.packages);
+  const actual = normalize(simulatedPackages);
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
     fail(
       'Simulated post-version state no longer matches the approved release plan; generate a new plan.',
