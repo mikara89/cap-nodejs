@@ -1190,7 +1190,23 @@ test('release workflow exposes only validated Lerna modes and protects publicati
   assert.match(workflow, /id-token: write/);
   assert.match(workflow, /GH_TOKEN: \$\{\{ secrets\.RELEASE_GITHUB_TOKEN \}\}/);
   assert.match(workflow, /if: \$\{\{ inputs\.operation == 'bootstrap' \}\}/);
-  assert.match(workflow, /temporary npm tokens are bootstrap-only/);
+  // Bootstrap token configuration must fail closed when the token is absent.
+  assert.match(workflow, /Configure temporary npm token for bootstrap/);
+  assert.match(workflow, /NPM_TOKEN is required for bootstrap publishing/);
+  // Bootstrap execute step must forward NODE_AUTH_TOKEN to the Lerna process.
+  assert.match(
+    workflow,
+    /Execute approved Lerna bootstrap plan[\s\S]*?NODE_AUTH_TOKEN:\s*\$\{\{\s*secrets\.NPM_TOKEN\s*\}\}/,
+  );
+  // OIDC execute step must not receive NODE_AUTH_TOKEN.
+  const oidcBlock = workflow.match(
+    /Execute approved Lerna release plan with npm OIDC[\s\S]*?env:[\s\S]*?run: node tools\/release-tool\.js execute/,
+  );
+  assert.ok(oidcBlock, 'Expected an OIDC execute step for non-bootstrap releases');
+  assert.ok(
+    !/NODE_AUTH_TOKEN/.test(oidcBlock[0]),
+    'The OIDC execute step must not include NODE_AUTH_TOKEN',
+  );
   assert.match(workflow, /test:release-tooling/);
   assert.match(workflow, /release-tool\.js plan/);
   assert.match(workflow, /release-tool\.js execute/);
