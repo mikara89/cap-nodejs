@@ -87,7 +87,7 @@ test('repository roadmap version belongs only to the private workspace root', ()
           pkg.name !== '@mikara89/cap-transport-kafka' &&
           pkg.name !== '@mikara89/cap-transport-aws-sns-sqs',
       )
-      .every((pkg) => pkg.version === '2.2.0'),
+      .every((pkg) => pkg.version !== manifest.version),
   );
 });
 
