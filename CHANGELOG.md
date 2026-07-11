@@ -17,7 +17,19 @@ Package-specific changelogs are maintained with each publishable package:
 - [@mikara89/cap-dashboard-nest](libs/cap-dashboard-nest/CHANGELOG.md)
 - [@mikara89/cap-dashboard](libs/cap-dashboard/CHANGELOG.md)
 
-## 2.4.0 (Unreleased)
+## 2.4.1 (Unreleased)
+
+- Added optional NestJS storage integration entry points for Knex, TypeORM, and
+  Prisma at their explicit `/nest` subpaths. The modules bind the existing CAP
+  storage tokens and reuse application-owned database/client providers.
+- Kept storage package roots framework-neutral and documented that Express
+  continues to use explicit framework-neutral object construction rather than
+  adapter-specific wrappers.
+- `2.4.1` is the private root release-train version only. Lerna continues to
+  calculate publishable package versions independently from Conventional
+  Commits; no coordinated package-version alignment is implied.
+
+## 2.4.0
 
 - Started the v2.4 repository roadmap milestone. The private root version is
   roadmap metadata only; publishable libraries remain independently versioned.

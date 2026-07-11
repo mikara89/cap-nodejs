@@ -6,7 +6,7 @@
 
 # Interface: ReceivedStorageContractSetup
 
-Defined in: [cap-testing/src/contracts/received-storage-contract.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/received-storage-contract.ts#L8)
+Defined in: cap-testing/src/contracts/received-storage-contract.ts:8
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-testing/src/contracts/received-storage-contract.ts:8](https://g
 
 > **cleanup**: () => `Promise`\<`void`\>
 
-Defined in: [cap-testing/src/contracts/received-storage-contract.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/received-storage-contract.ts#L10)
+Defined in: cap-testing/src/contracts/received-storage-contract.ts:10
 
 #### Returns
 
@@ -26,4 +26,4 @@ Defined in: [cap-testing/src/contracts/received-storage-contract.ts:10](https://
 
 > **storage**: [`ReceivedStoragePort`](../../../cap-nest/src/interfaces/ReceivedStoragePort.md)
 
-Defined in: [cap-testing/src/contracts/received-storage-contract.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/received-storage-contract.ts#L9)
+Defined in: cap-testing/src/contracts/received-storage-contract.ts:9

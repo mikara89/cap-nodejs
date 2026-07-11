@@ -8,7 +8,7 @@
 
 > `const` **createPrismaCapSchema**: (`client`, `options`) => `Promise`\<`void`\> = `initializePrismaCapStorage`
 
-Defined in: [cap-storage-prisma/src/prisma-cap-schema.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-cap-schema.ts#L25)
+Defined in: cap-storage-prisma/src/prisma-cap-schema.ts:25
 
 ## Parameters
 

@@ -6,7 +6,7 @@
 
 # Interface: ClaimUnpublishedOptions
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L15)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:15
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:15](https://gith
 
 > **limit**: `number`
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L16)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:16
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:16](https://gith
 
 > **lockedBy**: `string`
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L17)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:17
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:17](https://gith
 
 > **lockUntil**: `Date`
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L18)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:18
 
 ***
 
@@ -38,4 +38,4 @@ Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:18](https://gith
 
 > **now**: `Date`
 
-Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L19)
+Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:19

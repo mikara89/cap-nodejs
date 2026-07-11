@@ -6,7 +6,7 @@
 
 # Class: TypeOrmTransactionManager
 
-Defined in: [cap-storage-typeorm/src/typeorm-transaction-manager.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-transaction-manager.ts#L9)
+Defined in: cap-storage-typeorm/src/typeorm-transaction-manager.ts:9
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [cap-storage-typeorm/src/typeorm-transaction-manager.ts:9](https://g
 
 > **new TypeOrmTransactionManager**(`dataSource`): `TypeOrmTransactionManager`
 
-Defined in: [cap-storage-typeorm/src/typeorm-transaction-manager.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-transaction-manager.ts#L12)
+Defined in: cap-storage-typeorm/src/typeorm-transaction-manager.ts:12
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: [cap-storage-typeorm/src/typeorm-transaction-manager.ts:12](https://
 
 > **afterCommit**(`fn`): `void`
 
-Defined in: [cap-storage-typeorm/src/typeorm-transaction-manager.ts:50](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-transaction-manager.ts#L50)
+Defined in: cap-storage-typeorm/src/typeorm-transaction-manager.ts:50
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: [cap-storage-typeorm/src/typeorm-transaction-manager.ts:50](https://
 
 > **afterRollback**(`fn`): `void`
 
-Defined in: [cap-storage-typeorm/src/typeorm-transaction-manager.ts:58](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-transaction-manager.ts#L58)
+Defined in: cap-storage-typeorm/src/typeorm-transaction-manager.ts:58
 
 #### Parameters
 
@@ -80,7 +80,7 @@ Defined in: [cap-storage-typeorm/src/typeorm-transaction-manager.ts:58](https://
 
 > **getCurrentContext**(): [`CapOperationContext`](../../../cap-nest/src/interfaces/CapOperationContext.md)\<`EntityManager`\> \| `undefined`
 
-Defined in: [cap-storage-typeorm/src/typeorm-transaction-manager.ts:46](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-transaction-manager.ts#L46)
+Defined in: cap-storage-typeorm/src/typeorm-transaction-manager.ts:46
 
 #### Returns
 
@@ -96,7 +96,7 @@ Defined in: [cap-storage-typeorm/src/typeorm-transaction-manager.ts:46](https://
 
 > **runInTransaction**\<`T`\>(`options`, `fn`): `Promise`\<`T`\>
 
-Defined in: [cap-storage-typeorm/src/typeorm-transaction-manager.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-transaction-manager.ts#L14)
+Defined in: cap-storage-typeorm/src/typeorm-transaction-manager.ts:14
 
 #### Type Parameters
 

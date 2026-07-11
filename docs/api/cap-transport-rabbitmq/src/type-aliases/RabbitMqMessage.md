@@ -8,4 +8,4 @@
 
 > **RabbitMqMessage** = `ConsumeMessage`
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:61](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L61)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:61

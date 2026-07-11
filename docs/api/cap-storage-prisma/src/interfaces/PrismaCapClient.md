@@ -6,7 +6,7 @@
 
 # Interface: PrismaCapClient
 
-Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-cap-client.ts#L15)
+Defined in: cap-storage-prisma/src/prisma-cap-client.ts:15
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:15](https://github.com/
 
 > **$executeRawUnsafe**(`query`, ...`values`): `Promise`\<`number`\>
 
-Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-cap-client.ts#L4)
+Defined in: cap-storage-prisma/src/prisma-cap-client.ts:4
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:4](https://github.com/m
 
 > **$queryRawUnsafe**\<`T`\>(`query`, ...`values`): `Promise`\<`T`\>
 
-Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-cap-client.ts#L6)
+Defined in: cap-storage-prisma/src/prisma-cap-client.ts:6
 
 #### Type Parameters
 
@@ -76,7 +76,7 @@ Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:6](https://github.com/m
 
 > **$transaction**\<`T`\>(`fn`, `options?`): `Promise`\<`T`\>
 
-Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-cap-client.ts#L16)
+Defined in: cap-storage-prisma/src/prisma-cap-client.ts:16
 
 #### Type Parameters
 

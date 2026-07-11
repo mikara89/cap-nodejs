@@ -6,7 +6,7 @@
 
 # Interface: PrismaCapTransactionOptions
 
-Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-cap-client.ts#L9)
+Defined in: cap-storage-prisma/src/prisma-cap-client.ts:9
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:9](https://github.com/m
 
 > `optional` **isolationLevel?**: `"Serializable"`
 
-Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-cap-client.ts#L10)
+Defined in: cap-storage-prisma/src/prisma-cap-client.ts:10
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:10](https://github.com/
 
 > `optional` **maxWait?**: `number`
 
-Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-cap-client.ts#L11)
+Defined in: cap-storage-prisma/src/prisma-cap-client.ts:11
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:11](https://github.com/
 
 > `optional` **timeout?**: `number`
 
-Defined in: [cap-storage-prisma/src/prisma-cap-client.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-cap-client.ts#L12)
+Defined in: cap-storage-prisma/src/prisma-cap-client.ts:12

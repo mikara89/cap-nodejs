@@ -6,7 +6,7 @@
 
 # Class: CapSubscriberScanner
 
-Defined in: [cap-nest/src/cap/scanner/cap-subscriber.scanner.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/scanner/cap-subscriber.scanner.ts#L13)
+Defined in: cap-nest/src/cap/scanner/cap-subscriber.scanner.ts:13
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [cap-nest/src/cap/scanner/cap-subscriber.scanner.ts:13](https://gith
 
 > **new CapSubscriberScanner**(`modules`, `reflector`, `cap`): `CapSubscriberScanner`
 
-Defined in: [cap-nest/src/cap/scanner/cap-subscriber.scanner.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/scanner/cap-subscriber.scanner.ts#L16)
+Defined in: cap-nest/src/cap/scanner/cap-subscriber.scanner.ts:16
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: [cap-nest/src/cap/scanner/cap-subscriber.scanner.ts:16](https://gith
 
 > **onModuleInit**(): `void`
 
-Defined in: [cap-nest/src/cap/scanner/cap-subscriber.scanner.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/scanner/cap-subscriber.scanner.ts#L22)
+Defined in: cap-nest/src/cap/scanner/cap-subscriber.scanner.ts:22
 
 #### Returns
 

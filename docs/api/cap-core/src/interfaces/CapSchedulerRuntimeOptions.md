@@ -6,7 +6,7 @@
 
 # Interface: CapSchedulerRuntimeOptions
 
-Defined in: [cap-core/src/engine/cap-scheduler.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-scheduler.ts#L4)
+Defined in: cap-core/src/engine/cap-scheduler.ts:4
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-core/src/engine/cap-scheduler.ts:4](https://github.com/mikara89
 
 > `optional` **disabled?**: `boolean`
 
-Defined in: [cap-core/src/engine/cap-scheduler.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-scheduler.ts#L7)
+Defined in: cap-core/src/engine/cap-scheduler.ts:7
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-core/src/engine/cap-scheduler.ts:7](https://github.com/mikara89
 
 > **inboxRetryIntervalMs**: `number`
 
-Defined in: [cap-core/src/engine/cap-scheduler.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-scheduler.ts#L6)
+Defined in: cap-core/src/engine/cap-scheduler.ts:6
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [cap-core/src/engine/cap-scheduler.ts:6](https://github.com/mikara89
 
 > **outboxIntervalMs**: `number`
 
-Defined in: [cap-core/src/engine/cap-scheduler.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-scheduler.ts#L5)
+Defined in: cap-core/src/engine/cap-scheduler.ts:5

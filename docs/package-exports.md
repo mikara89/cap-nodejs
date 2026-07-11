@@ -26,7 +26,10 @@ import { PrismaPublishStorage } from '@mikara89/cap-storage-prisma';
 import { ServiceBusPublisher } from '@mikara89/cap-transport-azure-servicebus';
 import { NestjsMicroservicesTransportModule } from '@mikara89/cap-transport-nestjs-microservices';
 import { KafkaPublisher, KafkaSubscriber } from '@mikara89/cap-transport-kafka';
-import { AwsSnsPublisher, AwsSqsSubscriber } from '@mikara89/cap-transport-aws-sns-sqs';
+import {
+  AwsSnsPublisher,
+  AwsSqsSubscriber,
+} from '@mikara89/cap-transport-aws-sns-sqs';
 import { CapDashboardModule } from '@mikara89/cap-dashboard-nest';
 import { createCapDashboardRouter } from '@mikara89/cap-dashboard-express';
 ```
@@ -80,6 +83,9 @@ from explicit `/nest` subpaths:
 
 ```ts
 import { MikroStorageModule } from '@mikara89/cap-storage-mikro-orm/nest';
+import { KnexStorageModule } from '@mikara89/cap-storage-knex/nest';
+import { TypeOrmStorageModule } from '@mikara89/cap-storage-typeorm/nest';
+import { PrismaStorageModule } from '@mikara89/cap-storage-prisma/nest';
 import { ServiceBusTransportModule } from '@mikara89/cap-transport-azure-servicebus/nest';
 ```
 
@@ -87,6 +93,12 @@ The supported Nest wrapper subpaths are:
 
 - `@mikara89/cap-storage-mikro-orm/nest`
 - `@mikara89/cap-storage-mikro-orm/nest/mikro-storage.module`
+- `@mikara89/cap-storage-knex/nest`
+- `@mikara89/cap-storage-knex/nest/knex-storage.module`
+- `@mikara89/cap-storage-typeorm/nest`
+- `@mikara89/cap-storage-typeorm/nest/typeorm-storage.module`
+- `@mikara89/cap-storage-prisma/nest`
+- `@mikara89/cap-storage-prisma/nest/prisma-storage.module`
 - `@mikara89/cap-transport-azure-servicebus/nest`
 - `@mikara89/cap-transport-azure-servicebus/nest/servicebus-transport.module`
 
@@ -98,6 +110,9 @@ Nest peer dependencies for adapter packages are required only when using these
 The module-specific Nest subpaths are intentional compatibility exports:
 
 - `@mikara89/cap-storage-mikro-orm/nest/mikro-storage.module`
+- `@mikara89/cap-storage-knex/nest/knex-storage.module`
+- `@mikara89/cap-storage-typeorm/nest/typeorm-storage.module`
+- `@mikara89/cap-storage-prisma/nest/prisma-storage.module`
 - `@mikara89/cap-transport-azure-servicebus/nest/servicebus-transport.module`
 
 Keep these subpaths stable so existing Nest-facing consumers can migrate away

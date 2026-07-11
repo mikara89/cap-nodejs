@@ -6,7 +6,7 @@
 
 # Class: AwsSnsDisconnectedError
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-errors.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-errors.ts#L1)
+Defined in: cap-transport-aws-sns-sqs/src/aws-errors.ts:1
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-errors.ts:1](https://github.com/m
 
 > **new AwsSnsDisconnectedError**(`operation`): `AwsSnsDisconnectedError`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-errors.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-errors.ts#L2)
+Defined in: cap-transport-aws-sns-sqs/src/aws-errors.ts:2
 
 #### Parameters
 

@@ -8,4 +8,4 @@
 
 > **InitializePrismaCapStorageOptions** = [`PrismaStorageOptions`](../interfaces/PrismaStorageOptions.md)
 
-Defined in: [cap-storage-prisma/src/prisma-cap-schema.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-cap-schema.ts#L13)
+Defined in: cap-storage-prisma/src/prisma-cap-schema.ts:13

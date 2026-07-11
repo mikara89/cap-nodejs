@@ -42,6 +42,32 @@ provide different adapters by implementing the same interfaces.
 root with the storage and transport modules it should use; `CapService` is then
 available app-wide through Nest dependency injection.
 
+## Framework Integration Boundary
+
+Storage adapter roots are framework-neutral. In particular,
+`@mikara89/cap-storage-knex`, `@mikara89/cap-storage-typeorm`, and
+`@mikara89/cap-storage-prisma` must not import NestJS from their root entry
+points or make Nest peers necessary for direct adapter use. Their concrete
+storage providers are constructed from an application-owned Knex instance,
+TypeORM `DataSource`, or Prisma-compatible client.
+
+Optional Nest integration is isolated behind explicit `/nest` subpaths:
+
+- `@mikara89/cap-storage-knex/nest`
+- `@mikara89/cap-storage-typeorm/nest`
+- `@mikara89/cap-storage-prisma/nest`
+
+Those modules bind the existing `PUBLISH_STORAGE` and `RECEIVED_STORAGE`
+symbols; they do not introduce replacement CAP contracts or tokens. Knex and
+Prisma applications select the provider token explicitly. TypeORM uses the
+standard default or named `@nestjs/typeorm` data-source token.
+
+The modules reuse rather than own database/client lifecycles: application code
+creates, connects, closes, and configures the Knex instance, TypeORM data
+source, or Prisma client. Express has no DI-module convention, so it continues
+to use explicit construction of framework-neutral adapter objects through
+`@mikara89/cap-express`, without adapter-specific wrappers.
+
 ## Publish Flow
 
 ```mermaid

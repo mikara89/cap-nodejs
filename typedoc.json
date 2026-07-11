@@ -7,8 +7,11 @@
     "libs/cap-express/src/index.ts",
     "libs/cap-storage-mikro-orm/src/index.ts",
     "libs/cap-storage-knex/src/index.ts",
+    "libs/cap-storage-knex/src/nest/index.ts",
     "libs/cap-storage-typeorm/src/index.ts",
+    "libs/cap-storage-typeorm/src/nest/index.ts",
     "libs/cap-storage-prisma/src/index.ts",
+    "libs/cap-storage-prisma/src/nest/index.ts",
     "libs/cap-transport-azure-servicebus/src/index.ts",
     "libs/cap-transport-nestjs-microservices/src/index.ts",
     "libs/cap-transport-rabbitmq/src/index.ts",
@@ -23,9 +26,7 @@
   "name": "CAP Node.js API",
   "tsconfig": "tsconfig.typedoc.json",
   "out": "docs/api",
-  "plugin": [
-    "typedoc-plugin-markdown"
-  ],
+  "plugin": ["typedoc-plugin-markdown"],
   "readme": "none",
   "excludePrivate": true,
   "excludeProtected": true,

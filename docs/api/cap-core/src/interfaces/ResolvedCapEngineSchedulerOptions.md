@@ -6,7 +6,7 @@
 
 # Interface: ResolvedCapEngineSchedulerOptions
 
-Defined in: [cap-core/src/engine/cap-engine.ts:45](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L45)
+Defined in: cap-core/src/engine/cap-engine.ts:45
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:45](https://github.com/mikara89/c
 
 > **batchSize**: `number`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:46](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L46)
+Defined in: cap-core/src/engine/cap-engine.ts:46
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:46](https://github.com/mikara89/c
 
 > **disabled**: `boolean`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:51](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L51)
+Defined in: cap-core/src/engine/cap-engine.ts:51
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:51](https://github.com/mikara89/c
 
 > **instanceId**: `string`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:50](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L50)
+Defined in: cap-core/src/engine/cap-engine.ts:50
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:50](https://github.com/mikara89/c
 
 > **leaseMs**: `number`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:47](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L47)
+Defined in: cap-core/src/engine/cap-engine.ts:47
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [cap-core/src/engine/cap-engine.ts:47](https://github.com/mikara89/c
 
 > **maxInboxRetries**: `number`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:49](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L49)
+Defined in: cap-core/src/engine/cap-engine.ts:49
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [cap-core/src/engine/cap-engine.ts:49](https://github.com/mikara89/c
 
 > **maxRetries**: `number`
 
-Defined in: [cap-core/src/engine/cap-engine.ts:48](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-engine.ts#L48)
+Defined in: cap-core/src/engine/cap-engine.ts:48

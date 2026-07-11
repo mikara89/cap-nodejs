@@ -6,7 +6,7 @@
 
 # Interface: AwsCredentials
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L23)
+Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:31
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:23](https://github.com/m
 
 > **accessKeyId**: `string`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L24)
+Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:32
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:24](https://github.com/m
 
 > **secretAccessKey**: `string`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L25)
+Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:33
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:25](https://github.com/m
 
 > `optional` **sessionToken?**: `string`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L26)
+Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:34

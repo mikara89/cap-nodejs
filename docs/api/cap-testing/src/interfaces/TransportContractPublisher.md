@@ -6,7 +6,7 @@
 
 # Interface: TransportContractPublisher
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L32)
+Defined in: cap-testing/src/contracts/transport-contract.ts:32
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:32](https://github.
 
 > `optional` **close**(): `Promise`\<`void`\>
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L34)
+Defined in: cap-testing/src/contracts/transport-contract.ts:34
 
 Adapter extension; PublisherPort does not currently define disposal.
 

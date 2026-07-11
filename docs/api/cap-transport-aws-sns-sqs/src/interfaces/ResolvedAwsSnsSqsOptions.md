@@ -6,7 +6,7 @@
 
 # Interface: ResolvedAwsSnsSqsOptions
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L22)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:22
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:22](https://github.com
 
 > **autoProvision**: `boolean`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L33)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:33
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:33](https://github.com
 
 > **concurrency**: `number`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L31)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:31
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:31](https://github.com
 
 > `optional` **credentials?**: [`AwsCredentials`](AwsCredentials.md)
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L25)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:25
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:25](https://github.com
 
 > `optional` **endpoint?**: `string`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L24)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:24
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:24](https://github.com
 
 > **factory**: [`AwsFactory`](../type-aliases/AwsFactory.md)
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L34)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:34
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:34](https://github.com
 
 > `optional` **logger?**: [`CapLogger`](../../../cap-nest/src/interfaces/CapLogger.md)
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:35](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L35)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:35
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:35](https://github.com
 
 > **maxNumberOfMessages**: `number`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L29)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:29
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:29](https://github.com
 
 > **publishTimeoutMs**: `number`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L32)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:32
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:32](https://github.com
 
 > **queueUrl**: `string`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L27)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:27
 
 ***
 
@@ -86,7 +86,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:27](https://github.com
 
 > **region**: `string`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L23)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:23
 
 ***
 
@@ -94,7 +94,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:23](https://github.com
 
 > **topicArn**: `string`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L26)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:26
 
 ***
 
@@ -102,7 +102,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:26](https://github.com
 
 > **visibilityTimeout**: `number`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:30](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L30)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:30
 
 ***
 
@@ -110,4 +110,4 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:30](https://github.com
 
 > **waitTimeSeconds**: `number`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-options.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-options.ts#L28)
+Defined in: cap-transport-aws-sns-sqs/src/aws-options.ts:28

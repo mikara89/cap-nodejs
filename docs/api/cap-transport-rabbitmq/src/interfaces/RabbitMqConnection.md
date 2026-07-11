@@ -6,7 +6,7 @@
 
 # Interface: RabbitMqConnection
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:53](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L53)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:53
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:53](https://github.com
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:56](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L56)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:56
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:56](https://github.com
 
 > **createChannel**(): `Promise`\<[`RabbitMqConsumerChannel`](RabbitMqConsumerChannel.md)\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:54](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L54)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:54
 
 #### Returns
 
@@ -38,7 +38,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:54](https://github.com
 
 > **createConfirmChannel**(): `Promise`\<[`RabbitMqConfirmChannel`](RabbitMqConfirmChannel.md)\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:55](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L55)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:55
 
 #### Returns
 
@@ -50,7 +50,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:55](https://github.com
 
 > **on**(`event`, `listener`): `this`
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:57](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L57)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:57
 
 #### Parameters
 
@@ -72,7 +72,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:57](https://github.com
 
 > **removeListener**(`event`, `listener`): `this`
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:58](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L58)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:58
 
 #### Parameters
 

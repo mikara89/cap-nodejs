@@ -8,7 +8,7 @@
 
 > **resolveKnexStorageOptions**(`options?`): [`ResolvedKnexStorageOptions`](../interfaces/ResolvedKnexStorageOptions.md)
 
-Defined in: [cap-storage-knex/src/knex-storage-options.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-storage-options.ts#L18)
+Defined in: cap-storage-knex/src/knex-storage-options.ts:18
 
 ## Parameters
 

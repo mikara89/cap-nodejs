@@ -6,7 +6,7 @@
 
 # Interface: CapPublishOptions\<TTx\>
 
-Defined in: [cap-core/src/models/cap-options.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L4)
+Defined in: cap-core/src/models/cap-options.ts:4
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [cap-core/src/models/cap-options.ts:4](https://github.com/mikara89/c
 
 > `optional` **ctx?**: [`CapOperationContext`](CapOperationContext.md)\<`TTx`\>
 
-Defined in: [cap-core/src/models/cap-options.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L7)
+Defined in: cap-core/src/models/cap-options.ts:7
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [cap-core/src/models/cap-options.ts:7](https://github.com/mikara89/c
 
 > `optional` **headers?**: [`CapHeaders`](../type-aliases/CapHeaders.md)
 
-Defined in: [cap-core/src/models/cap-options.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L5)
+Defined in: cap-core/src/models/cap-options.ts:5
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [cap-core/src/models/cap-options.ts:5](https://github.com/mikara89/c
 
 > `optional` **immediate?**: `boolean`
 
-Defined in: [cap-core/src/models/cap-options.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L8)
+Defined in: cap-core/src/models/cap-options.ts:8
 
 ***
 
@@ -44,4 +44,4 @@ Defined in: [cap-core/src/models/cap-options.ts:8](https://github.com/mikara89/c
 
 > `optional` **tx?**: `TTx`
 
-Defined in: [cap-core/src/models/cap-options.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L6)
+Defined in: cap-core/src/models/cap-options.ts:6

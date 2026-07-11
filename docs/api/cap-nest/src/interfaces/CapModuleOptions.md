@@ -6,7 +6,7 @@
 
 # Interface: CapModuleOptions
 
-Defined in: [cap-nest/src/cap/cap.options.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L29)
+Defined in: cap-nest/src/cap/cap.options.ts:29
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:29](https://github.com/mikara89/cap
 
 > `optional` **imports?**: (`Type`\<`any`\> \| `ForwardReference`\<`any`\> \| `DynamicModule` \| `Promise`\<`DynamicModule`\>)[]
 
-Defined in: [cap-nest/src/cap/cap.options.ts:30](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L30)
+Defined in: cap-nest/src/cap/cap.options.ts:30
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:30](https://github.com/mikara89/cap
 
 > `optional` **init?**: [`InitOptions`](InitOptions.md)
 
-Defined in: [cap-nest/src/cap/cap.options.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L31)
+Defined in: cap-nest/src/cap/cap.options.ts:31
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:31](https://github.com/mikara89/cap
 
 > `optional` **scheduler?**: [`CapSchedulerOptions`](CapSchedulerOptions.md)
 
-Defined in: [cap-nest/src/cap/cap.options.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L32)
+Defined in: cap-nest/src/cap/cap.options.ts:32
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [cap-nest/src/cap/cap.options.ts:32](https://github.com/mikara89/cap
 
 > `optional` **transactionContext?**: [`CapTransactionContext`](../classes/CapTransactionContext.md)\<`unknown`\>
 
-Defined in: [cap-nest/src/cap/cap.options.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L34)
+Defined in: cap-nest/src/cap/cap.options.ts:34
 
 ***
 
@@ -46,4 +46,4 @@ Defined in: [cap-nest/src/cap/cap.options.ts:34](https://github.com/mikara89/cap
 
 > `optional` **transactionManager?**: [`CapTransactionManagerPort`](CapTransactionManagerPort.md)\<`unknown`\>
 
-Defined in: [cap-nest/src/cap/cap.options.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.options.ts#L33)
+Defined in: cap-nest/src/cap/cap.options.ts:33

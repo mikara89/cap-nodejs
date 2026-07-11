@@ -6,7 +6,7 @@
 
 # Class: CapDashboardController
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.controller.ts#L22)
+Defined in: cap-dashboard-nest/src/cap-dashboard.controller.ts:22
 
 ## Constructors
 
@@ -14,7 +14,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:22](https://gith
 
 > **new CapDashboardController**(`svc`): `CapDashboardController`
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.controller.ts#L23)
+Defined in: cap-dashboard-nest/src/cap-dashboard.controller.ts:23
 
 #### Parameters
 
@@ -32,7 +32,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:23](https://gith
 
 > **flushOutbox**(): `Promise`\<[`ActionResultDto`](../../../cap-dashboard-core/src/classes/ActionResultDto.md)\>
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:87](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.controller.ts#L87)
+Defined in: cap-dashboard-nest/src/cap-dashboard.controller.ts:87
 
 #### Returns
 
@@ -44,7 +44,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:87](https://gith
 
 > **getInbox**(`id`, `full?`): `Promise`\<[`InboxItemDto`](InboxItemDto.md) \| `undefined`\>
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:63](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.controller.ts#L63)
+Defined in: cap-dashboard-nest/src/cap-dashboard.controller.ts:63
 
 #### Parameters
 
@@ -66,7 +66,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:63](https://gith
 
 > **getOutbox**(`id`, `full?`): `Promise`\<[`OutboxItemDto`](../../../cap-dashboard-core/src/classes/OutboxItemDto.md) \| `undefined`\>
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.controller.ts#L33)
+Defined in: cap-dashboard-nest/src/cap-dashboard.controller.ts:33
 
 #### Parameters
 
@@ -88,7 +88,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:33](https://gith
 
 > **listInbox**(`q`): `Promise`\<[`InboxPageDto`](../../../cap-dashboard-core/src/classes/InboxPageDto.md)\>
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:57](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.controller.ts#L57)
+Defined in: cap-dashboard-nest/src/cap-dashboard.controller.ts:57
 
 #### Parameters
 
@@ -106,7 +106,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:57](https://gith
 
 > **listOutbox**(`q`): `Promise`\<[`OutboxPageDto`](OutboxPageDto.md)\>
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.controller.ts#L27)
+Defined in: cap-dashboard-nest/src/cap-dashboard.controller.ts:27
 
 #### Parameters
 
@@ -124,7 +124,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:27](https://gith
 
 > **markInboxProcessed**(`id`): `Promise`\<[`ActionResultDto`](../../../cap-dashboard-core/src/classes/ActionResultDto.md)\>
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:81](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.controller.ts#L81)
+Defined in: cap-dashboard-nest/src/cap-dashboard.controller.ts:81
 
 #### Parameters
 
@@ -142,7 +142,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:81](https://gith
 
 > **markOutboxPublished**(`id`): `Promise`\<[`ActionResultDto`](../../../cap-dashboard-core/src/classes/ActionResultDto.md)\>
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:51](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.controller.ts#L51)
+Defined in: cap-dashboard-nest/src/cap-dashboard.controller.ts:51
 
 #### Parameters
 
@@ -160,7 +160,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:51](https://gith
 
 > **retryInbox**(`id`, `opts?`): `Promise`\<[`ActionResultDto`](../../../cap-dashboard-core/src/classes/ActionResultDto.md)\>
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:72](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.controller.ts#L72)
+Defined in: cap-dashboard-nest/src/cap-dashboard.controller.ts:72
 
 #### Parameters
 
@@ -182,7 +182,7 @@ Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:72](https://gith
 
 > **retryOutbox**(`id`, `opts?`): `Promise`\<[`ActionResultDto`](../../../cap-dashboard-core/src/classes/ActionResultDto.md)\>
 
-Defined in: [cap-dashboard-nest/src/cap-dashboard.controller.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.controller.ts#L42)
+Defined in: cap-dashboard-nest/src/cap-dashboard.controller.ts:42
 
 #### Parameters
 

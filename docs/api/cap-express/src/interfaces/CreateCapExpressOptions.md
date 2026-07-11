@@ -6,7 +6,7 @@
 
 # Interface: CreateCapExpressOptions
 
-Defined in: [cap-express/src/create-cap-express.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L26)
+Defined in: cap-express/src/create-cap-express.ts:26
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-express/src/create-cap-express.ts:26](https://github.com/mikara
 
 > `optional` **autoStart?**: `boolean`
 
-Defined in: [cap-express/src/create-cap-express.ts:38](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L38)
+Defined in: cap-express/src/create-cap-express.ts:38
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-express/src/create-cap-express.ts:38](https://github.com/mikara
 
 > `optional` **idGenerator?**: () => `string`
 
-Defined in: [cap-express/src/create-cap-express.ts:35](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L35)
+Defined in: cap-express/src/create-cap-express.ts:35
 
 #### Returns
 
@@ -34,7 +34,7 @@ Defined in: [cap-express/src/create-cap-express.ts:35](https://github.com/mikara
 
 > `optional` **init?**: `InitOptions`
 
-Defined in: [cap-express/src/create-cap-express.ts:39](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L39)
+Defined in: cap-express/src/create-cap-express.ts:39
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [cap-express/src/create-cap-express.ts:39](https://github.com/mikara
 
 > `optional` **instanceId?**: `string`
 
-Defined in: [cap-express/src/create-cap-express.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L33)
+Defined in: cap-express/src/create-cap-express.ts:33
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [cap-express/src/create-cap-express.ts:33](https://github.com/mikara
 
 > `optional` **logger?**: [`CapLogger`](../../../cap-nest/src/interfaces/CapLogger.md)
 
-Defined in: [cap-express/src/create-cap-express.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L32)
+Defined in: cap-express/src/create-cap-express.ts:32
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [cap-express/src/create-cap-express.ts:32](https://github.com/mikara
 
 > `optional` **now?**: () => `Date`
 
-Defined in: [cap-express/src/create-cap-express.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L34)
+Defined in: cap-express/src/create-cap-express.ts:34
 
 #### Returns
 
@@ -70,7 +70,7 @@ Defined in: [cap-express/src/create-cap-express.ts:34](https://github.com/mikara
 
 > **publisher**: [`PublisherPort`](../../../cap-nest/src/interfaces/PublisherPort.md)
 
-Defined in: [cap-express/src/create-cap-express.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L29)
+Defined in: cap-express/src/create-cap-express.ts:29
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: [cap-express/src/create-cap-express.ts:29](https://github.com/mikara
 
 > **publishStorage**: [`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md)
 
-Defined in: [cap-express/src/create-cap-express.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L27)
+Defined in: cap-express/src/create-cap-express.ts:27
 
 ***
 
@@ -86,7 +86,7 @@ Defined in: [cap-express/src/create-cap-express.ts:27](https://github.com/mikara
 
 > **receivedStorage**: [`ReceivedStoragePort`](../../../cap-nest/src/interfaces/ReceivedStoragePort.md)
 
-Defined in: [cap-express/src/create-cap-express.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L28)
+Defined in: cap-express/src/create-cap-express.ts:28
 
 ***
 
@@ -94,7 +94,7 @@ Defined in: [cap-express/src/create-cap-express.ts:28](https://github.com/mikara
 
 > `optional` **scheduler?**: [`CapExpressSchedulerOptions`](CapExpressSchedulerOptions.md)
 
-Defined in: [cap-express/src/create-cap-express.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L31)
+Defined in: cap-express/src/create-cap-express.ts:31
 
 ***
 
@@ -102,7 +102,7 @@ Defined in: [cap-express/src/create-cap-express.ts:31](https://github.com/mikara
 
 > **subscriber**: [`SubscriberPort`](../../../cap-nest/src/interfaces/SubscriberPort.md)
 
-Defined in: [cap-express/src/create-cap-express.ts:30](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L30)
+Defined in: cap-express/src/create-cap-express.ts:30
 
 ***
 
@@ -110,7 +110,7 @@ Defined in: [cap-express/src/create-cap-express.ts:30](https://github.com/mikara
 
 > `optional` **transactionContext?**: [`CapTransactionContext`](../../../cap-nest/src/classes/CapTransactionContext.md)\<`unknown`\>
 
-Defined in: [cap-express/src/create-cap-express.ts:37](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L37)
+Defined in: cap-express/src/create-cap-express.ts:37
 
 ***
 
@@ -118,4 +118,4 @@ Defined in: [cap-express/src/create-cap-express.ts:37](https://github.com/mikara
 
 > `optional` **transactionManager?**: [`CapTransactionManagerPort`](../../../cap-nest/src/interfaces/CapTransactionManagerPort.md)\<`unknown`\>
 
-Defined in: [cap-express/src/create-cap-express.ts:36](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L36)
+Defined in: cap-express/src/create-cap-express.ts:36

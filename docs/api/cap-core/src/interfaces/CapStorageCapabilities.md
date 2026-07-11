@@ -6,7 +6,7 @@
 
 # Interface: CapStorageCapabilities
 
-Defined in: [cap-core/src/models/cap-storage-capabilities.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L1)
+Defined in: cap-core/src/models/cap-storage-capabilities.ts:1
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-core/src/models/cap-storage-capabilities.ts:1](https://github.c
 
 > **advisoryLocks**: `boolean`
 
-Defined in: [cap-core/src/models/cap-storage-capabilities.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L4)
+Defined in: cap-core/src/models/cap-storage-capabilities.ts:4
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-core/src/models/cap-storage-capabilities.ts:4](https://github.c
 
 > **atomicInsertIgnore**: `boolean`
 
-Defined in: [cap-core/src/models/cap-storage-capabilities.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L5)
+Defined in: cap-core/src/models/cap-storage-capabilities.ts:5
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-core/src/models/cap-storage-capabilities.ts:5](https://github.c
 
 > **isolationLevels**: `string`[]
 
-Defined in: [cap-core/src/models/cap-storage-capabilities.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L7)
+Defined in: cap-core/src/models/cap-storage-capabilities.ts:7
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [cap-core/src/models/cap-storage-capabilities.ts:7](https://github.c
 
 > **nestedTransactions**: `boolean`
 
-Defined in: [cap-core/src/models/cap-storage-capabilities.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L6)
+Defined in: cap-core/src/models/cap-storage-capabilities.ts:6
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [cap-core/src/models/cap-storage-capabilities.ts:6](https://github.c
 
 > **skipLockedClaiming**: `boolean`
 
-Defined in: [cap-core/src/models/cap-storage-capabilities.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L3)
+Defined in: cap-core/src/models/cap-storage-capabilities.ts:3
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [cap-core/src/models/cap-storage-capabilities.ts:3](https://github.c
 
 > **transactions**: `boolean`
 
-Defined in: [cap-core/src/models/cap-storage-capabilities.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L2)
+Defined in: cap-core/src/models/cap-storage-capabilities.ts:2

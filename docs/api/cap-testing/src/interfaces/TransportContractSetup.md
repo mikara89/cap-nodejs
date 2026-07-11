@@ -6,7 +6,7 @@
 
 # Interface: TransportContractSetup
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:37](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L37)
+Defined in: cap-testing/src/contracts/transport-contract.ts:37
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:37](https://github.
 
 > **cleanup**: () => `Promise`\<`void`\>
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L42)
+Defined in: cap-testing/src/contracts/transport-contract.ts:42
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:42](https://github.
 
 > **expectedInboundMetadata**: [`SubscribeMetadata`](../../../cap-nest/src/interfaces/SubscribeMetadata.md)
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:41](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L41)
+Defined in: cap-testing/src/contracts/transport-contract.ts:41
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:41](https://github.
 
 > **harness**: [`TransportContractHarness`](TransportContractHarness.md)
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:40](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L40)
+Defined in: cap-testing/src/contracts/transport-contract.ts:40
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:40](https://github.
 
 > **publisher**: [`TransportContractPublisher`](TransportContractPublisher.md)
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:38](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L38)
+Defined in: cap-testing/src/contracts/transport-contract.ts:38
 
 ***
 
@@ -50,4 +50,4 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:38](https://github.
 
 > **subscriber**: [`SubscriberPort`](../../../cap-nest/src/interfaces/SubscriberPort.md)
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:39](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L39)
+Defined in: cap-testing/src/contracts/transport-contract.ts:39

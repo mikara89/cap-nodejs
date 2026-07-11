@@ -8,7 +8,7 @@
 
 > **resolvePrismaStorageOptions**(`options`): [`ResolvedPrismaStorageOptions`](../interfaces/ResolvedPrismaStorageOptions.md)
 
-Defined in: [cap-storage-prisma/src/prisma-storage-options.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-storage-options.ts#L27)
+Defined in: cap-storage-prisma/src/prisma-storage-options.ts:27
 
 ## Parameters
 

@@ -48,6 +48,10 @@ first-party RabbitMQ, Kafka, and AWS SNS/SQS transport adapters. NATS and
 Google Pub/Sub remain future candidates. The [roadmap](roadmap.md) tracks later phases and
 v2.5+ ecosystem candidates.
 
+v2.4.1 also documents optional NestJS modules for the Knex, TypeORM, and Prisma
+storage adapters. Their framework-neutral roots and explicit `/nest` import
+boundaries are described in the [package export surface](package-exports.md).
+
 ## Documentation Rules
 
 - Keep root `README.md` as the public entry point.

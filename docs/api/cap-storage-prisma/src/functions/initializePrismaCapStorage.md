@@ -8,7 +8,7 @@
 
 > **initializePrismaCapStorage**(`client`, `options`): `Promise`\<`void`\>
 
-Defined in: [cap-storage-prisma/src/prisma-cap-schema.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-cap-schema.ts#L15)
+Defined in: cap-storage-prisma/src/prisma-cap-schema.ts:15
 
 ## Parameters
 
