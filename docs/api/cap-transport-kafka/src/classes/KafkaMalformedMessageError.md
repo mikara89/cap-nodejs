@@ -6,7 +6,7 @@
 
 # Class: KafkaMalformedMessageError
 
-Defined in: [cap-transport-kafka/src/kafka-errors.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-errors.ts#L15)
+Defined in: cap-transport-kafka/src/kafka-errors.ts:15
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [cap-transport-kafka/src/kafka-errors.ts:15](https://github.com/mika
 
 > **new KafkaMalformedMessageError**(`message`, `cause?`): `KafkaMalformedMessageError`
 
-Defined in: [cap-transport-kafka/src/kafka-errors.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-errors.ts#L16)
+Defined in: cap-transport-kafka/src/kafka-errors.ts:16
 
 #### Parameters
 

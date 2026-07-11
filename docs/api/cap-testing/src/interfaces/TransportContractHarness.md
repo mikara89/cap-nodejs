@@ -6,7 +6,7 @@
 
 # Interface: TransportContractHarness
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L24)
+Defined in: cap-testing/src/contracts/transport-contract.ts:24
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:24](https://github.
 
 > `optional` **activePublisherResources?**: () => `number`
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L28)
+Defined in: cap-testing/src/contracts/transport-contract.ts:28
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:28](https://github.
 
 > `optional` **activeSubscriberResources?**: () => `number`
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L29)
+Defined in: cap-testing/src/contracts/transport-contract.ts:29
 
 #### Returns
 
@@ -38,7 +38,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:29](https://github.
 
 > **deliver**: (`delivery`) => `Promise`\<`void`\>
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L27)
+Defined in: cap-testing/src/contracts/transport-contract.ts:27
 
 #### Parameters
 
@@ -56,7 +56,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:27](https://github.
 
 > **failNextPublish**: (`error`) => `void`
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L26)
+Defined in: cap-testing/src/contracts/transport-contract.ts:26
 
 #### Parameters
 
@@ -74,7 +74,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:26](https://github.
 
 > **publishedMessages**: () => readonly [`TransportContractPublishedMessage`](TransportContractPublishedMessage.md)[]
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L25)
+Defined in: cap-testing/src/contracts/transport-contract.ts:25
 
 #### Returns
 

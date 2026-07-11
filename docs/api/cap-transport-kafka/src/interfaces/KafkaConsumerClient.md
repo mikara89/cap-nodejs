@@ -6,7 +6,7 @@
 
 # Interface: KafkaConsumerClient
 
-Defined in: [cap-transport-kafka/src/kafka-types.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L29)
+Defined in: cap-transport-kafka/src/kafka-types.ts:29
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [cap-transport-kafka/src/kafka-types.ts:29](https://github.com/mikar
 
 > **commitOffsets**(`offsets`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-types.ts:37](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L37)
+Defined in: cap-transport-kafka/src/kafka-types.ts:37
 
 #### Parameters
 
@@ -32,7 +32,7 @@ Defined in: [cap-transport-kafka/src/kafka-types.ts:37](https://github.com/mikar
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-types.ts:30](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L30)
+Defined in: cap-transport-kafka/src/kafka-types.ts:30
 
 #### Returns
 
@@ -44,7 +44,7 @@ Defined in: [cap-transport-kafka/src/kafka-types.ts:30](https://github.com/mikar
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-types.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L31)
+Defined in: cap-transport-kafka/src/kafka-types.ts:31
 
 #### Returns
 
@@ -56,7 +56,7 @@ Defined in: [cap-transport-kafka/src/kafka-types.ts:31](https://github.com/mikar
 
 > **run**(`options`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-types.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L34)
+Defined in: cap-transport-kafka/src/kafka-types.ts:34
 
 #### Parameters
 
@@ -76,7 +76,7 @@ Defined in: [cap-transport-kafka/src/kafka-types.ts:34](https://github.com/mikar
 
 > **stop**(): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-types.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L32)
+Defined in: cap-transport-kafka/src/kafka-types.ts:32
 
 #### Returns
 
@@ -88,7 +88,7 @@ Defined in: [cap-transport-kafka/src/kafka-types.ts:32](https://github.com/mikar
 
 > **subscribe**(`options`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-types.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L33)
+Defined in: cap-transport-kafka/src/kafka-types.ts:33
 
 #### Parameters
 

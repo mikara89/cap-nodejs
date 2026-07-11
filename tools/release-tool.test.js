@@ -43,6 +43,7 @@ const ciWorkflow = fs.readFileSync(
   path.join(rootDir, '.github', 'workflows', 'ci.yml'),
   'utf8',
 );
+const commandTimeoutMs = 30_000;
 
 test('repository roadmap version belongs only to the private workspace root', () => {
   const manifest = JSON.parse(
@@ -53,7 +54,7 @@ test('repository roadmap version belongs only to the private workspace root', ()
   );
 
   assert.equal(manifest.private, true);
-  assert.equal(manifest.version, '2.4.0');
+  assert.equal(manifest.version, '2.4.1');
   assert.deepEqual(manifest.workspaces, ['libs/*']);
   assert.deepEqual(lerna.packages, ['libs/*']);
   assert.ok(
@@ -168,19 +169,53 @@ test('root, docs, and admin-only changes select no package candidates', () => {
   assert.equal(plan['@fixture/rabbitmq'].version, '0.0.0');
 });
 
-function command(commandName, args, cwd) {
+function command(commandName, args, cwd, options = {}) {
+  const timeout = options.timeout ?? commandTimeoutMs;
   const result = spawnSync(commandName, args, {
     cwd,
     encoding: 'utf8',
     env: { ...process.env, CI: 'true', GH_TOKEN: '' },
+    stdio: ['ignore', 'pipe', 'pipe'],
+    timeout,
+    killSignal: 'SIGTERM',
+    windowsHide: true,
   });
-  if (result.status !== 0) {
+  if (result.error || result.status !== 0) {
+    const reason =
+      result.error?.code === 'ETIMEDOUT'
+        ? `timed out after ${timeout}ms`
+        : result.error
+          ? `failed to start: ${result.error.message}`
+          : `failed (${result.status ?? result.signal ?? 'unknown'})`;
     throw new Error(
-      `${commandName} ${args.join(' ')} failed (${result.status})\n${result.stdout}\n${result.stderr}`,
+      `${commandName} ${args.join(' ')} ${reason}\nstdout:\n${result.stdout || ''}\nstderr:\n${result.stderr || ''}`,
+      { cause: result.error },
     );
   }
   return result.stdout;
 }
+
+test('external command failures are bounded and preserve diagnostics', () => {
+  assert.throws(
+    () =>
+      command(
+        process.execPath,
+        [
+          '-e',
+          "process.stdout.write('started-out'); process.stderr.write('started-err'); setInterval(() => {}, 1_000)",
+        ],
+        rootDir,
+        { timeout: 500 },
+      ),
+    (error) => {
+      assert.match(error.message, /timed out after 500ms/);
+      assert.match(error.message, /node(?:\.exe)? -e/iu);
+      assert.match(error.message, /stdout:\nstarted-out/);
+      assert.match(error.message, /stderr:\nstarted-err/);
+      return true;
+    },
+  );
+});
 
 function writeJson(filePath, value) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });

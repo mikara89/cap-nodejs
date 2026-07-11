@@ -6,7 +6,7 @@
 
 # Class: KafkaSubscriber
 
-Defined in: [cap-transport-kafka/src/kafka-subscriber.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-subscriber.ts#L33)
+Defined in: cap-transport-kafka/src/kafka-subscriber.ts:33
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [cap-transport-kafka/src/kafka-subscriber.ts:33](https://github.com/
 
 > **new KafkaSubscriber**(`options?`): `KafkaSubscriber`
 
-Defined in: [cap-transport-kafka/src/kafka-subscriber.ts:39](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-subscriber.ts#L39)
+Defined in: cap-transport-kafka/src/kafka-subscriber.ts:39
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: [cap-transport-kafka/src/kafka-subscriber.ts:39](https://github.com/
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-subscriber.ts:131](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-subscriber.ts#L131)
+Defined in: cap-transport-kafka/src/kafka-subscriber.ts:131
 
 #### Returns
 
@@ -52,7 +52,7 @@ Defined in: [cap-transport-kafka/src/kafka-subscriber.ts:131](https://github.com
 
 > **consume**(`topic`, `group`, `handler`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-subscriber.ts:49](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-subscriber.ts#L49)
+Defined in: cap-transport-kafka/src/kafka-subscriber.ts:49
 
 #### Parameters
 
@@ -82,7 +82,7 @@ Defined in: [cap-transport-kafka/src/kafka-subscriber.ts:49](https://github.com/
 
 > **dispatchDelivery**(`group`, `delivery`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-subscriber.ts:94](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-subscriber.ts#L94)
+Defined in: cap-transport-kafka/src/kafka-subscriber.ts:94
 
 Adapter delivery boundary, exposed for controlled broker harnesses.
 
@@ -106,7 +106,7 @@ Adapter delivery boundary, exposed for controlled broker harnesses.
 
 > **initialize**(`_options?`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-kafka/src/kafka-subscriber.ts:45](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-subscriber.ts#L45)
+Defined in: cap-transport-kafka/src/kafka-subscriber.ts:45
 
 #### Parameters
 

@@ -11,6 +11,15 @@ npm install @mikara89/cap-storage-typeorm typeorm
 Install the TypeORM dialect driver your application uses, for example `pg`,
 `mysql2`, `mariadb`, or `better-sqlite3`.
 
+For the optional NestJS entry point, install the Nest peer dependencies,
+including `@nestjs/typeorm`:
+
+```sh
+npm install @nestjs/common @nestjs/core @nestjs/typeorm reflect-metadata
+```
+
+They are optional for framework-neutral root imports.
+
 ## Schema
 
 Create the CAP tables during application setup or migrations:
@@ -54,6 +63,157 @@ const receivedStorage = new TypeOrmReceivedStorage(dataSource);
 
 Wire these instances to CAP through the `PUBLISH_STORAGE` and
 `RECEIVED_STORAGE` ports in your application framework.
+
+### NestJS
+
+The package root remains framework-neutral. The explicit
+`@mikara89/cap-storage-typeorm/nest` entry point exports
+`TypeOrmStorageModule`, its `Options`/`AsyncOptions`/`OptionsFactory` types,
+and the existing CAP `PUBLISH_STORAGE` and `RECEIVED_STORAGE` tokens.
+
+The module binds exported `TypeOrmPublishStorage` and `TypeOrmReceivedStorage`
+to those two CAP tokens. It uses an existing TypeORM `DataSource`; it does not
+initialize or destroy that data source.
+
+For the default data source, nest the TypeORM registration in the storage
+module's imports:
+
+```ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmStorageModule } from '@mikara89/cap-storage-typeorm/nest';
+
+@Module({
+  imports: [
+    TypeOrmStorageModule.forRoot({
+      imports: [
+        TypeOrmModule.forRoot({
+          type: 'postgres',
+          url: process.env.DATABASE_URL,
+        }),
+      ],
+      storageOptions: { publishTableName: 'cap_publish' },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+For a named data source, pass the same name. The storage module uses
+`getDataSourceToken(name)` from `@nestjs/typeorm` internally, so application
+code can use that token too:
+
+```ts
+import { Inject, Injectable, Module } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { getDataSourceToken, TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmStorageModule } from '@mikara89/cap-storage-typeorm/nest';
+
+const REPORTING = 'reporting';
+
+@Injectable()
+class ReportingService {
+  constructor(
+    @Inject(getDataSourceToken(REPORTING)) readonly dataSource: DataSource,
+  ) {}
+}
+
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      name: REPORTING,
+      type: 'postgres',
+      url: process.env.REPORTING_DATABASE_URL,
+    }),
+  ],
+  exports: [TypeOrmModule],
+})
+class ReportingDatabaseModule {}
+
+@Module({
+  imports: [
+    ReportingDatabaseModule,
+    TypeOrmStorageModule.forRoot({
+      imports: [ReportingDatabaseModule],
+      dataSource: REPORTING,
+    }),
+  ],
+  providers: [ReportingService],
+})
+export class ReportingModule {}
+```
+
+`forRootAsync` resolves only storage options; the data-source registration is
+still application-owned:
+
+```ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import type { TypeOrmStorageOptions } from '@mikara89/cap-storage-typeorm';
+import { TypeOrmStorageModule } from '@mikara89/cap-storage-typeorm/nest';
+
+export const STORAGE_OPTIONS = Symbol('STORAGE_OPTIONS');
+
+@Module({
+  providers: [
+    {
+      provide: STORAGE_OPTIONS,
+      useValue: { receivedTableName: 'cap_received' },
+    },
+  ],
+  exports: [STORAGE_OPTIONS],
+})
+class StorageConfigModule {}
+
+TypeOrmStorageModule.forRootAsync({
+  imports: [
+    TypeOrmModule.forRoot({ type: 'postgres', url: process.env.DATABASE_URL }),
+    StorageConfigModule,
+  ],
+  inject: [STORAGE_OPTIONS],
+  useFactory: (options: TypeOrmStorageOptions) => options,
+});
+```
+
+The class and existing-provider forms call exactly
+`createTypeOrmStorageOptions()`:
+
+```ts
+import { Injectable, Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import {
+  TypeOrmStorageModule,
+  type TypeOrmStorageOptionsFactory,
+} from '@mikara89/cap-storage-typeorm/nest';
+
+@Injectable()
+class TypeOrmOptionsFactory implements TypeOrmStorageOptionsFactory {
+  createTypeOrmStorageOptions() {
+    return { publishTableName: 'cap_publish' };
+  }
+}
+
+@Module({
+  providers: [TypeOrmOptionsFactory],
+  exports: [TypeOrmOptionsFactory],
+})
+class ExistingConfigModule {}
+
+TypeOrmStorageModule.forRootAsync({
+  imports: [
+    TypeOrmModule.forRoot({ type: 'postgres', url: process.env.DATABASE_URL }),
+  ],
+  useClass: TypeOrmOptionsFactory,
+});
+
+TypeOrmStorageModule.forRootAsync({
+  imports: [
+    TypeOrmModule.forRoot({ type: 'postgres', url: process.env.DATABASE_URL }),
+    ExistingConfigModule,
+  ],
+  useExisting: TypeOrmOptionsFactory,
+});
+```
 
 ## Transactions
 

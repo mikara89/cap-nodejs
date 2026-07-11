@@ -6,7 +6,7 @@
 
 # Interface: KafkaOptions
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L15)
+Defined in: cap-transport-kafka/src/kafka-options.ts:15
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:15](https://github.com/mik
 
 > `optional` **autoCreateTopics?**: `boolean`
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L26)
+Defined in: cap-transport-kafka/src/kafka-options.ts:26
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:26](https://github.com/mik
 
 > `optional` **brokers?**: `string`[]
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L17)
+Defined in: cap-transport-kafka/src/kafka-options.ts:17
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:17](https://github.com/mik
 
 > `optional` **clientId?**: `string`
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L16)
+Defined in: cap-transport-kafka/src/kafka-options.ts:16
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:16](https://github.com/mik
 
 > `optional` **consumer?**: `Omit`\<[`ConsumerConfig`](ConsumerConfig.md), `"allowAutoTopicCreation"` \| `"groupId"` \| `"autoCommit"`\>
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L22)
+Defined in: cap-transport-kafka/src/kafka-options.ts:22
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:22](https://github.com/mik
 
 > `optional` **factory?**: [`KafkaFactory`](../type-aliases/KafkaFactory.md)
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L29)
+Defined in: cap-transport-kafka/src/kafka-options.ts:29
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:29](https://github.com/mik
 
 > `optional` **logger?**: [`CapLogger`](../../../cap-nest/src/interfaces/CapLogger.md)
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:30](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L30)
+Defined in: cap-transport-kafka/src/kafka-options.ts:30
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:30](https://github.com/mik
 
 > `optional` **producer?**: `Omit`\<[`ProducerConfig`](ProducerConfig.md), `"allowAutoTopicCreation"`\>
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L21)
+Defined in: cap-transport-kafka/src/kafka-options.ts:21
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:21](https://github.com/mik
 
 > `optional` **publishTimeoutMs?**: `number`
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L28)
+Defined in: cap-transport-kafka/src/kafka-options.ts:28
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:28](https://github.com/mik
 
 > `optional` **sasl?**: [`SASLOptions`](../type-aliases/SASLOptions.md)
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L19)
+Defined in: cap-transport-kafka/src/kafka-options.ts:19
 
 ***
 
@@ -86,7 +86,7 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:19](https://github.com/mik
 
 > `optional` **ssl?**: `boolean`
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L18)
+Defined in: cap-transport-kafka/src/kafka-options.ts:18
 
 ***
 
@@ -94,7 +94,7 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:18](https://github.com/mik
 
 > `optional` **topicCreation?**: [`KafkaTopicCreationOptions`](KafkaTopicCreationOptions.md)
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L27)
+Defined in: cap-transport-kafka/src/kafka-options.ts:27
 
 ***
 
@@ -102,4 +102,4 @@ Defined in: [cap-transport-kafka/src/kafka-options.ts:27](https://github.com/mik
 
 > `optional` **topicPrefix?**: `string`
 
-Defined in: [cap-transport-kafka/src/kafka-options.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-options.ts#L20)
+Defined in: cap-transport-kafka/src/kafka-options.ts:20

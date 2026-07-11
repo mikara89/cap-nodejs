@@ -11,6 +11,16 @@ npm install @mikara89/cap-storage-knex knex
 Install the Knex dialect driver your application uses, for example `pg`,
 `mysql2`, `mariadb`, or `better-sqlite3`.
 
+For the optional NestJS entry point, also install the Nest peer dependencies
+used by your application:
+
+```sh
+npm install @nestjs/common @nestjs/core reflect-metadata
+```
+
+Those Nest dependencies are optional: importing the package root does not load
+NestJS.
+
 ## Schema
 
 Create the CAP tables during application setup or migrations:
@@ -51,6 +61,112 @@ const receivedStorage = new KnexReceivedStorage(knex);
 
 Wire these instances to CAP through the `PUBLISH_STORAGE` and
 `RECEIVED_STORAGE` ports in your application framework.
+
+### NestJS
+
+The root import above remains framework-neutral. Import Nest integration only
+from `@mikara89/cap-storage-knex/nest`; it exports `KnexStorageModule`,
+`KnexStorageModuleOptions`, `KnexStorageModuleAsyncOptions`,
+`KnexStorageOptionsFactory`, and the existing CAP `PUBLISH_STORAGE` and
+`RECEIVED_STORAGE` tokens.
+
+`KnexStorageModule` creates and exports `KnexPublishStorage` and
+`KnexReceivedStorage` under those two CAP tokens. It does not create, connect,
+destroy, or otherwise own the Knex instance.
+
+Register an application-owned Knex instance through an imported module. The
+provider module must export the token because the storage module resolves it
+through its own `imports`:
+
+```ts
+import { Module } from '@nestjs/common';
+import { KnexStorageModule } from '@mikara89/cap-storage-knex/nest';
+import { knex } from './knex-client';
+
+export const APP_KNEX = Symbol('APP_KNEX');
+
+@Module({
+  providers: [{ provide: APP_KNEX, useValue: knex }],
+  exports: [APP_KNEX],
+})
+export class DatabaseModule {}
+
+@Module({
+  imports: [
+    KnexStorageModule.forRoot({
+      imports: [DatabaseModule],
+      knexToken: APP_KNEX,
+      storageOptions: { publishTableName: 'cap_publish' },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+`APP_KNEX` is an application-defined token; it can represent any custom Knex
+provider token. No third-party Knex Nest wrapper is required.
+
+Use `forRootAsync` when storage options come from an injected application
+provider. The Knex instance token is still explicit:
+
+```ts
+import { Module } from '@nestjs/common';
+import type { KnexStorageOptions } from '@mikara89/cap-storage-knex';
+import { KnexStorageModule } from '@mikara89/cap-storage-knex/nest';
+
+export const STORAGE_OPTIONS = Symbol('STORAGE_OPTIONS');
+
+@Module({
+  providers: [
+    {
+      provide: STORAGE_OPTIONS,
+      useValue: { receivedTableName: 'cap_received' },
+    },
+  ],
+  exports: [STORAGE_OPTIONS],
+})
+export class StorageConfigModule {}
+
+KnexStorageModule.forRootAsync({
+  imports: [DatabaseModule, StorageConfigModule],
+  knexToken: APP_KNEX,
+  inject: [STORAGE_OPTIONS],
+  useFactory: (options: KnexStorageOptions) => options,
+});
+```
+
+The factory-class and existing-provider variants call exactly
+`createKnexStorageOptions()`:
+
+```ts
+import { Injectable, Module } from '@nestjs/common';
+import {
+  KnexStorageModule,
+  type KnexStorageOptionsFactory,
+} from '@mikara89/cap-storage-knex/nest';
+
+@Injectable()
+class KnexOptionsFactory implements KnexStorageOptionsFactory {
+  createKnexStorageOptions() {
+    return { publishTableName: 'cap_publish' };
+  }
+}
+
+@Module({ providers: [KnexOptionsFactory], exports: [KnexOptionsFactory] })
+class ExistingConfigModule {}
+
+KnexStorageModule.forRootAsync({
+  imports: [DatabaseModule],
+  knexToken: APP_KNEX,
+  useClass: KnexOptionsFactory,
+});
+
+KnexStorageModule.forRootAsync({
+  imports: [DatabaseModule, ExistingConfigModule],
+  knexToken: APP_KNEX,
+  useExisting: KnexOptionsFactory,
+});
+```
 
 ## Transactions
 

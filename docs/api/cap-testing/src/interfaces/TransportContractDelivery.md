@@ -6,7 +6,7 @@
 
 # Interface: TransportContractDelivery
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L17)
+Defined in: cap-testing/src/contracts/transport-contract.ts:17
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:17](https://github.
 
 > **group**: `string`
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L19)
+Defined in: cap-testing/src/contracts/transport-contract.ts:19
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:19](https://github.
 
 > `optional` **headers?**: [`CapHeaders`](../../../cap-nest/src/type-aliases/CapHeaders.md)
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L21)
+Defined in: cap-testing/src/contracts/transport-contract.ts:21
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:21](https://github.
 
 > **payload**: `unknown`
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L20)
+Defined in: cap-testing/src/contracts/transport-contract.ts:20
 
 ***
 
@@ -38,4 +38,4 @@ Defined in: [cap-testing/src/contracts/transport-contract.ts:20](https://github.
 
 > **topic**: `string`
 
-Defined in: [cap-testing/src/contracts/transport-contract.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L18)
+Defined in: cap-testing/src/contracts/transport-contract.ts:18

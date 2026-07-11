@@ -6,7 +6,7 @@
 
 # Interface: CapSchedulerOptions
 
-Defined in: [cap-core/src/models/cap-options.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L18)
+Defined in: cap-core/src/models/cap-options.ts:18
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-core/src/models/cap-options.ts:18](https://github.com/mikara89/
 
 > `optional` **batchSize?**: `number`
 
-Defined in: [cap-core/src/models/cap-options.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L19)
+Defined in: cap-core/src/models/cap-options.ts:19
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-core/src/models/cap-options.ts:19](https://github.com/mikara89/
 
 > `optional` **disabled?**: `boolean`
 
-Defined in: [cap-core/src/models/cap-options.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L24)
+Defined in: cap-core/src/models/cap-options.ts:24
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [cap-core/src/models/cap-options.ts:24](https://github.com/mikara89/
 
 > `optional` **instanceId?**: `string`
 
-Defined in: [cap-core/src/models/cap-options.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L23)
+Defined in: cap-core/src/models/cap-options.ts:23
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [cap-core/src/models/cap-options.ts:23](https://github.com/mikara89/
 
 > `optional` **leaseMs?**: `number`
 
-Defined in: [cap-core/src/models/cap-options.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L20)
+Defined in: cap-core/src/models/cap-options.ts:20
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [cap-core/src/models/cap-options.ts:20](https://github.com/mikara89/
 
 > `optional` **maxInboxRetries?**: `number`
 
-Defined in: [cap-core/src/models/cap-options.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L22)
+Defined in: cap-core/src/models/cap-options.ts:22
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [cap-core/src/models/cap-options.ts:22](https://github.com/mikara89/
 
 > `optional` **maxRetries?**: `number`
 
-Defined in: [cap-core/src/models/cap-options.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-options.ts#L21)
+Defined in: cap-core/src/models/cap-options.ts:21

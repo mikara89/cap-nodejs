@@ -8,4 +8,4 @@
 
 > `const` **defaultTypeOrmStorageOptions**: [`ResolvedTypeOrmStorageOptions`](../interfaces/ResolvedTypeOrmStorageOptions.md)
 
-Defined in: [cap-storage-typeorm/src/typeorm-storage-options.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-storage-options.ts#L13)
+Defined in: cap-storage-typeorm/src/typeorm-storage-options.ts:13

@@ -6,7 +6,7 @@
 
 # Interface: RetryOptions
 
-Defined in: [cap-dashboard-core/src/dashboard.service.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard.service.ts#L22)
+Defined in: cap-dashboard-core/src/dashboard.service.ts:22
 
 ## Properties
 
@@ -14,4 +14,4 @@ Defined in: [cap-dashboard-core/src/dashboard.service.ts:22](https://github.com/
 
 > `optional` **force?**: `boolean`
 
-Defined in: [cap-dashboard-core/src/dashboard.service.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard.service.ts#L23)
+Defined in: cap-dashboard-core/src/dashboard.service.ts:23

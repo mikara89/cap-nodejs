@@ -6,7 +6,7 @@
 
 # Interface: DiscoveredSubscription
 
-Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:141](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L141)
+Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:141
 
 Shape returned by `discoverSubscriptions`
 
@@ -16,7 +16,7 @@ Shape returned by `discoverSubscriptions`
 
 > `optional` **filter?**: (`payload`) => `boolean` \| `Promise`\<`boolean`\>
 
-Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:144](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L144)
+Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:144
 
 #### Parameters
 
@@ -34,7 +34,7 @@ Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:144](https:/
 
 > `optional` **group?**: `string`
 
-Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:143](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L143)
+Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:143
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:143](https:/
 
 > **handler**: (`payload`, `headers?`) => `Promise`\<`unknown`\>
 
-Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:145](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L145)
+Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:145
 
 #### Parameters
 
@@ -64,4 +64,4 @@ Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:145](https:/
 
 > **topic**: `string`
 
-Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:142](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L142)
+Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:142

@@ -13,6 +13,16 @@ Prisma providers `postgresql`, `mysql`, and `sqlite`; `postgres` and `mariadb`
 are accepted adapter aliases. Pass the provider explicitly because Prisma does
 not expose a stable public runtime provider API for adapter logic.
 
+For the optional NestJS entry point, install the Nest peer dependencies used by
+your application:
+
+```sh
+npm install @nestjs/common @nestjs/core reflect-metadata
+```
+
+Those dependencies are optional when using only the framework-neutral root
+API.
+
 ## Schema
 
 Initialize CAP tables through raw SQL without adding CAP models to your Prisma
@@ -56,6 +66,125 @@ The adapter uses `$executeRawUnsafe` and `$queryRawUnsafe` with parameterized
 values. It does not use generated model delegates or require CAP models in the
 application schema. Table names are the only dynamic identifiers and are
 strictly validated before quoting.
+
+### NestJS
+
+The root import remains framework-neutral. Import Nest integration from the
+explicit `@mikara89/cap-storage-prisma/nest` subpath; it exports
+`PrismaStorageModule`, its `Options`/`AsyncOptions`/`OptionsFactory` types,
+and the existing CAP `PUBLISH_STORAGE` and `RECEIVED_STORAGE` tokens.
+
+The module binds `PrismaPublishStorage` and `PrismaReceivedStorage` to those
+CAP tokens. It uses the injected application client and does not call
+`$connect()` or `$disconnect()`: connection lifecycle remains application-owned.
+
+Provide a direct application client under any token you choose. There is no
+assumption about a provider called `PrismaService` or a particular Prisma Nest
+library:
+
+```ts
+import { Module } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+import { PrismaStorageModule } from '@mikara89/cap-storage-prisma/nest';
+
+export const APP_DATABASE = Symbol('APP_DATABASE');
+const prisma = new PrismaClient();
+
+@Module({
+  providers: [{ provide: APP_DATABASE, useValue: prisma }],
+  exports: [APP_DATABASE],
+})
+export class DatabaseModule {}
+
+@Module({
+  imports: [
+    PrismaStorageModule.forRoot({
+      imports: [DatabaseModule],
+      clientToken: APP_DATABASE,
+      storageOptions: { provider: 'postgresql' },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+An application-defined `PrismaService` works when it is exported under your
+chosen token; CAP does not require a particular implementation:
+
+```ts
+import { Injectable, Module } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+
+@Injectable()
+export class PrismaService extends PrismaClient {}
+
+@Module({
+  providers: [
+    PrismaService,
+    { provide: APP_DATABASE, useExisting: PrismaService },
+  ],
+  exports: [APP_DATABASE],
+})
+export class DatabaseModule {}
+```
+
+Use `forRootAsync` for application-provided storage options:
+
+```ts
+import { Module } from '@nestjs/common';
+import type { PrismaStorageOptions } from '@mikara89/cap-storage-prisma';
+import { PrismaStorageModule } from '@mikara89/cap-storage-prisma/nest';
+
+export const STORAGE_OPTIONS = Symbol('STORAGE_OPTIONS');
+
+@Module({
+  providers: [
+    { provide: STORAGE_OPTIONS, useValue: { provider: 'postgresql' } },
+  ],
+  exports: [STORAGE_OPTIONS],
+})
+class StorageConfigModule {}
+
+PrismaStorageModule.forRootAsync({
+  imports: [DatabaseModule, StorageConfigModule],
+  clientToken: APP_DATABASE,
+  inject: [STORAGE_OPTIONS],
+  useFactory: (options: PrismaStorageOptions) => options,
+});
+```
+
+The class and existing-provider variants call exactly
+`createPrismaStorageOptions()`:
+
+```ts
+import { Injectable, Module } from '@nestjs/common';
+import {
+  PrismaStorageModule,
+  type PrismaStorageOptionsFactory,
+} from '@mikara89/cap-storage-prisma/nest';
+
+@Injectable()
+class PrismaOptionsFactory implements PrismaStorageOptionsFactory {
+  createPrismaStorageOptions() {
+    return { provider: 'postgresql' as const };
+  }
+}
+
+@Module({ providers: [PrismaOptionsFactory], exports: [PrismaOptionsFactory] })
+class ExistingConfigModule {}
+
+PrismaStorageModule.forRootAsync({
+  imports: [DatabaseModule],
+  clientToken: APP_DATABASE,
+  useClass: PrismaOptionsFactory,
+});
+
+PrismaStorageModule.forRootAsync({
+  imports: [DatabaseModule, ExistingConfigModule],
+  clientToken: APP_DATABASE,
+  useExisting: PrismaOptionsFactory,
+});
+```
 
 ## Transactions
 

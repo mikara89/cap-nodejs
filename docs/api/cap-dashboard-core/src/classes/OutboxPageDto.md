@@ -6,7 +6,7 @@
 
 # Class: OutboxPageDto
 
-Defined in: [cap-dashboard-core/src/dto/page.dto.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/page.dto.ts#L4)
+Defined in: cap-dashboard-core/src/dto/page.dto.ts:4
 
 ## Constructors
 
@@ -24,7 +24,7 @@ Defined in: [cap-dashboard-core/src/dto/page.dto.ts:4](https://github.com/mikara
 
 > **items**: [`OutboxItemDto`](OutboxItemDto.md)[]
 
-Defined in: [cap-dashboard-core/src/dto/page.dto.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/page.dto.ts#L5)
+Defined in: cap-dashboard-core/src/dto/page.dto.ts:5
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [cap-dashboard-core/src/dto/page.dto.ts:5](https://github.com/mikara
 
 > **limit**: `number`
 
-Defined in: [cap-dashboard-core/src/dto/page.dto.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/page.dto.ts#L8)
+Defined in: cap-dashboard-core/src/dto/page.dto.ts:8
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [cap-dashboard-core/src/dto/page.dto.ts:8](https://github.com/mikara
 
 > **page**: `number`
 
-Defined in: [cap-dashboard-core/src/dto/page.dto.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/page.dto.ts#L7)
+Defined in: cap-dashboard-core/src/dto/page.dto.ts:7
 
 ***
 
@@ -48,4 +48,4 @@ Defined in: [cap-dashboard-core/src/dto/page.dto.ts:7](https://github.com/mikara
 
 > **total**: `number`
 
-Defined in: [cap-dashboard-core/src/dto/page.dto.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/page.dto.ts#L6)
+Defined in: cap-dashboard-core/src/dto/page.dto.ts:6

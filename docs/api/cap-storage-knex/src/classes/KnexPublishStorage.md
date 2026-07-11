@@ -6,7 +6,7 @@
 
 # Class: KnexPublishStorage
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:46](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L46)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:46
 
 ## Implements
 
@@ -19,7 +19,7 @@ Defined in: [cap-storage-knex/src/knex-publish-storage.ts:46](https://github.com
 
 > **new KnexPublishStorage**(`knex`, `options?`): `KnexPublishStorage`
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:51](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L51)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:51
 
 #### Parameters
 
@@ -41,7 +41,7 @@ Defined in: [cap-storage-knex/src/knex-publish-storage.ts:51](https://github.com
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]\>
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:86](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L86)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:86
 
 #### Parameters
 
@@ -63,7 +63,7 @@ Defined in: [cap-storage-knex/src/knex-publish-storage.ts:86](https://github.com
 
 > **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:181](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L181)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:181
 
 #### Parameters
 
@@ -85,7 +85,7 @@ Defined in: [cap-storage-knex/src/knex-publish-storage.ts:181](https://github.co
 
 > **getCapabilities**(): `CapStorageCapabilities`
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:82](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L82)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:82
 
 #### Returns
 
@@ -101,7 +101,7 @@ Defined in: [cap-storage-knex/src/knex-publish-storage.ts:82](https://github.com
 
 > **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:58](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L58)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:58
 
 #### Parameters
 
@@ -123,7 +123,7 @@ Defined in: [cap-storage-knex/src/knex-publish-storage.ts:58](https://github.com
 
 > **listPublish**(`options?`): `Promise`\<[`DashboardListResult`](../../../cap-nest/src/interfaces/DashboardListResult.md)\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>\>\>
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:190](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L190)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:190
 
 #### Parameters
 
@@ -145,7 +145,7 @@ Defined in: [cap-storage-knex/src/knex-publish-storage.ts:190](https://github.co
 
 > **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:127](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L127)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:127
 
 #### Parameters
 
@@ -171,7 +171,7 @@ Defined in: [cap-storage-knex/src/knex-publish-storage.ts:127](https://github.co
 
 > **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:141](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L141)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:141
 
 #### Parameters
 
@@ -201,7 +201,7 @@ Defined in: [cap-storage-knex/src/knex-publish-storage.ts:141](https://github.co
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:169](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L169)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:169
 
 #### Parameters
 
@@ -223,7 +223,7 @@ Defined in: [cap-storage-knex/src/knex-publish-storage.ts:169](https://github.co
 
 > **savePublish**\<`T`\>(`event`, `ctx?`): `Promise`\<`string`\>
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:63](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L63)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:63
 
 #### Type Parameters
 
@@ -255,7 +255,7 @@ Defined in: [cap-storage-knex/src/knex-publish-storage.ts:63](https://github.com
 
 > **savePublishWithTx**\<`T`\>(`event`, `tx`): `Promise`\<`string`\>
 
-Defined in: [cap-storage-knex/src/knex-publish-storage.ts:75](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-publish-storage.ts#L75)
+Defined in: cap-storage-knex/src/knex-publish-storage.ts:75
 
 #### Type Parameters
 

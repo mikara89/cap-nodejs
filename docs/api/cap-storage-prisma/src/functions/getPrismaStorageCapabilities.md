@@ -8,7 +8,7 @@
 
 > **getPrismaStorageCapabilities**(`provider`): `CapStorageCapabilities`
 
-Defined in: [cap-storage-prisma/src/prisma-storage-capabilities.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-storage-capabilities.ts#L5)
+Defined in: cap-storage-prisma/src/prisma-storage-capabilities.ts:5
 
 ## Parameters
 

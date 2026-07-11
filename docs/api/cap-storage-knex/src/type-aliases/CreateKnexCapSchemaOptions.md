@@ -8,4 +8,4 @@
 
 > **CreateKnexCapSchemaOptions** = [`KnexStorageTableOptions`](../interfaces/KnexStorageTableOptions.md)
 
-Defined in: [cap-storage-knex/src/knex-cap-schema.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-cap-schema.ts#L7)
+Defined in: cap-storage-knex/src/knex-cap-schema.ts:7

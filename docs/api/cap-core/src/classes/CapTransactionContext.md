@@ -6,7 +6,7 @@
 
 # Class: CapTransactionContext\<TTx\>
 
-Defined in: [cap-core/src/transactions/cap-transaction-context.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/transactions/cap-transaction-context.ts#L5)
+Defined in: cap-core/src/transactions/cap-transaction-context.ts:5
 
 ## Type Parameters
 
@@ -30,7 +30,7 @@ Defined in: [cap-core/src/transactions/cap-transaction-context.ts:5](https://git
 
 > **current**(): [`CapOperationContext`](../interfaces/CapOperationContext.md)\<`TTx`\> \| `undefined`
 
-Defined in: [cap-core/src/transactions/cap-transaction-context.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/transactions/cap-transaction-context.ts#L12)
+Defined in: cap-core/src/transactions/cap-transaction-context.ts:12
 
 #### Returns
 
@@ -42,7 +42,7 @@ Defined in: [cap-core/src/transactions/cap-transaction-context.ts:12](https://gi
 
 > **run**\<`T`\>(`ctx`, `fn`): `Promise`\<`T`\>
 
-Defined in: [cap-core/src/transactions/cap-transaction-context.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/transactions/cap-transaction-context.ts#L8)
+Defined in: cap-core/src/transactions/cap-transaction-context.ts:8
 
 #### Type Parameters
 

@@ -6,7 +6,7 @@
 
 # Class: RabbitMqConfirmTimeoutError
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-errors.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-errors.ts#L8)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-errors.ts:8
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-errors.ts:8](https://github.com
 
 > **new RabbitMqConfirmTimeoutError**(`timeoutMs`): `RabbitMqConfirmTimeoutError`
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-errors.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-errors.ts#L9)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-errors.ts:9
 
 #### Parameters
 

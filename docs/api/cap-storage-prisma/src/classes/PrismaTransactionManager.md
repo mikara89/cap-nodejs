@@ -6,7 +6,7 @@
 
 # Class: PrismaTransactionManager
 
-Defined in: [cap-storage-prisma/src/prisma-transaction-manager.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-transaction-manager.ts#L15)
+Defined in: cap-storage-prisma/src/prisma-transaction-manager.ts:15
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [cap-storage-prisma/src/prisma-transaction-manager.ts:15](https://gi
 
 > **new PrismaTransactionManager**(`client`, `options`): `PrismaTransactionManager`
 
-Defined in: [cap-storage-prisma/src/prisma-transaction-manager.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-transaction-manager.ts#L19)
+Defined in: cap-storage-prisma/src/prisma-transaction-manager.ts:19
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [cap-storage-prisma/src/prisma-transaction-manager.ts:19](https://gi
 
 > **afterCommit**(`fn`): `void`
 
-Defined in: [cap-storage-prisma/src/prisma-transaction-manager.ts:62](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-transaction-manager.ts#L62)
+Defined in: cap-storage-prisma/src/prisma-transaction-manager.ts:62
 
 #### Parameters
 
@@ -62,7 +62,7 @@ Defined in: [cap-storage-prisma/src/prisma-transaction-manager.ts:62](https://gi
 
 > **afterRollback**(`fn`): `void`
 
-Defined in: [cap-storage-prisma/src/prisma-transaction-manager.ts:70](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-transaction-manager.ts#L70)
+Defined in: cap-storage-prisma/src/prisma-transaction-manager.ts:70
 
 #### Parameters
 
@@ -84,7 +84,7 @@ Defined in: [cap-storage-prisma/src/prisma-transaction-manager.ts:70](https://gi
 
 > **getCurrentContext**(): [`CapOperationContext`](../../../cap-nest/src/interfaces/CapOperationContext.md)\<`TransactionClient`\> \| `undefined`
 
-Defined in: [cap-storage-prisma/src/prisma-transaction-manager.ts:56](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-transaction-manager.ts#L56)
+Defined in: cap-storage-prisma/src/prisma-transaction-manager.ts:56
 
 #### Returns
 
@@ -100,7 +100,7 @@ Defined in: [cap-storage-prisma/src/prisma-transaction-manager.ts:56](https://gi
 
 > **runInTransaction**\<`T`\>(`options`, `fn`): `Promise`\<`T`\>
 
-Defined in: [cap-storage-prisma/src/prisma-transaction-manager.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-transaction-manager.ts#L24)
+Defined in: cap-storage-prisma/src/prisma-transaction-manager.ts:24
 
 #### Type Parameters
 

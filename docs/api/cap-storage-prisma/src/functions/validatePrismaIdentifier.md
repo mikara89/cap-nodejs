@@ -8,7 +8,7 @@
 
 > **validatePrismaIdentifier**(`identifier`, `maxLength?`): `string`
 
-Defined in: [cap-storage-prisma/src/prisma-storage-options.ts:53](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-storage-options.ts#L53)
+Defined in: cap-storage-prisma/src/prisma-storage-options.ts:53
 
 ## Parameters
 

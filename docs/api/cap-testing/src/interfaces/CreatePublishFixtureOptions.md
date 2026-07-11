@@ -6,7 +6,7 @@
 
 # Interface: CreatePublishFixtureOptions\<T\>
 
-Defined in: [cap-testing/src/fixtures/messages.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L8)
+Defined in: cap-testing/src/fixtures/messages.ts:8
 
 ## Extended by
 
@@ -24,7 +24,7 @@ Defined in: [cap-testing/src/fixtures/messages.ts:8](https://github.com/mikara89
 
 > `optional` **headers?**: [`CapHeaders`](../../../cap-nest/src/type-aliases/CapHeaders.md)
 
-Defined in: [cap-testing/src/fixtures/messages.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L13)
+Defined in: cap-testing/src/fixtures/messages.ts:13
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [cap-testing/src/fixtures/messages.ts:13](https://github.com/mikara8
 
 > `optional` **id?**: `string`
 
-Defined in: [cap-testing/src/fixtures/messages.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L9)
+Defined in: cap-testing/src/fixtures/messages.ts:9
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [cap-testing/src/fixtures/messages.ts:9](https://github.com/mikara89
 
 > `optional` **occurredAt?**: `string`
 
-Defined in: [cap-testing/src/fixtures/messages.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L11)
+Defined in: cap-testing/src/fixtures/messages.ts:11
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [cap-testing/src/fixtures/messages.ts:11](https://github.com/mikara8
 
 > `optional` **payload?**: `T`
 
-Defined in: [cap-testing/src/fixtures/messages.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L12)
+Defined in: cap-testing/src/fixtures/messages.ts:12
 
 ***
 
@@ -56,4 +56,4 @@ Defined in: [cap-testing/src/fixtures/messages.ts:12](https://github.com/mikara8
 
 > `optional` **topic?**: `string`
 
-Defined in: [cap-testing/src/fixtures/messages.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L10)
+Defined in: cap-testing/src/fixtures/messages.ts:10

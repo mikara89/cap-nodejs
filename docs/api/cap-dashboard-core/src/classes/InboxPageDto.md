@@ -6,7 +6,7 @@
 
 # Class: InboxPageDto
 
-Defined in: [cap-dashboard-core/src/dto/page.dto.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/page.dto.ts#L11)
+Defined in: cap-dashboard-core/src/dto/page.dto.ts:11
 
 ## Constructors
 
@@ -24,7 +24,7 @@ Defined in: [cap-dashboard-core/src/dto/page.dto.ts:11](https://github.com/mikar
 
 > **items**: [`InboxItemDto`](InboxItemDto.md)[]
 
-Defined in: [cap-dashboard-core/src/dto/page.dto.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/page.dto.ts#L12)
+Defined in: cap-dashboard-core/src/dto/page.dto.ts:12
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [cap-dashboard-core/src/dto/page.dto.ts:12](https://github.com/mikar
 
 > **limit**: `number`
 
-Defined in: [cap-dashboard-core/src/dto/page.dto.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/page.dto.ts#L15)
+Defined in: cap-dashboard-core/src/dto/page.dto.ts:15
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [cap-dashboard-core/src/dto/page.dto.ts:15](https://github.com/mikar
 
 > **page**: `number`
 
-Defined in: [cap-dashboard-core/src/dto/page.dto.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/page.dto.ts#L14)
+Defined in: cap-dashboard-core/src/dto/page.dto.ts:14
 
 ***
 
@@ -48,4 +48,4 @@ Defined in: [cap-dashboard-core/src/dto/page.dto.ts:14](https://github.com/mikar
 
 > **total**: `number`
 
-Defined in: [cap-dashboard-core/src/dto/page.dto.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/page.dto.ts#L13)
+Defined in: cap-dashboard-core/src/dto/page.dto.ts:13

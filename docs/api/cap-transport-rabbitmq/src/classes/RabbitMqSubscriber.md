@@ -6,7 +6,7 @@
 
 # Class: RabbitMqSubscriber
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:44](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-subscriber.ts#L44)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:44
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:44](https://githu
 
 > **new RabbitMqSubscriber**(`options?`): `RabbitMqSubscriber`
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:86](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-subscriber.ts#L86)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:86
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:86](https://githu
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:129](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-subscriber.ts#L129)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:129
 
 #### Returns
 
@@ -52,7 +52,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:129](https://gith
 
 > **consume**(`topic`, `group`, `handler`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:104](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-subscriber.ts#L104)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:104
 
 #### Parameters
 
@@ -82,7 +82,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:104](https://gith
 
 > **dispatchDelivery**(`group`, `message`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:254](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-subscriber.ts#L254)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:254
 
 Adapter delivery boundary, exposed for controlled broker harnesses.
 
@@ -106,7 +106,7 @@ Adapter delivery boundary, exposed for controlled broker harnesses.
 
 > **initialize**(`_options?`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:90](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-subscriber.ts#L90)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-subscriber.ts:90
 
 #### Parameters
 

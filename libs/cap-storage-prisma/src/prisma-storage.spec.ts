@@ -216,8 +216,8 @@ describe('Prisma storage', () => {
     );
   });
 
-  it('does not leak framework imports from package root source', () => {
-    const source = readSourceFiles(join(__dirname));
+  it('keeps framework imports isolated from package root source', () => {
+    const source = readSourceFiles(join(__dirname), new Set(['nest']));
     const frameworkImport = new RegExp(`\\bfrom ['"]${'ex'}${'press'}['"]`);
     expect(source).not.toMatch(/@nestjs\//);
     expect(source).not.toMatch(frameworkImport);
@@ -277,11 +277,18 @@ function receivedEvent(
   };
 }
 
-function readSourceFiles(dir: string): string {
+function readSourceFiles(
+  dir: string,
+  excludedDirectories = new Set<string>(),
+): string {
   return readdirSync(dir, { withFileTypes: true })
     .flatMap((entry) => {
       const path = join(dir, entry.name);
-      if (entry.isDirectory()) return readSourceFiles(path);
+      if (entry.isDirectory()) {
+        return excludedDirectories.has(entry.name)
+          ? []
+          : readSourceFiles(path, excludedDirectories);
+      }
       if (!entry.isFile() || !entry.name.endsWith('.ts')) return [];
       if (entry.name.endsWith('.spec.ts')) return [];
       return readFileSync(path, 'utf8');

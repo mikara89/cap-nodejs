@@ -6,7 +6,7 @@
 
 # Interface: RabbitMqConsumerChannel
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L25)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:25
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:25](https://github.com
 
 > **ack**(`message`, `allUpTo?`): `void`
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:48](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L48)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:48
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:48](https://github.com
 
 > **assertExchange**(`exchange`, `type`, `options?`): `Promise`\<`AssertExchange`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L26)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:26
 
 #### Parameters
 
@@ -66,7 +66,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:26](https://github.com
 
 > **assertQueue**(`queue`, `options?`): `Promise`\<`AssertQueue`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L31)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:31
 
 #### Parameters
 
@@ -88,7 +88,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:31](https://github.com
 
 > **bindQueue**(`queue`, `source`, `pattern`, `args?`): `Promise`\<`Empty`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:35](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L35)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:35
 
 #### Parameters
 
@@ -118,7 +118,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:35](https://github.com
 
 > **cancel**(`consumerTag`): `Promise`\<`Empty`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:47](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L47)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:47
 
 #### Parameters
 
@@ -136,7 +136,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:47](https://github.com
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:50](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L50)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:50
 
 #### Returns
 
@@ -148,7 +148,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:50](https://github.com
 
 > **consume**(`queue`, `callback`, `options?`): `Promise`\<`Consume`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L42)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:42
 
 #### Parameters
 
@@ -174,7 +174,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:42](https://github.com
 
 > **nack**(`message`, `allUpTo?`, `requeue?`): `void`
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:49](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L49)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:49
 
 #### Parameters
 
@@ -200,7 +200,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:49](https://github.com
 
 > **on**(`event`, `listener`): `this`
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L4)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:4
 
 #### Parameters
 
@@ -226,7 +226,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:4](https://github.com/
 
 > **once**(`event`, `listener`): `this`
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L5)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:5
 
 #### Parameters
 
@@ -252,7 +252,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:5](https://github.com/
 
 > **prefetch**(`count`, `global?`): `Promise`\<`Empty`\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:41](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L41)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:41
 
 #### Parameters
 
@@ -274,7 +274,7 @@ Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:41](https://github.com
 
 > **removeListener**(`event`, `listener`): `this`
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L6)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:6
 
 #### Parameters
 

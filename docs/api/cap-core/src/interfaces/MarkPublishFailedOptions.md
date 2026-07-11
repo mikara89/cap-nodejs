@@ -6,7 +6,7 @@
 
 # Interface: MarkPublishFailedOptions
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L19)
+Defined in: cap-core/src/ports/publish-storage.port.ts:19
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:19](https://github.com/m
 
 > **maxRetries**: `number`
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L20)
+Defined in: cap-core/src/ports/publish-storage.port.ts:20
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:20](https://github.com/m
 
 > **nextRetryAt**: `Date`
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L21)
+Defined in: cap-core/src/ports/publish-storage.port.ts:21
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [cap-core/src/ports/publish-storage.port.ts:21](https://github.com/m
 
 > **now**: `Date`
 
-Defined in: [cap-core/src/ports/publish-storage.port.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L22)
+Defined in: cap-core/src/ports/publish-storage.port.ts:22

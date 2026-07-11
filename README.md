@@ -23,9 +23,9 @@ contract foundation. The core messaging path, current first-party adapters,
 dashboard auth extension points, header propagation, and release workflow are
 implemented for the supported boundaries documented below.
 
-The root workspace package is private and its `2.4.0` version tracks repository
+The root workspace package is private and its `2.4.1` version tracks repository
 roadmap progress. It is not an npm package version and does not imply that all
-libraries are version `2.4.0`. Publishable packages live under `libs/*`, remain
+libraries are version `2.4.1`. Publishable packages live under `libs/*`, remain
 independently versioned by Lerna, and keep their current release baselines.
 Root-only milestone changes must produce zero Lerna package candidates.
 
@@ -75,7 +75,8 @@ v2.2 adds the transaction context foundation, transaction manager extension
 points, publish storage contract tests, and informational storage capability
 types. v2.3 extends storage contract coverage and adds Knex, TypeORM, and
 Prisma storage adapters. v2.4 delivers reusable transport conformance alongside
-RabbitMQ, Kafka, and AWS SNS/SQS transports.
+RabbitMQ, Kafka, and AWS SNS/SQS transports. v2.4.1 adds optional NestJS
+storage modules behind explicit adapter `/nest` entry points.
 
 ## Requirements
 
@@ -150,6 +151,34 @@ Client used by your application:
 ```sh
 npm install @mikara89/cap-storage-prisma @prisma/client
 ```
+
+## Optional NestJS Storage Modules
+
+The Knex, TypeORM, and Prisma package roots remain framework-neutral: they
+export concrete storage providers and can be wired into any application
+framework. Their optional NestJS modules are available only through explicit
+subpaths:
+
+- `@mikara89/cap-storage-knex/nest`
+- `@mikara89/cap-storage-typeorm/nest`
+- `@mikara89/cap-storage-prisma/nest`
+
+These modules bind the existing `PUBLISH_STORAGE` and `RECEIVED_STORAGE` CAP
+tokens to the concrete adapter providers. They reuse application-owned Knex,
+TypeORM, and Prisma clients; they do not own connection lifecycle. Knex and
+Prisma accept an explicit application provider token, while TypeORM uses the
+standard default or named `@nestjs/typeorm` `DataSource` token.
+
+Nest peer dependencies are needed only when importing a `/nest` subpath. See
+the adapter guides for complete registration examples:
+
+- [Knex NestJS usage](libs/cap-storage-knex/README.md#nestjs)
+- [TypeORM NestJS usage](libs/cap-storage-typeorm/README.md#nestjs)
+- [Prisma NestJS usage](libs/cap-storage-prisma/README.md#nestjs)
+
+Express has no equivalent adapter-specific wrapper convention. Construct the
+framework-neutral storage providers explicitly and pass them to the existing
+`@mikara89/cap-express` integration.
 
 For the optional Nest dashboard:
 

@@ -8,7 +8,7 @@
 
 > **RabbitMqConnectionFactory** = (`url`, `socketOptions?`) => `Promise`\<[`RabbitMqConnection`](../interfaces/RabbitMqConnection.md)\>
 
-Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L7)
+Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:7
 
 ## Parameters
 
