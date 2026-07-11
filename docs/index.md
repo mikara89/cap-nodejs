@@ -13,5 +13,6 @@ Key pages:
 - [Compile-checked examples](../examples/README.md), including framework-free
   Knex, TypeORM, and Prisma storage wiring
 - [Package export surface](package-exports.md)
+- [Legacy npm package names](legacy-packages.md)
 - [Roadmap](roadmap.md)
 - [API reference](api/README.md)

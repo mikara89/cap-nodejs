@@ -193,6 +193,9 @@ receives no new releases; historical package versions are not claimed to have
 been deleted. See the [npm release guide](docs/release.md) for bootstrap,
 normal release, token, and trusted-publishing procedures.
 
+See [legacy npm package names](docs/legacy-packages.md) when migrating from a
+deprecated `@cap/*` dependency.
+
 ## Basic Usage
 
 The smallest local setup uses the in-memory bundle:

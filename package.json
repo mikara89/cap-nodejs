@@ -30,7 +30,7 @@
     "graph:affected": "npx lerna ls --since=origin/main --all --json",
     "--------------------------------------------------------------------": "--- release ---",
     "release": "node tools/release-tool.js plan --operation release --channel stable --coordinated-major false",
-    "release:verify": "node tools/release-tool.js verify",
+    "release:verify": "node tools/release-tool.js verify && node tools/verify-legacy-package-names.js",
     "release:baseline": "node tools/release-tool.js baseline",
     "release:plan": "node tools/release-tool.js plan",
     "build:lib:cap-core": "cd libs/cap-core && tsc -p tsconfig.lib.json",
@@ -102,7 +102,9 @@
     "test:integration:db:postgres": "npm run generate:test-clients --workspace @mikara89/cap-storage-prisma && jest --testRegex=.*outbox-claim.* --testNamePattern=PostgreSQL --runInBand",
     "test:integration:db:mysql": "npm run generate:test-clients --workspace @mikara89/cap-storage-prisma && jest --testRegex=.*outbox-claim.* --testNamePattern=MySQL --runInBand",
     "test:integration": "jest --config ./apps/cap-test-app/test/jest-integration.json",
-    "test:release-tooling": "node --test tools/release-tool.test.js"
+    "test:release-tooling": "node --test tools/release-tool.test.js",
+    "verify:legacy-package-names": "node tools/verify-legacy-package-names.js",
+    "test:legacy-package-names": "node --test tools/verify-legacy-package-names.test.js"
   },
   "dependencies": {
     "@mikro-orm/better-sqlite": "^6.0.0",

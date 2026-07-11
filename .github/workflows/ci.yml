@@ -144,6 +144,8 @@ jobs:
         run: npm run lint:check
       - name: Verify Lerna release configuration
         run: npm run release:verify
+      - name: Verify deprecated package names are absent
+        run: npm run verify:legacy-package-names
       - name: Test release tooling
         run: npm run test:release-tooling
       - name: Fallow audit

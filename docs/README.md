@@ -27,14 +27,16 @@ framework adapters, and pluggable storage and transport adapters.
 11. [Roadmap](roadmap.md) - current package set and the v2.2, v2.3, v2.4, and
     v2.5+ ecosystem plan.
 12. [Release checklist](release.md) - validation and publishing safety.
-13. [Schema/API migration](migrations/0.7-to-1.0.md) - upgrade notes for
+13. [Legacy npm package names](legacy-packages.md) - mappings from deprecated
+    npm identities to current packages.
+14. [Schema/API migration](migrations/0.7-to-1.0.md) - upgrade notes for
     stable schema and API behavior.
-14. [Framework-agnostic core migration](migration/framework-agnostic-core.md) -
+15. [Framework-agnostic core migration](migration/framework-agnostic-core.md) -
     package rename and adapter split notes.
-15. [v2.2 transaction context migration](migration/v2.2-transaction-context.md) -
+16. [v2.2 transaction context migration](migration/v2.2-transaction-context.md) -
     operation-context foundation notes.
-16. [ADRs](adr/README.md) - durable architecture decisions.
-17. [Contributing](contributing.md) - local workflow, repo health checks, tests,
+17. [ADRs](adr/README.md) - durable architecture decisions.
+18. [Contributing](contributing.md) - local workflow, repo health checks, tests,
     coverage, and docs rules.
 
 ## Current Maturity
