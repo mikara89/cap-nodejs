@@ -80,7 +80,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22.14.0
+          node-version: 22.19.0
           cache: npm
 
       - name: Install npm with trusted publishing support
@@ -200,29 +200,49 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Configure temporary npm token when present
+      - name: Configure temporary npm token for bootstrap
         if: ${{ inputs.operation == 'bootstrap' }}
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if [[ -n "${NODE_AUTH_TOKEN:-}" ]]; then
-            umask 077
-            printf '%s\n' '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > "${RUNNER_TEMP}/npmrc"
-            echo "NPM_CONFIG_USERCONFIG=${RUNNER_TEMP}/npmrc" >> "${GITHUB_ENV}"
-            echo 'Temporary npm token authentication configured for bootstrap.'
-          else
-            echo 'No bootstrap token configured; npm OIDC trusted publishing must already be enabled.'
+          if [[ -z "${NODE_AUTH_TOKEN:-}" ]]; then
+            echo 'NPM_TOKEN is required for bootstrap publishing.' >&2
+            exit 1
           fi
 
-      - name: Use npm OIDC for non-bootstrap releases
-        if: ${{ inputs.operation != 'bootstrap' }}
-        run: echo 'Using npm trusted publishing; temporary npm tokens are bootstrap-only.'
+          umask 077
+          printf '%s\n' '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' \
+            > "${RUNNER_TEMP}/npmrc"
+
+          echo "NPM_CONFIG_USERCONFIG=${RUNNER_TEMP}/npmrc" >> "${GITHUB_ENV}"
+
+      - name: Verify bootstrap npm authentication
+        if: ${{ inputs.operation == 'bootstrap' }}
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [[ -z "${NODE_AUTH_TOKEN:-}" ]]; then
+            echo 'NPM_TOKEN is required for bootstrap publishing.' >&2
+            exit 1
+          fi
+
+          npm whoami --registry "${NPM_REGISTRY_URL}"
 
       - name: Build workspace for publish (resolves inter-package dist references)
         run: npm run build
 
-      - name: Execute approved Lerna plan
+      - name: Execute approved Lerna bootstrap plan
+        if: ${{ inputs.operation == 'bootstrap' }}
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          EXPECTED_HEAD_SHA: ${{ needs.validate.outputs.head_sha }}
+        run: node tools/release-tool.js execute --plan release-plan.generated.json
+
+      - name: Execute approved Lerna release plan with npm OIDC
+        if: ${{ inputs.operation != 'bootstrap' }}
         env:
           GH_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
           EXPECTED_HEAD_SHA: ${{ needs.validate.outputs.head_sha }}

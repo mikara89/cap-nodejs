@@ -1910,6 +1910,68 @@ test('sourceFilesChanged: bootstrap manifest/registry version mismatch fails clo
     );
   }));
 
+test('bootstrap execute step must receive NODE_AUTH_TOKEN; non-bootstrap must not', () => {
+  const workflowPath = path.join(
+    rootDir,
+    '.github',
+    'workflows',
+    'release.yml',
+  );
+  const workflow = fs.readFileSync(workflowPath, 'utf8');
+
+  // The bootstrap execute step must forward NODE_AUTH_TOKEN so npm can
+  // resolve the ${NODE_AUTH_TOKEN} placeholder in the temporary .npmrc.
+  const bootstrapExecutePattern =
+    /Execute approved Lerna bootstrap plan[\s\S]*?env:[\s\S]*?NODE_AUTH_TOKEN:\s*\$\{\{\s*secrets\.NPM_TOKEN\s*\}\}/;
+  assert.ok(
+    bootstrapExecutePattern.test(workflow),
+    'The "Execute approved Lerna bootstrap plan" step must include NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} in its env block',
+  );
+
+  // The non-bootstrap (OIDC) execute step must NOT leak NODE_AUTH_TOKEN.
+  const oidcExecuteBlock = workflow.match(
+    /Execute approved Lerna release plan with npm OIDC[\s\S]*?run:\s*node tools\/release-tool\.js execute/,
+  );
+  assert.ok(oidcExecuteBlock, 'Expected an OIDC execute step for non-bootstrap releases');
+  assert.ok(
+    !/NODE_AUTH_TOKEN/.test(oidcExecuteBlock[0]),
+    'The OIDC execute step must not include NODE_AUTH_TOKEN',
+  );
+
+  // The bootstrap config step must fail closed when the token is absent.
+  const configStepBlock = workflow.match(
+    /Configure temporary npm token for bootstrap[\s\S]*?run:\s*\|[\s\S]*?exit 1/,
+  );
+  assert.ok(
+    configStepBlock,
+    'The bootstrap config step must exit 1 when NPM_TOKEN is absent',
+  );
+
+  // The bootstrap verify step must fail closed when the token is absent.
+  const verifyStepBlock = workflow.match(
+    /Verify bootstrap npm authentication[\s\S]*?run:\s*\|[\s\S]*?exit 1/,
+  );
+  assert.ok(
+    verifyStepBlock,
+    'The bootstrap verify step must exit 1 when NPM_TOKEN is absent',
+  );
+
+  // The validate job must use the same Node version as the publish job.
+  const validateNodeVersion = workflow.match(
+    /jobs:[\s\S]*?validate:[\s\S]*?Setup Node[\s\S]*?node-version:\s*(\S+)/,
+  );
+  const publishNodeVersion = workflow.match(
+    /jobs:[\s\S]*?publish:[\s\S]*?Setup Node[\s\S]*?node-version:\s*(\S+)/,
+  );
+  assert.ok(validateNodeVersion, 'Could not find validate job node-version');
+  assert.ok(publishNodeVersion, 'Could not find publish job node-version');
+  assert.equal(
+    validateNodeVersion[1],
+    publishNodeVersion[1],
+    `Validate job node-version (${validateNodeVersion[1]}) must match publish job (${publishNodeVersion[1]})`,
+  );
+});
+
 test('head-anchored bootstrap tags HEAD, normal release selects zero, fix/feat/breaking each select one', () => {
   // — Setup: two packages, a depends on b with a compatible range —
   const cwd = createFixture([
