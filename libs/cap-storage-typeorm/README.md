@@ -55,6 +55,22 @@ const receivedStorage = new TypeOrmReceivedStorage(dataSource);
 Wire these instances to CAP through the `PUBLISH_STORAGE` and
 `RECEIVED_STORAGE` ports in your application framework.
 
+### NestJS
+
+Nest integration is available only from the explicit `/nest` subpath and uses
+the standard `@nestjs/typeorm` `DataSource` token:
+
+```ts
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmStorageModule } from '@mikara89/cap-storage-typeorm/nest';
+
+TypeOrmStorageModule.forRoot({ imports: [TypeOrmModule.forRoot(options)] });
+```
+
+Pass `dataSource: 'name'` for a named TypeORM data source. `forRootAsync`
+supports `imports`, `inject`, and `useFactory`, as well as `useClass` and
+`useExisting` option factories.
+
 ## Transactions
 
 `savePublish(event, ctx?)` is the primary transaction-aware API. The TypeORM

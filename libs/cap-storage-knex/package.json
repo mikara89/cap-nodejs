@@ -34,7 +34,10 @@
     "@mikara89/cap-core": "^2.2.0"
   },
   "peerDependencies": {
-    "knex": "^3.0.0"
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "knex": "^3.0.0",
+    "reflect-metadata": "^0.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -48,6 +51,24 @@
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./nest": {
+      "types": "./dist/nest/index.d.ts",
+      "require": "./dist/nest/index.js",
+      "default": "./dist/nest/index.js"
+    },
+    "./nest/*": {
+      "types": "./dist/nest/*.d.ts",
+      "require": "./dist/nest/*.js",
+      "default": "./dist/nest/*.js"
+    },
     "./package.json": "./package.json"
+  },
+  "peerDependenciesMeta": {
+    "@nestjs/common": {
+      "optional": true
+    },
+    "@nestjs/core": {
+      "optional": true
+    }
   }
 }

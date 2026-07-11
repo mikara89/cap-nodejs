@@ -52,6 +52,24 @@ const receivedStorage = new KnexReceivedStorage(knex);
 Wire these instances to CAP through the `PUBLISH_STORAGE` and
 `RECEIVED_STORAGE` ports in your application framework.
 
+### NestJS
+
+Nest integration is available only from the explicit `/nest` subpath. Supply
+the token exported by the module that owns your Knex instance:
+
+```ts
+import { KnexStorageModule } from '@mikara89/cap-storage-knex/nest';
+
+KnexStorageModule.forRoot({
+  imports: [DatabaseModule],
+  knexToken: APP_KNEX,
+});
+```
+
+`forRootAsync` supports `imports`, `inject`, and `useFactory`, as well as
+`useClass` and `useExisting` option factories. No third-party Knex Nest wrapper
+is required.
+
 ## Transactions
 
 `savePublish(event, ctx?)` is the primary transaction-aware API. CAP will pass

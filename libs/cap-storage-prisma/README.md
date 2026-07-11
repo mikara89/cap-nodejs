@@ -57,6 +57,26 @@ values. It does not use generated model delegates or require CAP models in the
 application schema. Table names are the only dynamic identifiers and are
 strictly validated before quoting.
 
+### NestJS
+
+Nest integration is available only from the explicit `/nest` subpath. Supply
+your application's actual Prisma client token; no provider class name is
+assumed:
+
+```ts
+import { PrismaStorageModule } from '@mikara89/cap-storage-prisma/nest';
+
+PrismaStorageModule.forRoot({
+  imports: [DatabaseModule],
+  clientToken: APP_DATABASE,
+  storageOptions: { provider: 'postgresql' },
+});
+```
+
+`forRootAsync` supports `imports`, `inject`, and `useFactory`, as well as
+`useClass` and `useExisting` option factories. No third-party Prisma Nest
+wrapper is required.
+
 ## Transactions
 
 The transaction context is `Prisma.TransactionClient`. Root operations use the

@@ -1,6 +1,6 @@
 {
   "name": "cap-nodejs",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "Framework-agnostic Node.js CAP reliable messaging packages.",
   "author": "",
   "homepage": "https://mikara89.github.io/cap-nodejs/",
@@ -71,6 +71,7 @@
     "pack:smoke:rabbitmq": "node tools/verify-rabbitmq-pack.js",
     "pack:smoke:kafka": "node tools/verify-kafka-pack.js",
     "pack:smoke:aws-sns-sqs": "node tools/verify-aws-sns-sqs-pack.js",
+    "pack:smoke:storage-nest": "node tools/verify-storage-nest-packs.js",
     "test:integration:servicebus": "node tools/run-servicebus-integration.js",
     "test:integration:rabbitmq": "jest --testRegex=rabbitmq\\.integration\\.spec\\.ts$ --runInBand",
     "test:integration:kafka": "jest --testRegex=kafka\\.integration\\.spec\\.ts$ --runInBand",
@@ -124,6 +125,7 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@nestjs/typeorm": "^11.0.3",
     "@swc/cli": "^0.8.1",
     "@swc/core": "^1.10.7",
     "@types/express": "^5.0.0",
