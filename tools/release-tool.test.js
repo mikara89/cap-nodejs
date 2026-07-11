@@ -350,7 +350,12 @@ function withFixture(specs, fn) {
   try {
     return fn(cwd);
   } finally {
-    fs.rmSync(cwd, { recursive: true, force: true });
+    fs.rmSync(cwd, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 100,
+    });
   }
 }
 
