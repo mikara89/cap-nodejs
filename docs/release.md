@@ -134,10 +134,10 @@ forces only stable-release dependents whose internal range would otherwise
 become invalid. A prerelease never pulls unchanged stable packages into beta or
 RC merely to widen their ranges. No-change requests succeed without publishing.
 
-Package changelog ownership is path-based, not scope-based. Before the Lerna
-publish step, the release tool produces a package section from Lerna's normal
-independent-version simulation and retains only commits that changed an
-artifact-significant path in that package. Lerna still calculates versions,
+Package changelog ownership is path-based, not scope-based. Lerna generates
+each independent package section from that package's changed paths, while the
+release tool validates every generated commit reference against the same
+artifact-significance policy. Lerna calculates versions, generates changelogs,
 creates tags, and publishes. This keeps valid package fixes, features,
 breaking-change notes, and package-owned reverts while excluding root and
 sibling-package commits. Existing published changelog sections are historical
@@ -163,7 +163,8 @@ ownership proof.
 Commit attribution to packages uses changed file paths, not Conventional Commit
 scopes.  A path is classified by the single `isArtifactSignificantPath` policy
 in `tools/release-tool.js`, which is also the classifier used by bootstrap
-artifact comparison, release-signal validation, and changelog sanitization.
+artifact comparison, release-signal validation, and generated-changelog
+validation.
 Paths are divided into three categories:
 
 - **Artifact-significant** (release-significant): runtime source, public

@@ -32,7 +32,6 @@ const {
   normalizePublishConfigForBootstrap,
   packageJsonSemanticallyChanged,
   packageTag,
-  preparePackageOwnedChangelogs,
   requiredDependents,
   recoveryCommand,
   sourceFilesChanged,
@@ -614,7 +613,7 @@ test('package ownership classifier distinguishes build inputs from test and docu
   }
 });
 
-test('prepared package changelog excludes root conventional commits and sibling commits', () =>
+test('Lerna-generated package changelog excludes root conventional commits and sibling commits', () =>
   withFixture(
     [
       { id: 'a', name: '@fixture/a', version: '1.0.0' },
@@ -627,16 +626,7 @@ test('prepared package changelog excludes root conventional commits and sibling 
       addCommit(cwd, 'a', 'fix(a): correct package behavior');
       addCommit(cwd, 'b', 'feat(b): add sibling behavior');
 
-      const commandSpec = buildReleaseCommand({ operation: 'release', channel: 'stable' });
-      preparePackageOwnedChangelogs(
-        commandSpec.args,
-        [
-          { name: '@fixture/a', oldVersion: '1.0.0', newVersion: '1.0.1' },
-          { name: '@fixture/b', oldVersion: '1.0.0', newVersion: '1.1.0' },
-        ],
-        cwd,
-        { dependencyRoot: rootDir, fixture: true },
-      );
+      runVersion(cwd, ['--conventional-commits']);
 
       const changelog = fs.readFileSync(path.join(cwd, 'libs', 'a', 'CHANGELOG.md'), 'utf8');
       assert.match(changelog, /correct package behavior/);
@@ -2427,7 +2417,7 @@ test('root-only revert produces zero package candidates', () =>
     },
   ));
 
-test('prepared package changelog includes own fix, feat, breaking, and revert entries', () =>
+test('Lerna-generated package changelog includes own fix, feat, breaking, and revert entries', () =>
   withFixture(
     [
       { id: 'a', name: '@fixture/a', version: '1.0.0' },
@@ -2453,16 +2443,8 @@ test('prepared package changelog includes own fix, feat, breaking, and revert en
         cwd,
       );
 
-      const commandSpec = buildReleaseCommand({ operation: 'release', channel: 'stable' });
       // The breaking feat(a)!: commit produces a major bump to 2.0.0.
-      preparePackageOwnedChangelogs(
-        commandSpec.args,
-        [
-          { name: '@fixture/a', oldVersion: '1.0.0', newVersion: '2.0.0' },
-        ],
-        cwd,
-        { dependencyRoot: rootDir, fixture: true },
-      );
+      runVersion(cwd, ['--conventional-commits']);
 
       const changelog = fs.readFileSync(path.join(cwd, 'libs', 'a', 'CHANGELOG.md'), 'utf8');
       assert.match(changelog, /correct behavior/);

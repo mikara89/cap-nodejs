@@ -303,27 +303,6 @@ function commitSubject(sha, cwd = rootDir) {
   return run('git', ['show', '-s', '--format=%s', sha], { cwd }).stdout.trim();
 }
 
-function sanitizeGeneratedChangelogs(cwd, beforeState) {
-  for (const pkg of discoverPackages(cwd)) {
-    const before = beforeState.get(pkg.name);
-    if (!before || before.version === pkg.version) continue;
-    const changelogPath = path.join(pkg.dir, 'CHANGELOG.md');
-    const changelog = readPackageChangelog(pkg);
-    const section = changelogSection(changelog, pkg.version);
-    if (!section) continue;
-    const clean = section.text.replace(
-      /^.*\/commit\/([0-9a-f]{7,40}).*$(?:\r?\n)?/gimu,
-      (line, sha) => packageOwnsCommit(pkg, sha, cwd) ? line : '',
-    );
-    if (clean !== section.text) {
-      fs.writeFileSync(
-        changelogPath,
-        `${changelog.slice(0, section.start)}${clean}${changelog.slice(section.end)}`,
-      );
-    }
-  }
-}
-
 function validateGeneratedState(cwd, beforeState) {
   for (const pkg of discoverPackages(cwd)) {
     const before = beforeState.get(pkg.name);
@@ -961,9 +940,6 @@ function coordinatedTagCommit(
 function commonPublishArgs(distTag) {
   return [
     '--conventional-commits',
-    // The release tool prepares path-owned changelogs immediately before
-    // publishing; Lerna remains the version, tag, and publish authority.
-    '--no-changelog',
     '--create-release',
     'github',
     '--yes',
@@ -1033,8 +1009,6 @@ function versionArgsFromPublish(publishArgs) {
       continue;
     }
     if (value === 'from-package' || value === 'from-git') continue;
-    // Simulations generate sections so they can be filtered and validated.
-    if (value === '--no-changelog') continue;
     result.push(value);
   }
   result.push('--no-git-tag-version', '--no-push', '--ignore-scripts');
@@ -1067,7 +1041,6 @@ function simulateLernaVersions(publishArgs, cwd = rootDir, options = {}) {
     const combined = [result.stdout, result.stderr].filter(Boolean).join('\n');
     if (result.status !== 0)
       fail(`Lerna plan simulation failed.\n${combined.trim()}`);
-    sanitizeGeneratedChangelogs(clone, beforeState);
     (options.validatePostVersionState || validatePostVersionState)(clone, {
       dependencyRoot: options.dependencyRoot || cwd,
       beforeState,
@@ -1082,44 +1055,6 @@ function simulateLernaVersions(publishArgs, cwd = rootDir, options = {}) {
         tag: packageTag(pkg.name, pkg.version),
         githubRelease: packageTag(pkg.name, pkg.version),
       }));
-  } finally {
-    fs.rmSync(tempRoot, { recursive: true, force: true });
-  }
-}
-
-function preparePackageOwnedChangelogs(publishArgs, expectedPackages, cwd = rootDir, options = {}) {
-  const { tempRoot, clone } = cloneForSimulation(cwd);
-  try {
-    const beforeState = snapshotGeneratedState(clone);
-    const result = run(process.execPath, [lernaCli, ...versionArgsFromPublish(publishArgs)], {
-      cwd: clone,
-      env: { CI: 'true', GH_TOKEN: '' },
-      allowFailure: true,
-    });
-    const combined = [result.stdout, result.stderr].filter(Boolean).join('\n');
-    if (result.status !== 0) {
-      fail(`Lerna changelog preparation failed.\n${combined.trim()}`);
-    }
-    sanitizeGeneratedChangelogs(clone, beforeState);
-    validatePostVersionState(clone, {
-      dependencyRoot: options.dependencyRoot || cwd,
-      fixture: options.fixture,
-      beforeState,
-    });
-    const planned = discoverPackages(clone)
-      .filter((pkg) => beforeState.get(pkg.name)?.version !== pkg.version)
-      .map((pkg) => ({
-        name: pkg.name,
-        oldVersion: beforeState.get(pkg.name).version,
-        newVersion: pkg.version,
-      }));
-    assertSimulatedPlanMatches({ packages: expectedPackages }, planned);
-    for (const pkg of discoverPackages(clone)) {
-      if (beforeState.get(pkg.name)?.version === pkg.version) continue;
-      const source = path.join(pkg.dir, 'CHANGELOG.md');
-      const target = path.join(cwd, pkg.relativeDir, 'CHANGELOG.md');
-      if (fs.existsSync(source)) fs.copyFileSync(source, target);
-    }
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   }
@@ -1699,12 +1634,6 @@ async function executePlan(plan, options = {}) {
       },
     );
     assertSimulatedPlanMatches(plan, simulated);
-    (options.prepareChangelogs || preparePackageOwnedChangelogs)(
-      plan.command.args,
-      plan.packages,
-      cwd,
-      { dependencyRoot: options.dependencyRoot || cwd },
-    );
   }
   if (plan.inputs.operation === 'bootstrap') {
     if (options.checkRemote !== false) {
@@ -1902,7 +1831,6 @@ module.exports = {
   registry,
   sourceFilesChanged,
   simulateLernaVersions,
-  preparePackageOwnedChangelogs,
   normalizePackageForBootstrap,
   normalizePublishConfigForBootstrap,
   normalizeDevDepFileRefs,
