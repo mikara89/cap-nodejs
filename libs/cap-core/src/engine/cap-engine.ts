@@ -244,6 +244,16 @@ export class CapEngine {
    */
   startSubscriptions(): Promise<void> {
     if (this.lifecycle === 'ready') return Promise.resolve();
+
+    // If a stop is in progress, await it first so we begin a fresh
+    // startup rather than returning a stale pre-stop promise.
+    if (this.lifecycle === 'stopping' && this.stopPromise) {
+      return this.stopPromise.then(
+        () => this.startSubscriptions(),
+        () => this.startSubscriptions(),
+      );
+    }
+
     if (this.startPromise) return this.startPromise;
 
     this.stopRequested = false;

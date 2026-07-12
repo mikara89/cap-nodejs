@@ -310,12 +310,11 @@ describe('createCapExpress', () => {
 
     void cap.subscribe('t', 'g', jest.fn());
 
-    // First start fails — ready rejects, but start() itself swallows the
-    // rejection so it doesn't produce an unhandled rejection.
-    await cap.start();
+    // First start fails — both start() and ready reject.
+    await expect(cap.start()).rejects.toThrow('first start failed');
     await expect(cap.ready).rejects.toThrow('first start failed');
 
-    // Retry succeeds — ready should resolve.
+    // Retry succeeds — both start() and ready resolve.
     await cap.start();
     await expect(cap.ready).resolves.toBeUndefined();
 
@@ -349,7 +348,7 @@ describe('createCapExpress', () => {
     await cap.stop();
   });
 
-  it('concurrent start calls expose the same readiness operation', async () => {
+  it('concurrent start calls both resolve together', async () => {
     const cap = createCapExpress({
       publishStorage: new InMemoryPublishStorage(),
       receivedStorage: new InMemoryReceivedStorage(),
@@ -361,12 +360,87 @@ describe('createCapExpress', () => {
     const p2 = cap.start();
 
     await Promise.all([p1, p2]);
-
-    // Both should resolve readiness.
     await expect(cap.ready).resolves.toBeUndefined();
     expect(cap.schedulerRunning).toBe(true);
 
     await cap.stop();
+  });
+
+  it('concurrent start calls initialize adapters exactly once', async () => {
+    const publishStorage = withInitializer(new InMemoryPublishStorage());
+    const cap = createCapExpress({
+      publishStorage,
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+      init: { autoInit: true },
+    });
+
+    await Promise.all([cap.start(), cap.start()]);
+
+    expect(publishStorage.initialize).toHaveBeenCalledTimes(1);
+
+    await cap.stop();
+  });
+
+  it('start() rejects when adapter initialization fails', async () => {
+    const error = new Error('adapter init failed');
+    const publishStorage = withInitializer(new InMemoryPublishStorage(), () =>
+      Promise.reject(error),
+    );
+    const cap = createCapExpress({
+      publishStorage,
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+      init: { autoInit: true },
+    });
+
+    await expect(cap.start()).rejects.toThrow('adapter init failed');
+    await expect(cap.ready).rejects.toThrow('adapter init failed');
+    expect(cap.schedulerRunning).toBe(false);
+  });
+
+  it('ready reflects current start outcome', async () => {
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+    });
+
+    // Before start, ready is pending.
+    let resolved = false;
+    void cap.ready.then(() => {
+      resolved = true;
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+
+    // After start, the current ready resolves.
+    await cap.start();
+    await expect(cap.ready).resolves.toBeUndefined();
+
+    await cap.stop();
+  });
+
+  it('ready reflects current failure', async () => {
+    const error = new Error('init failed');
+    const publishStorage = withInitializer(new InMemoryPublishStorage(), () =>
+      Promise.reject(error),
+    );
+    const cap = createCapExpress({
+      publishStorage,
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+      init: { autoInit: true },
+    });
+
+    // start() rejects and ready rejects with the same error.
+    await expect(cap.start()).rejects.toThrow('init failed');
+    await expect(cap.ready).rejects.toThrow('init failed');
   });
 });
 

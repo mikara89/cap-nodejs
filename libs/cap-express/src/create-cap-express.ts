@@ -98,8 +98,9 @@ export function createCapExpress(
   let started = false;
   let initialized = false;
   let startPromise: Promise<void> | undefined;
-  let readyDeferred = deferred<void>();
-  let readyPromise: Promise<void> = readyDeferred.promise;
+  let readyPromise: Promise<void> = new Promise<void>(() => {
+    // Never settles until the first start().
+  });
 
   const app: CapExpressApp = {
     engine,
@@ -123,8 +124,11 @@ export function createCapExpress(
       if (started) {
         return;
       }
+      if (startPromise) {
+        return startPromise;
+      }
 
-      // Track this start attempt as the current readiness operation.
+      // Build the startup operation and share it with concurrent callers.
       const thisStart = (async () => {
         // 1. Initialize adapters.
         if (!initialized) {
@@ -141,16 +145,14 @@ export function createCapExpress(
       startPromise = thisStart;
       readyPromise = thisStart;
 
-      // Prevent unhandled rejections for callers that ignore `ready`.
+      // Safety catch — prevents unhandled rejections for callers
+      // that ignore `ready` or call start() via `void`.
       thisStart.catch((error: unknown) => {
         options.logger?.error?.('CAP Express start failed', error);
       });
 
       try {
         await thisStart;
-      } catch {
-        // Rejection already observed; swallow so start() itself doesn't
-        // produce an unhandled rejection when called via `void app.start()`.
       } finally {
         if (startPromise === thisStart) {
           startPromise = undefined;
@@ -174,8 +176,9 @@ export function createCapExpress(
       initialized = false;
 
       // Reset readiness for the next start.
-      readyDeferred = deferred<void>();
-      readyPromise = readyDeferred.promise;
+      readyPromise = new Promise<void>(() => {
+        // Never settles until the next start().
+      });
     },
     healthRouter: () => createCapHealthRouter(app),
     get schedulerRunning() {
@@ -185,25 +188,14 @@ export function createCapExpress(
   };
 
   if (options.autoStart) {
-    // autoStart uses the same readiness tracking path.
-    void app.start();
+    // autoStart uses the same readiness tracking path but must internally
+    // observe the rejection so it never produces an unhandled rejection.
+    app.start().catch(() => {
+      // Already logged by the internal observer in start().
+    });
   }
 
   return app;
-}
-
-function deferred<T>(): {
-  promise: Promise<T>;
-  resolve: (value: T | PromiseLike<T>) => void;
-  reject: (reason?: unknown) => void;
-} {
-  let resolve!: (value: T | PromiseLike<T>) => void;
-  let reject!: (reason?: unknown) => void;
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
 }
 
 async function initializeAdapters(

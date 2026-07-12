@@ -478,6 +478,36 @@ describe('CapEngine subscription lifecycle', () => {
     expect(snap.state).toBe('stopped');
   });
 
+  it('start during active stop awaits stop then begins fresh start', async () => {
+    const engine = createEngine();
+    engine.registerSubscription('t1', 'g1', jest.fn());
+
+    // Start a stop but defer the close so stop is in progress.
+    const { promise: closeBlocker, resolve: releaseClose } = deferred<void>();
+    subscriber.closePromise = closeBlocker;
+
+    await engine.startSubscriptions();
+    const stopPromise = engine.stopSubscriptions();
+
+    // Wait until stop is in progress (lifecycle should be 'stopping').
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // Now request a start while stop is still in progress.
+    const startPromise = engine.startSubscriptions();
+
+    // Release the close so stop can complete.
+    releaseClose();
+    await stopPromise;
+
+    // The start request should have waited for stop, then begun fresh.
+    await startPromise;
+
+    const snap = engine.getSubscriptionLifecycle();
+    expect(snap.state).toBe('ready');
+    expect(snap.attachedCount).toBe(1);
+  });
+
   // -----------------------------------------------------------------------
   // Immediate subscribe produces truthful lifecycle state
   // -----------------------------------------------------------------------
@@ -685,6 +715,7 @@ class LifecycleFakeSubscriber implements SubscriberPort {
   closeCalled = false;
   closeCallCount = 0;
   closeError?: Error;
+  closePromise?: Promise<void>;
 
   async consume(
     topic: string,
@@ -708,6 +739,9 @@ class LifecycleFakeSubscriber implements SubscriberPort {
   async close(): Promise<void> {
     this.closeCalled = true;
     this.closeCallCount++;
+    if (this.closePromise) {
+      await this.closePromise;
+    }
     if (this.closeError) {
       throw this.closeError;
     }
