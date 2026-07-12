@@ -6,7 +6,7 @@
 
 # Interface: CapReceivedEvent\<T\>
 
-Defined in: cap-core/src/models/cap-received-event.ts:14
+Defined in: [cap-core/src/models/cap-received-event.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-received-event.ts#L14)
 
 Message as observed on the subscriber side, after inbox persistence.
 
@@ -26,7 +26,7 @@ Message as observed on the subscriber side, after inbox persistence.
 
 > **dedupeKey**: `string`
 
-Defined in: cap-core/src/models/cap-received-event.ts:22
+Defined in: [cap-core/src/models/cap-received-event.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-received-event.ts#L22)
 
 Stable dedupe key; defaults to `${topic}|${group}|${messageId}`.
 
@@ -36,7 +36,7 @@ Stable dedupe key; defaults to `${topic}|${group}|${messageId}`.
 
 > **group**: `string`
 
-Defined in: cap-core/src/models/cap-received-event.ts:16
+Defined in: [cap-core/src/models/cap-received-event.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-received-event.ts#L16)
 
 Consumer group or queue that received the delivery.
 
@@ -46,7 +46,7 @@ Consumer group or queue that received the delivery.
 
 > `optional` **headers?**: [`CapHeaders`](../type-aliases/CapHeaders.md)
 
-Defined in: cap-core/src/models/cap-base-message.ts:21
+Defined in: [cap-core/src/models/cap-base-message.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-base-message.ts#L21)
 
 Optional key/value headers such as trace-id or saga-id.
 
@@ -60,7 +60,7 @@ Optional key/value headers such as trace-id or saga-id.
 
 > **id**: `string`
 
-Defined in: cap-core/src/models/cap-base-message.ts:9
+Defined in: [cap-core/src/models/cap-base-message.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-base-message.ts#L9)
 
 Globally unique ID (UUID v4 recommended).
 
@@ -74,7 +74,7 @@ Globally unique ID (UUID v4 recommended).
 
 > `optional` **lastError?**: `string` \| `null`
 
-Defined in: cap-core/src/models/cap-received-event.ts:34
+Defined in: [cap-core/src/models/cap-received-event.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-received-event.ts#L34)
 
 Last handler error message, if processing failed.
 
@@ -84,7 +84,7 @@ Last handler error message, if processing failed.
 
 > **messageId**: `string`
 
-Defined in: cap-core/src/models/cap-received-event.ts:19
+Defined in: [cap-core/src/models/cap-received-event.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-received-event.ts#L19)
 
 Broker/source message id used for inbox deduplication.
 
@@ -94,7 +94,7 @@ Broker/source message id used for inbox deduplication.
 
 > **nextRetry**: `Date` \| `null`
 
-Defined in: cap-core/src/models/cap-received-event.ts:43
+Defined in: [cap-core/src/models/cap-received-event.ts:43](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-received-event.ts#L43)
 
 When this message becomes eligible for the next retry.
 null means the first attempt is still pending or the message is terminal.
@@ -105,7 +105,7 @@ null means the first attempt is still pending or the message is terminal.
 
 > **occurredAt**: `string`
 
-Defined in: cap-core/src/models/cap-base-message.ts:15
+Defined in: [cap-core/src/models/cap-base-message.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-base-message.ts#L15)
 
 UTC ISO string set by publisher, not the DB timestamp.
 
@@ -119,7 +119,7 @@ UTC ISO string set by publisher, not the DB timestamp.
 
 > **payload**: `T`
 
-Defined in: cap-core/src/models/cap-base-message.ts:18
+Defined in: [cap-core/src/models/cap-base-message.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-base-message.ts#L18)
 
 User-defined payload. Keep it serializable.
 
@@ -133,7 +133,7 @@ User-defined payload. Keep it serializable.
 
 > **processed**: `boolean`
 
-Defined in: cap-core/src/models/cap-received-event.ts:31
+Defined in: [cap-core/src/models/cap-received-event.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-received-event.ts#L31)
 
 True when handler completed successfully.
 
@@ -143,7 +143,7 @@ True when handler completed successfully.
 
 > `optional` **processedAt?**: `Date` \| `null`
 
-Defined in: cap-core/src/models/cap-received-event.ts:37
+Defined in: [cap-core/src/models/cap-received-event.ts:37](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-received-event.ts#L37)
 
 When the handler completed successfully.
 
@@ -153,7 +153,7 @@ When the handler completed successfully.
 
 > **retryCount**: `number`
 
-Defined in: cap-core/src/models/cap-received-event.ts:25
+Defined in: [cap-core/src/models/cap-received-event.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-received-event.ts#L25)
 
 How many handler attempts so far.
 
@@ -163,7 +163,7 @@ How many handler attempts so far.
 
 > **status**: [`CapReceivedStatus`](../type-aliases/CapReceivedStatus.md)
 
-Defined in: cap-core/src/models/cap-received-event.ts:28
+Defined in: [cap-core/src/models/cap-received-event.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-received-event.ts#L28)
 
 Current inbox processing state.
 
@@ -173,7 +173,7 @@ Current inbox processing state.
 
 > **topic**: `string`
 
-Defined in: cap-core/src/models/cap-base-message.ts:12
+Defined in: [cap-core/src/models/cap-base-message.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-base-message.ts#L12)
 
 Logical topic / exchange name, e.g. `user.created`.
 

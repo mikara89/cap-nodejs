@@ -8,7 +8,7 @@
 
 > **createCapHealthRouter**(`cap`): `Router`
 
-Defined in: cap-express/src/cap-health-router.ts:4
+Defined in: [cap-express/src/cap-health-router.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/cap-health-router.ts#L4)
 
 ## Parameters
 

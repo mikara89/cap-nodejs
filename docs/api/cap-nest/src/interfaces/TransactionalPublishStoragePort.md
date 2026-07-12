@@ -6,7 +6,7 @@
 
 # Interface: TransactionalPublishStoragePort\<TTx\>
 
-Defined in: cap-core/dist/ports/publish-storage.port.d.ts:28
+Defined in: cap-core/dist/ports/publish-storage.port.d.ts:39
 
 ## Extends
 
@@ -24,7 +24,7 @@ Defined in: cap-core/dist/ports/publish-storage.port.d.ts:28
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-core/dist/ports/publish-storage.port.d.ts:21
+Defined in: cap-core/dist/ports/publish-storage.port.d.ts:31
 
 #### Parameters
 
@@ -46,7 +46,7 @@ Defined in: cap-core/dist/ports/publish-storage.port.d.ts:21
 
 > `optional` **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-core/dist/ports/publish-storage.port.d.ts:25
+Defined in: cap-core/dist/ports/publish-storage.port.d.ts:36
 
 #### Parameters
 
@@ -68,7 +68,7 @@ Defined in: cap-core/dist/ports/publish-storage.port.d.ts:25
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-core/dist/ports/publish-storage.port.d.ts:20
+Defined in: cap-core/dist/ports/publish-storage.port.d.ts:30
 
 #### Parameters
 
@@ -90,7 +90,7 @@ Defined in: cap-core/dist/ports/publish-storage.port.d.ts:20
 
 > `optional` **listPublish**(`options`): `Promise`\<[`DashboardListResult`](DashboardListResult.md)\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>\>\>
 
-Defined in: cap-core/dist/ports/publish-storage.port.d.ts:26
+Defined in: cap-core/dist/ports/publish-storage.port.d.ts:37
 
 #### Parameters
 
@@ -110,9 +110,9 @@ Defined in: cap-core/dist/ports/publish-storage.port.d.ts:26
 
 ### markPublished()
 
-> **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
+> **markPublished**(`id`, `publishedAt?`, `ownership?`): `Promise`\<`boolean` \| `void`\>
 
-Defined in: cap-core/dist/ports/publish-storage.port.d.ts:22
+Defined in: cap-core/dist/ports/publish-storage.port.d.ts:32
 
 #### Parameters
 
@@ -124,9 +124,13 @@ Defined in: cap-core/dist/ports/publish-storage.port.d.ts:22
 
 `Date`
 
+##### ownership?
+
+`PublishClaimOwnership`
+
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean` \| `void`\>
 
 #### Inherited from
 
@@ -136,9 +140,9 @@ Defined in: cap-core/dist/ports/publish-storage.port.d.ts:22
 
 ### markPublishFailed()
 
-> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
+> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`boolean` \| `void`\>
 
-Defined in: cap-core/dist/ports/publish-storage.port.d.ts:23
+Defined in: cap-core/dist/ports/publish-storage.port.d.ts:33
 
 #### Parameters
 
@@ -156,7 +160,7 @@ Defined in: cap-core/dist/ports/publish-storage.port.d.ts:23
 
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean` \| `void`\>
 
 #### Inherited from
 
@@ -168,7 +172,7 @@ Defined in: cap-core/dist/ports/publish-storage.port.d.ts:23
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: cap-core/dist/ports/publish-storage.port.d.ts:24
+Defined in: cap-core/dist/ports/publish-storage.port.d.ts:35
 
 #### Parameters
 
@@ -186,11 +190,33 @@ Defined in: cap-core/dist/ports/publish-storage.port.d.ts:24
 
 ***
 
+### renewPublishClaim()?
+
+> `optional` **renewPublishClaim**(`options`): `Promise`\<`boolean`\>
+
+Defined in: cap-core/dist/ports/publish-storage.port.d.ts:34
+
+#### Parameters
+
+##### options
+
+`RenewPublishClaimOptions`
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+#### Inherited from
+
+[`PublishStoragePort`](PublishStoragePort.md).[`renewPublishClaim`](PublishStoragePort.md#renewpublishclaim)
+
+***
+
 ### savePublish()
 
 > **savePublish**\<`T`\>(`event`, `ctx?`): `Promise`\<`string`\>
 
-Defined in: cap-core/dist/ports/publish-storage.port.d.ts:19
+Defined in: cap-core/dist/ports/publish-storage.port.d.ts:29
 
 #### Type Parameters
 
@@ -222,7 +248,7 @@ Defined in: cap-core/dist/ports/publish-storage.port.d.ts:19
 
 > **savePublishWithTx**\<`T`\>(`event`, `tx`): `Promise`\<`string`\>
 
-Defined in: cap-core/dist/ports/publish-storage.port.d.ts:29
+Defined in: cap-core/dist/ports/publish-storage.port.d.ts:40
 
 #### Type Parameters
 

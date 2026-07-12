@@ -6,7 +6,7 @@
 
 # Class: RabbitMqMalformedMessageError
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-errors.ts:15
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-errors.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-errors.ts#L15)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-errors.ts:15
 
 > **new RabbitMqMalformedMessageError**(`message`): `RabbitMqMalformedMessageError`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-errors.ts:16
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-errors.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-errors.ts#L16)
 
 #### Parameters
 

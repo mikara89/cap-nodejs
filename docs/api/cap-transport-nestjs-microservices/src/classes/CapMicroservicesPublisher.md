@@ -6,7 +6,7 @@
 
 # Class: CapMicroservicesPublisher
 
-Defined in: cap-transport-nestjs-microservices/src/cap-microservices-publisher.ts:17
+Defined in: [cap-transport-nestjs-microservices/src/cap-microservices-publisher.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-nestjs-microservices/src/cap-microservices-publisher.ts#L17)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: cap-transport-nestjs-microservices/src/cap-microservices-publisher.t
 
 > **new CapMicroservicesPublisher**(`client`, `config`): `CapMicroservicesPublisher`
 
-Defined in: cap-transport-nestjs-microservices/src/cap-microservices-publisher.ts:18
+Defined in: [cap-transport-nestjs-microservices/src/cap-microservices-publisher.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-nestjs-microservices/src/cap-microservices-publisher.ts#L18)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: cap-transport-nestjs-microservices/src/cap-microservices-publisher.t
 
 > **emit**(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: cap-transport-nestjs-microservices/src/cap-microservices-publisher.ts:25
+Defined in: [cap-transport-nestjs-microservices/src/cap-microservices-publisher.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-nestjs-microservices/src/cap-microservices-publisher.ts#L25)
 
 #### Parameters
 

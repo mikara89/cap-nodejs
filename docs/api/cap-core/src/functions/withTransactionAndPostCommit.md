@@ -8,7 +8,7 @@
 
 > **withTransactionAndPostCommit**\<`T`, `Item`, `Tx`\>(`runnerOrOrm`, `transactionalFn`, `afterCommitFn`): `Promise`\<`T`\>
 
-Defined in: cap-core/src/utils/transaction.util.ts:9
+Defined in: [cap-core/src/utils/transaction.util.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/utils/transaction.util.ts#L9)
 
 Helper that runs a transactional function and then executes an after-commit
 callback with items that were queued during the transaction.

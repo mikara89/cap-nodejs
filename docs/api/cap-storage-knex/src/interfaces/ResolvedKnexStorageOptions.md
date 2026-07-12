@@ -6,7 +6,7 @@
 
 # Interface: ResolvedKnexStorageOptions
 
-Defined in: cap-storage-knex/src/knex-storage-options.ts:8
+Defined in: [cap-storage-knex/src/knex-storage-options.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-storage-options.ts#L8)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-storage-knex/src/knex-storage-options.ts:8
 
 > **publishTableName**: `string`
 
-Defined in: cap-storage-knex/src/knex-storage-options.ts:9
+Defined in: [cap-storage-knex/src/knex-storage-options.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-storage-options.ts#L9)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: cap-storage-knex/src/knex-storage-options.ts:9
 
 > **receivedTableName**: `string`
 
-Defined in: cap-storage-knex/src/knex-storage-options.ts:10
+Defined in: [cap-storage-knex/src/knex-storage-options.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-storage-options.ts#L10)

@@ -6,7 +6,7 @@
 
 # Interface: DashboardListResult\<T\>
 
-Defined in: cap-core/src/ports/dashboard-list.port.ts:9
+Defined in: [cap-core/src/ports/dashboard-list.port.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/dashboard-list.port.ts#L9)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: cap-core/src/ports/dashboard-list.port.ts:9
 
 > **items**: `T`[]
 
-Defined in: cap-core/src/ports/dashboard-list.port.ts:10
+Defined in: [cap-core/src/ports/dashboard-list.port.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/dashboard-list.port.ts#L10)
 
 ***
 
@@ -28,4 +28,4 @@ Defined in: cap-core/src/ports/dashboard-list.port.ts:10
 
 > `optional` **total?**: `number`
 
-Defined in: cap-core/src/ports/dashboard-list.port.ts:11
+Defined in: [cap-core/src/ports/dashboard-list.port.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/dashboard-list.port.ts#L11)

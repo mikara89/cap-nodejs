@@ -6,7 +6,7 @@
 
 # Interface: CapDeliveryMetadata
 
-Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:15
+Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L15)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:15
 
 > `optional` **dedupeKey?**: `string`
 
-Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:17
+Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L17)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:17
 
 > `optional` **messageId?**: `string`
 
-Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:16
+Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L16)

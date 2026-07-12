@@ -8,4 +8,4 @@
 
 > **RabbitMqPublishOptions** = `Options.Publish`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:62
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:62](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L62)

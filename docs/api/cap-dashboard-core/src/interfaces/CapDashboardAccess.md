@@ -6,7 +6,7 @@
 
 # Interface: CapDashboardAccess
 
-Defined in: cap-dashboard-core/src/dashboard-auth.ts:17
+Defined in: [cap-dashboard-core/src/dashboard-auth.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-auth.ts#L17)
 
 ## Extended by
 
@@ -18,7 +18,7 @@ Defined in: cap-dashboard-core/src/dashboard-auth.ts:17
 
 > **action**: [`CapDashboardAction`](../type-aliases/CapDashboardAction.md)
 
-Defined in: cap-dashboard-core/src/dashboard-auth.ts:18
+Defined in: [cap-dashboard-core/src/dashboard-auth.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-auth.ts#L18)
 
 ***
 
@@ -26,4 +26,4 @@ Defined in: cap-dashboard-core/src/dashboard-auth.ts:18
 
 > **permission**: [`CapDashboardPermission`](../type-aliases/CapDashboardPermission.md)
 
-Defined in: cap-dashboard-core/src/dashboard-auth.ts:19
+Defined in: [cap-dashboard-core/src/dashboard-auth.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-auth.ts#L19)

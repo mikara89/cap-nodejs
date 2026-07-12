@@ -8,7 +8,7 @@
 
 > **expJitter**(`attempt`, `baseMs?`, `maxMs?`): `number`
 
-Defined in: cap-core/src/engine/backoff.ts:1
+Defined in: [cap-core/src/engine/backoff.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/backoff.ts#L1)
 
 ## Parameters
 

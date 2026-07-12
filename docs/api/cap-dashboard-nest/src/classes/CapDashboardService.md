@@ -6,7 +6,7 @@
 
 # Class: CapDashboardService
 
-Defined in: cap-dashboard-nest/src/cap-dashboard.service.ts:32
+Defined in: [cap-dashboard-nest/src/cap-dashboard.service.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.service.ts#L32)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: cap-dashboard-nest/src/cap-dashboard.service.ts:32
 
 > **new CapDashboardService**(`publishStorage`, `receivedStorage`, `capService?`, `publisher?`, `options?`, `schedulerOptions?`): `CapDashboardService`
 
-Defined in: cap-dashboard-nest/src/cap-dashboard.service.ts:33
+Defined in: [cap-dashboard-nest/src/cap-dashboard.service.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.service.ts#L33)
 
 #### Parameters
 

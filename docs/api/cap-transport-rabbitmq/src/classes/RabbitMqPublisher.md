@@ -6,7 +6,7 @@
 
 # Class: RabbitMqPublisher
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-publisher.ts:27
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-publisher.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-publisher.ts#L27)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-publisher.ts:27
 
 > **new RabbitMqPublisher**(`options?`): `RabbitMqPublisher`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-publisher.ts:65
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-publisher.ts:65](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-publisher.ts#L65)
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-publisher.ts:65
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-publisher.ts:113
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-publisher.ts:113](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-publisher.ts#L113)
 
 #### Returns
 
@@ -48,7 +48,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-publisher.ts:113
 
 > **emit**(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-publisher.ts:83
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-publisher.ts:83](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-publisher.ts#L83)
 
 #### Parameters
 
@@ -82,7 +82,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-publisher.ts:83
 
 > **initialize**(`_options?`): `Promise`\<`void`\>
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-publisher.ts:69
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-publisher.ts:69](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-publisher.ts#L69)
 
 #### Parameters
 

@@ -6,7 +6,7 @@
 
 # Class: KnexStorageModule
 
-Defined in: cap-storage-knex/src/nest/knex-storage.module.ts:42
+Defined in: [cap-storage-knex/src/nest/knex-storage.module.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/nest/knex-storage.module.ts#L42)
 
 NestJS module providing Knex-based storage adapters for CAP.
 
@@ -26,7 +26,7 @@ NestJS module providing Knex-based storage adapters for CAP.
 
 > `static` **forRoot**(`options`): `DynamicModule`
 
-Defined in: cap-storage-knex/src/nest/knex-storage.module.ts:43
+Defined in: [cap-storage-knex/src/nest/knex-storage.module.ts:43](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/nest/knex-storage.module.ts#L43)
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: cap-storage-knex/src/nest/knex-storage.module.ts:43
 
 > `static` **forRootAsync**(`options`): `DynamicModule`
 
-Defined in: cap-storage-knex/src/nest/knex-storage.module.ts:50
+Defined in: [cap-storage-knex/src/nest/knex-storage.module.ts:50](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/nest/knex-storage.module.ts#L50)
 
 #### Parameters
 

@@ -6,7 +6,7 @@
 
 # Interface: ITransactionalPublishStorage
 
-Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:86
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:105](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L105)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:86
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:54
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:66](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L66)
 
 Atomically claim ready rows for one dispatcher instance.
 
@@ -42,7 +42,7 @@ Atomically claim ready rows for one dispatcher instance.
 
 > `optional` **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:72
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:91](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L91)
 
 Optional: find a published record by id (dashboard helpers)
 
@@ -66,7 +66,7 @@ Optional: find a published record by id (dashboard helpers)
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:51
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:63](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L63)
 
 Optional one-time initialization: create schema/tables if needed
 
@@ -90,7 +90,7 @@ Optional one-time initialization: create schema/tables if needed
 
 > `optional` **listPublish**(`opts`): `Promise`\<\{ `items`: [`CapPublishEvent`](CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]; `total?`: `number`; \}\>
 
-Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:75
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:94](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L94)
 
 Optional: paginated listing for dashboards and admin UIs
 
@@ -126,9 +126,9 @@ Optional: paginated listing for dashboards and admin UIs
 
 ### markPublished()
 
-> **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
+> **markPublished**(`id`, `publishedAt?`, `ownership?`): `Promise`\<`boolean` \| `void`\>
 
-Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:59
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:71](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L71)
 
 Mark record as successfully emitted to the broker.
 
@@ -142,9 +142,13 @@ Mark record as successfully emitted to the broker.
 
 `Date`
 
+##### ownership?
+
+[`PublishClaimOwnership`](PublishClaimOwnership.md)
+
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean` \| `void`\>
 
 #### Inherited from
 
@@ -154,9 +158,9 @@ Mark record as successfully emitted to the broker.
 
 ### markPublishFailed()
 
-> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
+> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`boolean` \| `void`\>
 
-Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:62
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:78](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L78)
 
 Mark record as retryable failed, or dead-letter when retry limit is exceeded.
 
@@ -176,7 +180,7 @@ Mark record as retryable failed, or dead-letter when retry limit is exceeded.
 
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean` \| `void`\>
 
 #### Inherited from
 
@@ -188,7 +192,7 @@ Mark record as retryable failed, or dead-letter when retry limit is exceeded.
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:69
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:88](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L88)
 
 Release processing rows whose lease has expired.
 
@@ -208,11 +212,35 @@ Release processing rows whose lease has expired.
 
 ***
 
+### renewPublishClaim()?
+
+> `optional` **renewPublishClaim**(`options`): `Promise`\<`boolean`\>
+
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:85](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L85)
+
+Optional: extend an unexpired claim still owned by the expected token.
+
+#### Parameters
+
+##### options
+
+[`RenewPublishClaimOptions`](RenewPublishClaimOptions.md)
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+#### Inherited from
+
+[`IPublishStorage`](IPublishStorage.md).[`renewPublishClaim`](IPublishStorage.md#renewpublishclaim)
+
+***
+
 ### savePublish()
 
 > **savePublish**\<`T`\>(`evt`, `ctx?`): `Promise`\<`string`\>
 
-Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:45
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:57](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L57)
 
 Insert a fresh outbox record and return its DB id
 
@@ -246,7 +274,7 @@ Insert a fresh outbox record and return its DB id
 
 > **savePublishWithTx**\<`T`\>(`evt`, `tx`): `Promise`\<`string`\>
 
-Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:90
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:109](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L109)
 
 #### Type Parameters
 

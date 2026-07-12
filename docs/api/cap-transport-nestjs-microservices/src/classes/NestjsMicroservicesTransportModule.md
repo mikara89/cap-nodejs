@@ -6,7 +6,7 @@
 
 # Class: NestjsMicroservicesTransportModule
 
-Defined in: cap-transport-nestjs-microservices/src/nestjs-microservices-transport.module.ts:12
+Defined in: [cap-transport-nestjs-microservices/src/nestjs-microservices-transport.module.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-nestjs-microservices/src/nestjs-microservices-transport.module.ts#L12)
 
 ## Constructors
 
@@ -24,7 +24,7 @@ Defined in: cap-transport-nestjs-microservices/src/nestjs-microservices-transpor
 
 > `static` **forRoot**(`config`): `DynamicModule`
 
-Defined in: cap-transport-nestjs-microservices/src/nestjs-microservices-transport.module.ts:13
+Defined in: [cap-transport-nestjs-microservices/src/nestjs-microservices-transport.module.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-nestjs-microservices/src/nestjs-microservices-transport.module.ts#L13)
 
 #### Parameters
 

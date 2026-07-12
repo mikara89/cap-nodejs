@@ -8,4 +8,4 @@
 
 > `const` **CAP\_DASHBOARD\_OPTIONS**: `"CAP_DASHBOARD_OPTIONS"` = `'CAP_DASHBOARD_OPTIONS'`
 
-Defined in: cap-dashboard-nest/src/cap-dashboard.auth.ts:7
+Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.auth.ts#L7)

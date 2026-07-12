@@ -6,7 +6,7 @@
 
 # Interface: CapPublishEvent\<T\>
 
-Defined in: cap-core/src/models/cap-publish-event.ts:14
+Defined in: [cap-core/src/models/cap-publish-event.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-publish-event.ts#L14)
 
 Outbox message as seen by CAP core and storage/transport adapters.
 
@@ -26,7 +26,7 @@ Outbox message as seen by CAP core and storage/transport adapters.
 
 > `optional` **headers?**: [`CapHeaders`](../type-aliases/CapHeaders.md)
 
-Defined in: cap-core/src/models/cap-base-message.ts:21
+Defined in: [cap-core/src/models/cap-base-message.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-base-message.ts#L21)
 
 Optional key/value headers such as trace-id or saga-id.
 
@@ -40,7 +40,7 @@ Optional key/value headers such as trace-id or saga-id.
 
 > **id**: `string`
 
-Defined in: cap-core/src/models/cap-base-message.ts:9
+Defined in: [cap-core/src/models/cap-base-message.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-base-message.ts#L9)
 
 Globally unique ID (UUID v4 recommended).
 
@@ -54,7 +54,7 @@ Globally unique ID (UUID v4 recommended).
 
 > `optional` **lastError?**: `string` \| `null`
 
-Defined in: cap-core/src/models/cap-publish-event.ts:19
+Defined in: [cap-core/src/models/cap-publish-event.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-publish-event.ts#L19)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: cap-core/src/models/cap-publish-event.ts:19
 
 > `optional` **lockedBy?**: `string` \| `null`
 
-Defined in: cap-core/src/models/cap-publish-event.ts:20
+Defined in: [cap-core/src/models/cap-publish-event.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-publish-event.ts#L20)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: cap-core/src/models/cap-publish-event.ts:20
 
 > `optional` **lockedUntil?**: `Date` \| `null`
 
-Defined in: cap-core/src/models/cap-publish-event.ts:21
+Defined in: [cap-core/src/models/cap-publish-event.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-publish-event.ts#L21)
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: cap-core/src/models/cap-publish-event.ts:21
 
 > `optional` **nextRetryAt?**: `Date` \| `null`
 
-Defined in: cap-core/src/models/cap-publish-event.ts:18
+Defined in: [cap-core/src/models/cap-publish-event.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-publish-event.ts#L18)
 
 ***
 
@@ -86,7 +86,7 @@ Defined in: cap-core/src/models/cap-publish-event.ts:18
 
 > **occurredAt**: `string`
 
-Defined in: cap-core/src/models/cap-base-message.ts:15
+Defined in: [cap-core/src/models/cap-base-message.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-base-message.ts#L15)
 
 UTC ISO string set by publisher, not the DB timestamp.
 
@@ -100,7 +100,7 @@ UTC ISO string set by publisher, not the DB timestamp.
 
 > **payload**: `T`
 
-Defined in: cap-core/src/models/cap-base-message.ts:18
+Defined in: [cap-core/src/models/cap-base-message.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-base-message.ts#L18)
 
 User-defined payload. Keep it serializable.
 
@@ -114,7 +114,7 @@ User-defined payload. Keep it serializable.
 
 > `optional` **publishedAt?**: `Date` \| `null`
 
-Defined in: cap-core/src/models/cap-publish-event.ts:22
+Defined in: [cap-core/src/models/cap-publish-event.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-publish-event.ts#L22)
 
 ***
 
@@ -122,7 +122,7 @@ Defined in: cap-core/src/models/cap-publish-event.ts:22
 
 > **retryCount**: `number`
 
-Defined in: cap-core/src/models/cap-publish-event.ts:16
+Defined in: [cap-core/src/models/cap-publish-event.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-publish-event.ts#L16)
 
 How many times the publish logic retried this record.
 
@@ -132,7 +132,7 @@ How many times the publish logic retried this record.
 
 > **status**: [`CapPublishStatus`](../type-aliases/CapPublishStatus.md)
 
-Defined in: cap-core/src/models/cap-publish-event.ts:17
+Defined in: [cap-core/src/models/cap-publish-event.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-publish-event.ts#L17)
 
 ***
 
@@ -140,7 +140,7 @@ Defined in: cap-core/src/models/cap-publish-event.ts:17
 
 > **topic**: `string`
 
-Defined in: cap-core/src/models/cap-base-message.ts:12
+Defined in: [cap-core/src/models/cap-base-message.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-base-message.ts#L12)
 
 Logical topic / exchange name, e.g. `user.created`.
 

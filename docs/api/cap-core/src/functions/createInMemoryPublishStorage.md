@@ -8,7 +8,7 @@
 
 > **createInMemoryPublishStorage**(): [`InMemoryPublishStorage`](../classes/InMemoryPublishStorage.md)
 
-Defined in: cap-core/src/testing/in-memory-publish-storage.ts:108
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:152](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L152)
 
 ## Returns
 

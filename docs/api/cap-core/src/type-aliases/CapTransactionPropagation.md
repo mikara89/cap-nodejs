@@ -8,4 +8,4 @@
 
 > **CapTransactionPropagation** = `"required"` \| `"requiresNew"` \| `"nested"` \| `"supports"` \| `"mandatory"` \| `"never"`
 
-Defined in: cap-core/src/ports/transaction-manager.port.ts:3
+Defined in: [cap-core/src/ports/transaction-manager.port.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/transaction-manager.port.ts#L3)

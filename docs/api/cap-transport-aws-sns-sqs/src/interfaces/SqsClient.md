@@ -6,7 +6,7 @@
 
 # Interface: SqsClient
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:13
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L13)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:13
 
 > **destroy**(): `void`
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:15
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L15)
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:15
 
 > **send**(`command`): `Promise`\<`unknown`\>
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:14
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L14)
 
 #### Parameters
 

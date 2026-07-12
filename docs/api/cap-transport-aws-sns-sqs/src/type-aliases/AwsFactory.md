@@ -8,7 +8,7 @@
 
 > **AwsFactory** = (`region`, `credentials?`, `endpoint?`) => [`AwsClientFactory`](../interfaces/AwsClientFactory.md)
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:37
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:37](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L37)
 
 ## Parameters
 

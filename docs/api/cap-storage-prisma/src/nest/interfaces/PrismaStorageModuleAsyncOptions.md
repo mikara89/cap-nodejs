@@ -6,7 +6,7 @@
 
 # Interface: PrismaStorageModuleAsyncOptions
 
-Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:29
+Defined in: [cap-storage-prisma/src/nest/prisma-storage.module.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/nest/prisma-storage.module.ts#L29)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:29
 
 > **clientToken**: `InjectionToken`
 
-Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:33
+Defined in: [cap-storage-prisma/src/nest/prisma-storage.module.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/nest/prisma-storage.module.ts#L33)
 
 ***
 
@@ -41,7 +41,7 @@ required in this module.
 
 > `optional` **inject?**: (`InjectionToken` \| `OptionalFactoryDependency`)[]
 
-Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:39
+Defined in: [cap-storage-prisma/src/nest/prisma-storage.module.ts:39](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/nest/prisma-storage.module.ts#L39)
 
 ***
 
@@ -49,7 +49,7 @@ Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:39
 
 > `optional` **useClass?**: `Type`\<[`PrismaStorageOptionsFactory`](PrismaStorageOptionsFactory.md)\>
 
-Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:35
+Defined in: [cap-storage-prisma/src/nest/prisma-storage.module.ts:35](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/nest/prisma-storage.module.ts#L35)
 
 ***
 
@@ -57,7 +57,7 @@ Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:35
 
 > `optional` **useExisting?**: `Type`\<[`PrismaStorageOptionsFactory`](PrismaStorageOptionsFactory.md)\>
 
-Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:34
+Defined in: [cap-storage-prisma/src/nest/prisma-storage.module.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/nest/prisma-storage.module.ts#L34)
 
 ***
 
@@ -65,7 +65,7 @@ Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:34
 
 > `optional` **useFactory?**: (...`args`) => [`PrismaStorageOptions`](../../interfaces/PrismaStorageOptions.md) \| `Promise`\<[`PrismaStorageOptions`](../../interfaces/PrismaStorageOptions.md)\>
 
-Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:36
+Defined in: [cap-storage-prisma/src/nest/prisma-storage.module.ts:36](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/nest/prisma-storage.module.ts#L36)
 
 #### Parameters
 

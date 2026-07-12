@@ -6,7 +6,7 @@
 
 # Interface: KafkaProducerClient
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:20
+Defined in: [cap-transport-kafka/src/kafka-types.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L20)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-transport-kafka/src/kafka-types.ts:20
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:21
+Defined in: [cap-transport-kafka/src/kafka-types.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L21)
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: cap-transport-kafka/src/kafka-types.ts:21
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:22
+Defined in: [cap-transport-kafka/src/kafka-types.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L22)
 
 #### Returns
 
@@ -38,7 +38,7 @@ Defined in: cap-transport-kafka/src/kafka-types.ts:22
 
 > **send**(`record`): `Promise`\<`RecordMetadata`[]\>
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:23
+Defined in: [cap-transport-kafka/src/kafka-types.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L23)
 
 #### Parameters
 

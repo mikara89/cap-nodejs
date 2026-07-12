@@ -6,7 +6,7 @@
 
 # Interface: TypeOrmStorageModuleAsyncOptions
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:30
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:30](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L30)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:30
 
 > `optional` **dataSource?**: `string` \| `DataSource`
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:34
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L34)
 
 ***
 
@@ -41,7 +41,7 @@ required in this module.
 
 > `optional` **inject?**: (`InjectionToken` \| `OptionalFactoryDependency`)[]
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:40
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:40](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L40)
 
 ***
 
@@ -49,7 +49,7 @@ Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:40
 
 > `optional` **useClass?**: `Type`\<[`TypeOrmStorageOptionsFactory`](TypeOrmStorageOptionsFactory.md)\>
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:36
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:36](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L36)
 
 ***
 
@@ -57,7 +57,7 @@ Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:36
 
 > `optional` **useExisting?**: `Type`\<[`TypeOrmStorageOptionsFactory`](TypeOrmStorageOptionsFactory.md)\>
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:35
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:35](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L35)
 
 ***
 
@@ -65,7 +65,7 @@ Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:35
 
 > `optional` **useFactory?**: (...`args`) => [`TypeOrmStorageTableOptions`](../../interfaces/TypeOrmStorageTableOptions.md) \| `Promise`\<[`TypeOrmStorageTableOptions`](../../interfaces/TypeOrmStorageTableOptions.md)\>
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:37
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:37](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L37)
 
 #### Parameters
 

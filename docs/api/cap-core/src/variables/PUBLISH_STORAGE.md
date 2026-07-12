@@ -8,4 +8,4 @@
 
 > `const` **PUBLISH\_STORAGE**: *typeof* `PUBLISH_STORAGE`
 
-Defined in: cap-core/src/ports/publish-storage.port.ts:10
+Defined in: [cap-core/src/ports/publish-storage.port.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L10)

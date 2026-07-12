@@ -6,7 +6,7 @@
 
 # Interface: CreateReceivedFixtureOptions\<T\>
 
-Defined in: cap-testing/src/fixtures/messages.ts:16
+Defined in: [cap-testing/src/fixtures/messages.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L16)
 
 ## Extends
 
@@ -24,7 +24,7 @@ Defined in: cap-testing/src/fixtures/messages.ts:16
 
 > `optional` **dedupeKey?**: `string`
 
-Defined in: cap-testing/src/fixtures/messages.ts:21
+Defined in: [cap-testing/src/fixtures/messages.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L21)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: cap-testing/src/fixtures/messages.ts:21
 
 > `optional` **group?**: `string`
 
-Defined in: cap-testing/src/fixtures/messages.ts:19
+Defined in: [cap-testing/src/fixtures/messages.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L19)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: cap-testing/src/fixtures/messages.ts:19
 
 > `optional` **headers?**: [`CapHeaders`](../../../cap-nest/src/type-aliases/CapHeaders.md)
 
-Defined in: cap-testing/src/fixtures/messages.ts:13
+Defined in: [cap-testing/src/fixtures/messages.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L13)
 
 #### Inherited from
 
@@ -52,7 +52,7 @@ Defined in: cap-testing/src/fixtures/messages.ts:13
 
 > `optional` **id?**: `string`
 
-Defined in: cap-testing/src/fixtures/messages.ts:9
+Defined in: [cap-testing/src/fixtures/messages.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L9)
 
 #### Inherited from
 
@@ -64,7 +64,7 @@ Defined in: cap-testing/src/fixtures/messages.ts:9
 
 > `optional` **messageId?**: `string`
 
-Defined in: cap-testing/src/fixtures/messages.ts:20
+Defined in: [cap-testing/src/fixtures/messages.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L20)
 
 ***
 
@@ -72,7 +72,7 @@ Defined in: cap-testing/src/fixtures/messages.ts:20
 
 > `optional` **occurredAt?**: `string`
 
-Defined in: cap-testing/src/fixtures/messages.ts:11
+Defined in: [cap-testing/src/fixtures/messages.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L11)
 
 #### Inherited from
 
@@ -84,7 +84,7 @@ Defined in: cap-testing/src/fixtures/messages.ts:11
 
 > `optional` **payload?**: `T`
 
-Defined in: cap-testing/src/fixtures/messages.ts:12
+Defined in: [cap-testing/src/fixtures/messages.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L12)
 
 #### Inherited from
 
@@ -96,7 +96,7 @@ Defined in: cap-testing/src/fixtures/messages.ts:12
 
 > `optional` **topic?**: `string`
 
-Defined in: cap-testing/src/fixtures/messages.ts:10
+Defined in: [cap-testing/src/fixtures/messages.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L10)
 
 #### Inherited from
 

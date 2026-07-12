@@ -6,7 +6,7 @@
 
 # Class: AwsSnsSqsTopology
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-topology.ts:20
+Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L20)
 
 Optional topology manager for SNS→SQS subscription setup.
 
@@ -25,7 +25,7 @@ This is conservative by design:
 
 > **new AwsSnsSqsTopology**(`logger?`): `AwsSnsSqsTopology`
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-topology.ts:23
+Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L23)
 
 #### Parameters
 
@@ -43,7 +43,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-topology.ts:23
 
 > **ensureQueue**(`sqsClient`, `queueName`): `Promise`\<`string`\>
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-topology.ts:50
+Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:50](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L50)
 
 #### Parameters
 
@@ -65,7 +65,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-topology.ts:50
 
 > **ensureSubscription**(`snsClient`, `topicArn`, `queueArn`): `Promise`\<`void`\>
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-topology.ts:75
+Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:75](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L75)
 
 #### Parameters
 
@@ -91,7 +91,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-topology.ts:75
 
 > **ensureTopic**(`snsClient`, `topicName`): `Promise`\<`string`\>
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-topology.ts:25
+Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L25)
 
 #### Parameters
 

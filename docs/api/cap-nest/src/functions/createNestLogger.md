@@ -8,7 +8,7 @@
 
 > **createNestLogger**(`context`): [`CapLogger`](../interfaces/CapLogger.md)
 
-Defined in: cap-nest/src/cap/cap.service.ts:117
+Defined in: [cap-nest/src/cap/cap.service.ts:117](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L117)
 
 ## Parameters
 

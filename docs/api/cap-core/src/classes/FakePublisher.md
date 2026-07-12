@@ -6,7 +6,7 @@
 
 # Class: FakePublisher
 
-Defined in: cap-core/src/testing/fake-publisher.ts:8
+Defined in: [cap-core/src/testing/fake-publisher.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/fake-publisher.ts#L8)
 
 ## Implements
 
@@ -28,7 +28,7 @@ Defined in: cap-core/src/testing/fake-publisher.ts:8
 
 > `readonly` **emitted**: `object`[] = `[]`
 
-Defined in: cap-core/src/testing/fake-publisher.ts:9
+Defined in: [cap-core/src/testing/fake-publisher.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/fake-publisher.ts#L9)
 
 #### headers?
 
@@ -52,7 +52,7 @@ Defined in: cap-core/src/testing/fake-publisher.ts:9
 
 > `optional` **error?**: `Error`
 
-Defined in: cap-core/src/testing/fake-publisher.ts:15
+Defined in: [cap-core/src/testing/fake-publisher.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/fake-publisher.ts#L15)
 
 ## Methods
 
@@ -60,7 +60,7 @@ Defined in: cap-core/src/testing/fake-publisher.ts:15
 
 > **emit**\<`T`\>(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: cap-core/src/testing/fake-publisher.ts:17
+Defined in: [cap-core/src/testing/fake-publisher.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/fake-publisher.ts#L17)
 
 #### Type Parameters
 

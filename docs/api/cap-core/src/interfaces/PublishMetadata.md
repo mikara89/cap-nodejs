@@ -6,7 +6,7 @@
 
 # Interface: PublishMetadata
 
-Defined in: cap-core/src/ports/publisher.port.ts:7
+Defined in: [cap-core/src/ports/publisher.port.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publisher.port.ts#L7)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/ports/publisher.port.ts:7
 
 > `optional` **dedupeKey?**: `string`
 
-Defined in: cap-core/src/ports/publisher.port.ts:9
+Defined in: [cap-core/src/ports/publisher.port.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publisher.port.ts#L9)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: cap-core/src/ports/publisher.port.ts:9
 
 > **messageId**: `string`
 
-Defined in: cap-core/src/ports/publisher.port.ts:8
+Defined in: [cap-core/src/ports/publisher.port.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publisher.port.ts#L8)

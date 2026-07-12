@@ -8,4 +8,4 @@
 
 > `const` **defaultCapDashboardOptions**: [`CapDashboardServiceOptions`](../interfaces/CapDashboardServiceOptions.md)
 
-Defined in: cap-dashboard-core/src/dashboard-options.ts:20
+Defined in: [cap-dashboard-core/src/dashboard-options.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-options.ts#L20)

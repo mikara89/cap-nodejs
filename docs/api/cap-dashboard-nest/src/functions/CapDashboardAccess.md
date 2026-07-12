@@ -8,7 +8,7 @@
 
 > **CapDashboardAccess**(`action`, `permission`): `MethodDecorator` & `ClassDecorator`
 
-Defined in: cap-dashboard-nest/src/cap-dashboard.auth.ts:56
+Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:56](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.auth.ts#L56)
 
 ## Parameters
 

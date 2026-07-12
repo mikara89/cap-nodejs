@@ -6,7 +6,7 @@
 
 # Class: PrismaStorageModule
 
-Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:44
+Defined in: [cap-storage-prisma/src/nest/prisma-storage.module.ts:44](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/nest/prisma-storage.module.ts#L44)
 
 NestJS module providing Prisma-based storage adapters for CAP.
 
@@ -26,7 +26,7 @@ NestJS module providing Prisma-based storage adapters for CAP.
 
 > `static` **forRoot**(`options`): `DynamicModule`
 
-Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:45
+Defined in: [cap-storage-prisma/src/nest/prisma-storage.module.ts:45](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/nest/prisma-storage.module.ts#L45)
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:45
 
 > `static` **forRootAsync**(`options`): `DynamicModule`
 
-Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:52
+Defined in: [cap-storage-prisma/src/nest/prisma-storage.module.ts:52](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/nest/prisma-storage.module.ts#L52)
 
 #### Parameters
 

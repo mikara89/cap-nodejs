@@ -8,4 +8,4 @@
 
 > **RabbitMqQueueType** = `"classic"` \| `"quorum"`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:5
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L5)

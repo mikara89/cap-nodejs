@@ -8,4 +8,4 @@
 
 > **CapDashboardAuthorizationResult** = `boolean` \| `Promise`\<`boolean`\>
 
-Defined in: cap-dashboard-core/src/dashboard-auth.ts:27
+Defined in: [cap-dashboard-core/src/dashboard-auth.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-auth.ts#L27)

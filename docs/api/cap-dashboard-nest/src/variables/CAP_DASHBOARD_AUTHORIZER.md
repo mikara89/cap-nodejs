@@ -8,4 +8,4 @@
 
 > `const` **CAP\_DASHBOARD\_AUTHORIZER**: `"CAP_DASHBOARD_AUTHORIZER"` = `'CAP_DASHBOARD_AUTHORIZER'`
 
-Defined in: cap-dashboard-nest/src/cap-dashboard.auth.ts:6
+Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.auth.ts#L6)

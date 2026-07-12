@@ -8,4 +8,4 @@
 
 > **CapExpressLifecycle** = `Pick`\<[`CapExpressApp`](../interfaces/CapExpressApp.md), `"start"` \| `"stop"`\>
 
-Defined in: cap-express/src/lifecycle.ts:3
+Defined in: [cap-express/src/lifecycle.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/lifecycle.ts#L3)

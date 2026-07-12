@@ -6,7 +6,7 @@
 
 # Class: TypeOrmPublishStorage
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:49
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:52](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L52)
 
 ## Implements
 
@@ -19,7 +19,7 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:49
 
 > **new TypeOrmPublishStorage**(`dataSource`, `options?`): `TypeOrmPublishStorage`
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:54
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:57](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L57)
 
 #### Parameters
 
@@ -41,7 +41,7 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:54
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:96
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:99](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L99)
 
 #### Parameters
 
@@ -63,7 +63,7 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:96
 
 > **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:211
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:255](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L255)
 
 #### Parameters
 
@@ -85,7 +85,7 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:211
 
 > **getCapabilities**(): `CapStorageCapabilities`
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:92
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:95](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L95)
 
 #### Returns
 
@@ -101,7 +101,7 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:92
 
 > **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:61
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:64](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L64)
 
 #### Parameters
 
@@ -123,7 +123,7 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:61
 
 > **listPublish**(`options?`): `Promise`\<[`DashboardListResult`](../../../cap-nest/src/interfaces/DashboardListResult.md)\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>\>\>
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:218
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:262](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L262)
 
 #### Parameters
 
@@ -143,9 +143,9 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:218
 
 ### markPublished()
 
-> **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
+> **markPublished**(`id`, `publishedAt?`, `ownership?`): `Promise`\<`boolean`\>
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:151
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:154](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L154)
 
 #### Parameters
 
@@ -157,9 +157,13 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:151
 
 `Date` = `...`
 
+##### ownership?
+
+`PublishClaimOwnership` = `{}`
+
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean`\>
 
 #### Implementation of
 
@@ -169,9 +173,9 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:151
 
 ### markPublishFailed()
 
-> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
+> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`boolean`\>
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:167
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:182](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L182)
 
 #### Parameters
 
@@ -189,7 +193,7 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:167
 
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean`\>
 
 #### Implementation of
 
@@ -201,7 +205,7 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:167
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:196
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:240](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L240)
 
 #### Parameters
 
@@ -219,11 +223,33 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:196
 
 ***
 
+### renewPublishClaim()
+
+> **renewPublishClaim**(`options`): `Promise`\<`boolean`\>
+
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:222](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L222)
+
+#### Parameters
+
+##### options
+
+`RenewPublishClaimOptions`
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+#### Implementation of
+
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`renewPublishClaim`](../../../cap-nest/src/interfaces/PublishStoragePort.md#renewpublishclaim)
+
+***
+
 ### savePublish()
 
 > **savePublish**\<`T`\>(`event`, `ctx?`): `Promise`\<`string`\>
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:68
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:71](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L71)
 
 #### Type Parameters
 
@@ -255,7 +281,7 @@ Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:68
 
 > **savePublishWithTx**\<`T`\>(`event`, `tx`): `Promise`\<`string`\>
 
-Defined in: cap-storage-typeorm/src/typeorm-publish-storage.ts:85
+Defined in: [cap-storage-typeorm/src/typeorm-publish-storage.ts:88](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/typeorm-publish-storage.ts#L88)
 
 #### Type Parameters
 

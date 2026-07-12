@@ -8,7 +8,7 @@
 
 > **createReceivedFixture**\<`T`\>(`options?`): [`CapReceivedEvent`](../../../cap-nest/src/interfaces/CapReceivedEvent.md)\<`T`\>
 
-Defined in: cap-testing/src/fixtures/messages.ts:43
+Defined in: [cap-testing/src/fixtures/messages.ts:43](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L43)
 
 ## Type Parameters
 

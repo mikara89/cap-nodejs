@@ -6,7 +6,7 @@
 
 # Interface: TransportContractCapabilities
 
-Defined in: cap-testing/src/contracts/transport-contract.ts:45
+Defined in: [cap-testing/src/contracts/transport-contract.ts:45](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L45)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-testing/src/contracts/transport-contract.ts:45
 
 > **supportsPublisherDisposal**: `boolean`
 
-Defined in: cap-testing/src/contracts/transport-contract.ts:48
+Defined in: [cap-testing/src/contracts/transport-contract.ts:48](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L48)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-testing/src/contracts/transport-contract.ts:48
 
 > **supportsPublisherInitialization**: `boolean`
 
-Defined in: cap-testing/src/contracts/transport-contract.ts:46
+Defined in: [cap-testing/src/contracts/transport-contract.ts:46](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L46)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: cap-testing/src/contracts/transport-contract.ts:46
 
 > **supportsSubscriberDisposal**: `boolean`
 
-Defined in: cap-testing/src/contracts/transport-contract.ts:49
+Defined in: [cap-testing/src/contracts/transport-contract.ts:49](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L49)
 
 ***
 
@@ -38,4 +38,4 @@ Defined in: cap-testing/src/contracts/transport-contract.ts:49
 
 > **supportsSubscriberInitialization**: `boolean`
 
-Defined in: cap-testing/src/contracts/transport-contract.ts:47
+Defined in: [cap-testing/src/contracts/transport-contract.ts:47](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/transport-contract.ts#L47)

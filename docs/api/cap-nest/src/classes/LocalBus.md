@@ -6,7 +6,7 @@
 
 # Class: LocalBus
 
-Defined in: cap-nest/src/cap/cap.module.ts:133
+Defined in: [cap-nest/src/cap/cap.module.ts:133](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L133)
 
 ## Extends
 
@@ -49,7 +49,7 @@ Defined in: cap-core/dist/testing/local-bus.d.ts:7
 
 > **consume**(`topic`, `group`, `on`): `Promise`\<`void`\>
 
-Defined in: cap-nest/src/cap/cap.module.ts:143
+Defined in: [cap-nest/src/cap/cap.module.ts:143](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L143)
 
 #### Parameters
 
@@ -83,7 +83,7 @@ Defined in: cap-nest/src/cap/cap.module.ts:143
 
 > **emit**(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: cap-nest/src/cap/cap.module.ts:134
+Defined in: [cap-nest/src/cap/cap.module.ts:134](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L134)
 
 #### Parameters
 

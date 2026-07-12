@@ -6,7 +6,7 @@
 
 # Interface: IdGeneratorPort
 
-Defined in: cap-core/src/ports/id-generator.port.ts:1
+Defined in: [cap-core/src/ports/id-generator.port.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/id-generator.port.ts#L1)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/ports/id-generator.port.ts:1
 
 > **generate**(): `string`
 
-Defined in: cap-core/src/ports/id-generator.port.ts:2
+Defined in: [cap-core/src/ports/id-generator.port.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/id-generator.port.ts#L2)
 
 #### Returns
 

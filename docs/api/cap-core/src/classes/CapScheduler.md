@@ -6,7 +6,7 @@
 
 # Class: CapScheduler
 
-Defined in: cap-core/src/engine/cap-scheduler.ts:10
+Defined in: [cap-core/src/engine/cap-scheduler.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-scheduler.ts#L10)
 
 ## Constructors
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/engine/cap-scheduler.ts:10
 
 > **new CapScheduler**(`engine`, `options`, `logger?`): `CapScheduler`
 
-Defined in: cap-core/src/engine/cap-scheduler.ts:16
+Defined in: [cap-core/src/engine/cap-scheduler.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-scheduler.ts#L16)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: cap-core/src/engine/cap-scheduler.ts:16
 
 > **runInboxRetryOnce**(): `Promise`\<`number`\>
 
-Defined in: cap-core/src/engine/cap-scheduler.ts:67
+Defined in: [cap-core/src/engine/cap-scheduler.ts:67](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-scheduler.ts#L67)
 
 #### Returns
 
@@ -52,7 +52,7 @@ Defined in: cap-core/src/engine/cap-scheduler.ts:67
 
 > **runOutboxOnce**(): `Promise`\<`number`\>
 
-Defined in: cap-core/src/engine/cap-scheduler.ts:50
+Defined in: [cap-core/src/engine/cap-scheduler.ts:50](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-scheduler.ts#L50)
 
 #### Returns
 
@@ -64,7 +64,7 @@ Defined in: cap-core/src/engine/cap-scheduler.ts:50
 
 > **start**(): `void`
 
-Defined in: cap-core/src/engine/cap-scheduler.ts:22
+Defined in: [cap-core/src/engine/cap-scheduler.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-scheduler.ts#L22)
 
 #### Returns
 
@@ -76,7 +76,7 @@ Defined in: cap-core/src/engine/cap-scheduler.ts:22
 
 > **stop**(): `Promise`\<`void`\>
 
-Defined in: cap-core/src/engine/cap-scheduler.ts:34
+Defined in: [cap-core/src/engine/cap-scheduler.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/cap-scheduler.ts#L34)
 
 #### Returns
 

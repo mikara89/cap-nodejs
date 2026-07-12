@@ -6,7 +6,7 @@
 
 # Class: PrismaReceivedStorage
 
-Defined in: cap-storage-prisma/src/prisma-received-storage.ts:71
+Defined in: [cap-storage-prisma/src/prisma-received-storage.ts:71](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-received-storage.ts#L71)
 
 ## Implements
 
@@ -19,7 +19,7 @@ Defined in: cap-storage-prisma/src/prisma-received-storage.ts:71
 
 > **new PrismaReceivedStorage**(`client`, `options`): `PrismaReceivedStorage`
 
-Defined in: cap-storage-prisma/src/prisma-received-storage.ts:76
+Defined in: [cap-storage-prisma/src/prisma-received-storage.ts:76](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-received-storage.ts#L76)
 
 #### Parameters
 
@@ -41,7 +41,7 @@ Defined in: cap-storage-prisma/src/prisma-received-storage.ts:76
 
 > **findReceivedById**(`id`): `Promise`\<[`CapReceivedEvent`](../../../cap-nest/src/interfaces/CapReceivedEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-storage-prisma/src/prisma-received-storage.ts:224
+Defined in: [cap-storage-prisma/src/prisma-received-storage.ts:224](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-received-storage.ts#L224)
 
 #### Parameters
 
@@ -63,7 +63,7 @@ Defined in: cap-storage-prisma/src/prisma-received-storage.ts:224
 
 > **getCapabilities**(): `CapStorageCapabilities`
 
-Defined in: cap-storage-prisma/src/prisma-received-storage.ts:144
+Defined in: [cap-storage-prisma/src/prisma-received-storage.ts:144](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-received-storage.ts#L144)
 
 #### Returns
 
@@ -79,7 +79,7 @@ Defined in: cap-storage-prisma/src/prisma-received-storage.ts:144
 
 > **getRetryDue**(`limit`, `now?`): `Promise`\<[`CapReceivedEvent`](../../../cap-nest/src/interfaces/CapReceivedEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-storage-prisma/src/prisma-received-storage.ts:205
+Defined in: [cap-storage-prisma/src/prisma-received-storage.ts:205](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-received-storage.ts#L205)
 
 #### Parameters
 
@@ -105,7 +105,7 @@ Defined in: cap-storage-prisma/src/prisma-received-storage.ts:205
 
 > **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-storage-prisma/src/prisma-received-storage.ts:83
+Defined in: [cap-storage-prisma/src/prisma-received-storage.ts:83](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-received-storage.ts#L83)
 
 #### Parameters
 
@@ -127,7 +127,7 @@ Defined in: cap-storage-prisma/src/prisma-received-storage.ts:83
 
 > **listReceived**(`options?`): `Promise`\<[`DashboardListResult`](../../../cap-nest/src/interfaces/DashboardListResult.md)\<[`CapReceivedEvent`](../../../cap-nest/src/interfaces/CapReceivedEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>\>\>
 
-Defined in: cap-storage-prisma/src/prisma-received-storage.ts:231
+Defined in: [cap-storage-prisma/src/prisma-received-storage.ts:231](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-received-storage.ts#L231)
 
 #### Parameters
 
@@ -149,7 +149,7 @@ Defined in: cap-storage-prisma/src/prisma-received-storage.ts:231
 
 > **markProcessed**(`id`, `processedAt?`): `Promise`\<`void`\>
 
-Defined in: cap-storage-prisma/src/prisma-received-storage.ts:148
+Defined in: [cap-storage-prisma/src/prisma-received-storage.ts:148](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-received-storage.ts#L148)
 
 #### Parameters
 
@@ -175,7 +175,7 @@ Defined in: cap-storage-prisma/src/prisma-received-storage.ts:148
 
 > **markReceivedFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: cap-storage-prisma/src/prisma-received-storage.ts:168
+Defined in: [cap-storage-prisma/src/prisma-received-storage.ts:168](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-received-storage.ts#L168)
 
 #### Parameters
 
@@ -205,7 +205,7 @@ Defined in: cap-storage-prisma/src/prisma-received-storage.ts:168
 
 > **trySaveReceived**\<`T`\>(`event`): `Promise`\<`TrySaveReceivedResult`\<`T`\>\>
 
-Defined in: cap-storage-prisma/src/prisma-received-storage.ts:88
+Defined in: [cap-storage-prisma/src/prisma-received-storage.ts:88](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-received-storage.ts#L88)
 
 #### Type Parameters
 

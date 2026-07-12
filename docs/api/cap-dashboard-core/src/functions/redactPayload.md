@@ -8,7 +8,7 @@
 
 > **redactPayload**(`payload`, `paths?`): `unknown`
 
-Defined in: cap-dashboard-core/src/dashboard-redaction.ts:22
+Defined in: [cap-dashboard-core/src/dashboard-redaction.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-redaction.ts#L22)
 
 ## Parameters
 

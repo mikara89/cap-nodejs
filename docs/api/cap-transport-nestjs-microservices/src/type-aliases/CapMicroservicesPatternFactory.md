@@ -8,7 +8,7 @@
 
 > **CapMicroservicesPatternFactory** = (`topic`) => `unknown`
 
-Defined in: cap-transport-nestjs-microservices/src/nestjs-microservices.config.ts:3
+Defined in: [cap-transport-nestjs-microservices/src/nestjs-microservices.config.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-nestjs-microservices/src/nestjs-microservices.config.ts#L3)
 
 ## Parameters
 

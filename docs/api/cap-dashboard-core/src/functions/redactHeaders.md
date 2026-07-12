@@ -8,7 +8,7 @@
 
 > **redactHeaders**(`headers`, `sensitiveHeaders?`): `unknown`
 
-Defined in: cap-dashboard-core/src/dashboard-redaction.ts:6
+Defined in: [cap-dashboard-core/src/dashboard-redaction.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-redaction.ts#L6)
 
 ## Parameters
 

@@ -6,7 +6,7 @@
 
 # Interface: CapDashboardRetryHandler
 
-Defined in: cap-dashboard-core/src/dashboard.service.ts:30
+Defined in: [cap-dashboard-core/src/dashboard.service.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard.service.ts#L33)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-dashboard-core/src/dashboard.service.ts:30
 
 > **retryReceived**(`rec`): `Promise`\<`void`\>
 
-Defined in: cap-dashboard-core/src/dashboard.service.ts:31
+Defined in: [cap-dashboard-core/src/dashboard.service.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard.service.ts#L34)
 
 #### Parameters
 

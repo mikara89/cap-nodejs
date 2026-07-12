@@ -6,7 +6,7 @@
 
 # Interface: CreateCapDashboardRouterOptions
 
-Defined in: cap-dashboard-express/src/create-cap-dashboard-router.ts:10
+Defined in: [cap-dashboard-express/src/create-cap-dashboard-router.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-express/src/create-cap-dashboard-router.ts#L10)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-dashboard-express/src/create-cap-dashboard-router.ts:10
 
 > `optional` **middleware?**: `RequestHandler`\<`ParamsDictionary`, `any`, `any`, `ParsedQs`, `Record`\<`string`, `any`\>\> \| `RequestHandler`\<`ParamsDictionary`, `any`, `any`, `ParsedQs`, `Record`\<`string`, `any`\>\>[]
 
-Defined in: cap-dashboard-express/src/create-cap-dashboard-router.ts:13
+Defined in: [cap-dashboard-express/src/create-cap-dashboard-router.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-express/src/create-cap-dashboard-router.ts#L13)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-dashboard-express/src/create-cap-dashboard-router.ts:13
 
 > `optional` **service?**: `CapDashboardCoreService`
 
-Defined in: cap-dashboard-express/src/create-cap-dashboard-router.ts:11
+Defined in: [cap-dashboard-express/src/create-cap-dashboard-router.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-express/src/create-cap-dashboard-router.ts#L11)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: cap-dashboard-express/src/create-cap-dashboard-router.ts:11
 
 > `optional` **serviceOptions?**: `CapDashboardCoreServiceOptions`
 
-Defined in: cap-dashboard-express/src/create-cap-dashboard-router.ts:12
+Defined in: [cap-dashboard-express/src/create-cap-dashboard-router.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-express/src/create-cap-dashboard-router.ts#L12)

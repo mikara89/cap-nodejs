@@ -6,7 +6,7 @@
 
 # Interface: CapLogger
 
-Defined in: cap-core/src/ports/logger.port.ts:1
+Defined in: [cap-core/src/ports/logger.port.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/logger.port.ts#L1)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/ports/logger.port.ts:1
 
 > `optional` **debug**(`message`, `context?`): `void`
 
-Defined in: cap-core/src/ports/logger.port.ts:2
+Defined in: [cap-core/src/ports/logger.port.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/logger.port.ts#L2)
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: cap-core/src/ports/logger.port.ts:2
 
 > `optional` **error**(`message`, `error?`, `context?`): `void`
 
-Defined in: cap-core/src/ports/logger.port.ts:5
+Defined in: [cap-core/src/ports/logger.port.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/logger.port.ts#L5)
 
 #### Parameters
 
@@ -62,7 +62,7 @@ Defined in: cap-core/src/ports/logger.port.ts:5
 
 > `optional` **info**(`message`, `context?`): `void`
 
-Defined in: cap-core/src/ports/logger.port.ts:3
+Defined in: [cap-core/src/ports/logger.port.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/logger.port.ts#L3)
 
 #### Parameters
 
@@ -84,7 +84,7 @@ Defined in: cap-core/src/ports/logger.port.ts:3
 
 > `optional` **warn**(`message`, `context?`): `void`
 
-Defined in: cap-core/src/ports/logger.port.ts:4
+Defined in: [cap-core/src/ports/logger.port.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/logger.port.ts#L4)
 
 #### Parameters
 

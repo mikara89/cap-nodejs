@@ -8,4 +8,4 @@
 
 > `const` **PUBLISHER**: *typeof* `PUBLISHER`
 
-Defined in: cap-core/src/ports/publisher.port.ts:5
+Defined in: [cap-core/src/ports/publisher.port.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publisher.port.ts#L5)

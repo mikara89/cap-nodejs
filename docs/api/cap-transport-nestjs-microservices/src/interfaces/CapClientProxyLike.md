@@ -6,7 +6,7 @@
 
 # Interface: CapClientProxyLike
 
-Defined in: cap-transport-nestjs-microservices/src/client-proxy.interface.ts:3
+Defined in: [cap-transport-nestjs-microservices/src/client-proxy.interface.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-nestjs-microservices/src/client-proxy.interface.ts#L3)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-transport-nestjs-microservices/src/client-proxy.interface.ts:3
 
 > **emit**\<`TResult`, `TInput`\>(`pattern`, `data`): `Observable`\<`TResult`\>
 
-Defined in: cap-transport-nestjs-microservices/src/client-proxy.interface.ts:4
+Defined in: [cap-transport-nestjs-microservices/src/client-proxy.interface.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-nestjs-microservices/src/client-proxy.interface.ts#L4)
 
 #### Type Parameters
 

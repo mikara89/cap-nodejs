@@ -6,11 +6,12 @@
 
 # Class: InMemoryPublishStorage
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:5
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:6
 
 ## Implements
 
 - [`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md)
+- `CapabilityAwareStoragePort`
 
 ## Constructors
 
@@ -28,7 +29,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:5
 
 > `readonly` **store**: `Map`\<`string`, [`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:6
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:7
 
 ## Methods
 
@@ -36,7 +37,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:6
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:8
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:10
 
 #### Parameters
 
@@ -58,7 +59,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:8
 
 > **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:12
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:15
 
 #### Parameters
 
@@ -76,11 +77,27 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:12
 
 ***
 
+### getCapabilities()
+
+> **getCapabilities**(): `CapStorageCapabilities`
+
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:9
+
+#### Returns
+
+`CapStorageCapabilities`
+
+#### Implementation of
+
+`CapabilityAwareStoragePort.getCapabilities`
+
+***
+
 ### listPublish()
 
 > **listPublish**(`options?`): `Promise`\<\{ `items`: [`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]; `total`: `number`; \}\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:13
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:16
 
 #### Parameters
 
@@ -114,9 +131,9 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:13
 
 ### markPublished()
 
-> **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
+> **markPublished**(`id`, `publishedAt?`, `ownership?`): `Promise`\<`boolean`\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:9
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:11
 
 #### Parameters
 
@@ -128,9 +145,13 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:9
 
 `Date`
 
+##### ownership?
+
+`PublishClaimOwnership`
+
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean`\>
 
 #### Implementation of
 
@@ -140,9 +161,9 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:9
 
 ### markPublishFailed()
 
-> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
+> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`boolean`\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:10
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:12
 
 #### Parameters
 
@@ -160,7 +181,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:10
 
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean`\>
 
 #### Implementation of
 
@@ -172,7 +193,7 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:10
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:11
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:14
 
 #### Parameters
 
@@ -190,11 +211,33 @@ Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:11
 
 ***
 
+### renewPublishClaim()
+
+> **renewPublishClaim**(`options`): `Promise`\<`boolean`\>
+
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:13
+
+#### Parameters
+
+##### options
+
+`RenewPublishClaimOptions`
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+#### Implementation of
+
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`renewPublishClaim`](../../../cap-nest/src/interfaces/PublishStoragePort.md#renewpublishclaim)
+
+***
+
 ### savePublish()
 
 > **savePublish**\<`T`\>(`event`, `_ctx?`): `Promise`\<`string`\>
 
-Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:7
+Defined in: cap-core/dist/testing/in-memory-publish-storage.d.ts:8
 
 #### Type Parameters
 

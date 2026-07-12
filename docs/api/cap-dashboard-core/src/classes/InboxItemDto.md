@@ -6,7 +6,7 @@
 
 # Class: InboxItemDto
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:3
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L3)
 
 ## Constructors
 
@@ -24,7 +24,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:3
 
 > `optional` **dedupeKey?**: `string`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:7
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L7)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:7
 
 > `optional` **headers?**: `unknown`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:16
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L16)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:16
 
 > **id**: `string`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:4
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L4)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:4
 
 > `optional` **lastError?**: `string` \| `null`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:11
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L11)
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:11
 
 > `optional` **messageId?**: `string`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:6
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L6)
 
 ***
 
@@ -64,7 +64,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:6
 
 > `optional` **nextRetry?**: `Date`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:12
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L12)
 
 ***
 
@@ -72,7 +72,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:12
 
 > `optional` **payload?**: `unknown`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:15
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L15)
 
 ***
 
@@ -80,7 +80,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:15
 
 > `optional` **payloadPreview?**: `string`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:14
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L14)
 
 ***
 
@@ -88,7 +88,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:14
 
 > `optional` **processed?**: `boolean`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:9
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L9)
 
 ***
 
@@ -96,7 +96,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:9
 
 > `optional` **processedAt?**: `Date` \| `null`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:13
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L13)
 
 ***
 
@@ -104,7 +104,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:13
 
 > `optional` **retryCount?**: `number`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:10
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L10)
 
 ***
 
@@ -112,7 +112,7 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:10
 
 > `optional` **status?**: [`CapReceivedStatus`](../../../cap-nest/src/type-aliases/CapReceivedStatus.md)
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:8
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L8)
 
 ***
 
@@ -120,4 +120,4 @@ Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:8
 
 > **topic**: `string`
 
-Defined in: cap-dashboard-core/src/dto/inbox-item.dto.ts:5
+Defined in: [cap-dashboard-core/src/dto/inbox-item.dto.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/inbox-item.dto.ts#L5)

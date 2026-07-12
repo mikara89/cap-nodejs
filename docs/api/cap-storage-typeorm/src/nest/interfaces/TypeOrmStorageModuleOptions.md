@@ -6,7 +6,7 @@
 
 # Interface: TypeOrmStorageModuleOptions
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:18
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L18)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:18
 
 > `optional` **dataSource?**: `string` \| `DataSource`
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:19
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L19)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:19
 
 > `optional` **imports?**: (`Type`\<`any`\> \| `ForwardReference`\<`any`\> \| `DynamicModule` \| `Promise`\<`DynamicModule`\>)[]
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:20
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L20)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:20
 
 > `optional` **storageOptions?**: [`TypeOrmStorageTableOptions`](../../interfaces/TypeOrmStorageTableOptions.md)
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:21
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L21)

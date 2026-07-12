@@ -6,7 +6,7 @@
 
 # Interface: CapModuleAsyncOptions
 
-Defined in: cap-nest/src/cap/cap.module.ts:49
+Defined in: [cap-nest/src/cap/cap.module.ts:49](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L49)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-nest/src/cap/cap.module.ts:49
 
 > `optional` **imports?**: (`Type`\<`any`\> \| `ForwardReference`\<`any`\> \| `DynamicModule` \| `Promise`\<`DynamicModule`\>)[]
 
-Defined in: cap-nest/src/cap/cap.module.ts:50
+Defined in: [cap-nest/src/cap/cap.module.ts:50](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L50)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-nest/src/cap/cap.module.ts:50
 
 > `optional` **inject?**: (`InjectionToken` \| `OptionalFactoryDependency`)[]
 
-Defined in: cap-nest/src/cap/cap.module.ts:56
+Defined in: [cap-nest/src/cap/cap.module.ts:56](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L56)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: cap-nest/src/cap/cap.module.ts:56
 
 > `optional` **useClass?**: `Type`\<[`CapModuleFactory`](CapModuleFactory.md)\>
 
-Defined in: cap-nest/src/cap/cap.module.ts:52
+Defined in: [cap-nest/src/cap/cap.module.ts:52](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L52)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: cap-nest/src/cap/cap.module.ts:52
 
 > `optional` **useExisting?**: `Type`\<[`CapModuleFactory`](CapModuleFactory.md)\>
 
-Defined in: cap-nest/src/cap/cap.module.ts:51
+Defined in: [cap-nest/src/cap/cap.module.ts:51](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L51)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: cap-nest/src/cap/cap.module.ts:51
 
 > `optional` **useFactory?**: (...`args`) => [`CapModuleOptions`](CapModuleOptions.md) \| `Promise`\<[`CapModuleOptions`](CapModuleOptions.md)\>
 
-Defined in: cap-nest/src/cap/cap.module.ts:53
+Defined in: [cap-nest/src/cap/cap.module.ts:53](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.module.ts#L53)
 
 #### Parameters
 

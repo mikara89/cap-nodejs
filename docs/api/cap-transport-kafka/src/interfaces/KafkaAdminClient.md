@@ -6,7 +6,7 @@
 
 # Interface: KafkaAdminClient
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:42
+Defined in: [cap-transport-kafka/src/kafka-types.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L42)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-transport-kafka/src/kafka-types.ts:42
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:43
+Defined in: [cap-transport-kafka/src/kafka-types.ts:43](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L43)
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: cap-transport-kafka/src/kafka-types.ts:43
 
 > **createTopics**(`options`): `Promise`\<`boolean`\>
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:45
+Defined in: [cap-transport-kafka/src/kafka-types.ts:45](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L45)
 
 #### Parameters
 
@@ -46,7 +46,7 @@ Defined in: cap-transport-kafka/src/kafka-types.ts:45
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: cap-transport-kafka/src/kafka-types.ts:44
+Defined in: [cap-transport-kafka/src/kafka-types.ts:44](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-types.ts#L44)
 
 #### Returns
 

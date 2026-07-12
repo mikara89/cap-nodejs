@@ -6,7 +6,7 @@
 
 # Interface: CapExpressSchedulerOptions
 
-Defined in: cap-express/src/create-cap-express.ts:21
+Defined in: [cap-express/src/create-cap-express.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L21)
 
 ## Extends
 
@@ -42,7 +42,7 @@ Defined in: cap-core/dist/models/cap-options.d.ts:21
 
 > `optional` **inboxRetryIntervalMs?**: `number`
 
-Defined in: cap-express/src/create-cap-express.ts:23
+Defined in: [cap-express/src/create-cap-express.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L23)
 
 ***
 
@@ -98,4 +98,4 @@ Defined in: cap-core/dist/models/cap-options.d.ts:18
 
 > `optional` **outboxIntervalMs?**: `number`
 
-Defined in: cap-express/src/create-cap-express.ts:22
+Defined in: [cap-express/src/create-cap-express.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L22)

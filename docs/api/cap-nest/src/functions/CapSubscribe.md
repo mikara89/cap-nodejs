@@ -8,7 +8,7 @@
 
 > **CapSubscribe**\<`T`\>(`opts`, `maybeGroup?`): `MethodDecorator`
 
-Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:42
+Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L42)
 
 Decorate a method so the CAP worker knows it should be invoked
 when a message on `topic` (optionally `group`) arrives.

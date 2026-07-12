@@ -8,7 +8,7 @@
 
 > **normalizeError**(`error`): `string`
 
-Defined in: cap-core/src/utils/error.util.ts:1
+Defined in: [cap-core/src/utils/error.util.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/utils/error.util.ts#L1)
 
 ## Parameters
 

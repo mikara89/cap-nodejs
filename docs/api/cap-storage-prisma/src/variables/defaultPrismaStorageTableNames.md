@@ -8,7 +8,7 @@
 
 > `const` **defaultPrismaStorageTableNames**: `object`
 
-Defined in: cap-storage-prisma/src/prisma-storage-options.ts:22
+Defined in: [cap-storage-prisma/src/prisma-storage-options.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-storage-options.ts#L22)
 
 ## Type Declaration
 

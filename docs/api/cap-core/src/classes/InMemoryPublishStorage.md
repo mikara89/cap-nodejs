@@ -6,11 +6,12 @@
 
 # Class: InMemoryPublishStorage
 
-Defined in: cap-core/src/testing/in-memory-publish-storage.ts:10
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L16)
 
 ## Implements
 
 - [`PublishStoragePort`](../interfaces/PublishStoragePort.md)
+- [`CapabilityAwareStoragePort`](../interfaces/CapabilityAwareStoragePort.md)
 
 ## Constructors
 
@@ -28,7 +29,7 @@ Defined in: cap-core/src/testing/in-memory-publish-storage.ts:10
 
 > `readonly` **store**: `Map`\<`string`, [`CapPublishEvent`](../interfaces/CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>\>
 
-Defined in: cap-core/src/testing/in-memory-publish-storage.ts:11
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L19)
 
 ## Methods
 
@@ -36,7 +37,7 @@ Defined in: cap-core/src/testing/in-memory-publish-storage.ts:11
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](../interfaces/CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-core/src/testing/in-memory-publish-storage.ts:21
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L42)
 
 #### Parameters
 
@@ -58,7 +59,7 @@ Defined in: cap-core/src/testing/in-memory-publish-storage.ts:21
 
 > **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](../interfaces/CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-core/src/testing/in-memory-publish-storage.ts:79
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:123](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L123)
 
 #### Parameters
 
@@ -76,11 +77,27 @@ Defined in: cap-core/src/testing/in-memory-publish-storage.ts:79
 
 ***
 
+### getCapabilities()
+
+> **getCapabilities**(): [`CapStorageCapabilities`](../interfaces/CapStorageCapabilities.md)
+
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L29)
+
+#### Returns
+
+[`CapStorageCapabilities`](../interfaces/CapStorageCapabilities.md)
+
+#### Implementation of
+
+[`CapabilityAwareStoragePort`](../interfaces/CapabilityAwareStoragePort.md).[`getCapabilities`](../interfaces/CapabilityAwareStoragePort.md#getcapabilities)
+
+***
+
 ### listPublish()
 
 > **listPublish**(`options?`): `Promise`\<\{ `items`: [`CapPublishEvent`](../interfaces/CapPublishEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]; `total`: `number`; \}\>
 
-Defined in: cap-core/src/testing/in-memory-publish-storage.ts:84
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:128](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L128)
 
 #### Parameters
 
@@ -114,9 +131,9 @@ Defined in: cap-core/src/testing/in-memory-publish-storage.ts:84
 
 ### markPublished()
 
-> **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
+> **markPublished**(`id`, `publishedAt?`, `ownership?`): `Promise`\<`boolean`\>
 
-Defined in: cap-core/src/testing/in-memory-publish-storage.ts:36
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:57](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L57)
 
 #### Parameters
 
@@ -128,9 +145,13 @@ Defined in: cap-core/src/testing/in-memory-publish-storage.ts:36
 
 `Date` = `...`
 
+##### ownership?
+
+[`PublishClaimOwnership`](../interfaces/PublishClaimOwnership.md) = `{}`
+
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean`\>
 
 #### Implementation of
 
@@ -140,9 +161,9 @@ Defined in: cap-core/src/testing/in-memory-publish-storage.ts:36
 
 ### markPublishFailed()
 
-> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
+> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`boolean`\>
 
-Defined in: cap-core/src/testing/in-memory-publish-storage.ts:46
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:74](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L74)
 
 #### Parameters
 
@@ -160,7 +181,7 @@ Defined in: cap-core/src/testing/in-memory-publish-storage.ts:46
 
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean`\>
 
 #### Implementation of
 
@@ -172,7 +193,7 @@ Defined in: cap-core/src/testing/in-memory-publish-storage.ts:46
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: cap-core/src/testing/in-memory-publish-storage.ts:64
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:108](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L108)
 
 #### Parameters
 
@@ -190,11 +211,33 @@ Defined in: cap-core/src/testing/in-memory-publish-storage.ts:64
 
 ***
 
+### renewPublishClaim()
+
+> **renewPublishClaim**(`options`): `Promise`\<`boolean`\>
+
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:94](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L94)
+
+#### Parameters
+
+##### options
+
+[`RenewPublishClaimOptions`](../interfaces/RenewPublishClaimOptions.md)
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+#### Implementation of
+
+[`PublishStoragePort`](../interfaces/PublishStoragePort.md).[`renewPublishClaim`](../interfaces/PublishStoragePort.md#renewpublishclaim)
+
+***
+
 ### savePublish()
 
 > **savePublish**\<`T`\>(`event`, `_ctx?`): `Promise`\<`string`\>
 
-Defined in: cap-core/src/testing/in-memory-publish-storage.ts:13
+Defined in: [cap-core/src/testing/in-memory-publish-storage.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-publish-storage.ts#L21)
 
 #### Type Parameters
 

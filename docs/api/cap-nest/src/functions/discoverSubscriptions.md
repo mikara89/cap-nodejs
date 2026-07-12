@@ -8,7 +8,7 @@
 
 > **discoverSubscriptions**(`instance`): [`DiscoveredSubscription`](../interfaces/DiscoveredSubscription.md)[]
 
-Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:71
+Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:71](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L71)
 
 Discover every method on an instance that is decorated with
 `@CapSubscribe` and return an array of runnable subscriptions.

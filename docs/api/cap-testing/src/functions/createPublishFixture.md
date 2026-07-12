@@ -8,7 +8,7 @@
 
 > **createPublishFixture**\<`T`\>(`options?`): [`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<`T`\>
 
-Defined in: cap-testing/src/fixtures/messages.ts:24
+Defined in: [cap-testing/src/fixtures/messages.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/fixtures/messages.ts#L24)
 
 ## Type Parameters
 

@@ -6,7 +6,7 @@
 
 # Class: KnexTransactionManager
 
-Defined in: cap-storage-knex/src/knex-transaction-manager.ts:11
+Defined in: [cap-storage-knex/src/knex-transaction-manager.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-transaction-manager.ts#L11)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: cap-storage-knex/src/knex-transaction-manager.ts:11
 
 > **new KnexTransactionManager**(`knex`): `KnexTransactionManager`
 
-Defined in: cap-storage-knex/src/knex-transaction-manager.ts:14
+Defined in: [cap-storage-knex/src/knex-transaction-manager.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-transaction-manager.ts#L14)
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: cap-storage-knex/src/knex-transaction-manager.ts:14
 
 > **afterCommit**(`fn`): `void`
 
-Defined in: cap-storage-knex/src/knex-transaction-manager.ts:52
+Defined in: [cap-storage-knex/src/knex-transaction-manager.ts:52](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-transaction-manager.ts#L52)
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: cap-storage-knex/src/knex-transaction-manager.ts:52
 
 > **afterRollback**(`fn`): `void`
 
-Defined in: cap-storage-knex/src/knex-transaction-manager.ts:60
+Defined in: [cap-storage-knex/src/knex-transaction-manager.ts:60](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-transaction-manager.ts#L60)
 
 #### Parameters
 
@@ -80,7 +80,7 @@ Defined in: cap-storage-knex/src/knex-transaction-manager.ts:60
 
 > **getCurrentContext**(): [`CapOperationContext`](../../../cap-nest/src/interfaces/CapOperationContext.md)\<`Transaction`\<`any`, `any`[]\>\> \| `undefined`
 
-Defined in: cap-storage-knex/src/knex-transaction-manager.ts:48
+Defined in: [cap-storage-knex/src/knex-transaction-manager.ts:48](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-transaction-manager.ts#L48)
 
 #### Returns
 
@@ -96,7 +96,7 @@ Defined in: cap-storage-knex/src/knex-transaction-manager.ts:48
 
 > **runInTransaction**\<`T`\>(`options`, `fn`): `Promise`\<`T`\>
 
-Defined in: cap-storage-knex/src/knex-transaction-manager.ts:16
+Defined in: [cap-storage-knex/src/knex-transaction-manager.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-transaction-manager.ts#L16)
 
 #### Type Parameters
 

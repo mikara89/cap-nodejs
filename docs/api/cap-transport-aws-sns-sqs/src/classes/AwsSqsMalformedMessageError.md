@@ -6,7 +6,7 @@
 
 # Class: AwsSqsMalformedMessageError
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-errors.ts:15
+Defined in: [cap-transport-aws-sns-sqs/src/aws-errors.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-errors.ts#L15)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-errors.ts:15
 
 > **new AwsSqsMalformedMessageError**(`message`, `cause?`): `AwsSqsMalformedMessageError`
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-errors.ts:16
+Defined in: [cap-transport-aws-sns-sqs/src/aws-errors.ts:16](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-errors.ts#L16)
 
 #### Parameters
 

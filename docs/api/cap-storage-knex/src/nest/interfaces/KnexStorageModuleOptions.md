@@ -6,7 +6,7 @@
 
 # Interface: KnexStorageModuleOptions
 
-Defined in: cap-storage-knex/src/nest/knex-storage.module.ts:17
+Defined in: [cap-storage-knex/src/nest/knex-storage.module.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/nest/knex-storage.module.ts#L17)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-storage-knex/src/nest/knex-storage.module.ts:17
 
 > `optional` **imports?**: (`Type`\<`any`\> \| `ForwardReference`\<`any`\> \| `DynamicModule` \| `Promise`\<`DynamicModule`\>)[]
 
-Defined in: cap-storage-knex/src/nest/knex-storage.module.ts:19
+Defined in: [cap-storage-knex/src/nest/knex-storage.module.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/nest/knex-storage.module.ts#L19)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-storage-knex/src/nest/knex-storage.module.ts:19
 
 > **knexToken**: `InjectionToken`
 
-Defined in: cap-storage-knex/src/nest/knex-storage.module.ts:18
+Defined in: [cap-storage-knex/src/nest/knex-storage.module.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/nest/knex-storage.module.ts#L18)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: cap-storage-knex/src/nest/knex-storage.module.ts:18
 
 > `optional` **storageOptions?**: [`KnexStorageTableOptions`](../../interfaces/KnexStorageTableOptions.md)
 
-Defined in: cap-storage-knex/src/nest/knex-storage.module.ts:20
+Defined in: [cap-storage-knex/src/nest/knex-storage.module.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/nest/knex-storage.module.ts#L20)

@@ -6,7 +6,7 @@
 
 # Class: ServiceBusSubscriber
 
-Defined in: cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:30
+Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:30](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L30)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: cap-transport-azure-servicebus/src/transport/servicebus-subscriber.t
 
 > **new ServiceBusSubscriber**(`client`, `configOrTopicPrefix?`, `subscriptionPrefix?`, `logger?`): `ServiceBusSubscriber`
 
-Defined in: cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:38
+Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:38](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L38)
 
 #### Parameters
 
@@ -48,7 +48,7 @@ Defined in: cap-transport-azure-servicebus/src/transport/servicebus-subscriber.t
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:376
+Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:376](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L376)
 
 #### Returns
 
@@ -64,7 +64,7 @@ Defined in: cap-transport-azure-servicebus/src/transport/servicebus-subscriber.t
 
 > **consume**(`topic`, `group`, `onMessage`): `Promise`\<`void`\>
 
-Defined in: cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:99
+Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:99](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L99)
 
 #### Parameters
 
@@ -94,7 +94,7 @@ Defined in: cap-transport-azure-servicebus/src/transport/servicebus-subscriber.t
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:57
+Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:57](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L57)
 
 #### Parameters
 
@@ -122,7 +122,7 @@ Defined in: cap-transport-azure-servicebus/src/transport/servicebus-subscriber.t
 
 > **onModuleDestroy**(): `Promise`\<`void`\>
 
-Defined in: cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:372
+Defined in: [cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts:372](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-azure-servicebus/src/transport/servicebus-subscriber.ts#L372)
 
 #### Returns
 

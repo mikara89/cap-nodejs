@@ -6,7 +6,7 @@
 
 # Class: KafkaDisconnectedError
 
-Defined in: cap-transport-kafka/src/kafka-errors.ts:1
+Defined in: [cap-transport-kafka/src/kafka-errors.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-errors.ts#L1)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: cap-transport-kafka/src/kafka-errors.ts:1
 
 > **new KafkaDisconnectedError**(`operation`): `KafkaDisconnectedError`
 
-Defined in: cap-transport-kafka/src/kafka-errors.ts:2
+Defined in: [cap-transport-kafka/src/kafka-errors.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-errors.ts#L2)
 
 #### Parameters
 

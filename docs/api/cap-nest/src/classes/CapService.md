@@ -6,7 +6,7 @@
 
 # Class: CapService
 
-Defined in: cap-nest/src/cap/cap.service.ts:38
+Defined in: [cap-nest/src/cap/cap.service.ts:38](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L38)
 
 ## Constructors
 
@@ -14,7 +14,7 @@ Defined in: cap-nest/src/cap/cap.service.ts:38
 
 > **new CapService**(`engine`): `CapService`
 
-Defined in: cap-nest/src/cap/cap.service.ts:41
+Defined in: [cap-nest/src/cap/cap.service.ts:41](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L41)
 
 #### Parameters
 
@@ -30,7 +30,7 @@ Defined in: cap-nest/src/cap/cap.service.ts:41
 
 > **new CapService**(`pubStore`, `recStore`, `publisher`, `subscriber`, `schedulerOptions?`): `CapService`
 
-Defined in: cap-nest/src/cap/cap.service.ts:42
+Defined in: [cap-nest/src/cap/cap.service.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L42)
 
 #### Parameters
 
@@ -64,7 +64,7 @@ Defined in: cap-nest/src/cap/cap.service.ts:42
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: cap-nest/src/cap/cap.service.ts:112
+Defined in: [cap-nest/src/cap/cap.service.ts:112](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L112)
 
 #### Returns
 
@@ -76,7 +76,7 @@ Defined in: cap-nest/src/cap/cap.service.ts:112
 
 > **dispatchOutboxBatch**(): `Promise`\<`number`\>
 
-Defined in: cap-nest/src/cap/cap.service.ts:104
+Defined in: [cap-nest/src/cap/cap.service.ts:104](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L104)
 
 #### Returns
 
@@ -88,7 +88,7 @@ Defined in: cap-nest/src/cap/cap.service.ts:104
 
 > **publish**\<`T`\>(`topic`, `payload`, `options?`): `Promise`\<`void`\>
 
-Defined in: cap-nest/src/cap/cap.service.ts:77
+Defined in: [cap-nest/src/cap/cap.service.ts:77](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L77)
 
 #### Type Parameters
 
@@ -120,7 +120,7 @@ Defined in: cap-nest/src/cap/cap.service.ts:77
 
 > **retryInboxBatch**(): `Promise`\<`number`\>
 
-Defined in: cap-nest/src/cap/cap.service.ts:108
+Defined in: [cap-nest/src/cap/cap.service.ts:108](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L108)
 
 #### Returns
 
@@ -132,7 +132,7 @@ Defined in: cap-nest/src/cap/cap.service.ts:108
 
 > **retryReceived**(`rec`): `Promise`\<`void`\>
 
-Defined in: cap-nest/src/cap/cap.service.ts:100
+Defined in: [cap-nest/src/cap/cap.service.ts:100](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L100)
 
 #### Parameters
 
@@ -150,7 +150,7 @@ Defined in: cap-nest/src/cap/cap.service.ts:100
 
 > **subscribe**\<`T`\>(`topic`, `group`, `handler`): `void`
 
-Defined in: cap-nest/src/cap/cap.service.ts:85
+Defined in: [cap-nest/src/cap/cap.service.ts:85](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L85)
 
 #### Type Parameters
 
@@ -182,7 +182,7 @@ Defined in: cap-nest/src/cap/cap.service.ts:85
 
 > **transaction**\<`T`\>(`fn`, `options?`): `Promise`\<`T`\>
 
-Defined in: cap-nest/src/cap/cap.service.ts:93
+Defined in: [cap-nest/src/cap/cap.service.ts:93](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/cap.service.ts#L93)
 
 #### Type Parameters
 

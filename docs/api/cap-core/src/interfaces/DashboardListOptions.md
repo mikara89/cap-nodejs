@@ -6,7 +6,7 @@
 
 # Interface: DashboardListOptions
 
-Defined in: cap-core/src/ports/dashboard-list.port.ts:1
+Defined in: [cap-core/src/ports/dashboard-list.port.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/dashboard-list.port.ts#L1)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/ports/dashboard-list.port.ts:1
 
 > `optional` **due?**: `boolean`
 
-Defined in: cap-core/src/ports/dashboard-list.port.ts:6
+Defined in: [cap-core/src/ports/dashboard-list.port.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/dashboard-list.port.ts#L6)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-core/src/ports/dashboard-list.port.ts:6
 
 > `optional` **limit?**: `number`
 
-Defined in: cap-core/src/ports/dashboard-list.port.ts:2
+Defined in: [cap-core/src/ports/dashboard-list.port.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/dashboard-list.port.ts#L2)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: cap-core/src/ports/dashboard-list.port.ts:2
 
 > `optional` **offset?**: `number`
 
-Defined in: cap-core/src/ports/dashboard-list.port.ts:3
+Defined in: [cap-core/src/ports/dashboard-list.port.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/dashboard-list.port.ts#L3)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: cap-core/src/ports/dashboard-list.port.ts:3
 
 > `optional` **onlyUnpublished?**: `boolean`
 
-Defined in: cap-core/src/ports/dashboard-list.port.ts:5
+Defined in: [cap-core/src/ports/dashboard-list.port.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/dashboard-list.port.ts#L5)
 
 ***
 
@@ -46,4 +46,4 @@ Defined in: cap-core/src/ports/dashboard-list.port.ts:5
 
 > `optional` **topic?**: `string`
 
-Defined in: cap-core/src/ports/dashboard-list.port.ts:4
+Defined in: [cap-core/src/ports/dashboard-list.port.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/dashboard-list.port.ts#L4)

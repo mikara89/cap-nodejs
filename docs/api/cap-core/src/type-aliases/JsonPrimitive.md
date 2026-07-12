@@ -8,4 +8,4 @@
 
 > **JsonPrimitive** = `string` \| `number` \| `boolean` \| `null`
 
-Defined in: cap-core/src/models/json-value.type.ts:1
+Defined in: [cap-core/src/models/json-value.type.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/json-value.type.ts#L1)

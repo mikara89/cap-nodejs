@@ -6,7 +6,7 @@
 
 # Interface: ReceivedStorageContractOptions
 
-Defined in: cap-testing/src/contracts/received-storage-contract.ts:13
+Defined in: [cap-testing/src/contracts/received-storage-contract.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/received-storage-contract.ts#L13)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-testing/src/contracts/received-storage-contract.ts:13
 
 > `optional` **supportsAtomicInsertIgnore?**: `boolean`
 
-Defined in: cap-testing/src/contracts/received-storage-contract.ts:14
+Defined in: [cap-testing/src/contracts/received-storage-contract.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/received-storage-contract.ts#L14)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: cap-testing/src/contracts/received-storage-contract.ts:14
 
 > `optional` **supportsSafeConcurrentInsert?**: `boolean`
 
-Defined in: cap-testing/src/contracts/received-storage-contract.ts:15
+Defined in: [cap-testing/src/contracts/received-storage-contract.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/received-storage-contract.ts#L15)

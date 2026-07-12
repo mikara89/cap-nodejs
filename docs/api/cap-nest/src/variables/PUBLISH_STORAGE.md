@@ -8,6 +8,6 @@
 
 > `const` **PUBLISH\_STORAGE**: `symbol` = `CORE_PUBLISH_STORAGE`
 
-Defined in: cap-nest/src/cap/abstractions/storage.interface.ts:12
+Defined in: [cap-nest/src/cap/abstractions/storage.interface.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/storage.interface.ts#L12)
 
 IoC tokens - easier than string literals

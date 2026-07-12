@@ -6,7 +6,7 @@
 
 # Class: RetrySchedulerService
 
-Defined in: cap-nest/src/cap/scheduler/schedule.service.ts:19
+Defined in: [cap-nest/src/cap/scheduler/schedule.service.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/scheduler/schedule.service.ts#L19)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: cap-nest/src/cap/scheduler/schedule.service.ts:19
 
 > **new RetrySchedulerService**(`cap`, `options?`, `schedulerRegistry?`): `RetrySchedulerService`
 
-Defined in: cap-nest/src/cap/scheduler/schedule.service.ts:22
+Defined in: [cap-nest/src/cap/scheduler/schedule.service.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/scheduler/schedule.service.ts#L22)
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: cap-nest/src/cap/scheduler/schedule.service.ts:22
 
 > **flushOutbox**(): `Promise`\<`void`\>
 
-Defined in: cap-nest/src/cap/scheduler/schedule.service.ts:40
+Defined in: [cap-nest/src/cap/scheduler/schedule.service.ts:40](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/scheduler/schedule.service.ts#L40)
 
 #### Returns
 
@@ -56,7 +56,7 @@ Defined in: cap-nest/src/cap/scheduler/schedule.service.ts:40
 
 > **onModuleDestroy**(): `void`
 
-Defined in: cap-nest/src/cap/scheduler/schedule.service.ts:57
+Defined in: [cap-nest/src/cap/scheduler/schedule.service.ts:57](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/scheduler/schedule.service.ts#L57)
 
 #### Returns
 
@@ -72,7 +72,7 @@ Defined in: cap-nest/src/cap/scheduler/schedule.service.ts:57
 
 > **retryInbox**(): `Promise`\<`void`\>
 
-Defined in: cap-nest/src/cap/scheduler/schedule.service.ts:49
+Defined in: [cap-nest/src/cap/scheduler/schedule.service.ts:49](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/scheduler/schedule.service.ts#L49)
 
 #### Returns
 

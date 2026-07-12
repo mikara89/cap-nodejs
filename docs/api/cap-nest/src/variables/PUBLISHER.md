@@ -8,4 +8,4 @@
 
 > `const` **PUBLISHER**: `symbol` = `CORE_PUBLISHER`
 
-Defined in: cap-nest/src/cap/abstractions/transport.interface.ts:8
+Defined in: [cap-nest/src/cap/abstractions/transport.interface.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/transport.interface.ts#L8)

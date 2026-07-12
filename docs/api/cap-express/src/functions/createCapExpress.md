@@ -8,7 +8,7 @@
 
 > **createCapExpress**(`options`): [`CapExpressApp`](../interfaces/CapExpressApp.md)
 
-Defined in: cap-express/src/create-cap-express.ts:68
+Defined in: [cap-express/src/create-cap-express.ts:68](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-express/src/create-cap-express.ts#L68)
 
 ## Parameters
 

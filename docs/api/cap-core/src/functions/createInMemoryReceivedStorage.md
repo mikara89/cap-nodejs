@@ -8,7 +8,7 @@
 
 > **createInMemoryReceivedStorage**(): [`InMemoryReceivedStorage`](../classes/InMemoryReceivedStorage.md)
 
-Defined in: cap-core/src/testing/in-memory-received-storage.ts:119
+Defined in: [cap-core/src/testing/in-memory-received-storage.ts:119](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-received-storage.ts#L119)
 
 ## Returns
 

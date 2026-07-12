@@ -8,4 +8,4 @@
 
 > **CapEngineInboxRetryProcessor** = `Pick`\<[`CapEngine`](../classes/CapEngine.md), `"retryInboxBatch"`\>
 
-Defined in: cap-core/src/engine/inbox-retry-processor.ts:7
+Defined in: [cap-core/src/engine/inbox-retry-processor.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/inbox-retry-processor.ts#L7)

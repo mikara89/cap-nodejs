@@ -6,7 +6,7 @@
 
 # Interface: CapStorageCapabilities
 
-Defined in: cap-core/src/models/cap-storage-capabilities.ts:1
+Defined in: [cap-core/src/models/cap-storage-capabilities.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L1)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/models/cap-storage-capabilities.ts:1
 
 > **advisoryLocks**: `boolean`
 
-Defined in: cap-core/src/models/cap-storage-capabilities.ts:4
+Defined in: [cap-core/src/models/cap-storage-capabilities.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L6)
 
 ***
 
@@ -22,7 +22,23 @@ Defined in: cap-core/src/models/cap-storage-capabilities.ts:4
 
 > **atomicInsertIgnore**: `boolean`
 
-Defined in: cap-core/src/models/cap-storage-capabilities.ts:5
+Defined in: [cap-core/src/models/cap-storage-capabilities.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L7)
+
+***
+
+### claimLeaseRenewal?
+
+> `optional` **claimLeaseRenewal?**: `boolean`
+
+Defined in: [cap-core/src/models/cap-storage-capabilities.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L5)
+
+***
+
+### claimOwnershipFencing?
+
+> `optional` **claimOwnershipFencing?**: `boolean`
+
+Defined in: [cap-core/src/models/cap-storage-capabilities.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L4)
 
 ***
 
@@ -30,7 +46,7 @@ Defined in: cap-core/src/models/cap-storage-capabilities.ts:5
 
 > **isolationLevels**: `string`[]
 
-Defined in: cap-core/src/models/cap-storage-capabilities.ts:7
+Defined in: [cap-core/src/models/cap-storage-capabilities.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L9)
 
 ***
 
@@ -38,7 +54,7 @@ Defined in: cap-core/src/models/cap-storage-capabilities.ts:7
 
 > **nestedTransactions**: `boolean`
 
-Defined in: cap-core/src/models/cap-storage-capabilities.ts:6
+Defined in: [cap-core/src/models/cap-storage-capabilities.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L8)
 
 ***
 
@@ -46,7 +62,7 @@ Defined in: cap-core/src/models/cap-storage-capabilities.ts:6
 
 > **skipLockedClaiming**: `boolean`
 
-Defined in: cap-core/src/models/cap-storage-capabilities.ts:3
+Defined in: [cap-core/src/models/cap-storage-capabilities.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L3)
 
 ***
 
@@ -54,4 +70,4 @@ Defined in: cap-core/src/models/cap-storage-capabilities.ts:3
 
 > **transactions**: `boolean`
 
-Defined in: cap-core/src/models/cap-storage-capabilities.ts:2
+Defined in: [cap-core/src/models/cap-storage-capabilities.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L2)

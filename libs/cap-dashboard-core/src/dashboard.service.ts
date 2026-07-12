@@ -6,9 +6,9 @@ import {
   type PublishStoragePort,
   type PublisherPort,
   type ReceivedStoragePort,
-  runWithActiveLeaseHeartbeat,
   withCapMessageId,
 } from '@mikara89/cap-core';
+import { runWithActiveLeaseHeartbeat } from './internal/active-lease-heartbeat';
 import type { ActionResultDto } from './dto/action-result.dto';
 import type { InboxItemDto } from './dto/inbox-item.dto';
 import type { ListQueryDto } from './dto/list-query.dto';

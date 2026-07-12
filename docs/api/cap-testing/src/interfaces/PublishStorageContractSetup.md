@@ -6,7 +6,7 @@
 
 # Interface: PublishStorageContractSetup\<TTx\>
 
-Defined in: cap-testing/src/contracts/publish-storage-contract.ts:12
+Defined in: [cap-testing/src/contracts/publish-storage-contract.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/publish-storage-contract.ts#L12)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: cap-testing/src/contracts/publish-storage-contract.ts:12
 
 > **cleanup**: () => `Promise`\<`void`\>
 
-Defined in: cap-testing/src/contracts/publish-storage-contract.ts:15
+Defined in: [cap-testing/src/contracts/publish-storage-contract.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/publish-storage-contract.ts#L15)
 
 #### Returns
 
@@ -32,7 +32,7 @@ Defined in: cap-testing/src/contracts/publish-storage-contract.ts:15
 
 > **storage**: [`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md)\<`TTx`\>
 
-Defined in: cap-testing/src/contracts/publish-storage-contract.ts:13
+Defined in: [cap-testing/src/contracts/publish-storage-contract.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/publish-storage-contract.ts#L13)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: cap-testing/src/contracts/publish-storage-contract.ts:13
 
 > `optional` **transaction?**: [`CapTransactionManagerPort`](../../../cap-nest/src/interfaces/CapTransactionManagerPort.md)\<`TTx`\>
 
-Defined in: cap-testing/src/contracts/publish-storage-contract.ts:14
+Defined in: [cap-testing/src/contracts/publish-storage-contract.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/publish-storage-contract.ts#L14)

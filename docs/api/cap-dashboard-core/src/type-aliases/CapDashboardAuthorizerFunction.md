@@ -8,7 +8,7 @@
 
 > **CapDashboardAuthorizerFunction** = (`context`) => [`CapDashboardAuthorizationResult`](CapDashboardAuthorizationResult.md)
 
-Defined in: cap-dashboard-core/src/dashboard-auth.ts:35
+Defined in: [cap-dashboard-core/src/dashboard-auth.ts:35](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-auth.ts#L35)
 
 ## Parameters
 

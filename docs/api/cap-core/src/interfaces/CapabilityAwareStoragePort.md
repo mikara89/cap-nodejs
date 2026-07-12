@@ -6,7 +6,7 @@
 
 # Interface: CapabilityAwareStoragePort
 
-Defined in: cap-core/src/models/cap-storage-capabilities.ts:10
+Defined in: [cap-core/src/models/cap-storage-capabilities.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L12)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/models/cap-storage-capabilities.ts:10
 
 > **getCapabilities**(): [`CapStorageCapabilities`](CapStorageCapabilities.md)
 
-Defined in: cap-core/src/models/cap-storage-capabilities.ts:11
+Defined in: [cap-core/src/models/cap-storage-capabilities.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/models/cap-storage-capabilities.ts#L13)
 
 #### Returns
 

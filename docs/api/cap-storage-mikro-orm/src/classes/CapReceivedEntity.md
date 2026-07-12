@@ -6,7 +6,7 @@
 
 # Class: CapReceivedEntity
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:17
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L17)
 
 MikroORM entity for CAP inbox (received events).
 Stores incoming messages for processing and retry logic.
@@ -27,7 +27,7 @@ Stores incoming messages for processing and retry logic.
 
 > **createdAt**: `Date`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:58
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:58](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L58)
 
 ***
 
@@ -35,7 +35,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:58
 
 > **dedupeKey**: `string`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:31
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L31)
 
 ***
 
@@ -43,7 +43,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:31
 
 > **group**: `string`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:25
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L25)
 
 ***
 
@@ -51,7 +51,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:25
 
 > `optional` **headers?**: [`CapHeaders`](../../../cap-nest/src/type-aliases/CapHeaders.md)
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:37
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:37](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L37)
 
 ***
 
@@ -59,7 +59,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:37
 
 > **id**: `string`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:19
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L19)
 
 ***
 
@@ -67,7 +67,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:19
 
 > `optional` **lastError?**: `string` \| `null`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:49
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:49](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L49)
 
 ***
 
@@ -75,7 +75,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:49
 
 > **messageId**: `string`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:28
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L28)
 
 ***
 
@@ -83,7 +83,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:28
 
 > `optional` **nextRetry?**: `Date`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:52
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:52](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L52)
 
 ***
 
@@ -91,7 +91,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:52
 
 > **payload**: [`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:34
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L34)
 
 ***
 
@@ -99,7 +99,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:34
 
 > **processed**: `boolean` = `false`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:40
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:40](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L40)
 
 ***
 
@@ -107,7 +107,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:40
 
 > `optional` **processedAt?**: `Date` \| `null`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:55
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:55](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L55)
 
 ***
 
@@ -115,7 +115,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:55
 
 > **retryCount**: `number` = `0`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:43
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:43](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L43)
 
 ***
 
@@ -123,7 +123,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:43
 
 > **status**: [`CapReceivedStatus`](../../../cap-nest/src/type-aliases/CapReceivedStatus.md) = `'pending'`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:46
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:46](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L46)
 
 ***
 
@@ -131,7 +131,7 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:46
 
 > **topic**: `string`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:22
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L22)
 
 ***
 
@@ -139,4 +139,4 @@ Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:22
 
 > **updatedAt**: `Date`
 
-Defined in: cap-storage-mikro-orm/src/entities/cap-received.entity.ts:61
+Defined in: [cap-storage-mikro-orm/src/entities/cap-received.entity.ts:61](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/entities/cap-received.entity.ts#L61)

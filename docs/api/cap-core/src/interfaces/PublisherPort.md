@@ -6,7 +6,7 @@
 
 # Interface: PublisherPort
 
-Defined in: cap-core/src/ports/publisher.port.ts:12
+Defined in: [cap-core/src/ports/publisher.port.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publisher.port.ts#L12)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/ports/publisher.port.ts:12
 
 > **emit**\<`T`\>(`topic`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: cap-core/src/ports/publisher.port.ts:13
+Defined in: [cap-core/src/ports/publisher.port.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publisher.port.ts#L13)
 
 #### Type Parameters
 
@@ -50,7 +50,7 @@ Defined in: cap-core/src/ports/publisher.port.ts:13
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-core/src/ports/publisher.port.ts:20
+Defined in: [cap-core/src/ports/publisher.port.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publisher.port.ts#L20)
 
 #### Parameters
 

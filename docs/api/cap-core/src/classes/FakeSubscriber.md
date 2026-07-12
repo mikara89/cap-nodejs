@@ -6,7 +6,7 @@
 
 # Class: FakeSubscriber
 
-Defined in: cap-core/src/testing/fake-subscriber.ts:8
+Defined in: [cap-core/src/testing/fake-subscriber.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/fake-subscriber.ts#L8)
 
 ## Implements
 
@@ -28,7 +28,7 @@ Defined in: cap-core/src/testing/fake-subscriber.ts:8
 
 > `readonly` **listeners**: `Map`\<`string`, `Set`\<[`CapHandler`](../type-aliases/CapHandler.md)\>\>
 
-Defined in: cap-core/src/testing/fake-subscriber.ts:9
+Defined in: [cap-core/src/testing/fake-subscriber.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/fake-subscriber.ts#L9)
 
 ## Methods
 
@@ -36,7 +36,7 @@ Defined in: cap-core/src/testing/fake-subscriber.ts:9
 
 > **consume**(`topic`, `group`, `handler`): `Promise`\<`void`\>
 
-Defined in: cap-core/src/testing/fake-subscriber.ts:11
+Defined in: [cap-core/src/testing/fake-subscriber.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/fake-subscriber.ts#L11)
 
 #### Parameters
 
@@ -66,7 +66,7 @@ Defined in: cap-core/src/testing/fake-subscriber.ts:11
 
 > **deliver**(`topic`, `group`, `payload`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: cap-core/src/testing/fake-subscriber.ts:18
+Defined in: [cap-core/src/testing/fake-subscriber.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/fake-subscriber.ts#L18)
 
 #### Parameters
 

@@ -72,6 +72,7 @@
     "pack:smoke:kafka": "node tools/verify-kafka-pack.js",
     "pack:smoke:aws-sns-sqs": "node tools/verify-aws-sns-sqs-pack.js",
     "pack:smoke:storage-nest": "node tools/verify-storage-nest-packs.js",
+    "pack:smoke:dashboard-isolation": "node tools/verify-dashboard-isolation.js",
     "test:integration:servicebus": "node tools/run-servicebus-integration.js",
     "test:integration:rabbitmq": "jest --testRegex=rabbitmq\\.integration\\.spec\\.ts$ --runInBand",
     "test:integration:kafka": "jest --testRegex=kafka\\.integration\\.spec\\.ts$ --runInBand",

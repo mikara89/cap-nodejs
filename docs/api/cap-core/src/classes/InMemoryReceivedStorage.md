@@ -6,7 +6,7 @@
 
 # Class: InMemoryReceivedStorage
 
-Defined in: cap-core/src/testing/in-memory-received-storage.ts:9
+Defined in: [cap-core/src/testing/in-memory-received-storage.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-received-storage.ts#L9)
 
 ## Implements
 
@@ -28,7 +28,7 @@ Defined in: cap-core/src/testing/in-memory-received-storage.ts:9
 
 > `readonly` **store**: `Map`\<`string`, [`CapReceivedEvent`](../interfaces/CapReceivedEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>\>
 
-Defined in: cap-core/src/testing/in-memory-received-storage.ts:10
+Defined in: [cap-core/src/testing/in-memory-received-storage.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-received-storage.ts#L10)
 
 ## Methods
 
@@ -36,7 +36,7 @@ Defined in: cap-core/src/testing/in-memory-received-storage.ts:10
 
 > **findReceivedById**(`id`): `Promise`\<[`CapReceivedEvent`](../interfaces/CapReceivedEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-core/src/testing/in-memory-received-storage.ts:76
+Defined in: [cap-core/src/testing/in-memory-received-storage.ts:76](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-received-storage.ts#L76)
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: cap-core/src/testing/in-memory-received-storage.ts:76
 
 > **getRetryDue**(`limit`, `now?`): `Promise`\<[`CapReceivedEvent`](../interfaces/CapReceivedEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-core/src/testing/in-memory-received-storage.ts:42
+Defined in: [cap-core/src/testing/in-memory-received-storage.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-received-storage.ts#L42)
 
 #### Parameters
 
@@ -84,7 +84,7 @@ Defined in: cap-core/src/testing/in-memory-received-storage.ts:42
 
 > **listReceived**(`options?`): `Promise`\<\{ `items`: [`CapReceivedEvent`](../interfaces/CapReceivedEvent.md)\<[`JsonValue`](../type-aliases/JsonValue.md)\>[]; `total`: `number`; \}\>
 
-Defined in: cap-core/src/testing/in-memory-received-storage.ts:83
+Defined in: [cap-core/src/testing/in-memory-received-storage.ts:83](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-received-storage.ts#L83)
 
 #### Parameters
 
@@ -120,7 +120,7 @@ Defined in: cap-core/src/testing/in-memory-received-storage.ts:83
 
 > **markProcessed**(`id`, `processedAt?`): `Promise`\<`void`\>
 
-Defined in: cap-core/src/testing/in-memory-received-storage.ts:31
+Defined in: [cap-core/src/testing/in-memory-received-storage.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-received-storage.ts#L31)
 
 #### Parameters
 
@@ -146,7 +146,7 @@ Defined in: cap-core/src/testing/in-memory-received-storage.ts:31
 
 > **markReceivedFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: cap-core/src/testing/in-memory-received-storage.ts:60
+Defined in: [cap-core/src/testing/in-memory-received-storage.ts:60](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-received-storage.ts#L60)
 
 #### Parameters
 
@@ -176,7 +176,7 @@ Defined in: cap-core/src/testing/in-memory-received-storage.ts:60
 
 > **trySaveReceived**\<`T`\>(`event`): `Promise`\<[`TrySaveReceivedResult`](../interfaces/TrySaveReceivedResult.md)\<`T`\>\>
 
-Defined in: cap-core/src/testing/in-memory-received-storage.ts:13
+Defined in: [cap-core/src/testing/in-memory-received-storage.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/testing/in-memory-received-storage.ts#L13)
 
 #### Type Parameters
 

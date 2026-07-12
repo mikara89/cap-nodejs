@@ -8,7 +8,7 @@
 
 > **resolveOperationContext**\<`TTx`\>(`options?`, `current?`): [`CapOperationContext`](../interfaces/CapOperationContext.md)\<`TTx`\> \| `undefined`
 
-Defined in: cap-core/src/utils/operation-context.util.ts:4
+Defined in: [cap-core/src/utils/operation-context.util.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/utils/operation-context.util.ts#L4)
 
 ## Type Parameters
 

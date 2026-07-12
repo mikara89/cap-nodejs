@@ -6,7 +6,7 @@
 
 # Interface: CapSubscribeOptions\<T\>
 
-Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:20
+Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L20)
 
 Options recognized by `@CapSubscribe`.
 
@@ -28,7 +28,7 @@ Options recognized by `@CapSubscribe`.
 
 > `optional` **dto?**: () => `T`
 
-Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:23
+Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L23)
 
 #### Returns
 
@@ -40,7 +40,7 @@ Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:23
 
 > `optional` **filter?**: (`payload`) => `boolean` \| `Promise`\<`boolean`\>
 
-Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:24
+Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L24)
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:24
 
 > `optional` **group?**: `string`
 
-Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:22
+Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L22)
 
 ***
 
@@ -66,4 +66,4 @@ Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:22
 
 > **topic**: `string`
 
-Defined in: cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:21
+Defined in: [cap-nest/src/cap/decorators/cap-subscribe.decorator.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/decorators/cap-subscribe.decorator.ts#L21)

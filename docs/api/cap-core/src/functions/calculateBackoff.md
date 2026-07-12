@@ -8,7 +8,7 @@
 
 > **calculateBackoff**(`options`): `Date`
 
-Defined in: cap-core/src/engine/backoff.ts:11
+Defined in: [cap-core/src/engine/backoff.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/backoff.ts#L11)
 
 ## Parameters
 

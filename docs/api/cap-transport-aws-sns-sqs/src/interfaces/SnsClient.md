@@ -6,7 +6,7 @@
 
 # Interface: SnsClient
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:5
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L5)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:5
 
 > **destroy**(): `void`
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:10
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L10)
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:10
 
 > **send**(`command`): `Promise`\<\{ `MessageId?`: `string`; `SequenceNumber?`: `string`; \}\>
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-types.ts:6
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L6)
 
 #### Parameters
 

@@ -6,7 +6,7 @@
 
 # Interface: RedactionOptions
 
-Defined in: cap-dashboard-core/src/dashboard-redaction.ts:1
+Defined in: [cap-dashboard-core/src/dashboard-redaction.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-redaction.ts#L1)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-dashboard-core/src/dashboard-redaction.ts:1
 
 > `optional` **headers?**: `string`[]
 
-Defined in: cap-dashboard-core/src/dashboard-redaction.ts:2
+Defined in: [cap-dashboard-core/src/dashboard-redaction.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-redaction.ts#L2)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: cap-dashboard-core/src/dashboard-redaction.ts:2
 
 > `optional` **payloadPaths?**: `string`[]
 
-Defined in: cap-dashboard-core/src/dashboard-redaction.ts:3
+Defined in: [cap-dashboard-core/src/dashboard-redaction.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dashboard-redaction.ts#L3)

@@ -6,7 +6,7 @@
 
 # Interface: CapTransactionOptions
 
-Defined in: cap-core/src/ports/transaction-manager.port.ts:11
+Defined in: [cap-core/src/ports/transaction-manager.port.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/transaction-manager.port.ts#L11)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/ports/transaction-manager.port.ts:11
 
 > `optional` **isolationLevel?**: `string`
 
-Defined in: cap-core/src/ports/transaction-manager.port.ts:12
+Defined in: [cap-core/src/ports/transaction-manager.port.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/transaction-manager.port.ts#L12)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-core/src/ports/transaction-manager.port.ts:12
 
 > `optional` **propagation?**: [`CapTransactionPropagation`](../type-aliases/CapTransactionPropagation.md)
 
-Defined in: cap-core/src/ports/transaction-manager.port.ts:13
+Defined in: [cap-core/src/ports/transaction-manager.port.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/transaction-manager.port.ts#L13)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: cap-core/src/ports/transaction-manager.port.ts:13
 
 > `optional` **readOnly?**: `boolean`
 
-Defined in: cap-core/src/ports/transaction-manager.port.ts:15
+Defined in: [cap-core/src/ports/transaction-manager.port.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/transaction-manager.port.ts#L15)
 
 ***
 
@@ -38,4 +38,4 @@ Defined in: cap-core/src/ports/transaction-manager.port.ts:15
 
 > `optional` **timeoutMs?**: `number`
 
-Defined in: cap-core/src/ports/transaction-manager.port.ts:14
+Defined in: [cap-core/src/ports/transaction-manager.port.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/transaction-manager.port.ts#L14)

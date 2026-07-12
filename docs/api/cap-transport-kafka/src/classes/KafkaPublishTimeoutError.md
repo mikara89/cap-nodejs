@@ -6,7 +6,7 @@
 
 # Class: KafkaPublishTimeoutError
 
-Defined in: cap-transport-kafka/src/kafka-errors.ts:8
+Defined in: [cap-transport-kafka/src/kafka-errors.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-errors.ts#L8)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: cap-transport-kafka/src/kafka-errors.ts:8
 
 > **new KafkaPublishTimeoutError**(`timeoutMs`): `KafkaPublishTimeoutError`
 
-Defined in: cap-transport-kafka/src/kafka-errors.ts:9
+Defined in: [cap-transport-kafka/src/kafka-errors.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-kafka/src/kafka-errors.ts#L9)
 
 #### Parameters
 

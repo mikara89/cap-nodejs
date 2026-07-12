@@ -8,4 +8,4 @@
 
 > **RabbitMqQueueOptions** = `Options.AssertQueue`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-types.ts:63
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-types.ts:63](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-types.ts#L63)

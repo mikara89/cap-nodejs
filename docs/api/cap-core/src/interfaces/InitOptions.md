@@ -6,7 +6,7 @@
 
 # Interface: InitOptions
 
-Defined in: cap-core/src/ports/initializer.port.ts:8
+Defined in: [cap-core/src/ports/initializer.port.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/initializer.port.ts#L8)
 
 Initialization options for adapters.
 
@@ -20,7 +20,7 @@ Initialization options for adapters.
 
 > `optional` **autoInit?**: `boolean`
 
-Defined in: cap-core/src/ports/initializer.port.ts:9
+Defined in: [cap-core/src/ports/initializer.port.ts:9](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/initializer.port.ts#L9)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: cap-core/src/ports/initializer.port.ts:9
 
 > `optional` **createQueues?**: `boolean`
 
-Defined in: cap-core/src/ports/initializer.port.ts:11
+Defined in: [cap-core/src/ports/initializer.port.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/initializer.port.ts#L11)
 
 ***
 
@@ -36,4 +36,4 @@ Defined in: cap-core/src/ports/initializer.port.ts:11
 
 > `optional` **createSchema?**: `boolean`
 
-Defined in: cap-core/src/ports/initializer.port.ts:10
+Defined in: [cap-core/src/ports/initializer.port.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/initializer.port.ts#L10)

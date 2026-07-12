@@ -6,7 +6,7 @@
 
 # Class: RabbitMqDisconnectedError
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-errors.ts:1
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-errors.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-errors.ts#L1)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-errors.ts:1
 
 > **new RabbitMqDisconnectedError**(`operation`): `RabbitMqDisconnectedError`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-errors.ts:2
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-errors.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-errors.ts#L2)
 
 #### Parameters
 

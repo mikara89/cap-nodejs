@@ -6,7 +6,7 @@
 
 # Interface: MessageDispatcher
 
-Defined in: cap-core/src/engine/message-dispatcher.ts:3
+Defined in: [cap-core/src/engine/message-dispatcher.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/message-dispatcher.ts#L3)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/engine/message-dispatcher.ts:3
 
 > **dispatchOutboxBatch**(): `Promise`\<`number`\>
 
-Defined in: cap-core/src/engine/message-dispatcher.ts:4
+Defined in: [cap-core/src/engine/message-dispatcher.ts:4](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/engine/message-dispatcher.ts#L4)
 
 #### Returns
 

@@ -6,7 +6,7 @@
 
 # Class: AwsSqsSubscriber
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:23
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts#L23)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:23
 
 > **new AwsSqsSubscriber**(`options?`): `AwsSqsSubscriber`
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:28
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts#L28)
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:28
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:171
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:171](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts#L171)
 
 #### Returns
 
@@ -52,7 +52,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:171
 
 > **consume**(`topic`, `group`, `handler`): `Promise`\<`void`\>
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:41
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:41](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts#L41)
 
 #### Parameters
 
@@ -82,7 +82,7 @@ Defined in: cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:41
 
 > **initialize**(`_options?`): `Promise`\<`void`\>
 
-Defined in: cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:37
+Defined in: [cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts:37](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-sqs-subscriber.ts#L37)
 
 #### Parameters
 

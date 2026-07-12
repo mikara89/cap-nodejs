@@ -6,7 +6,7 @@
 
 # Interface: MarkReceivedFailedOptions
 
-Defined in: cap-core/src/ports/received-storage.port.ts:17
+Defined in: [cap-core/src/ports/received-storage.port.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/received-storage.port.ts#L17)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/ports/received-storage.port.ts:17
 
 > **maxRetries**: `number`
 
-Defined in: cap-core/src/ports/received-storage.port.ts:18
+Defined in: [cap-core/src/ports/received-storage.port.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/received-storage.port.ts#L18)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-core/src/ports/received-storage.port.ts:18
 
 > **nextRetryAt**: `Date`
 
-Defined in: cap-core/src/ports/received-storage.port.ts:19
+Defined in: [cap-core/src/ports/received-storage.port.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/received-storage.port.ts#L19)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: cap-core/src/ports/received-storage.port.ts:19
 
 > **now**: `Date`
 
-Defined in: cap-core/src/ports/received-storage.port.ts:20
+Defined in: [cap-core/src/ports/received-storage.port.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/received-storage.port.ts#L20)

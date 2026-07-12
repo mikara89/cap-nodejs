@@ -8,7 +8,7 @@
 
 > **isLegacyTransactionalPublishStorage**\<`TTx`\>(`storage`): `storage is TransactionalPublishStoragePort<TTx> & { savePublishWithTx: (event: CapPublishEvent<T>, tx: TTx) => Promise<string> }`
 
-Defined in: cap-core/src/ports/publish-storage.port.ts:66
+Defined in: [cap-core/src/ports/publish-storage.port.ts:84](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/publish-storage.port.ts#L84)
 
 ## Type Parameters
 

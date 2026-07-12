@@ -6,7 +6,7 @@
 
 # Interface: TrySaveReceivedResult\<T\>
 
-Defined in: cap-core/src/ports/received-storage.port.ts:11
+Defined in: [cap-core/src/ports/received-storage.port.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/received-storage.port.ts#L11)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: cap-core/src/ports/received-storage.port.ts:11
 
 > **event**: [`CapReceivedEvent`](CapReceivedEvent.md)\<`T`\>
 
-Defined in: cap-core/src/ports/received-storage.port.ts:14
+Defined in: [cap-core/src/ports/received-storage.port.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/received-storage.port.ts#L14)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: cap-core/src/ports/received-storage.port.ts:14
 
 > **id**: `string`
 
-Defined in: cap-core/src/ports/received-storage.port.ts:13
+Defined in: [cap-core/src/ports/received-storage.port.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/received-storage.port.ts#L13)
 
 ***
 
@@ -36,4 +36,4 @@ Defined in: cap-core/src/ports/received-storage.port.ts:13
 
 > **inserted**: `boolean`
 
-Defined in: cap-core/src/ports/received-storage.port.ts:12
+Defined in: [cap-core/src/ports/received-storage.port.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/received-storage.port.ts#L12)

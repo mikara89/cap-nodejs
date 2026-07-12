@@ -6,7 +6,7 @@
 
 # Class: PrismaPublishStorage
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:69
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:71](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L71)
 
 ## Implements
 
@@ -19,7 +19,7 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:69
 
 > **new PrismaPublishStorage**(`client`, `options`): `PrismaPublishStorage`
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:76
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:78](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L78)
 
 #### Parameters
 
@@ -41,7 +41,7 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:76
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:117
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:119](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L119)
 
 #### Parameters
 
@@ -63,7 +63,7 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:117
 
 > **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:262
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:312](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L312)
 
 #### Parameters
 
@@ -85,7 +85,7 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:262
 
 > **getCapabilities**(): `CapStorageCapabilities`
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:113
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:115](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L115)
 
 #### Returns
 
@@ -101,7 +101,7 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:113
 
 > **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:83
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:85](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L85)
 
 #### Parameters
 
@@ -123,7 +123,7 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:83
 
 > **listPublish**(`options?`): `Promise`\<[`DashboardListResult`](../../../cap-nest/src/interfaces/DashboardListResult.md)\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>\>\>
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:269
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:319](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L319)
 
 #### Parameters
 
@@ -143,9 +143,9 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:269
 
 ### markPublished()
 
-> **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
+> **markPublished**(`id`, `publishedAt?`, `ownership?`): `Promise`\<`boolean`\>
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:184
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:186](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L186)
 
 #### Parameters
 
@@ -157,9 +157,13 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:184
 
 `Date` = `...`
 
+##### ownership?
+
+`PublishClaimOwnership` = `{}`
+
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean`\>
 
 #### Implementation of
 
@@ -169,9 +173,9 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:184
 
 ### markPublishFailed()
 
-> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
+> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`boolean`\>
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:204
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:219](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L219)
 
 #### Parameters
 
@@ -189,7 +193,7 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:204
 
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean`\>
 
 #### Implementation of
 
@@ -201,7 +205,7 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:204
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:243
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:293](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L293)
 
 #### Parameters
 
@@ -219,11 +223,33 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:243
 
 ***
 
+### renewPublishClaim()
+
+> **renewPublishClaim**(`options`): `Promise`\<`boolean`\>
+
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:267](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L267)
+
+#### Parameters
+
+##### options
+
+`RenewPublishClaimOptions`
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+#### Implementation of
+
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`renewPublishClaim`](../../../cap-nest/src/interfaces/PublishStoragePort.md#renewpublishclaim)
+
+***
+
 ### savePublish()
 
 > **savePublish**\<`T`\>(`event`, `ctx?`): `Promise`\<`string`\>
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:88
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:90](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L90)
 
 #### Type Parameters
 
@@ -255,7 +281,7 @@ Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:88
 
 > **savePublishWithTx**\<`T`\>(`event`, `tx`): `Promise`\<`string`\>
 
-Defined in: cap-storage-prisma/src/prisma-publish-storage.ts:106
+Defined in: [cap-storage-prisma/src/prisma-publish-storage.ts:108](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/prisma-publish-storage.ts#L108)
 
 #### Type Parameters
 

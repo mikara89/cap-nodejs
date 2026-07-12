@@ -8,7 +8,7 @@
 
 > **definePublishStorageContract**\<`TTx`\>(`name`, `setup`, `options?`): `void`
 
-Defined in: cap-testing/src/contracts/publish-storage-contract.ts:24
+Defined in: [cap-testing/src/contracts/publish-storage-contract.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-testing/src/contracts/publish-storage-contract.ts#L26)
 
 ## Type Parameters
 

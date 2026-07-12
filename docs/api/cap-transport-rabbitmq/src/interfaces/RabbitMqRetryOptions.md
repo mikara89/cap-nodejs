@@ -6,7 +6,7 @@
 
 # Interface: RabbitMqRetryOptions
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:12
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L12)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:12
 
 > `optional` **attempts?**: `number`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:13
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L13)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:13
 
 > `optional` **initialDelayMs?**: `number`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:14
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L14)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:14
 
 > `optional` **maxDelayMs?**: `number`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:15
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L15)

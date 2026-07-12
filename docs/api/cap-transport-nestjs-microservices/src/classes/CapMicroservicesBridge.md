@@ -6,7 +6,7 @@
 
 # Class: CapMicroservicesBridge
 
-Defined in: cap-transport-nestjs-microservices/src/cap-microservices-bridge.ts:15
+Defined in: [cap-transport-nestjs-microservices/src/cap-microservices-bridge.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-nestjs-microservices/src/cap-microservices-bridge.ts#L15)
 
 ## Implements
 
@@ -28,7 +28,7 @@ Defined in: cap-transport-nestjs-microservices/src/cap-microservices-bridge.ts:1
 
 > **consume**(`topic`, `group`, `onMessage`): `Promise`\<`void`\>
 
-Defined in: cap-transport-nestjs-microservices/src/cap-microservices-bridge.ts:18
+Defined in: [cap-transport-nestjs-microservices/src/cap-microservices-bridge.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-nestjs-microservices/src/cap-microservices-bridge.ts#L18)
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: cap-transport-nestjs-microservices/src/cap-microservices-bridge.ts:1
 
 > **dispatch**(`topic`, `group`, `message`, `headers?`, `metadata?`): `Promise`\<`void`\>
 
-Defined in: cap-transport-nestjs-microservices/src/cap-microservices-bridge.ts:32
+Defined in: [cap-transport-nestjs-microservices/src/cap-microservices-bridge.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-nestjs-microservices/src/cap-microservices-bridge.ts#L32)
 
 #### Parameters
 

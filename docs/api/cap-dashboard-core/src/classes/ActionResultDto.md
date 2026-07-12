@@ -6,7 +6,7 @@
 
 # Class: ActionResultDto
 
-Defined in: cap-dashboard-core/src/dto/action-result.dto.ts:1
+Defined in: [cap-dashboard-core/src/dto/action-result.dto.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/action-result.dto.ts#L1)
 
 ## Constructors
 
@@ -24,7 +24,7 @@ Defined in: cap-dashboard-core/src/dto/action-result.dto.ts:1
 
 > `optional` **message?**: `string`
 
-Defined in: cap-dashboard-core/src/dto/action-result.dto.ts:3
+Defined in: [cap-dashboard-core/src/dto/action-result.dto.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/action-result.dto.ts#L3)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: cap-dashboard-core/src/dto/action-result.dto.ts:3
 
 > **success**: `boolean`
 
-Defined in: cap-dashboard-core/src/dto/action-result.dto.ts:2
+Defined in: [cap-dashboard-core/src/dto/action-result.dto.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-core/src/dto/action-result.dto.ts#L2)

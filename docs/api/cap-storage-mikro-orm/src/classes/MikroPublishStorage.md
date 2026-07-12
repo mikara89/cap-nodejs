@@ -6,7 +6,7 @@
 
 # Class: MikroPublishStorage
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:42
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:45](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L45)
 
 ## Implements
 
@@ -19,7 +19,7 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:42
 
 > **new MikroPublishStorage**(`em`, `orm?`, `logger?`): `MikroPublishStorage`
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:45
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:48](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L48)
 
 #### Parameters
 
@@ -45,7 +45,7 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:45
 
 > **claimUnpublished**(`options`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:101
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:104](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L104)
 
 #### Parameters
 
@@ -67,7 +67,7 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:101
 
 > **findPublishById**(`id`): `Promise`\<[`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:170
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:194](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L194)
 
 #### Parameters
 
@@ -89,7 +89,7 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:170
 
 > **getCapabilities**(): `CapStorageCapabilities`
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:97
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:100](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L100)
 
 #### Returns
 
@@ -105,7 +105,7 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:97
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:51
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:54](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L54)
 
 #### Parameters
 
@@ -133,7 +133,7 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:51
 
 > **listPublish**(`opts`): `Promise`\<\{ `items`: [`CapPublishEvent`](../../../cap-nest/src/interfaces/CapPublishEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]; `total`: `number`; \}\>
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:177
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:205](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L205)
 
 #### Parameters
 
@@ -167,9 +167,9 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:177
 
 ### markPublished()
 
-> **markPublished**(`id`, `publishedAt?`): `Promise`\<`void`\>
+> **markPublished**(`id`, `publishedAt?`, `ownership?`): `Promise`\<`boolean`\>
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:123
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:126](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L126)
 
 #### Parameters
 
@@ -181,9 +181,13 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:123
 
 `Date` = `...`
 
+##### ownership?
+
+`PublishClaimOwnership` = `{}`
+
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean`\>
 
 #### Implementation of
 
@@ -193,9 +197,9 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:123
 
 ### markPublishFailed()
 
-> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
+> **markPublishFailed**(`id`, `error`, `options`): `Promise`\<`boolean`\>
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:134
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:143](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L143)
 
 #### Parameters
 
@@ -213,7 +217,7 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:134
 
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`boolean`\>
 
 #### Implementation of
 
@@ -225,7 +229,7 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:134
 
 > **releaseExpiredClaims**(`now`): `Promise`\<`void`\>
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:154
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:186](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L186)
 
 #### Parameters
 
@@ -243,11 +247,33 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:154
 
 ***
 
+### renewPublishClaim()
+
+> **renewPublishClaim**(`options`): `Promise`\<`boolean`\>
+
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:172](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L172)
+
+#### Parameters
+
+##### options
+
+`RenewPublishClaimOptions`
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+#### Implementation of
+
+[`PublishStoragePort`](../../../cap-nest/src/interfaces/PublishStoragePort.md).[`renewPublishClaim`](../../../cap-nest/src/interfaces/PublishStoragePort.md#renewpublishclaim)
+
+***
+
 ### savePublish()
 
 > **savePublish**(`event`, `ctx?`): `Promise`\<`string`\>
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:77
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:80](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L80)
 
 #### Parameters
 
@@ -273,7 +299,7 @@ Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:77
 
 > **savePublishWithTx**(`event`, `tx`): `Promise`\<`string`\>
 
-Defined in: cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:90
+Defined in: [cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts:93](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-mikro-orm/src/storage/mikro-publish-storage.ts#L93)
 
 #### Parameters
 

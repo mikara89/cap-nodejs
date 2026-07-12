@@ -6,7 +6,7 @@
 
 # Interface: CapDashboardAuthorizer
 
-Defined in: cap-dashboard-nest/src/cap-dashboard.auth.ts:42
+Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.auth.ts#L42)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-dashboard-nest/src/cap-dashboard.auth.ts:42
 
 > **authorize**(`context`): [`CapDashboardAuthorizationResult`](../type-aliases/CapDashboardAuthorizationResult.md)
 
-Defined in: cap-dashboard-nest/src/cap-dashboard.auth.ts:43
+Defined in: [cap-dashboard-nest/src/cap-dashboard.auth.ts:43](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-dashboard-nest/src/cap-dashboard.auth.ts#L43)
 
 #### Parameters
 

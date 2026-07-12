@@ -6,7 +6,7 @@
 
 # Class: TypeOrmStorageModule
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:45
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:45](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L45)
 
 NestJS module providing TypeORM-based storage adapters for CAP.
 
@@ -26,7 +26,7 @@ NestJS module providing TypeORM-based storage adapters for CAP.
 
 > `static` **forRoot**(`options?`): `DynamicModule`
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:46
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:46](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L46)
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:46
 
 > `static` **forRootAsync**(`options`): `DynamicModule`
 
-Defined in: cap-storage-typeorm/src/nest/typeorm-storage.module.ts:57
+Defined in: [cap-storage-typeorm/src/nest/typeorm-storage.module.ts:57](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-typeorm/src/nest/typeorm-storage.module.ts#L57)
 
 #### Parameters
 

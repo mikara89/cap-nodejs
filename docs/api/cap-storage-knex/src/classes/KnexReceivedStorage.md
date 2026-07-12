@@ -6,7 +6,7 @@
 
 # Class: KnexReceivedStorage
 
-Defined in: cap-storage-knex/src/knex-received-storage.ts:47
+Defined in: [cap-storage-knex/src/knex-received-storage.ts:47](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-received-storage.ts#L47)
 
 ## Implements
 
@@ -19,7 +19,7 @@ Defined in: cap-storage-knex/src/knex-received-storage.ts:47
 
 > **new KnexReceivedStorage**(`knex`, `options?`): `KnexReceivedStorage`
 
-Defined in: cap-storage-knex/src/knex-received-storage.ts:52
+Defined in: [cap-storage-knex/src/knex-received-storage.ts:52](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-received-storage.ts#L52)
 
 #### Parameters
 
@@ -41,7 +41,7 @@ Defined in: cap-storage-knex/src/knex-received-storage.ts:52
 
 > **findReceivedById**(`id`): `Promise`\<[`CapReceivedEvent`](../../../cap-nest/src/interfaces/CapReceivedEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\> \| `undefined`\>
 
-Defined in: cap-storage-knex/src/knex-received-storage.ts:141
+Defined in: [cap-storage-knex/src/knex-received-storage.ts:141](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-received-storage.ts#L141)
 
 #### Parameters
 
@@ -63,7 +63,7 @@ Defined in: cap-storage-knex/src/knex-received-storage.ts:141
 
 > **getCapabilities**(): `CapStorageCapabilities`
 
-Defined in: cap-storage-knex/src/knex-received-storage.ts:86
+Defined in: [cap-storage-knex/src/knex-received-storage.ts:86](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-received-storage.ts#L86)
 
 #### Returns
 
@@ -79,7 +79,7 @@ Defined in: cap-storage-knex/src/knex-received-storage.ts:86
 
 > **getRetryDue**(`limit`, `now?`): `Promise`\<[`CapReceivedEvent`](../../../cap-nest/src/interfaces/CapReceivedEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>[]\>
 
-Defined in: cap-storage-knex/src/knex-received-storage.ts:128
+Defined in: [cap-storage-knex/src/knex-received-storage.ts:128](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-received-storage.ts#L128)
 
 #### Parameters
 
@@ -105,7 +105,7 @@ Defined in: cap-storage-knex/src/knex-received-storage.ts:128
 
 > **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-storage-knex/src/knex-received-storage.ts:59
+Defined in: [cap-storage-knex/src/knex-received-storage.ts:59](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-received-storage.ts#L59)
 
 #### Parameters
 
@@ -127,7 +127,7 @@ Defined in: cap-storage-knex/src/knex-received-storage.ts:59
 
 > **listReceived**(`options?`): `Promise`\<[`DashboardListResult`](../../../cap-nest/src/interfaces/DashboardListResult.md)\<[`CapReceivedEvent`](../../../cap-nest/src/interfaces/CapReceivedEvent.md)\<[`JsonValue`](../../../cap-nest/src/type-aliases/JsonValue.md)\>\>\>
 
-Defined in: cap-storage-knex/src/knex-received-storage.ts:150
+Defined in: [cap-storage-knex/src/knex-received-storage.ts:150](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-received-storage.ts#L150)
 
 #### Parameters
 
@@ -149,7 +149,7 @@ Defined in: cap-storage-knex/src/knex-received-storage.ts:150
 
 > **markProcessed**(`id`, `processedAt?`): `Promise`\<`void`\>
 
-Defined in: cap-storage-knex/src/knex-received-storage.ts:90
+Defined in: [cap-storage-knex/src/knex-received-storage.ts:90](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-received-storage.ts#L90)
 
 #### Parameters
 
@@ -175,7 +175,7 @@ Defined in: cap-storage-knex/src/knex-received-storage.ts:90
 
 > **markReceivedFailed**(`id`, `error`, `options`): `Promise`\<`void`\>
 
-Defined in: cap-storage-knex/src/knex-received-storage.ts:102
+Defined in: [cap-storage-knex/src/knex-received-storage.ts:102](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-received-storage.ts#L102)
 
 #### Parameters
 
@@ -205,7 +205,7 @@ Defined in: cap-storage-knex/src/knex-received-storage.ts:102
 
 > **trySaveReceived**\<`T`\>(`event`): `Promise`\<`TrySaveReceivedResult`\<`T`\>\>
 
-Defined in: cap-storage-knex/src/knex-received-storage.ts:64
+Defined in: [cap-storage-knex/src/knex-received-storage.ts:64](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-knex/src/knex-received-storage.ts#L64)
 
 #### Type Parameters
 

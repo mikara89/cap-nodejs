@@ -6,7 +6,7 @@
 
 # Abstract Class: AdapterInitializer
 
-Defined in: cap-nest/src/cap/abstractions/initializer.interface.ts:19
+Defined in: [cap-nest/src/cap/abstractions/initializer.interface.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/initializer.interface.ts#L19)
 
 Simple abstract class adapters may implement to perform one-time
 initialization (schema creation, queue setup, etc.). Keeping this
@@ -28,7 +28,7 @@ minimal so adapters can opt-in easily.
 
 > `abstract` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-nest/src/cap/abstractions/initializer.interface.ts:20
+Defined in: [cap-nest/src/cap/abstractions/initializer.interface.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-nest/src/cap/abstractions/initializer.interface.ts#L20)
 
 #### Parameters
 

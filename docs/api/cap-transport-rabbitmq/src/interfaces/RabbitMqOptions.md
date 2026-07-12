@@ -6,7 +6,7 @@
 
 # Interface: RabbitMqOptions
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:18
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L18)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:18
 
 > `optional` **autoCreateTopology?**: `boolean`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:31
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L31)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:31
 
 > `optional` **confirmTimeoutMs?**: `number`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:32
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L32)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:32
 
 > `optional` **connectionFactory?**: [`RabbitMqConnectionFactory`](../type-aliases/RabbitMqConnectionFactory.md)
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:21
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L21)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:21
 
 > `optional` **deadLetterExchange?**: `string`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:29
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:29](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L29)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:29
 
 > `optional` **deadLetterRoutingKey?**: `string`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:30
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:30](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L30)
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:30
 
 > `optional` **exchangeDurable?**: `boolean`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:24
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L24)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:24
 
 > `optional` **exchangeName?**: `string`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:22
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:22](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L22)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:22
 
 > `optional` **exchangeType?**: `"topic"`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:23
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L23)
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:23
 
 > `optional` **logger?**: [`CapLogger`](../../../cap-nest/src/interfaces/CapLogger.md)
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:35
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:35](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L35)
 
 ***
 
@@ -86,7 +86,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:35
 
 > `optional` **namingPrefix?**: `string`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:25
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L25)
 
 ***
 
@@ -94,7 +94,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:25
 
 > `optional` **prefetch?**: `number`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:28
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L28)
 
 ***
 
@@ -102,7 +102,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:28
 
 > `optional` **queuePrefix?**: `string`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:26
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L26)
 
 ***
 
@@ -110,7 +110,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:26
 
 > `optional` **queueType?**: [`RabbitMqQueueType`](../type-aliases/RabbitMqQueueType.md)
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:27
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L27)
 
 ***
 
@@ -118,7 +118,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:27
 
 > `optional` **reconnect?**: [`RabbitMqRetryOptions`](RabbitMqRetryOptions.md)
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:33
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L33)
 
 ***
 
@@ -126,7 +126,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:33
 
 > `optional` **requeueOnHandlerError?**: `boolean`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:34
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L34)
 
 ***
 
@@ -134,7 +134,7 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:34
 
 > `optional` **socketOptions?**: `Connect`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:20
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L20)
 
 ***
 
@@ -142,4 +142,4 @@ Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:20
 
 > `optional` **url?**: `string`
 
-Defined in: cap-transport-rabbitmq/src/rabbitmq-options.ts:19
+Defined in: [cap-transport-rabbitmq/src/rabbitmq-options.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-rabbitmq/src/rabbitmq-options.ts#L19)

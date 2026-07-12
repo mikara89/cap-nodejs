@@ -6,7 +6,7 @@
 
 # Interface: SubscriberPort
 
-Defined in: cap-core/src/ports/subscriber.port.ts:17
+Defined in: [cap-core/src/ports/subscriber.port.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/subscriber.port.ts#L17)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-core/src/ports/subscriber.port.ts:17
 
 > `optional` **close**(): `Promise`\<`void`\>
 
-Defined in: cap-core/src/ports/subscriber.port.ts:21
+Defined in: [cap-core/src/ports/subscriber.port.ts:21](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/subscriber.port.ts#L21)
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: cap-core/src/ports/subscriber.port.ts:21
 
 > **consume**(`topic`, `group`, `handler`): `Promise`\<`void`\>
 
-Defined in: cap-core/src/ports/subscriber.port.ts:18
+Defined in: [cap-core/src/ports/subscriber.port.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/subscriber.port.ts#L18)
 
 #### Parameters
 
@@ -52,7 +52,7 @@ Defined in: cap-core/src/ports/subscriber.port.ts:18
 
 > `optional` **initialize**(`options?`): `Promise`\<`void`\>
 
-Defined in: cap-core/src/ports/subscriber.port.ts:20
+Defined in: [cap-core/src/ports/subscriber.port.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-core/src/ports/subscriber.port.ts#L20)
 
 #### Parameters
 

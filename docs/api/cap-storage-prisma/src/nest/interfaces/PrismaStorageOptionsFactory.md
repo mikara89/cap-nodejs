@@ -6,7 +6,7 @@
 
 # Interface: PrismaStorageOptionsFactory
 
-Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:23
+Defined in: [cap-storage-prisma/src/nest/prisma-storage.module.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/nest/prisma-storage.module.ts#L23)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:23
 
 > **createPrismaStorageOptions**(): [`PrismaStorageOptions`](../../interfaces/PrismaStorageOptions.md) \| `Promise`\<[`PrismaStorageOptions`](../../interfaces/PrismaStorageOptions.md)\>
 
-Defined in: cap-storage-prisma/src/nest/prisma-storage.module.ts:24
+Defined in: [cap-storage-prisma/src/nest/prisma-storage.module.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-storage-prisma/src/nest/prisma-storage.module.ts#L24)
 
 #### Returns
 
