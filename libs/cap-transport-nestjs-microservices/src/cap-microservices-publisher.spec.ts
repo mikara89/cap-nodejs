@@ -16,8 +16,34 @@ describe('CapMicroservicesPublisher', () => {
     expect(client.emit.mock.calls[0]).toEqual([
       'user.created',
       {
+        $cap: { kind: 'cap.message', version: 1 },
         payload: { id: 1 },
         headers: { traceId: 'abc' },
+      },
+    ]);
+  });
+
+  it('uses a versioned envelope and header identity when metadata is present', async () => {
+    const client: jest.Mocked<CapClientProxyLike> = {
+      emit: jest.fn().mockReturnValue(of(undefined)),
+    };
+    const publisher = new CapMicroservicesPublisher(client, {
+      clientToken: 'CLIENT',
+    });
+
+    await publisher.emit(
+      'user.created',
+      { id: 1 },
+      { traceId: 'abc' },
+      { messageId: 'message-1' },
+    );
+
+    expect(client.emit.mock.calls[0]).toEqual([
+      'user.created',
+      {
+        $cap: { kind: 'cap.message', version: 1 },
+        payload: { id: 1 },
+        headers: { traceId: 'abc', 'cap-message-id': 'message-1' },
       },
     ]);
   });

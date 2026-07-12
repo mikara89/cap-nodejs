@@ -26,7 +26,7 @@ describe('Kafka transport', () => {
     });
     await publisher.emit(
       'orders',
-      { id: 1 },
+      { payload: { id: 1 }, source: 'external-system' },
       { trace: 'abc', attempt: 2, active: true },
       { messageId: 'message-1' },
     );
@@ -40,7 +40,7 @@ describe('Kafka transport', () => {
     expect(broker.published).toEqual([
       {
         topic: 'cap.orders',
-        value: Buffer.from('{"id":1}'),
+        value: Buffer.from('{"payload":{"id":1},"source":"external-system"}'),
         headers: {
           'content-type': 'application/json',
           trace: '"abc"',

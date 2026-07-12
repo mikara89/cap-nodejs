@@ -27,6 +27,13 @@ import {
   type CapTransactionOptions,
 } from '../ports/transaction-manager.port';
 import { CapTransactionContext } from '../transactions/cap-transaction-context';
+import { CAP_MESSAGE_ENVELOPE_KIND } from '../models/cap-message-envelope';
+import {
+  LegacyCapMessageEnvelopeRejectedError,
+  MalformedCapMessageEnvelopeError,
+  UnsupportedCapMessageEnvelopeVersionError,
+  createCapMessageEnvelope,
+} from '../utils/cap-message-envelope.util';
 
 describe('CapEngine', () => {
   const scheduler = {
@@ -512,6 +519,213 @@ describe('CapEngine', () => {
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler).toHaveBeenCalledWith({ foo: 'bar' }, { traceId: 'sub' });
     expect(receivedStorage.store.get('id-1')?.status).toBe('processed');
+  });
+
+  it('preserves a business payload containing payload through inbox and handler', async () => {
+    const engine = createEngine({
+      messageEnvelope: { legacyUnversioned: 'reject' },
+    });
+    const handler = jest.fn();
+    const businessPayload = {
+      payload: { value: 123 },
+      source: 'external-system',
+      type: 'measurement',
+    };
+
+    await engine.subscribe('measurements', 'workers', handler);
+    await subscriber.deliver(
+      'measurements',
+      'workers',
+      businessPayload,
+      undefined,
+      { messageId: 'business-1' },
+    );
+
+    expect(handler).toHaveBeenCalledWith(businessPayload, undefined);
+    expect(receivedStorage.saved[0].payload).toEqual(businessPayload);
+  });
+
+  it('decodes versioned envelopes and preserves native header precedence', async () => {
+    const engine = createEngine();
+    const handler = jest.fn();
+    await engine.subscribe('orders', 'workers', handler);
+
+    await subscriber.deliver(
+      'orders',
+      'workers',
+      createCapMessageEnvelope(
+        { orderId: 'o1' },
+        {
+          traceId: 'envelope-trace',
+          source: 'envelope',
+          'cap-message-id': 'envelope-id',
+        },
+      ),
+      { traceId: 'native-trace', broker: 'rabbitmq' },
+      { messageId: 'native-id', dedupeKey: 'native-dedupe-key' },
+    );
+
+    expect(handler).toHaveBeenCalledWith(
+      { orderId: 'o1' },
+      {
+        traceId: 'native-trace',
+        source: 'envelope',
+        broker: 'rabbitmq',
+        'cap-message-id': 'envelope-id',
+      },
+    );
+    expect(receivedStorage.saved[0]).toMatchObject({
+      payload: { orderId: 'o1' },
+      messageId: 'native-id',
+      dedupeKey: 'native-dedupe-key',
+    });
+  });
+
+  it('uses envelope message identity without metadata and deduplicates delivery', async () => {
+    const engine = createEngine();
+    const handler = jest.fn();
+    const envelope = createCapMessageEnvelope(
+      { orderId: 'o1' },
+      { 'cap-message-id': 'envelope-id' },
+    );
+    await engine.subscribe('orders', 'workers', handler);
+
+    await subscriber.deliver('orders', 'workers', envelope);
+    await subscriber.deliver('orders', 'workers', envelope);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(receivedStorage.saved).toHaveLength(2);
+    expect(receivedStorage.saved[0]).toMatchObject({
+      messageId: 'envelope-id',
+      dedupeKey: 'orders|workers|envelope-id',
+    });
+  });
+
+  it('rejects unsupported envelopes before inbox persistence or handling', async () => {
+    const engine = createEngine();
+    const handler = jest.fn();
+    await engine.subscribe('orders', 'workers', handler);
+
+    await expect(
+      subscriber.deliver('orders', 'workers', {
+        $cap: { kind: CAP_MESSAGE_ENVELOPE_KIND, version: 2 },
+        payload: { secret: 'not-persisted' },
+      }),
+    ).rejects.toBeInstanceOf(UnsupportedCapMessageEnvelopeVersionError);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(receivedStorage.saved).toHaveLength(0);
+  });
+
+  it('rejects malformed explicit envelopes before inbox persistence or handling', async () => {
+    const engine = createEngine();
+    const handler = jest.fn();
+    await engine.subscribe('orders', 'workers', handler);
+
+    await expect(
+      subscriber.deliver('orders', 'workers', {
+        $cap: { kind: CAP_MESSAGE_ENVELOPE_KIND, version: 1 },
+        headers: { traceId: 'missing-payload' },
+      }),
+    ).rejects.toBeInstanceOf(MalformedCapMessageEnvelopeError);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(receivedStorage.saved).toHaveLength(0);
+  });
+
+  it('warns once per engine while accepting strict legacy envelopes', async () => {
+    const logger = { warn: jest.fn() };
+    const engine = createEngine({ logger });
+    const handler = jest.fn();
+    await engine.subscribe('legacy', 'workers', handler);
+
+    await subscriber.deliver(
+      'legacy',
+      'workers',
+      { payload: { value: 1 } },
+      undefined,
+      { messageId: 'legacy-1' },
+    );
+    await subscriber.deliver(
+      'legacy',
+      'workers',
+      { payload: { value: 2 }, headers: { source: 'legacy' } },
+      undefined,
+      { messageId: 'legacy-2' },
+    );
+
+    expect(handler).toHaveBeenNthCalledWith(1, { value: 1 }, undefined);
+    expect(handler).toHaveBeenNthCalledWith(
+      2,
+      { value: 2 },
+      { source: 'legacy' },
+    );
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('createCapMessageEnvelope()'),
+    );
+  });
+
+  it('accepts legacy envelopes without warning and keeps dedupe construction', async () => {
+    const logger = { warn: jest.fn() };
+    const engine = createEngine({
+      logger,
+      messageEnvelope: { legacyUnversioned: 'accept' },
+    });
+    const handler = jest.fn();
+    await engine.subscribe('legacy', 'workers', handler);
+
+    await subscriber.deliver('legacy', 'workers', {
+      payload: { value: 1 },
+      headers: { 'cap-message-id': 'legacy-header-id' },
+    });
+
+    expect(handler).toHaveBeenCalledWith(
+      { value: 1 },
+      { 'cap-message-id': 'legacy-header-id' },
+    );
+    expect(receivedStorage.saved[0]).toMatchObject({
+      messageId: 'legacy-header-id',
+      dedupeKey: 'legacy|workers|legacy-header-id',
+    });
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it('rejects strict legacy envelopes in reject mode', async () => {
+    const engine = createEngine({
+      messageEnvelope: { legacyUnversioned: 'reject' },
+    });
+    const handler = jest.fn();
+    await engine.subscribe('legacy', 'workers', handler);
+
+    await expect(
+      subscriber.deliver('legacy', 'workers', { payload: { value: 1 } }),
+    ).rejects.toBeInstanceOf(LegacyCapMessageEnvelopeRejectedError);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(receivedStorage.saved).toHaveLength(0);
+  });
+
+  it('retries with the decoded business payload', async () => {
+    const engine = createEngine();
+    const handler = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('retry'))
+      .mockResolvedValueOnce(undefined);
+    await engine.subscribe('orders', 'workers', handler);
+
+    await subscriber.deliver(
+      'orders',
+      'workers',
+      createCapMessageEnvelope({ orderId: 'o1' }),
+      undefined,
+      { messageId: 'retry-1' },
+    );
+    const event = receivedStorage.saved[0];
+    await engine.retryReceived(event);
+
+    expect(handler).toHaveBeenNthCalledWith(1, { orderId: 'o1' }, undefined);
+    expect(handler).toHaveBeenNthCalledWith(2, { orderId: 'o1' }, undefined);
   });
 
   it('subscribe marks received failed when handler throws', async () => {

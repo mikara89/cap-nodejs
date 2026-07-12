@@ -27,7 +27,7 @@ describe('AWS SNS/SQS transport', () => {
     await publisher.initialize();
     await publisher.emit(
       'orders',
-      { id: 1 },
+      { payload: { id: 1 }, source: 'external-system' },
       { trace: 'abc', attempt: 3, active: true },
       { messageId: 'message-1' },
     );
@@ -35,7 +35,7 @@ describe('AWS SNS/SQS transport', () => {
     expect(broker.published).toEqual([
       {
         topicArn: DEFAULT_TOPIC_ARN,
-        message: '{"id":1}',
+        message: '{"payload":{"id":1},"source":"external-system"}',
         messageAttributes: {
           'content-type': {
             DataType: 'String',

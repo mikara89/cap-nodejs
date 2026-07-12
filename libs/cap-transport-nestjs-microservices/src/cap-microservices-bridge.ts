@@ -36,47 +36,15 @@ export class CapMicroservicesBridge implements SubscriberPort {
     headers?: CapHeaders,
     metadata?: SubscribeMetadata,
   ): Promise<void> {
-    const resolved = unwrapMessage(message, headers, metadata);
     const handlers = this.handlers.get(this.getKey(topic, group));
     if (!handlers?.size) return;
 
     await Promise.all(
-      [...handlers].map((handler) =>
-        handler(resolved.payload, resolved.headers, resolved.metadata),
-      ),
+      [...handlers].map((handler) => handler(message, headers, metadata)),
     );
   }
 
   private getKey(topic: string, group: string): string {
     return `${topic}|${group}`;
   }
-}
-
-function unwrapMessage(
-  message: unknown,
-  explicitHeaders?: CapHeaders,
-  explicitMetadata?: SubscribeMetadata,
-): { payload: unknown; headers?: CapHeaders; metadata?: SubscribeMetadata } {
-  if (explicitHeaders) {
-    return {
-      payload: message,
-      headers: explicitHeaders,
-      metadata: explicitMetadata,
-    };
-  }
-
-  if (message && typeof message === 'object' && 'payload' in message) {
-    const wrapped = message as {
-      payload: unknown;
-      headers?: CapHeaders;
-      metadata?: SubscribeMetadata;
-    };
-    return {
-      payload: wrapped.payload,
-      headers: wrapped.headers,
-      metadata: wrapped.metadata ?? explicitMetadata,
-    };
-  }
-
-  return { payload: message, metadata: explicitMetadata };
 }

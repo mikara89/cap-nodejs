@@ -1,4 +1,10 @@
-import type { CapHeaders, PublishMetadata } from '@mikara89/cap-core';
+import {
+  CAP_MESSAGE_ID_HEADER,
+  decodeCapMessage,
+  isCapMessageEnvelopeV1,
+  type CapHeaders,
+  type PublishMetadata,
+} from '@mikara89/cap-core';
 import {
   defineTransportContract,
   type TransportContractPublishedMessage,
@@ -68,8 +74,19 @@ function unwrapPublishedMessage(message: unknown): {
   headers?: CapHeaders;
   metadata?: PublishMetadata;
 } {
-  if (message && typeof message === 'object' && 'payload' in message) {
-    return message;
+  if (isCapMessageEnvelopeV1(message)) {
+    const decoded = decodeCapMessage(message, {
+      legacyEnvelopeMode: 'reject',
+    });
+    const headers = { ...(decoded.headers ?? {}) };
+    const messageId = headers[CAP_MESSAGE_ID_HEADER];
+    delete headers[CAP_MESSAGE_ID_HEADER];
+    return {
+      payload: decoded.payload,
+      headers: Object.keys(headers).length === 0 ? undefined : headers,
+      metadata:
+        messageId === undefined ? undefined : { messageId: String(messageId) },
+    };
   }
   return { payload: message };
 }

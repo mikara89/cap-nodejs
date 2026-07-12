@@ -20,6 +20,55 @@ const engine = new CapEngine({
 NestJS users can continue importing compatible CAP types through
 `@mikara89/cap-nest`.
 
+## Versioned Message Envelopes
+
+CAP normally sends the business payload as the broker body and carries headers
+and message identity through native transport metadata. Use a body envelope
+only for a custom transport or bridge that cannot carry CAP headers separately,
+or when an external producer intentionally creates a CAP-compatible body:
+
+```ts
+import { createCapMessageEnvelope } from '@mikara89/cap-core';
+
+const message = createCapMessageEnvelope(
+  { orderId: 'o1' },
+  { traceId: 'trace-1' },
+);
+```
+
+The stable version-1 JSON contract is:
+
+```json
+{
+  "$cap": { "kind": "cap.message", "version": 1 },
+  "payload": { "orderId": "o1" },
+  "headers": { "traceId": "trace-1" }
+}
+```
+
+Inbound decoding requires the exact marker, supported version, an own
+`payload`, and valid optional headers. Native transport headers are merged over
+envelope headers. Transport `messageId` metadata remains authoritative, then
+the decoded `cap-message-id` header, then CAP's generated fallback. Unsupported
+versions and malformed explicit CAP envelopes throw typed errors before inbox
+persistence or handler invocation.
+
+Legacy unversioned `{ payload, headers? }` bodies are recognized only when
+those are their only enumerable keys. `messageEnvelope.legacyUnversioned`
+supports `accept`, `warn`, or `reject`; the default is `warn`, once per engine.
+New body wrappers should always use `createCapMessageEnvelope()`. Ordinary
+business objects such as `{ payload, source, type }` remain intact.
+
+```ts
+const engine = new CapEngine({
+  // ...ports
+  messageEnvelope: { legacyUnversioned: 'reject' },
+});
+```
+
+Outbox rows continue storing the original business payload and headers in their
+existing fields. CAP does not globally wrap native-header transport bodies.
+
 ## Subscription Lifecycle
 
 Registration and broker attachment are separate operations. Register handlers

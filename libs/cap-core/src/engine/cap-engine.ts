@@ -4,6 +4,7 @@ import {
   getCapMessageId,
   withCapMessageId,
 } from '../utils/cap-message-id.util';
+import { decodeCapMessage } from '../utils/cap-message-envelope.util';
 import { createDedupeKey } from '../utils/dedupe-key.util';
 import { normalizeError } from '../utils/error.util';
 import { resolveOperationContext } from '../utils/operation-context.util';
@@ -19,6 +20,10 @@ import {
   type CapSchedulerOptions,
 } from '../models/cap-options';
 import { type JsonValue } from '../models/json-value.type';
+import {
+  type CapMessageEnvelopeOptions,
+  type LegacyCapEnvelopeMode,
+} from '../models/cap-message-envelope';
 import { type CapLogger } from '../ports/logger.port';
 import {
   isLegacyTransactionalPublishStorage,
@@ -100,6 +105,7 @@ export interface CapEngineOptions {
   idGenerator?: () => string;
   transactionManager?: CapTransactionManagerPort;
   transactionContext?: CapTransactionContext;
+  messageEnvelope?: CapMessageEnvelopeOptions;
 }
 
 const TRANSACTION_MANAGER_NOT_CONFIGURED =
@@ -127,6 +133,8 @@ export class CapEngine {
   private readonly idGenerator: () => string;
   private readonly transactionManager?: CapTransactionManagerPort;
   private readonly transactionContext?: CapTransactionContext;
+  private readonly legacyEnvelopeMode: LegacyCapEnvelopeMode;
+  private legacyEnvelopeWarningEmitted = false;
 
   // -- subscription lifecycle --
   private readonly subscriptions = new Map<string, RegisteredSubscription>();
@@ -149,6 +157,8 @@ export class CapEngine {
     this.idGenerator = options.idGenerator ?? randomUUID;
     this.transactionManager = options.transactionManager;
     this.transactionContext = options.transactionContext;
+    this.legacyEnvelopeMode =
+      options.messageEnvelope?.legacyUnversioned ?? 'warn';
   }
 
   async publish<T = JsonValue>(
@@ -794,7 +804,7 @@ export class CapEngine {
         const saved = await this.persistReceived(
           sub.topic,
           sub.group,
-          msg as JsonValue,
+          msg,
           headers,
           metadata,
         );
@@ -850,17 +860,30 @@ export class CapEngine {
     }
   }
 
-  private async persistReceived<T>(
+  private async persistReceived(
     topic: string,
     group: string,
-    payload: T,
+    payload: unknown,
     headers?: CapHeaders,
     metadata?: SubscribeMetadata,
   ): Promise<TrySaveReceivedResult<JsonValue>> {
-    const unwrapped = unwrapMessage(payload, headers);
+    const decoded = decodeCapMessage(payload, {
+      explicitHeaders: headers,
+      legacyEnvelopeMode: this.legacyEnvelopeMode,
+    });
+    if (
+      decoded.legacyEnvelope &&
+      this.legacyEnvelopeMode === 'warn' &&
+      !this.legacyEnvelopeWarningEmitted
+    ) {
+      this.legacyEnvelopeWarningEmitted = true;
+      this.logger.warn?.(
+        "Unversioned CAP message envelopes are deprecated. Set messageEnvelope.legacyUnversioned to 'reject' for strict operation and use createCapMessageEnvelope() for body envelopes.",
+      );
+    }
     const messageId =
       metadata?.messageId ??
-      getCapMessageId(unwrapped.headers) ??
+      getCapMessageId(decoded.headers) ??
       this.idGenerator();
     const dedupeKey =
       metadata?.dedupeKey ??
@@ -873,8 +896,8 @@ export class CapEngine {
       messageId: String(messageId),
       dedupeKey,
       occurredAt: this.now().toISOString(),
-      payload: unwrapped.payload,
-      headers: unwrapped.headers,
+      payload: decoded.payload,
+      headers: decoded.headers,
       retryCount: 0,
       status: 'pending',
       processed: false,
@@ -950,25 +973,4 @@ function hasOperationTransaction<TTx>(
   ctx?: CapOperationContext<TTx>,
 ): ctx is CapOperationContext<TTx> & { tx: TTx } {
   return ctx !== undefined && 'tx' in ctx && ctx.tx !== undefined;
-}
-
-function unwrapMessage<T>(
-  payload: T,
-  explicitHeaders?: CapHeaders,
-): { payload: JsonValue; headers?: CapHeaders } {
-  if (explicitHeaders) {
-    return { payload: payload as JsonValue, headers: explicitHeaders };
-  }
-
-  if (
-    payload &&
-    typeof payload === 'object' &&
-    !Array.isArray(payload) &&
-    'payload' in payload
-  ) {
-    const wrapped = payload as { payload: JsonValue; headers?: CapHeaders };
-    return { payload: wrapped.payload, headers: wrapped.headers };
-  }
-
-  return { payload: payload as JsonValue };
 }

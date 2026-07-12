@@ -31,14 +31,17 @@ describe('ServiceBusPublisher', () => {
 
   describe('emit', () => {
     it('should send message to Service Bus topic', async () => {
-      const payload = { userId: 123 };
+      const payload = {
+        payload: { userId: 123 },
+        source: 'external-system',
+      };
 
       await publisher.emit('user.created', payload);
 
       expect(mockClient.createSender).toHaveBeenCalledWith('cap-user.created');
       expect(mockSender.sendMessages).toHaveBeenCalledWith(
         expect.objectContaining({
-          body: { userId: 123 },
+          body: payload,
         }),
       );
     });

@@ -97,9 +97,10 @@ Use this together with the
 
 Adapter authors can use `defineTransportContract` to qualify publisher and
 subscriber implementations with fast client fakes. The suite verifies logical
-topic and payload mapping, headers, message identity, publish errors, inbound
-handler registration, delivery metadata, handler failure propagation, repeated
-supported lifecycle calls, and cleanup.
+topic and payload mapping (including business objects with a `payload` field),
+raw versioned-envelope body round-trips, headers, message identity, publish
+errors, inbound handler registration, delivery metadata, handler failure
+propagation, repeated supported lifecycle calls, and cleanup.
 
 The setup supplies an adapter-neutral harness that observes published messages,
 injects a publish failure, and delivers an inbound fixture. Lifecycle

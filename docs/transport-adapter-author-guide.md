@@ -29,6 +29,28 @@ and dead-letter state. It adds the outbox ID as both publish metadata and the
 `cap-message-id` header. A transport failure is reported by rejecting `emit`;
 the engine records that failure for later outbox retry.
 
+## Body Envelope Contract
+
+Native broker headers are preferred. Keep the business payload as the raw body
+when the broker supports separate headers and identity. If a bridge has only
+one JSON body, use `createCapMessageEnvelope(payload, headers)` from core. The
+version-1 shape is:
+
+```json
+{
+  "$cap": { "kind": "cap.message", "version": 1 },
+  "payload": { "orderId": "o1" },
+  "headers": { "traceId": "trace-1" }
+}
+```
+
+Do not create an unversioned or adapter-specific wrapper. Deliver incoming
+envelope bodies intact to `CapEngine`; framework adapters must not duplicate
+shape parsing. Core rejects unsupported versions and malformed exact markers
+without partially decoding them. Native transport headers override envelope
+headers, and `SubscribeMetadata.messageId` overrides a decoded
+`cap-message-id` header.
+
 ## Inbound Failure and Settlement Boundary
 
 `SubscriberPort` has no acknowledge, reject, complete, abandon, commit, or
@@ -47,8 +69,8 @@ tested without weakening either broker's guarantees.
 
 ## Current Adapter Behavior
 
-| Behavior         | RabbitMQ                            | Kafka                                       | AWS SNS/SQS                             | Azure Service Bus                | NestJS bridge              |
-| ---------------- | ----------------------------------- | ------------------------------------------- | --------------------------------------- | -------------------------------- | -------------------------- |
+| Behavior         | RabbitMQ                            | Kafka                                       | AWS SNS/SQS                            | Azure Service Bus                | NestJS bridge              |
+| ---------------- | ----------------------------------- | ------------------------------------------- | -------------------------------------- | -------------------------------- | -------------------------- |
 | Publish success  | Confirm callback plus channel drain | Delivery promise honors configured acks     | SNS Publish resolves                   | `sendMessages()` resolves        | Emit observable resolves   |
 | Inbound identity | Broker ID and exchange/group key    | Header ID and topic/group key               | SQS MessageId and topic/group key      | Broker ID and resource/group key | Application metadata       |
 | Handler failure  | Manual nack; no requeue by default  | Propagated; offset is not committed         | Not deleted; visibility timeout return | Rethrown to SDK callback         | Rejected from `dispatch()` |
@@ -92,9 +114,10 @@ defineTransportContract(
 );
 ```
 
-The suite covers publish mapping, headers and message identity, publish errors,
-inbound registration, delivery metadata, handler failures, repeated supported
-lifecycle calls, and resource cleanup. Set every lifecycle capability
+The suite covers publish mapping (including payloads that contain `payload`),
+headers and message identity, versioned envelope body round-trips, publish
+errors, inbound registration, delivery metadata, handler failures, repeated
+supported lifecycle calls, and resource cleanup. Set every lifecycle capability
 explicitly. Unsupported capabilities appear as skipped tests rather than false
 passes.
 

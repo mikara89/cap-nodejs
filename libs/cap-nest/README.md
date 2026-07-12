@@ -24,6 +24,21 @@ import { CapModule } from '@mikara89/cap-nest';
 export class AppModule {}
 ```
 
+`forRoot`, `forRootAsync`, and `forInMemory` accept the core envelope migration
+option:
+
+```ts
+CapModule.forRoot({
+  imports: [storageModule, transportModule],
+  messageEnvelope: { legacyUnversioned: 'reject' },
+});
+```
+
+The default `warn` mode accepts strict legacy `{ payload, headers? }` bodies and
+warns once per engine. New bridges that need one body should use
+`createCapMessageEnvelope()` re-exported by `@mikara89/cap-nest`. Ordinary
+business payloads containing a `payload` field are not broadly unwrapped.
+
 ```ts
 await capService.publish('user.created', { id: 'u1' });
 ```

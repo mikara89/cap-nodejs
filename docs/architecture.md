@@ -90,6 +90,11 @@ sequenceDiagram
 The outbox row is always written before an external emit is attempted. If the
 transport fails, the row remains eligible for scheduler retry.
 
+Outbox storage and native-header transport bodies retain the original business
+payload. The optional versioned CAP body envelope is a transport-boundary
+format only; it is decoded before inbox persistence and is never stored as an
+outbox record.
+
 ## Subscribe Flow
 
 ```mermaid
@@ -130,6 +135,21 @@ readiness. DTO validation is available through the `dto` option on
 
 Handlers receive headers either as the second argument or through the
 `@CapHeaders()` parameter decorator.
+
+## Message Envelope Boundary
+
+The explicit body format is marked by
+`$cap.kind = "cap.message"` and `$cap.version = 1`. Core is the sole inbound
+decoder. It merges envelope headers first and native transport headers second,
+then persists and invokes handlers with the decoded business payload. Exact CAP
+markers with unsupported versions or malformed structure fail before inbox
+persistence. Unrelated `$cap` fields and ordinary objects containing `payload`
+remain business data.
+
+RabbitMQ, Kafka, AWS SNS/SQS, Azure Service Bus, and the local bus keep raw
+business bodies and native headers/message IDs. The NestJS microservices bridge
+uses the versioned body envelope because `ClientProxy.emit()` provides one
+portable data body but no common native header channel.
 
 ## Transport Contract Boundary
 

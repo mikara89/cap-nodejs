@@ -2,9 +2,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import { firstValueFrom, timeout } from 'rxjs';
 import type {
   CapHeaders,
+  JsonValue,
   PublishMetadata,
   PublisherPort,
 } from '@mikara89/cap-core';
+import { createCapMessageEnvelope, withCapMessageId } from '@mikara89/cap-core';
 import type { CapClientProxyLike } from './client-proxy.interface';
 import type { NestjsMicroservicesTransportConfig } from './nestjs-microservices.config';
 
@@ -29,8 +31,12 @@ export class CapMicroservicesPublisher implements PublisherPort {
     metadata?: PublishMetadata,
   ): Promise<void> {
     const pattern = this.config.patternFactory?.(topic) ?? topic;
-    const message =
-      headers || metadata ? { payload, headers, metadata } : payload;
+    const envelopeHeaders = metadata?.messageId
+      ? withCapMessageId(headers, metadata.messageId)
+      : headers;
+    const message = envelopeHeaders
+      ? createCapMessageEnvelope(payload as JsonValue, envelopeHeaders)
+      : payload;
     const result = this.client.emit(pattern, message);
     const publishTimeoutMs = this.config.publishTimeoutMs;
 

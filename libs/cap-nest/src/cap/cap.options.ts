@@ -1,5 +1,6 @@
 import type { ModuleMetadata } from '@nestjs/common';
 import type {
+  CapMessageEnvelopeOptions,
   CapTransactionContext,
   CapTransactionManagerPort,
 } from '@mikara89/cap-core';
@@ -32,4 +33,5 @@ export interface CapModuleOptions {
   scheduler?: CapSchedulerOptions;
   transactionManager?: CapTransactionManagerPort;
   transactionContext?: CapTransactionContext;
+  messageEnvelope?: CapMessageEnvelopeOptions;
 }

@@ -31,7 +31,11 @@ describe('RabbitMqPublisher', () => {
 
     await publisher.emit(
       'user.created',
-      { id: 'u1' },
+      {
+        payload: { id: 'u1' },
+        source: 'external-system',
+        type: 'user',
+      },
       { 'x-trace': 'trace-1', 'correlation-id': 'corr-1' },
       { messageId: 'message-1' },
     );
@@ -40,7 +44,11 @@ describe('RabbitMqPublisher', () => {
       expect.objectContaining({
         exchange: 'dev.cap',
         topic: 'user.created',
-        payload: { id: 'u1' },
+        payload: {
+          payload: { id: 'u1' },
+          source: 'external-system',
+          type: 'user',
+        },
         options: expect.objectContaining({
           contentType: 'application/json',
           deliveryMode: 2,

@@ -29,6 +29,26 @@ handleOrderCreated(message: unknown) {
 }
 ```
 
+This adapter has one portable `ClientProxy` data body, so messages with CAP
+headers or identity use the core version-1 envelope:
+
+```json
+{
+  "$cap": { "kind": "cap.message", "version": 1 },
+  "payload": { "orderId": "o1" },
+  "headers": {
+    "traceId": "trace-1",
+    "cap-message-id": "message-1"
+  }
+}
+```
+
+Messages without CAP headers or identity remain raw business payloads. The
+bridge forwards the complete body to core's authoritative decoder, so ordinary
+objects containing `payload` are not shape-unwrapped. This replaces the old
+unversioned `{ payload, headers, metadata }` adapter body; producers and
+consumers using different package versions must be upgraded together.
+
 `ClientProxy.emit()` completion means the configured Nest client accepted the
 emit operation. It is not a portable broker-durable acknowledgment guarantee.
 Use broker-specific CAP transports when durable send acknowledgment semantics

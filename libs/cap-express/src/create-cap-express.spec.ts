@@ -32,6 +32,28 @@ describe('createCapExpress', () => {
     ]);
   });
 
+  it('passes message envelope compatibility options to the core engine', async () => {
+    const subscriber = new FakeSubscriber();
+    const handler = jest.fn();
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber,
+      messageEnvelope: { legacyUnversioned: 'reject' },
+    });
+
+    await cap.subscribe('legacy', 'workers', handler);
+    await cap.start();
+
+    await expect(
+      subscriber.deliver('legacy', 'workers', { payload: { value: 1 } }),
+    ).rejects.toThrow('Legacy unversioned CAP message envelopes are rejected');
+    expect(handler).not.toHaveBeenCalled();
+
+    await cap.stop();
+  });
+
   it('starts and stops the scheduler explicitly', async () => {
     const cap = createCapExpress({
       publishStorage: new InMemoryPublishStorage(),

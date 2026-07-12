@@ -15,6 +15,7 @@ purpose is a framework integration:
 
 ```ts
 import { CapEngine } from '@mikara89/cap-core';
+import { createCapMessageEnvelope } from '@mikara89/cap-core';
 import type { CapStorageCapabilities } from '@mikara89/cap-core';
 import { CapModule, CapService, CapSubscribe } from '@mikara89/cap-nest';
 import { createTestCapEngine } from '@mikara89/cap-testing';
@@ -56,6 +57,10 @@ The supported package roots are:
 
 `@mikara89/cap-dashboard` remains supported as a compatibility alias for the
 Nest dashboard package root.
+
+`@mikara89/cap-core` exports the versioned envelope constants, types, creator,
+guard, decoder, and typed decode errors from its package root. `@mikara89/cap-nest`
+mirrors that envelope surface because it already mirrors core messaging types.
 
 The v2.3 storage roots expose their complete framework-free APIs:
 

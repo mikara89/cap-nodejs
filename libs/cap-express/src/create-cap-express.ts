@@ -36,6 +36,7 @@ export interface CreateCapExpressOptions {
   idGenerator?: CapEngineOptions['idGenerator'];
   transactionManager?: CapEngineOptions['transactionManager'];
   transactionContext?: CapEngineOptions['transactionContext'];
+  messageEnvelope?: CapEngineOptions['messageEnvelope'];
   autoStart?: boolean;
   init?: InitOptions;
 }
@@ -82,6 +83,7 @@ export function createCapExpress(
     idGenerator: options.idGenerator,
     transactionManager: options.transactionManager,
     transactionContext: options.transactionContext,
+    messageEnvelope: options.messageEnvelope,
   });
   const scheduler = new CapScheduler(
     engine,

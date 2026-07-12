@@ -32,6 +32,23 @@ app.use('/health', cap.healthRouter());
 await cap.stop();
 ```
 
+Envelope compatibility uses the core option directly:
+
+```ts
+const cap = createCapExpress({
+  publishStorage,
+  receivedStorage,
+  publisher,
+  subscriber,
+  messageEnvelope: { legacyUnversioned: 'reject' },
+});
+```
+
+The default is `warn`, which accepts a strict legacy `{ payload, headers? }`
+body and warns once. Use the exported core `createCapMessageEnvelope()` helper
+for transports that must combine payload and headers in one body. Native-header
+transports should keep sending the unwrapped business payload.
+
 Before `start()`, `subscribe()` only registers a handler and performs no broker
 I/O. `start()` initializes configured adapters, awaits initial consumer
 attachment, and then starts the retry scheduler. It rejects if initialization

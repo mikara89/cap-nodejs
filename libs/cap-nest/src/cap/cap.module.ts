@@ -232,6 +232,7 @@ function createCapEngineProvider(): Provider {
         logger: createNestLogger(CapEngine.name),
         transactionManager: options.transactionManager,
         transactionContext: options.transactionContext,
+        messageEnvelope: options.messageEnvelope,
       }),
     inject: [
       CAP_MODULE_OPTIONS,

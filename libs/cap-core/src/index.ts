@@ -11,6 +11,7 @@ export * from './models/cap-operation-context';
 export * from './models/cap-publish-event';
 export * from './models/cap-received-event';
 export * from './models/cap-message-metadata';
+export * from './models/cap-message-envelope';
 export * from './models/cap-options';
 export * from './models/cap-storage-capabilities';
 export type { JsonPrimitive, JsonValue } from './models/json-value';
@@ -35,6 +36,7 @@ export * from './testing/local-bus';
 export * from './transactions/cap-transaction-context';
 
 export * from './utils/cap-message-id.util';
+export * from './utils/cap-message-envelope.util';
 export * from './utils/dedupe-key.util';
 export * from './utils/error.util';
 export * from './utils/operation-context.util';

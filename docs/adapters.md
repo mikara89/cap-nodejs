@@ -146,6 +146,19 @@ storage deduplicates by consumer group and `dedupeKey`.
 Headers are CAP transport metadata. First-party transports preserve primitive
 header values: `string`, `number`, `boolean`, and `Date`.
 
+Prefer native broker headers and message-ID properties. When a transport must
+combine payload and CAP headers in one JSON body, use
+`createCapMessageEnvelope()` from `@mikara89/cap-core`; do not invent a wrapper
+or emit an unversioned `{ payload, headers }` object. Subscribers should deliver
+the complete body to core's authoritative decoder. Native metadata message IDs
+take precedence over the decoded `cap-message-id` header.
+
+Unsupported or malformed explicit CAP envelopes reject before inbox
+persistence. Existing settlement then applies: RabbitMQ nacks without requeue
+by default; Kafka does not commit the offset; SQS does not delete the message;
+Azure Service Bus propagates failure to its receiver callback; and the NestJS
+bridge rejects `dispatch()`. This release does not redesign those policies.
+
 Important subscriber invariant:
 
 - If CAP successfully persists the inbox record, the broker message may be

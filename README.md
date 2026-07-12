@@ -78,6 +78,11 @@ Prisma storage adapters. v2.4 delivers reusable transport conformance alongside
 RabbitMQ, Kafka, and AWS SNS/SQS transports. v2.4.1 adds optional NestJS
 storage modules behind explicit adapter `/nest` entry points.
 
+Core also exports an explicit version-1 CAP message envelope for custom
+transports that must combine payload and headers in one JSON body. Native-header
+first-party transports keep their existing raw business payload wire format;
+see the [envelope migration guide](docs/migration/versioned-message-envelope.md).
+
 ## Requirements
 
 - Node.js 22, matching CI.

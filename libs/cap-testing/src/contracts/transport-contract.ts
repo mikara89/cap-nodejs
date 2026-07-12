@@ -6,6 +6,7 @@ import type {
   SubscriberPort,
   SubscribeMetadata,
 } from '@mikara89/cap-core';
+import { createCapMessageEnvelope } from '@mikara89/cap-core';
 
 export interface TransportContractPublishedMessage {
   topic: string;
@@ -77,6 +78,21 @@ export function defineTransportContract(
       });
     });
 
+    it('publishes a business payload containing payload without loss', async () => {
+      await withSetup(setup, async ({ publisher, harness }) => {
+        const payload = {
+          payload: { value: 123 },
+          source: 'external-system',
+          type: 'measurement',
+        };
+
+        await publisher.emit('contract.business-shape', payload);
+
+        expect(harness.publishedMessages()).toHaveLength(1);
+        expect(harness.publishedMessages()[0]?.payload).toEqual(payload);
+      });
+    });
+
     it('propagates publisher errors', async () => {
       await withSetup(setup, async ({ publisher, harness }) => {
         const error = new Error('contract publish failure');
@@ -111,6 +127,69 @@ export function defineTransportContract(
             delivery.payload,
             delivery.headers,
             expectedInboundMetadata,
+          );
+        },
+      );
+    });
+
+    it('round-trips inbound business payload fields without shape unwrapping', async () => {
+      await withSetup(
+        setup,
+        async ({ subscriber, harness, expectedInboundMetadata }) => {
+          const handler = jest.fn().mockResolvedValue(undefined);
+          const payload = {
+            payload: { value: 123 },
+            source: 'external-system',
+            type: 'measurement',
+          };
+          await subscriber.consume('contract.shape', 'contract-group', handler);
+
+          await harness.deliver({
+            topic: 'contract.shape',
+            group: 'contract-group',
+            payload,
+            headers: { 'x-contract': 'shape' },
+          });
+
+          expect(handler).toHaveBeenCalledWith(
+            payload,
+            { 'x-contract': 'shape' },
+            expect.objectContaining({
+              messageId: expectedInboundMetadata.messageId,
+            }),
+          );
+        },
+      );
+    });
+
+    it('round-trips a versioned envelope body without transport-specific decoding', async () => {
+      await withSetup(
+        setup,
+        async ({ subscriber, harness, expectedInboundMetadata }) => {
+          const handler = jest.fn().mockResolvedValue(undefined);
+          const envelope = createCapMessageEnvelope(
+            { orderId: 'o1' },
+            { traceId: 'envelope' },
+          );
+          await subscriber.consume(
+            'contract.envelope',
+            'contract-group',
+            handler,
+          );
+
+          await harness.deliver({
+            topic: 'contract.envelope',
+            group: 'contract-group',
+            payload: envelope,
+            headers: { 'x-contract': 'envelope-body' },
+          });
+
+          expect(handler).toHaveBeenCalledWith(
+            envelope,
+            { 'x-contract': 'envelope-body' },
+            expect.objectContaining({
+              messageId: expectedInboundMetadata.messageId,
+            }),
           );
         },
       );
