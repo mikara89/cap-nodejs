@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.3.0 (2026-07-12)
+
+### Features
+
+- add ownership-fenced outbox claiming and active lease renewal
+- add awaited subscriber startup and shutdown lifecycle
+- add versioned CAP message envelopes
+- preserve ordinary business payloads containing a `payload` property
+
+### Compatibility
+
+- retain at-least-once delivery semantics
+- retain native broker payload formats where native headers are supported
+- add temporary strict legacy-envelope compatibility
+
 ## 2.2.0 (2026-06-26)
 
 ### Features
