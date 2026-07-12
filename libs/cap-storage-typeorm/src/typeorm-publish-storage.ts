@@ -26,6 +26,7 @@ import {
   deserializeJson,
   escapeIdentifier,
   fromDbDate,
+  getTypeOrmDialect,
   serializeJson,
   supportsTypeOrmSkipLockedClaiming,
   toDbDate,
@@ -184,15 +185,19 @@ export class TypeOrmPublishStorage
     options: MarkPublishFailedOptions,
   ): Promise<boolean> {
     const retryCount = escapeIdentifier(this.dataSource, 'retry_count');
+    // In generated SET order, MySQL applies retry_count before later expressions.
+    const thresholdRetryCount = usesMySqlAssignmentSemantics(this.dataSource)
+      ? retryCount
+      : `${retryCount} + 1`;
     let query = this.dataSource.manager
       .createQueryBuilder()
       .update(this.tableName)
       .set({
         retry_count: () => `${retryCount} + 1`,
         status: () =>
-          `CASE WHEN ${retryCount} + 1 >= :maxRetries THEN 'dead_letter' ELSE 'failed' END`,
+          `CASE WHEN ${thresholdRetryCount} >= :maxRetries THEN 'dead_letter' ELSE 'failed' END`,
         next_retry_at: () =>
-          `CASE WHEN ${retryCount} + 1 >= :maxRetries THEN NULL ELSE :nextRetryAt END`,
+          `CASE WHEN ${thresholdRetryCount} >= :maxRetries THEN NULL ELSE :nextRetryAt END`,
         last_error: error instanceof Error ? error.message : String(error),
         locked_by: null,
         locked_until: null,
@@ -295,6 +300,11 @@ export class TypeOrmPublishStorage
       .getRawMany<PublishRow>();
     return rows[0];
   }
+}
+
+function usesMySqlAssignmentSemantics(dataSource: DataSource): boolean {
+  const dialect = getTypeOrmDialect(dataSource);
+  return dialect === 'mysql' || dialect === 'mariadb';
 }
 
 function claimableWhere(dataSource: DataSource, alias: string): string {

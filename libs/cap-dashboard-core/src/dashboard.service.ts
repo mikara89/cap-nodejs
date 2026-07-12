@@ -6,6 +6,7 @@ import {
   type PublishStoragePort,
   type PublisherPort,
   type ReceivedStoragePort,
+  runWithActiveLeaseHeartbeat,
   withCapMessageId,
 } from '@mikara89/cap-core';
 import type { ActionResultDto } from './dto/action-result.dto';
@@ -16,6 +17,7 @@ import type { InboxPageDto, OutboxPageDto } from './dto/page.dto';
 
 const DEFAULT_LIST_LIMIT = 50;
 const DASHBOARD_LOCK_OWNER = 'cap-dashboard';
+const DASHBOARD_LEASE_MS = 30_000;
 const DEFAULT_RETRY_OPTIONS: CapDashboardRetryOptions = {
   maxRetries: 3,
 };
@@ -232,7 +234,8 @@ export class CapDashboardCoreService {
     if (this.options.readOnly) return readOnlyResult();
 
     try {
-      if (!this.publisher) {
+      const publisher = this.publisher;
+      if (!publisher) {
         return {
           success: false,
           message: 'No publisher available to emit messages',
@@ -245,7 +248,7 @@ export class CapDashboardCoreService {
       const rows = await this.pubStorage.claimUnpublished({
         limit: this.resolveLimit({ limit: DEFAULT_LIST_LIMIT }),
         lockedBy: claimOwner,
-        lockUntil: new Date(now.getTime() + 30_000),
+        lockUntil: new Date(now.getTime() + DASHBOARD_LEASE_MS),
         now,
       });
       let published = 0;
@@ -259,44 +262,49 @@ export class CapDashboardCoreService {
           );
           continue;
         }
-        try {
-          if (this.pubStorage.renewPublishClaim) {
-            const renewed = await this.pubStorage.renewPublishClaim({
-              id: rec.id,
-              expectedLockedBy: claimOwner,
-              lockUntil: new Date(Date.now() + 30_000),
-              now: new Date(),
+        const initiallyRenewed = await this.renewDashboardClaim(
+          rec,
+          claimOwner,
+          'before emission',
+        );
+        if (!initiallyRenewed) {
+          failed++;
+          continue;
+        }
+
+        const emitResult = await runWithActiveLeaseHeartbeat(
+          async () => {
+            const headers = withCapMessageId(rec.headers, rec.id);
+            await publisher.emit(rec.topic, rec.payload, headers, {
+              messageId: rec.id,
             });
-            if (!renewed) {
-              failed++;
-              this.logger?.warn?.(
-                `flushOutbox skipped ${rec.id} because claim ownership was lost before emission`,
-              );
-              continue;
-            }
-          }
-          const headers = withCapMessageId(rec.headers, rec.id);
-          await this.publisher.emit(rec.topic, rec.payload, headers, {
-            messageId: rec.id,
-          });
-          const completed = await this.pubStorage.markPublished(
-            rec.id,
-            new Date(),
-            { expectedLockedBy: claimOwner },
+          },
+          {
+            cadenceMs: Math.floor(DASHBOARD_LEASE_MS / 3),
+            renew: this.pubStorage.renewPublishClaim
+              ? () =>
+                  this.renewDashboardClaim(
+                    rec,
+                    claimOwner,
+                    'while broker emission was in flight',
+                  )
+              : undefined,
+          },
+        );
+
+        if (emitResult.ownershipLost) {
+          failed++;
+          this.logger?.warn?.(
+            `flushOutbox broker emission for ${rec.id} settled after claim ownership was lost; database completion was skipped and at-least-once redelivery may occur`,
           );
-          if (completed === false) {
-            failed++;
-            this.logger?.warn?.(
-              `flushOutbox published ${rec.id}, but claim ownership was lost before completion; at-least-once redelivery may occur`,
-            );
-          } else {
-            published++;
-          }
-        } catch (err) {
+          continue;
+        }
+
+        if (emitResult.status === 'rejected') {
           failed++;
           const markedFailed = await this.pubStorage.markPublishFailed(
             rec.id,
-            err,
+            emitResult.reason,
             {
               maxRetries: this.schedulerOptions.maxRetries,
               nextRetryAt: new Date(Date.now() + 1000),
@@ -309,7 +317,25 @@ export class CapDashboardCoreService {
               `flushOutbox publisher failed for ${rec.id} after claim ownership was lost`,
             );
           }
-          this.logger?.warn?.(`flushOutbox failed for ${rec.id}`, err);
+          this.logger?.warn?.(
+            `flushOutbox failed for ${rec.id}`,
+            emitResult.reason,
+          );
+          continue;
+        }
+
+        const completed = await this.pubStorage.markPublished(
+          rec.id,
+          new Date(),
+          { expectedLockedBy: claimOwner },
+        );
+        if (completed === false) {
+          failed++;
+          this.logger?.warn?.(
+            `flushOutbox published ${rec.id}, but claim ownership was lost before completion; at-least-once redelivery may occur`,
+          );
+        } else {
+          published++;
         }
       }
 
@@ -320,6 +346,35 @@ export class CapDashboardCoreService {
     } catch (err: unknown) {
       this.logger?.error?.('flushOutbox failed', err);
       return { success: false, message: errorMessage(err) };
+    }
+  }
+
+  private async renewDashboardClaim(
+    rec: CapPublishEvent,
+    expectedLockedBy: string,
+    phase: string,
+  ): Promise<boolean> {
+    if (!this.pubStorage.renewPublishClaim) return true;
+    const now = new Date();
+    try {
+      const renewed = await this.pubStorage.renewPublishClaim({
+        id: rec.id,
+        expectedLockedBy,
+        lockUntil: new Date(now.getTime() + DASHBOARD_LEASE_MS),
+        now,
+      });
+      if (!renewed) {
+        this.logger?.warn?.(
+          `flushOutbox skipped ${rec.id} because claim ${expectedLockedBy} was lost ${phase}`,
+        );
+      }
+      return renewed;
+    } catch (error) {
+      this.logger?.warn?.(
+        `flushOutbox claim ${expectedLockedBy} renewal failed ${phase}; ownership is treated as lost`,
+        error,
+      );
+      return false;
     }
   }
 

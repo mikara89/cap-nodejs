@@ -23,6 +23,7 @@ import { getKnexStorageCapabilities } from './knex-storage-capabilities';
 import {
   deserializeJson,
   fromDbDate,
+  getKnexClientName,
   serializeJson,
   supportsSkipLockedClaiming,
   toDbDate,
@@ -152,16 +153,20 @@ export class KnexPublishStorage
   ): Promise<boolean> {
     const query = this.knex<PublishRow>(this.tableName).where({ id });
     applyOwnershipWhere(query, options.expectedLockedBy);
+    // In generated SET order, MySQL applies retry_count before later expressions.
+    const retryThreshold = usesMySqlAssignmentSemantics(this.knex)
+      ? '?? >= ?'
+      : '?? + 1 >= ?';
     const affected = await query.update({
       retry_count: this.knex.raw('?? + 1', ['retry_count']),
-      status: this.knex.raw('CASE WHEN ?? + 1 >= ? THEN ? ELSE ? END', [
+      status: this.knex.raw(`CASE WHEN ${retryThreshold} THEN ? ELSE ? END`, [
         'retry_count',
         options.maxRetries,
         'dead_letter',
         'failed',
       ]),
       next_retry_at: this.knex.raw(
-        'CASE WHEN ?? + 1 >= ? THEN NULL ELSE ? END',
+        `CASE WHEN ${retryThreshold} THEN NULL ELSE ? END`,
         ['retry_count', options.maxRetries, toDbDate(options.nextRetryAt)],
       ),
       last_error: error instanceof Error ? error.message : String(error),
@@ -231,6 +236,11 @@ export class KnexPublishStorage
       total: Number(total),
     };
   }
+}
+
+function usesMySqlAssignmentSemantics(knex: Knex): boolean {
+  const clientName = getKnexClientName(knex);
+  return clientName.includes('mysql') || clientName.includes('maria');
 }
 
 function applyOwnershipWhere(

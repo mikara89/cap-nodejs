@@ -7,6 +7,7 @@ import {
 import { createDedupeKey } from '../utils/dedupe-key.util';
 import { normalizeError } from '../utils/error.util';
 import { resolveOperationContext } from '../utils/operation-context.util';
+import { runWithActiveLeaseHeartbeat } from '../utils/active-lease-heartbeat.util';
 import { expJitter } from './backoff';
 import { noopLogger } from './noop-logger';
 import { type CapHeaders } from '../models/cap-headers.type';
@@ -325,58 +326,39 @@ export class CapEngine {
     );
     if (!initiallyRenewed) return;
 
-    let ownershipLost = false;
-    let stopped = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let inFlightRenewal: Promise<void> | undefined;
     const cadenceMs = Math.max(
       1,
       Math.floor(this.schedulerOptions.leaseMs / 3),
     );
+    const emitResult = await runWithActiveLeaseHeartbeat(
+      async () => {
+        const headers = withCapMessageId(evt.headers, evt.id);
+        await this.publisher.emit(evt.topic, evt.payload, headers, {
+          messageId: evt.id,
+        });
+      },
+      {
+        cadenceMs,
+        renew: this.publishStorage.renewPublishClaim
+          ? () =>
+              this.renewClaim(
+                evt,
+                expectedLockedBy,
+                'while broker emission was in flight',
+              )
+          : undefined,
+      },
+    );
 
-    const scheduleRenewal = (): void => {
-      if (stopped || ownershipLost || !this.publishStorage.renewPublishClaim) {
-        return;
-      }
-      timer = setTimeout(() => {
-        inFlightRenewal = this.renewClaim(
-          evt,
-          expectedLockedBy,
-          'while broker emission was in flight',
-        )
-          .then((renewed) => {
-            if (!renewed) ownershipLost = true;
-          })
-          .finally(() => {
-            inFlightRenewal = undefined;
-            scheduleRenewal();
-          });
-      }, cadenceMs);
-    };
-
-    scheduleRenewal();
-    let emitError: unknown;
-    try {
-      const headers = withCapMessageId(evt.headers, evt.id);
-      await this.publisher.emit(evt.topic, evt.payload, headers, {
-        messageId: evt.id,
-      });
-    } catch (err) {
-      emitError = err;
-    } finally {
-      stopped = true;
-      if (timer) clearTimeout(timer);
-      if (inFlightRenewal) await inFlightRenewal;
-    }
-
-    if (ownershipLost) {
+    if (emitResult.ownershipLost) {
       this.logger.warn?.(
         `outbox #${evt.id} (${evt.topic}) broker emission settled after claim ${expectedLockedBy} was lost; database completion was skipped and at-least-once redelivery may occur`,
       );
       return;
     }
 
-    if (emitError !== undefined) {
+    if (emitResult.status === 'rejected') {
+      const emitError = emitResult.reason;
       const failed = await this.publishStorage.markPublishFailed(
         evt.id,
         emitError,

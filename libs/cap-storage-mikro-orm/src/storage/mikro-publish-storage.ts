@@ -146,15 +146,19 @@ export class MikroPublishStorage
     options: MarkPublishFailedOptions,
   ): Promise<boolean> {
     const where = ownershipWhere(id, options.expectedLockedBy);
+    // In generated SET order, MySQL applies retry_count before later expressions.
+    const thresholdRetryCount = usesMySqlAssignmentSemantics(this.em)
+      ? 'retry_count'
+      : 'retry_count + 1';
     const affected = await this.em.nativeUpdate(CapPublishEntity, where, {
       retryCount: raw('retry_count + 1'),
-      status: raw('case when retry_count + 1 >= ? then ? else ? end', [
+      status: raw(`case when ${thresholdRetryCount} >= ? then ? else ? end`, [
         options.maxRetries,
         'dead_letter',
         'failed',
       ]),
       nextRetryAt: raw(
-        'case when retry_count + 1 >= ? then null else coalesce(?, next_retry_at) end',
+        `case when ${thresholdRetryCount} >= ? then null else coalesce(?, next_retry_at) end`,
         [options.maxRetries, options.nextRetryAt],
       ),
       lastError: error instanceof Error ? error.message : String(error),
@@ -223,6 +227,14 @@ export class MikroPublishStorage
 
     return { items: entities.map(mapPublishEntity), total };
   }
+}
+
+function usesMySqlAssignmentSemantics(em: EntityManager): boolean {
+  const platformName = getMikroPlatformName(em);
+  return Boolean(
+    platformName &&
+    (platformName.includes('mysql') || platformName.includes('maria')),
+  );
 }
 
 function ownershipWhere(

@@ -223,6 +223,9 @@ export class PrismaPublishStorage
   ): Promise<boolean> {
     const builder = new PrismaSqlBuilder(this.options.provider);
     const retryCount = this.quote('retry_count');
+    // In generated SET order, MySQL applies retry_count before later expressions.
+    const thresholdRetryCount =
+      this.options.provider === 'mysql' ? retryCount : `${retryCount} + 1`;
     const maxRetriesForStatus = builder.parameter(options.maxRetries);
     const deadLetter = builder.parameter('dead_letter');
     const failed = builder.parameter('failed');
@@ -247,9 +250,9 @@ export class PrismaPublishStorage
         this.options.publishTableName,
       )} SET ${retryCount} = ${retryCount} + 1, ${this.quote(
         'status',
-      )} = CASE WHEN ${retryCount} + 1 >= ${maxRetriesForStatus} THEN ${deadLetter} ELSE ${failed} END, ${this.quote(
+      )} = CASE WHEN ${thresholdRetryCount} >= ${maxRetriesForStatus} THEN ${deadLetter} ELSE ${failed} END, ${this.quote(
         'next_retry_at',
-      )} = CASE WHEN ${retryCount} + 1 >= ${maxRetriesForRetry} THEN NULL ELSE ${nextRetry} END, ${this.quote(
+      )} = CASE WHEN ${thresholdRetryCount} >= ${maxRetriesForRetry} THEN NULL ELSE ${nextRetry} END, ${this.quote(
         'last_error',
       )} = ${lastError}, ${this.quote('locked_by')} = NULL, ${this.quote(
         'locked_until',

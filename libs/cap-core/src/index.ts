@@ -35,6 +35,7 @@ export * from './testing/local-bus';
 export * from './transactions/cap-transaction-context';
 
 export * from './utils/cap-message-id.util';
+export * from './utils/active-lease-heartbeat.util';
 export * from './utils/dedupe-key.util';
 export * from './utils/error.util';
 export * from './utils/operation-context.util';

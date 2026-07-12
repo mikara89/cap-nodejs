@@ -4,6 +4,7 @@ import {
   createInMemoryReceivedStorage,
   type CapPublishEvent,
   type CapReceivedEvent,
+  type PublisherPort,
 } from '@mikara89/cap-core';
 import { CapDashboardCoreService } from './dashboard.service';
 
@@ -98,6 +99,37 @@ describe('CapDashboardCoreService', () => {
     });
   });
 
+  it('renews the active lease throughout a long dashboard emit', async () => {
+    jest.useFakeTimers();
+    try {
+      const publishStorage = createInMemoryPublishStorage();
+      await publishStorage.savePublish(publishEvent());
+      const emit = deferred<void>();
+      const publisher: PublisherPort = {
+        emit: jest.fn(() => emit.promise),
+      };
+      const renew = jest.spyOn(publishStorage, 'renewPublishClaim');
+      const service = newService({ publishStorage, publisher });
+
+      const flushing = service.flushOutbox();
+      await jest.advanceTimersByTimeAsync(0);
+      expect(renew).toHaveBeenCalledTimes(1);
+
+      await jest.advanceTimersByTimeAsync(20_000);
+      expect(renew).toHaveBeenCalledTimes(3);
+
+      emit.resolve();
+      await expect(flushing).resolves.toEqual({
+        success: true,
+        message: 'Flush complete: 1 published, 0 failed',
+      });
+      await jest.advanceTimersByTimeAsync(60_000);
+      expect(renew).toHaveBeenCalledTimes(3);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('blocks mutations when read-only', async () => {
     const publishStorage = createInMemoryPublishStorage();
     const publisher = createInMemoryPublisher();
@@ -180,5 +212,19 @@ function receivedEvent(): CapReceivedEvent {
     lastError: 'boom',
     processedAt: null,
     nextRetry: new Date('2026-06-16T10:01:00.000Z'),
+  };
+}
+
+function deferred<T>(): {
+  promise: Promise<T>;
+  resolve: (value?: T) => void;
+} {
+  let resolveDeferred!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((resolve) => {
+    resolveDeferred = resolve;
+  });
+  return {
+    promise,
+    resolve: (value?: T) => resolveDeferred(value as T),
   };
 }

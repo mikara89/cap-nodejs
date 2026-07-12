@@ -197,6 +197,34 @@ export function definePublishStorageContract<TTx = unknown>(
       });
     });
 
+    it('keeps the penultimate retry failed with its retry schedule', async () => {
+      await withSetup(setup, async ({ storage }) => {
+        const event = publishEvent('mark-penultimate-failure', {
+          status: 'processing',
+          retryCount: 1,
+          lockedBy: 'contract-worker',
+          lockedUntil: new Date('2026-06-16T00:03:00.000Z'),
+        });
+        const nextRetryAt = new Date('2026-06-16T00:04:00.000Z');
+
+        await storage.savePublish(event);
+        await storage.markPublishFailed(event.id, 'second failure', {
+          maxRetries: 3,
+          nextRetryAt,
+          now: new Date('2026-06-16T00:03:30.000Z'),
+        });
+
+        await expectPublishedEvent(storage, event.id, {
+          status: 'failed',
+          retryCount: 2,
+          nextRetryAt,
+          lastError: 'second failure',
+          lockedBy: null,
+          lockedUntil: null,
+        });
+      });
+    });
+
     it('increments retry and dead-letters according to MarkPublishFailedOptions', async () => {
       await withSetup(setup, async ({ storage }) => {
         const event = publishEvent('mark-dead-letter', {

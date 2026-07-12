@@ -333,6 +333,62 @@ describe.each(providers)(
         }),
       ).resolves.toBe(true);
     });
+
+    it('preserves the retry threshold across consecutive owned failures', async () => {
+      await setupClient!.$executeRawUnsafe('DELETE FROM cap_publish');
+      const workerA = new PrismaPublishStorage(setupClient!, {
+        provider: fixture.provider,
+      });
+      const workerB = new PrismaPublishStorage(workerClient!, {
+        provider: fixture.provider,
+      });
+      const firstNow = new Date('2026-07-12T11:01:00.000Z');
+      const firstRetryAt = new Date('2026-07-12T11:02:00.000Z');
+      const event: CapPublishEvent = {
+        ...publishEvent(300, new Date('2026-07-12T11:00:00.000Z')),
+        status: 'processing',
+        retryCount: 1,
+        lockedBy: 'prisma-boundary-owner-1',
+        lockedUntil: new Date('2026-07-12T11:05:00.000Z'),
+      };
+      await workerA.savePublish(event);
+
+      await expect(
+        workerA.markPublishFailed(event.id, 'second failure', {
+          maxRetries: 3,
+          nextRetryAt: firstRetryAt,
+          now: firstNow,
+          expectedLockedBy: 'prisma-boundary-owner-1',
+        }),
+      ).resolves.toBe(true);
+      await expect(workerA.findPublishById(event.id)).resolves.toMatchObject({
+        status: 'failed',
+        retryCount: 2,
+        nextRetryAt: firstRetryAt,
+      });
+
+      const secondNow = new Date('2026-07-12T11:03:00.000Z');
+      const [reclaimed] = await workerB.claimUnpublished({
+        limit: 1,
+        lockedBy: 'prisma-boundary-owner-2',
+        lockUntil: new Date('2026-07-12T11:06:00.000Z'),
+        now: secondNow,
+      });
+      expect(reclaimed?.id).toBe(event.id);
+      await expect(
+        workerB.markPublishFailed(event.id, 'third failure', {
+          maxRetries: 3,
+          nextRetryAt: new Date('2026-07-12T11:04:00.000Z'),
+          now: secondNow,
+          expectedLockedBy: 'prisma-boundary-owner-2',
+        }),
+      ).resolves.toBe(true);
+      await expect(workerB.findPublishById(event.id)).resolves.toMatchObject({
+        status: 'dead_letter',
+        retryCount: 3,
+        nextRetryAt: null,
+      });
+    });
   },
 );
 
