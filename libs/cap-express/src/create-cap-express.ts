@@ -98,7 +98,8 @@ export function createCapExpress(
   let started = false;
   let initialized = false;
   let startPromise: Promise<void> | undefined;
-  let readyPromise: Promise<void> = Promise.resolve();
+  let readyDeferred = deferred<void>();
+  let readyPromise: Promise<void> = readyDeferred.promise;
 
   const app: CapExpressApp = {
     engine,
@@ -123,7 +124,8 @@ export function createCapExpress(
         return;
       }
 
-      startPromise ??= (async () => {
+      // Track this start attempt as the current readiness operation.
+      const thisStart = (async () => {
         // 1. Initialize adapters.
         if (!initialized) {
           await initializeAdapters(options);
@@ -136,10 +138,23 @@ export function createCapExpress(
         started = true;
       })();
 
+      startPromise = thisStart;
+      readyPromise = thisStart;
+
+      // Prevent unhandled rejections for callers that ignore `ready`.
+      thisStart.catch((error: unknown) => {
+        options.logger?.error?.('CAP Express start failed', error);
+      });
+
       try {
-        await startPromise;
+        await thisStart;
+      } catch {
+        // Rejection already observed; swallow so start() itself doesn't
+        // produce an unhandled rejection when called via `void app.start()`.
       } finally {
-        startPromise = undefined;
+        if (startPromise === thisStart) {
+          startPromise = undefined;
+        }
       }
     },
     stop: async () => {
@@ -157,6 +172,10 @@ export function createCapExpress(
       await engine.close();
       started = false;
       initialized = false;
+
+      // Reset readiness for the next start.
+      readyDeferred = deferred<void>();
+      readyPromise = readyDeferred.promise;
     },
     healthRouter: () => createCapHealthRouter(app),
     get schedulerRunning() {
@@ -166,13 +185,25 @@ export function createCapExpress(
   };
 
   if (options.autoStart) {
-    readyPromise = app.start();
-    readyPromise.catch((error: unknown) => {
-      options.logger?.error?.('CAP Express autoStart failed', error);
-    });
+    // autoStart uses the same readiness tracking path.
+    void app.start();
   }
 
   return app;
+}
+
+function deferred<T>(): {
+  promise: Promise<T>;
+  resolve: (value: T | PromiseLike<T>) => void;
+  reject: (reason?: unknown) => void;
+} {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
 }
 
 async function initializeAdapters(

@@ -418,6 +418,163 @@ describe('CapEngine subscription lifecycle', () => {
   });
 
   // -----------------------------------------------------------------------
+  // Serialized start / stop
+  // -----------------------------------------------------------------------
+
+  it('stop during in-progress start awaits start then closes', async () => {
+    const engine = createEngine();
+    engine.registerSubscription('t', 'g', jest.fn());
+
+    // Defer the consume so start is still in progress when stop is called.
+    const { promise: consumeBlocker, resolve: releaseConsume } =
+      deferred<void>();
+    subscriber.nextConsumePromise = consumeBlocker;
+
+    const startDone = jest.fn();
+    const startPromise = engine.startSubscriptions().then(() => startDone());
+
+    // Let start enter the consume call.
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // Now call stop while start is still in-progress.
+    const stopPromise = engine.stopSubscriptions();
+
+    // Release the consume — start should complete (but stop was requested).
+    releaseConsume();
+    await Promise.all([startPromise, stopPromise]);
+
+    // Verify: close was called exactly once, lifecycle is stopped.
+    expect(subscriber.closeCalled).toBe(true);
+    expect(subscriber.closeCallCount).toBe(1);
+
+    const snap = engine.getSubscriptionLifecycle();
+    expect(snap.state).toBe('stopped');
+    expect(snap.attachedCount).toBe(0);
+  });
+
+  it('stop during start where consume fails still closes cleanly', async () => {
+    const engine = createEngine();
+    engine.registerSubscription('t1', 'g1', jest.fn());
+
+    // Defer the consume and have it fail.
+    const { promise: consumeBlocker, resolve: releaseConsume } =
+      deferred<void>();
+    subscriber.nextConsumePromise = consumeBlocker;
+    subscriber.nextConsumeError = new Error('connect refused');
+
+    const startPromise = engine.startSubscriptions();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const stopPromise = engine.stopSubscriptions();
+
+    releaseConsume();
+    await Promise.all([expect(startPromise).rejects.toThrow(), stopPromise]);
+
+    // close should still have been attempted.
+    expect(subscriber.closeCalled).toBe(true);
+    const snap = engine.getSubscriptionLifecycle();
+    expect(snap.state).toBe('stopped');
+  });
+
+  // -----------------------------------------------------------------------
+  // Immediate subscribe produces truthful lifecycle state
+  // -----------------------------------------------------------------------
+
+  it('successful direct subscribe transitions idle → ready', async () => {
+    const engine = createEngine();
+
+    await engine.subscribe('t', 'g', jest.fn());
+
+    const snap = engine.getSubscriptionLifecycle();
+    expect(snap.state).toBe('ready');
+    expect(snap.registeredCount).toBe(1);
+    expect(snap.attachedCount).toBe(1);
+  });
+
+  it('direct subscribe after stopped transitions to ready', async () => {
+    const engine = createEngine();
+    await engine.stopSubscriptions();
+
+    // Subscribe directly from stopped — no other registrations exist.
+    await engine.subscribe('t2', 'g2', jest.fn());
+
+    const snap = engine.getSubscriptionLifecycle();
+    expect(snap.state).toBe('ready');
+    expect(snap.registeredCount).toBe(1);
+    expect(snap.attachedCount).toBe(1);
+  });
+
+  it('successful dynamic subscribe recovers from failed to ready', async () => {
+    const engine = createEngine();
+    engine.registerSubscription('t1', 'g1', jest.fn());
+    await engine.startSubscriptions();
+
+    // Dynamic subscription fails — descriptor is registered but unattached.
+    subscriber.nextConsumeError = new Error('dynamic fail');
+    await expect(engine.subscribe('t2', 'g2', jest.fn())).rejects.toThrow();
+    expect(engine.getSubscriptionLifecycle().state).toBe('failed');
+
+    // Retry via startSubscriptions — the unattached descriptor is picked up.
+    await engine.startSubscriptions();
+
+    const snap = engine.getSubscriptionLifecycle();
+    expect(snap.state).toBe('ready');
+    expect(snap.registeredCount).toBe(2);
+    expect(snap.attachedCount).toBe(2);
+  });
+
+  it('direct subscribe with multiple registrations reports ready when all attached', async () => {
+    const engine = createEngine();
+    engine.registerSubscription('t1', 'g1', jest.fn());
+
+    // t1 is registered but unattached; t2 is subscribed directly.
+    await engine.subscribe('t2', 'g2', jest.fn());
+
+    // Not all are attached yet — lifecycle should not be ready.
+    const snapBefore = engine.getSubscriptionLifecycle();
+    expect(snapBefore.state).not.toBe('ready');
+    expect(snapBefore.registeredCount).toBe(2);
+    expect(snapBefore.attachedCount).toBe(1);
+  });
+
+  // -----------------------------------------------------------------------
+  // Unified rejection observer
+  // -----------------------------------------------------------------------
+
+  it('subscribe validation error is observed and does not produce unhandled rejection', async () => {
+    const logger = { error: jest.fn() };
+    const engine = new CapEngine({
+      publishStorage,
+      receivedStorage,
+      publisher,
+      subscriber,
+      scheduler,
+      idGenerator: () => `id-${++id}`,
+      now: () => new Date('2026-01-01T00:00:00.000Z'),
+      logger,
+    });
+
+    await engine.subscribe('t', 'g', jest.fn());
+
+    // Duplicate — should be observed by the rejection observer.
+    const dupPromise = engine.subscribe('t', 'g', jest.fn());
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // The logger should have recorded the error.
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('Subscriber attach failed'),
+      expect.any(Error),
+    );
+
+    // The promise itself should still reject for callers who await.
+    await expect(dupPromise).rejects.toThrow(/already registered/);
+  });
+
+  // -----------------------------------------------------------------------
   // Inbox retry with new descriptor map
   // -----------------------------------------------------------------------
 

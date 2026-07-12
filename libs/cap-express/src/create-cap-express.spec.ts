@@ -160,7 +160,7 @@ describe('createCapExpress', () => {
 
     await expect(cap.ready).rejects.toThrow('init failed');
     expect(logger.error).toHaveBeenCalledWith(
-      'CAP Express autoStart failed',
+      'CAP Express start failed',
       error,
     );
     expect(cap.schedulerRunning).toBe(false);
@@ -185,7 +185,7 @@ describe('createCapExpress', () => {
 
     await expect(cap.ready).rejects.toThrow('scheduler failed');
     expect(logger.error).toHaveBeenCalledWith(
-      'CAP Express autoStart failed',
+      'CAP Express start failed',
       error,
     );
     expect(cap.schedulerRunning).toBe(false);
@@ -240,6 +240,133 @@ describe('createCapExpress', () => {
     ).resolves.toBe('ok');
 
     expect(transactionManager.runInTransactionCalls).toEqual([options]);
+  });
+
+  // -----------------------------------------------------------------------
+  // Ready promise behaviour
+  // -----------------------------------------------------------------------
+
+  it('ready does not resolve before manual start', async () => {
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+    });
+
+    let resolved = false;
+    void cap.ready.then(() => {
+      resolved = true;
+    });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(resolved).toBe(false);
+    expect(cap.schedulerRunning).toBe(false);
+  });
+
+  it('ready resolves after manual start', async () => {
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+    });
+
+    const startPromise = cap.start();
+    await expect(cap.ready).resolves.toBeUndefined();
+    await startPromise;
+    expect(cap.schedulerRunning).toBe(true);
+
+    await cap.stop();
+  });
+
+  it('ready rejects on start failure and resolves on retry', async () => {
+    // Use a subscriber whose consume fails on the first attempt.
+    const subscriber = new FakeSubscriber();
+    const failError = new Error('first start failed');
+    let firstCall = true;
+    const origConsume = subscriber.consume.bind(subscriber);
+    subscriber.consume = (
+      topic: string,
+      group: string,
+
+      _handler: any,
+    ): Promise<void> => {
+      if (firstCall) {
+        firstCall = false;
+        return Promise.reject(failError);
+      }
+      return origConsume(topic, group, _handler);
+    };
+
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber,
+    });
+
+    void cap.subscribe('t', 'g', jest.fn());
+
+    // First start fails — ready rejects, but start() itself swallows the
+    // rejection so it doesn't produce an unhandled rejection.
+    await cap.start();
+    await expect(cap.ready).rejects.toThrow('first start failed');
+
+    // Retry succeeds — ready should resolve.
+    await cap.start();
+    await expect(cap.ready).resolves.toBeUndefined();
+
+    await cap.stop();
+  });
+
+  it('ready resets after stop and resolves on restart', async () => {
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+    });
+
+    await cap.start();
+    await cap.stop();
+
+    // After stop, ready should be pending again.
+    let resolved = false;
+    void cap.ready.then(() => {
+      resolved = true;
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+
+    // Restart resolves ready.
+    await cap.start();
+    await expect(cap.ready).resolves.toBeUndefined();
+
+    await cap.stop();
+  });
+
+  it('concurrent start calls expose the same readiness operation', async () => {
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+    });
+
+    const p1 = cap.start();
+    const p2 = cap.start();
+
+    await Promise.all([p1, p2]);
+
+    // Both should resolve readiness.
+    await expect(cap.ready).resolves.toBeUndefined();
+    expect(cap.schedulerRunning).toBe(true);
+
+    await cap.stop();
   });
 });
 

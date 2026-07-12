@@ -133,6 +133,7 @@ export class CapEngine {
 
   private startPromise: Promise<void> | undefined;
   private stopPromise: Promise<void> | undefined;
+  private stopRequested = false;
 
   constructor(options: CapEngineOptions) {
     this.publishStorage = options.publishStorage;
@@ -237,11 +238,15 @@ export class CapEngine {
    * `subscriber.consume()` for each.  Safe to call with zero registrations.
    * Idempotent after a successful startup.
    * Returns the same in-flight promise to concurrent callers.
+   *
+   * If a stop was requested while starting, the startup will abort after
+   * the current attachment and the stop will proceed.
    */
   startSubscriptions(): Promise<void> {
     if (this.lifecycle === 'ready') return Promise.resolve();
     if (this.startPromise) return this.startPromise;
 
+    this.stopRequested = false;
     this.startPromise = this.doStartSubscriptions().finally(() => {
       this.startPromise = undefined;
     });
@@ -249,12 +254,15 @@ export class CapEngine {
   }
 
   private async doStartSubscriptions(): Promise<void> {
-    if (this.lifecycle === 'starting' || this.lifecycle === 'stopping') {
-      // Let the ongoing operation finish; the retry logic in
-      // doStartSubscriptions handles unattached subscriptions.
-      // If we reach here via a concurrent caller, they are already
-      // waiting on startPromise.
-      return;
+    // If a stop is already in progress, wait for it then restart.
+    if (this.lifecycle === 'stopping') {
+      if (this.stopPromise) {
+        try {
+          await this.stopPromise;
+        } catch {
+          // Stop failed — attempt startup anyway.
+        }
+      }
     }
 
     this.lifecycle = 'starting';
@@ -271,6 +279,13 @@ export class CapEngine {
 
     // Attach sequentially for deterministic failure reporting.
     for (const sub of unattached) {
+      // If stop was requested during startup, abort before the next attach.
+      if (this.stopRequested) {
+        // Leave unattached descriptors as-is; stop will close any
+        // already-attached consumers.
+        return;
+      }
+
       try {
         await this.attachSubscription(sub);
         sub.attached = true;
@@ -290,29 +305,51 @@ export class CapEngine {
       }
     }
 
+    // Double-check stop wasn't requested during the last attachment.
+    if (this.stopRequested) {
+      return;
+    }
+
     this.lifecycle = 'ready';
   }
 
   // -----------------------------------------------------------------------
-  // Stop (graceful)
+  // Stop (graceful, serialized with start)
   // -----------------------------------------------------------------------
 
   /**
    * Close all consumers through `subscriber.close()` and mark all
    * registrations unattached.  Idempotent; safe after a failed start.
    * Returns the same in-flight promise to concurrent callers.
+   *
+   * If called during an in-progress startup, it records a stop request,
+   * awaits the startup, and then proceeds.  The final lifecycle is
+   * guaranteed to be `stopped` (or `failed` if close itself fails).
    */
   stopSubscriptions(): Promise<void> {
     if (this.lifecycle === 'stopped') return Promise.resolve();
     if (this.stopPromise) return this.stopPromise;
 
+    // Signal any in-progress startup to abort.
+    this.stopRequested = true;
+
     this.stopPromise = this.doStopSubscriptions().finally(() => {
       this.stopPromise = undefined;
+      this.stopRequested = false;
     });
     return this.stopPromise;
   }
 
   private async doStopSubscriptions(): Promise<void> {
+    // Await any in-progress startup before closing.
+    if (this.startPromise) {
+      try {
+        await this.startPromise;
+      } catch {
+        // Startup failed — still need to close any attached consumers.
+      }
+    }
+
     this.lifecycle = 'stopping';
 
     try {
@@ -339,35 +376,44 @@ export class CapEngine {
   /**
    * Register a handler and immediately attach it to the broker.
    *
-   * - Rejects duplicates (synchronously or via returned promise).
+   * - Rejects duplicates, invalid args, and lifecycle-transition blockers
+   *   through the returned promise.
    * - Resolves when `subscriber.consume()` resolves.
    * - Rejects when attachment fails.
    *
    * An internal rejection observer prevents unhandled rejections for
-   * callers that ignore the returned promise.
+   * callers that ignore the returned promise, covering all failure paths
+   * (validation, lifecycle, and broker attachment).
+   *
+   * After successful attachment, if every registered descriptor is now
+   * attached, lifecycle transitions to `ready`.
    */
   subscribe<T = unknown>(
     topic: string,
     group: string,
     handler: Handler<T>,
   ): Promise<void> {
-    try {
-      this.assertNotDuplicate(topic, group);
-      this.assertTopicValid(topic);
-      this.assertGroupValid(group);
-    } catch (err) {
-      return Promise.reject(
-        err instanceof Error ? err : new Error(String(err)),
-      );
-    }
+    return this.observeSubscriptionPromise(
+      this.doSubscribe(topic, group, handler),
+      topic,
+      group,
+    );
+  }
+
+  private async doSubscribe<T>(
+    topic: string,
+    group: string,
+    handler: Handler<T>,
+  ): Promise<void> {
+    this.assertNotDuplicate(topic, group);
+    this.assertTopicValid(topic);
+    this.assertGroupValid(group);
 
     // If already starting/stopping, reject so callers don't inject during
     // a lifecycle transition.
     if (this.lifecycle === 'starting' || this.lifecycle === 'stopping') {
-      return Promise.reject(
-        new Error(
-          `Cannot subscribe (${topic}|${group}) while lifecycle is '${this.lifecycle}'`,
-        ),
+      throw new Error(
+        `Cannot subscribe (${topic}|${group}) while lifecycle is '${this.lifecycle}'`,
       );
     }
 
@@ -381,36 +427,47 @@ export class CapEngine {
     };
     this.subscriptions.set(key, sub);
 
-    const attachPromise = this.attachSubscription(sub).then(
-      () => {
-        sub.attached = true;
-        // Only transition from idle→ready for dynamic subscribe after startup.
-        if (this.lifecycle === 'ready') {
-          // Already ready — just increment attached count.
-        } else if (this.lifecycle === 'idle' || this.lifecycle === 'stopped') {
-          // Single subscribe outside of startSubscriptions flow.
-          // Don't automatically become 'ready'—let explicit startSubscriptions
-          // manage the lifecycle transition.
-        }
-      },
-      (err: unknown) => {
-        const message =
-          err instanceof Error ? err.message : 'Subscriber attachment failed';
-        this.lifecycleFailure = { topic, group, message };
-        this.lifecycle = 'failed';
-        throw err;
-      },
-    );
+    try {
+      await this.attachSubscription(sub);
+      sub.attached = true;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Subscriber attachment failed';
+      this.lifecycleFailure = { topic, group, message };
+      this.lifecycle = 'failed';
+      throw err;
+    }
 
-    // Prevent unhandled rejections for callers that ignore the returned promise.
-    // The attached internal observer records failure but does NOT change the
-    // rejection observed by callers that await the original promise.
-    attachPromise.catch((err: unknown) => {
-      // Failure already recorded by the rejection handler above.
+    // After successful attachment, if all registered descriptors are now
+    // attached and we aren't in a transitional state, become ready.
+    const transitional =
+      this.lifecycle === ('starting' as CapSubscriptionLifecycleState) ||
+      this.lifecycle === ('stopping' as CapSubscriptionLifecycleState);
+    if (!transitional) {
+      const allAttached = [...this.subscriptions.values()].every(
+        (s) => s.attached,
+      );
+      if (allAttached) {
+        this.lifecycle = 'ready';
+        this.lifecycleFailure = undefined;
+      }
+    }
+  }
+
+  /**
+   * Attach an internal rejection observer to prevent unhandled rejections
+   * for callers that ignore the returned promise.  Preserves the original
+   * rejection for callers who await it.
+   */
+  private observeSubscriptionPromise(
+    promise: Promise<void>,
+    topic: string,
+    group: string,
+  ): Promise<void> {
+    promise.catch((err: unknown) => {
       this.logger.error?.(`Subscriber attach failed (${topic}|${group})`, err);
     });
-
-    return attachPromise;
+    return promise;
   }
 
   // -----------------------------------------------------------------------
