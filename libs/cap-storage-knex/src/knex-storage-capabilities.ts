@@ -12,6 +12,8 @@ export function getKnexStorageCapabilities(knex: Knex): CapStorageCapabilities {
   return {
     transactions: true,
     skipLockedClaiming,
+    claimOwnershipFencing: true,
+    claimLeaseRenewal: true,
     advisoryLocks: false,
     atomicInsertIgnore: false,
     nestedTransactions: false,

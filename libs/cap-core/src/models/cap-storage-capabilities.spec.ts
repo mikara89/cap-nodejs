@@ -12,6 +12,8 @@ describe('storage capability model exports', () => {
       atomicInsertIgnore: false,
       nestedTransactions: false,
       isolationLevels: [],
+      claimOwnershipFencing: true,
+      claimLeaseRenewal: true,
     };
     const storage: CapabilityAwareStoragePort = {
       getCapabilities: () => capabilities,

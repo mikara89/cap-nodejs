@@ -10,6 +10,8 @@ export function getPrismaStorageCapabilities(
   return {
     transactions: true,
     skipLockedClaiming: resolved !== 'sqlite',
+    claimOwnershipFencing: true,
+    claimLeaseRenewal: true,
     advisoryLocks: false,
     atomicInsertIgnore: true,
     nestedTransactions: false,

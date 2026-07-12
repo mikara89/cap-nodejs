@@ -205,6 +205,8 @@ describe('TypeORM storage', () => {
       atomicInsertIgnore: false,
       nestedTransactions: false,
       isolationLevels: [],
+      claimOwnershipFencing: true,
+      claimLeaseRenewal: true,
     });
   });
 

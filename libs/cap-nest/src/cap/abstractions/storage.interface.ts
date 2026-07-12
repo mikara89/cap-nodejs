@@ -23,6 +23,18 @@ export interface MarkPublishFailedOptions {
   maxRetries: number;
   nextRetryAt: Date;
   now: Date;
+  expectedLockedBy?: string;
+}
+
+export interface PublishClaimOwnership {
+  expectedLockedBy?: string;
+}
+
+export interface RenewPublishClaimOptions {
+  id: string;
+  expectedLockedBy: string;
+  lockUntil: Date;
+  now: Date;
 }
 
 export interface MarkReceivedFailedOptions {
@@ -56,14 +68,21 @@ export interface IPublishStorage {
   ): Promise<Array<CapPublishEvent>>;
 
   /** Mark record as successfully emitted to the broker. */
-  markPublished(id: string, publishedAt?: Date): Promise<void>;
+  markPublished(
+    id: string,
+    publishedAt?: Date,
+    ownership?: PublishClaimOwnership,
+  ): Promise<boolean | void>;
 
   /** Mark record as retryable failed, or dead-letter when retry limit is exceeded. */
   markPublishFailed(
     id: string,
     error: unknown,
     options: MarkPublishFailedOptions,
-  ): Promise<void>;
+  ): Promise<boolean | void>;
+
+  /** Optional: extend an unexpired claim still owned by the expected token. */
+  renewPublishClaim?(options: RenewPublishClaimOptions): Promise<boolean>;
 
   /** Release processing rows whose lease has expired. */
   releaseExpiredClaims(now: Date): Promise<void>;

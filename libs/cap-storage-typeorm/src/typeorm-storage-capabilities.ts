@@ -8,6 +8,8 @@ export function getTypeOrmStorageCapabilities(
   return {
     transactions: true,
     skipLockedClaiming: supportsTypeOrmSkipLockedClaiming(dataSource),
+    claimOwnershipFencing: true,
+    claimLeaseRenewal: true,
     advisoryLocks: false,
     atomicInsertIgnore: false,
     nestedTransactions: false,

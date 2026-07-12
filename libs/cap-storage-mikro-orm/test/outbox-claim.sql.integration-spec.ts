@@ -326,5 +326,87 @@ describe.each(providers)(
           .every((row) => row.lockedUntil instanceof Date),
       ).toBe(true);
     });
+
+    it('renews active leases and fences stale owners', async () => {
+      await setupOrm!.em.nativeDelete(CapPublishEntity, {});
+      const workerA = new MikroPublishStorage(workerOrmA!.em.fork());
+      const workerB = new MikroPublishStorage(workerOrmB!.em.fork());
+      const now = new Date('2026-07-12T10:00:00.000Z');
+      const oldExpiry = new Date(now.getTime() + 1_000);
+      const renewedExpiry = new Date(now.getTime() + 10_000);
+      const reclaimed = publishEvent(200, now);
+      await workerA.savePublish(reclaimed);
+
+      await workerA.claimUnpublished({
+        limit: 1,
+        lockedBy: 'mikro-old-owner',
+        lockUntil: oldExpiry,
+        now,
+      });
+      await workerB.releaseExpiredClaims(new Date(oldExpiry.getTime() + 1));
+      await workerB.claimUnpublished({
+        limit: 1,
+        lockedBy: 'mikro-new-owner',
+        lockUntil: renewedExpiry,
+        now: new Date(oldExpiry.getTime() + 1),
+      });
+      await expect(
+        workerA.markPublished(reclaimed.id, new Date(), {
+          expectedLockedBy: 'mikro-old-owner',
+        }),
+      ).resolves.toBe(false);
+      await expect(
+        workerA.markPublishFailed(reclaimed.id, 'stale', {
+          maxRetries: 3,
+          nextRetryAt: renewedExpiry,
+          now,
+          expectedLockedBy: 'mikro-old-owner',
+        }),
+      ).resolves.toBe(false);
+      await expect(
+        workerB.findPublishById(reclaimed.id),
+      ).resolves.toMatchObject({
+        status: 'processing',
+        retryCount: 0,
+        lockedBy: 'mikro-new-owner',
+        lockedUntil: renewedExpiry,
+      });
+      await expect(
+        workerB.markPublished(reclaimed.id, new Date(), {
+          expectedLockedBy: 'mikro-new-owner',
+        }),
+      ).resolves.toBe(true);
+
+      const renewed = publishEvent(201, new Date(now.getTime() + 1));
+      await workerA.savePublish(renewed);
+      await workerA.claimUnpublished({
+        limit: 1,
+        lockedBy: 'mikro-renewing-owner',
+        lockUntil: oldExpiry,
+        now,
+      });
+      await expect(
+        workerA.renewPublishClaim({
+          id: renewed.id,
+          expectedLockedBy: 'mikro-renewing-owner',
+          lockUntil: renewedExpiry,
+          now: new Date(now.getTime() + 500),
+        }),
+      ).resolves.toBe(true);
+      await workerB.releaseExpiredClaims(new Date(oldExpiry.getTime() + 1));
+      await expect(
+        workerB.claimUnpublished({
+          limit: 1,
+          lockedBy: 'mikro-contender',
+          lockUntil: renewedExpiry,
+          now: new Date(oldExpiry.getTime() + 1),
+        }),
+      ).resolves.toEqual([]);
+      await expect(
+        workerA.markPublished(renewed.id, new Date(), {
+          expectedLockedBy: 'mikro-renewing-owner',
+        }),
+      ).resolves.toBe(true);
+    });
   },
 );

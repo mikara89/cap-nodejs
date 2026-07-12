@@ -10,7 +10,9 @@ import type {
   InitOptions,
   JsonValue,
   MarkPublishFailedOptions,
+  PublishClaimOwnership,
   PublishStoragePort,
+  RenewPublishClaimOptions,
 } from '@mikara89/cap-core';
 import { createKnexCapSchema } from './knex-cap-schema';
 import {
@@ -124,46 +126,65 @@ export class KnexPublishStorage
     });
   }
 
-  async markPublished(id: string, publishedAt = new Date()): Promise<void> {
+  async markPublished(
+    id: string,
+    publishedAt = new Date(),
+    ownership: PublishClaimOwnership = {},
+  ): Promise<boolean> {
     const now = toRequiredDbDate(new Date());
-    await this.knex<PublishRow>(this.tableName)
-      .where({ id })
-      .update({
-        status: 'published',
-        published_at: toDbDate(publishedAt),
-        locked_by: null,
-        locked_until: null,
-        next_retry_at: null,
-        updated_at: now,
-      } as Record<string, unknown>);
+    const query = this.knex<PublishRow>(this.tableName).where({ id });
+    applyOwnershipWhere(query, ownership.expectedLockedBy);
+    const affected = await query.update({
+      status: 'published',
+      published_at: toDbDate(publishedAt),
+      locked_by: null,
+      locked_until: null,
+      next_retry_at: null,
+      updated_at: now,
+    } as Record<string, unknown>);
+    return Number(affected) > 0;
   }
 
   async markPublishFailed(
     id: string,
     error: unknown,
     options: MarkPublishFailedOptions,
-  ): Promise<void> {
-    const row = await this.knex<PublishRow>(this.tableName)
-      .where({ id })
-      .first();
-    if (!row) return;
+  ): Promise<boolean> {
+    const query = this.knex<PublishRow>(this.tableName).where({ id });
+    applyOwnershipWhere(query, options.expectedLockedBy);
+    const affected = await query.update({
+      retry_count: this.knex.raw('?? + 1', ['retry_count']),
+      status: this.knex.raw('CASE WHEN ?? + 1 >= ? THEN ? ELSE ? END', [
+        'retry_count',
+        options.maxRetries,
+        'dead_letter',
+        'failed',
+      ]),
+      next_retry_at: this.knex.raw(
+        'CASE WHEN ?? + 1 >= ? THEN NULL ELSE ? END',
+        ['retry_count', options.maxRetries, toDbDate(options.nextRetryAt)],
+      ),
+      last_error: error instanceof Error ? error.message : String(error),
+      locked_by: null,
+      locked_until: null,
+      updated_at: toRequiredDbDate(options.now),
+    } as Record<string, unknown>);
+    return Number(affected) > 0;
+  }
 
-    const retryCount = row.retry_count + 1;
-    const status =
-      retryCount >= options.maxRetries ? 'dead_letter' : ('failed' as const);
-
-    await this.knex<PublishRow>(this.tableName)
-      .where({ id })
+  async renewPublishClaim(options: RenewPublishClaimOptions): Promise<boolean> {
+    const affected = await this.knex<PublishRow>(this.tableName)
+      .where({
+        id: options.id,
+        status: 'processing',
+        locked_by: options.expectedLockedBy,
+      })
+      .where('locked_until', '>', toDbDate(options.now))
       .update({
-        retry_count: retryCount,
-        status,
-        next_retry_at:
-          status === 'dead_letter' ? null : toDbDate(options.nextRetryAt),
-        last_error: error instanceof Error ? error.message : String(error),
-        locked_by: null,
-        locked_until: null,
+        locked_until: toRequiredDbDate(options.lockUntil),
         updated_at: toRequiredDbDate(options.now),
       } as Record<string, unknown>);
+    return Number(affected) > 0;
   }
 
   async releaseExpiredClaims(now: Date): Promise<void> {
@@ -210,6 +231,14 @@ export class KnexPublishStorage
       total: Number(total),
     };
   }
+}
+
+function applyOwnershipWhere(
+  query: Knex.QueryBuilder<PublishRow>,
+  expectedLockedBy: string | undefined,
+): void {
+  if (expectedLockedBy === undefined) return;
+  query.andWhere({ status: 'processing', locked_by: expectedLockedBy });
 }
 
 function applyClaimableWhere(

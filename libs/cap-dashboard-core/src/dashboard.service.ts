@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import {
   type CapLogger,
   type CapPublishEvent,
@@ -239,10 +240,11 @@ export class CapDashboardCoreService {
       }
 
       const now = new Date();
+      const claimOwner = `${DASHBOARD_LOCK_OWNER}:${randomUUID()}`;
       await this.pubStorage.releaseExpiredClaims(now);
       const rows = await this.pubStorage.claimUnpublished({
         limit: this.resolveLimit({ limit: DEFAULT_LIST_LIMIT }),
-        lockedBy: DASHBOARD_LOCK_OWNER,
+        lockedBy: claimOwner,
         lockUntil: new Date(now.getTime() + 30_000),
         now,
       });
@@ -250,20 +252,63 @@ export class CapDashboardCoreService {
       let failed = 0;
 
       for (const rec of rows) {
+        if (rec.lockedBy !== claimOwner) {
+          failed++;
+          this.logger?.warn?.(
+            `flushOutbox skipped ${rec.id} because claim ownership was lost`,
+          );
+          continue;
+        }
         try {
+          if (this.pubStorage.renewPublishClaim) {
+            const renewed = await this.pubStorage.renewPublishClaim({
+              id: rec.id,
+              expectedLockedBy: claimOwner,
+              lockUntil: new Date(Date.now() + 30_000),
+              now: new Date(),
+            });
+            if (!renewed) {
+              failed++;
+              this.logger?.warn?.(
+                `flushOutbox skipped ${rec.id} because claim ownership was lost before emission`,
+              );
+              continue;
+            }
+          }
           const headers = withCapMessageId(rec.headers, rec.id);
           await this.publisher.emit(rec.topic, rec.payload, headers, {
             messageId: rec.id,
           });
-          await this.pubStorage.markPublished(rec.id, new Date());
-          published++;
+          const completed = await this.pubStorage.markPublished(
+            rec.id,
+            new Date(),
+            { expectedLockedBy: claimOwner },
+          );
+          if (completed === false) {
+            failed++;
+            this.logger?.warn?.(
+              `flushOutbox published ${rec.id}, but claim ownership was lost before completion; at-least-once redelivery may occur`,
+            );
+          } else {
+            published++;
+          }
         } catch (err) {
           failed++;
-          await this.pubStorage.markPublishFailed(rec.id, err, {
-            maxRetries: this.schedulerOptions.maxRetries,
-            nextRetryAt: new Date(Date.now() + 1000),
-            now: new Date(),
-          });
+          const markedFailed = await this.pubStorage.markPublishFailed(
+            rec.id,
+            err,
+            {
+              maxRetries: this.schedulerOptions.maxRetries,
+              nextRetryAt: new Date(Date.now() + 1000),
+              now: new Date(),
+              expectedLockedBy: claimOwner,
+            },
+          );
+          if (markedFailed === false) {
+            this.logger?.warn?.(
+              `flushOutbox publisher failed for ${rec.id} after claim ownership was lost`,
+            );
+          }
           this.logger?.warn?.(`flushOutbox failed for ${rec.id}`, err);
         }
       }

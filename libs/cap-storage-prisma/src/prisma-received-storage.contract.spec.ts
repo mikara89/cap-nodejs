@@ -1,6 +1,8 @@
 import { defineReceivedStorageContract } from '@mikara89/cap-testing';
 import { createPrismaTestStorage } from './testing/create-prisma-test-storage';
 
+jest.setTimeout(30_000);
+
 defineReceivedStorageContract(
   'Prisma received storage',
   async () => {

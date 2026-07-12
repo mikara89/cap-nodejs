@@ -1,6 +1,8 @@
 export interface CapStorageCapabilities {
   transactions: boolean;
   skipLockedClaiming: boolean;
+  claimOwnershipFencing?: boolean;
+  claimLeaseRenewal?: boolean;
   advisoryLocks: boolean;
   atomicInsertIgnore: boolean;
   nestedTransactions: boolean;

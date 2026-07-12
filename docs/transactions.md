@@ -48,6 +48,13 @@ Immediate emit is intentionally not atomic across the database and broker. If
 the broker emit fails, CAP keeps the persisted outbox row and marks it for retry
 instead of rethrowing from `publish()`.
 
+Deferred scheduler dispatch uses a unique ownership token for each claim
+round. First-party durable adapters atomically fence completion and failure by
+that token and renew the lease during long broker emits. If ownership is lost,
+CAP does not update the outbox row, but it cannot cancel an emit already in
+progress. The transactional outbox therefore remains an at-least-once pattern;
+consumer-side idempotency is still required.
+
 ## Roadmap Relationship
 
 v2.2 provides the transaction context foundation: `CapOperationContext`, `tx`

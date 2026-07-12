@@ -153,6 +153,8 @@ describe('MikroReceivedStorage', () => {
       atomicInsertIgnore: false,
       nestedTransactions: false,
       isolationLevels: [],
+      claimOwnershipFencing: true,
+      claimLeaseRenewal: true,
     });
   });
 

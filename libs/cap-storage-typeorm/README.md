@@ -46,6 +46,13 @@ The schema creates:
 - a unique received constraint on `group + dedupeKey`
 - indexes for publish claiming and inbox retry reads
 
+Outbox completion, failure, and active lease renewal use atomic ownership
+predicates. `lockedBy` is an opaque per-claim token; stale owners receive
+`false` and cannot mutate a row reclaimed by another worker. PostgreSQL and
+MySQL multi-instance behavior is covered by the SQL integration gate. SQLite
+remains suitable for local and single-process use, not multi-instance claim
+safety.
+
 The schema helper uses TypeORM `QueryRunner` table APIs and does not require
 decorators or entities.
 

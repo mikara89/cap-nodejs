@@ -284,6 +284,8 @@ describe('MikroPublishStorage', () => {
       atomicInsertIgnore: false,
       nestedTransactions: false,
       isolationLevels: [],
+      claimOwnershipFencing: true,
+      claimLeaseRenewal: true,
     });
   });
 
@@ -305,65 +307,81 @@ describe('MikroPublishStorage', () => {
   });
 
   it('marks published and clears lease fields', async () => {
-    const entity = publishEntity({ status: 'processing' });
-    entity.lockedBy = 'worker';
-    entity.lockedUntil = new Date();
-    (em.findOne as jest.Mock).mockResolvedValue(entity);
+    const publishedAt = new Date('2026-07-12T10:00:00.000Z');
 
-    await storage.markPublished('test-id');
+    await expect(
+      storage.markPublished('test-id', publishedAt, {
+        expectedLockedBy: 'worker',
+      }),
+    ).resolves.toBe(true);
 
-    expect(entity.status).toBe('published');
-    expect(entity.publishedAt).toEqual(expect.any(Date));
-    expect(entity.lockedBy).toBeNull();
-    expect(entity.lockedUntil).toBeNull();
-    expect(em.flush).toHaveBeenCalled();
+    expect(em.nativeUpdate).toHaveBeenCalledWith(
+      CapPublishEntity,
+      { id: 'test-id', status: 'processing', lockedBy: 'worker' },
+      expect.objectContaining({
+        status: 'published',
+        publishedAt,
+        lockedBy: null,
+        lockedUntil: null,
+      }),
+    );
   });
 
   it('marks retryable publish failures', async () => {
-    const entity = publishEntity({ status: 'processing', retryCount: 0 });
-    (em.findOne as jest.Mock).mockResolvedValue(entity);
-
     const nextRetryAt = new Date(Date.now() + 1000);
-    await storage.markPublishFailed('test-id', new Error('net'), {
-      maxRetries: 3,
-      nextRetryAt,
-      now: new Date(),
-    });
+    await expect(
+      storage.markPublishFailed('test-id', new Error('net'), {
+        maxRetries: 3,
+        nextRetryAt,
+        now: new Date(),
+        expectedLockedBy: 'worker',
+      }),
+    ).resolves.toBe(true);
 
-    expect(entity.status).toBe('failed');
-    expect(entity.retryCount).toBe(1);
-    expect(entity.nextRetryAt).toBe(nextRetryAt);
-    expect(entity.lastError).toBe('net');
-    expect(em.flush).toHaveBeenCalled();
+    expect(em.nativeUpdate).toHaveBeenCalledWith(
+      CapPublishEntity,
+      { id: 'test-id', status: 'processing', lockedBy: 'worker' },
+      expect.objectContaining({
+        retryCount: expect.anything(),
+        status: expect.anything(),
+        nextRetryAt: expect.anything(),
+        lastError: 'net',
+        lockedBy: null,
+        lockedUntil: null,
+      }),
+    );
   });
 
   it('dead-letters when max retries is reached', async () => {
-    const entity = publishEntity({ status: 'processing', retryCount: 2 });
-    (em.findOne as jest.Mock).mockResolvedValue(entity);
-
-    await storage.markPublishFailed('test-id', 'boom', {
+    const result = await storage.markPublishFailed('test-id', 'boom', {
       maxRetries: 3,
       nextRetryAt: new Date(),
       now: new Date(),
     });
 
-    expect(entity.status).toBe('dead_letter');
-    expect(entity.retryCount).toBe(3);
-    expect(entity.nextRetryAt).toBeNull();
+    expect(result).toBe(true);
+    expect(em.nativeUpdate).toHaveBeenCalledWith(
+      CapPublishEntity,
+      { id: 'test-id' },
+      expect.objectContaining({
+        retryCount: expect.anything(),
+        status: expect.anything(),
+        nextRetryAt: expect.anything(),
+        lastError: 'boom',
+      }),
+    );
   });
 
   it('releases expired claims', async () => {
-    const entity = publishEntity({ status: 'processing' });
-    entity.lockedBy = 'worker';
-    entity.lockedUntil = new Date('2000-01-01');
-    (em.find as jest.Mock).mockResolvedValue([entity]);
+    const now = new Date('2026-07-12T10:00:00.000Z');
 
-    await storage.releaseExpiredClaims(new Date());
+    await storage.releaseExpiredClaims(now);
 
-    expect(entity.status).toBe('failed');
-    expect(entity.lockedBy).toBeNull();
-    expect(entity.lockedUntil).toBeNull();
-    expect(em.flush).toHaveBeenCalled();
+    expect(em.nativeUpdate).toHaveBeenCalledWith(
+      CapPublishEntity,
+      { status: 'processing', lockedUntil: { $lte: now } },
+      { status: 'failed', lockedBy: null, lockedUntil: null, updatedAt: now },
+    );
   });
 
   it('finds and lists publish events for dashboard helpers', async () => {
@@ -402,6 +420,7 @@ type MockEntityManager = EntityManager & {
   findOne: jest.Mock;
   find: jest.Mock;
   findAndCount: jest.Mock;
+  nativeUpdate: jest.Mock;
   flush: jest.Mock;
   transactional: jest.Mock;
 };
@@ -413,6 +432,7 @@ function createMockEntityManager(): MockEntityManager {
     findOne: jest.fn(),
     find: jest.fn(),
     findAndCount: jest.fn(),
+    nativeUpdate: jest.fn().mockResolvedValue(1),
     flush: jest.fn(),
     transactional: jest.fn((fn) => Promise.resolve(fn(mockEm))),
   };

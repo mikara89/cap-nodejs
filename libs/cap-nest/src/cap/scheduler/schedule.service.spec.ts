@@ -71,7 +71,7 @@ describe('RetrySchedulerService', () => {
     expect(pubStore.claimUnpublished).toHaveBeenCalledWith(
       expect.objectContaining({
         limit: 200,
-        lockedBy: 'test-instance',
+        lockedBy: expect.stringMatching(/^test-instance:/),
       }),
     );
     expect(publisher.emit).toHaveBeenCalledWith(
@@ -80,7 +80,9 @@ describe('RetrySchedulerService', () => {
       { traceId: 'abc', 'cap-message-id': '1' },
       { messageId: '1' },
     );
-    expect(pubStore.markPublished).toHaveBeenCalledWith('1', expect.any(Date));
+    expect(pubStore.markPublished).toHaveBeenCalledWith('1', expect.any(Date), {
+      expectedLockedBy: expect.stringMatching(/^test-instance:/),
+    });
   });
 
   it('flushOutbox marks publish failed when emit fails', async () => {

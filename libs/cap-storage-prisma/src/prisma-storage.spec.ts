@@ -155,6 +155,8 @@ describe('Prisma storage', () => {
       atomicInsertIgnore: true,
       nestedTransactions: false,
       isolationLevels: ['Serializable'],
+      claimOwnershipFencing: true,
+      claimLeaseRenewal: true,
     });
     expect(getPrismaStorageCapabilities('postgres')).toMatchObject({
       transactions: true,
@@ -162,10 +164,14 @@ describe('Prisma storage', () => {
       advisoryLocks: false,
       atomicInsertIgnore: true,
       nestedTransactions: false,
+      claimOwnershipFencing: true,
+      claimLeaseRenewal: true,
     });
     expect(getPrismaStorageCapabilities('mysql')).toMatchObject({
       skipLockedClaiming: true,
       atomicInsertIgnore: true,
+      claimOwnershipFencing: true,
+      claimLeaseRenewal: true,
     });
   });
 

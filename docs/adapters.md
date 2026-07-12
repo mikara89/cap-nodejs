@@ -34,8 +34,9 @@ dispatch:
 
 - `savePublish(event, ctx?)`
 - `claimUnpublished({ limit, lockedBy, lockUntil, now })`
-- `markPublished(id, publishedAt?)`
-- `markPublishFailed(id, error, { maxRetries, nextRetryAt, now })`
+- `markPublished(id, publishedAt?, { expectedLockedBy }?)`
+- `markPublishFailed(id, error, { ..., expectedLockedBy? })`
+- optional `renewPublishClaim({ id, expectedLockedBy, lockUntil, now })`
 - `releaseExpiredClaims(now)`
 - optional `initialize(options)`
 - optional dashboard helpers: `findPublishById`, `listPublish`
@@ -49,9 +50,17 @@ older adapters and examples.
 `MarkPublishFailedOptions` includes `now` so storage adapters can persist
 failure timestamps consistently with scheduler decisions.
 
+`lockedBy` is an opaque token unique to a claim round. First-party durable
+adapters atomically fence renewal, success, and failure by that token and the
+`processing` status. CAP renews before emission and during long-running broker
+calls. A stale worker never falls back to an unconditional update, although an
+already-started broker call cannot be cancelled; delivery therefore remains
+at-least-once and handlers must be idempotent.
+
 Storage adapters can also implement `CapabilityAwareStoragePort` to expose
 informational capabilities such as transaction support and safe skip-locked
-claiming. CAP does not fail startup based on capability values in v2.2; use
+claiming. `claimOwnershipFencing` and `claimLeaseRenewal` describe the optional
+ownership guarantees. CAP does not fail startup based on capability values in v2.2; use
 them for diagnostics, tests, documentation, and future dashboard visibility.
 
 ### Publish Storage Conformance

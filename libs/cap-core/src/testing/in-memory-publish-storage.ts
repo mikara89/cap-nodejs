@@ -1,13 +1,21 @@
 import { type CapPublishEvent } from '../models/cap-publish-event';
+import {
+  type CapStorageCapabilities,
+  type CapabilityAwareStoragePort,
+} from '../models/cap-storage-capabilities';
 import { type CapOperationContext } from '../models/cap-operation-context';
 import { type JsonValue } from '../models/json-value.type';
 import {
   type ClaimUnpublishedOptions,
   type MarkPublishFailedOptions,
+  type PublishClaimOwnership,
   type PublishStoragePort,
+  type RenewPublishClaimOptions,
 } from '../ports/publish-storage.port';
 
-export class InMemoryPublishStorage implements PublishStoragePort {
+export class InMemoryPublishStorage
+  implements PublishStoragePort, CapabilityAwareStoragePort
+{
   readonly store = new Map<string, CapPublishEvent<JsonValue>>();
 
   savePublish<T extends JsonValue = JsonValue>(
@@ -16,6 +24,19 @@ export class InMemoryPublishStorage implements PublishStoragePort {
   ): Promise<string> {
     this.store.set(event.id, event);
     return Promise.resolve(event.id);
+  }
+
+  getCapabilities(): CapStorageCapabilities {
+    return {
+      transactions: false,
+      skipLockedClaiming: false,
+      claimOwnershipFencing: true,
+      claimLeaseRenewal: true,
+      advisoryLocks: false,
+      atomicInsertIgnore: false,
+      nestedTransactions: false,
+      isolationLevels: [],
+    };
   }
 
   claimUnpublished(
@@ -33,23 +54,32 @@ export class InMemoryPublishStorage implements PublishStoragePort {
     return Promise.resolve(claimed);
   }
 
-  markPublished(id: string, publishedAt = new Date()): Promise<void> {
+  markPublished(
+    id: string,
+    publishedAt = new Date(),
+    ownership: PublishClaimOwnership = {},
+  ): Promise<boolean> {
     const event = this.store.get(id);
-    if (!event) return Promise.resolve();
+    if (!event || !ownsClaim(event, ownership.expectedLockedBy)) {
+      return Promise.resolve(false);
+    }
     event.status = 'published';
     event.publishedAt = publishedAt;
     event.lockedBy = null;
     event.lockedUntil = null;
-    return Promise.resolve();
+    event.nextRetryAt = null;
+    return Promise.resolve(true);
   }
 
   markPublishFailed(
     id: string,
     error: unknown,
     options: MarkPublishFailedOptions,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const event = this.store.get(id);
-    if (!event) return Promise.resolve();
+    if (!event || !ownsClaim(event, options.expectedLockedBy)) {
+      return Promise.resolve(false);
+    }
     event.retryCount += 1;
     event.status =
       event.retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
@@ -58,7 +88,21 @@ export class InMemoryPublishStorage implements PublishStoragePort {
     event.lastError = error instanceof Error ? error.message : String(error);
     event.lockedBy = null;
     event.lockedUntil = null;
-    return Promise.resolve();
+    return Promise.resolve(true);
+  }
+
+  renewPublishClaim(options: RenewPublishClaimOptions): Promise<boolean> {
+    const event = this.store.get(options.id);
+    if (
+      event?.status !== 'processing' ||
+      event.lockedBy !== options.expectedLockedBy ||
+      !event.lockedUntil ||
+      event.lockedUntil <= options.now
+    ) {
+      return Promise.resolve(false);
+    }
+    event.lockedUntil = options.lockUntil;
+    return Promise.resolve(true);
   }
 
   releaseExpiredClaims(now: Date): Promise<void> {
@@ -118,4 +162,12 @@ function isClaimable(event: CapPublishEvent, now: Date): boolean {
     return Boolean(event.lockedUntil && event.lockedUntil <= now);
   }
   return false;
+}
+
+function ownsClaim(
+  event: CapPublishEvent,
+  expectedLockedBy: string | undefined,
+): boolean {
+  if (expectedLockedBy === undefined) return true;
+  return event.status === 'processing' && event.lockedBy === expectedLockedBy;
 }

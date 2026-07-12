@@ -12,5 +12,7 @@ definePublishStorageContract(
     supportsTransactions: false,
     supportsRollback: false,
     supportsSafeConcurrentClaiming: false,
+    supportsClaimOwnershipFencing: true,
+    supportsClaimLeaseRenewal: true,
   },
 );

@@ -203,9 +203,10 @@ export class CapEngine {
     const now = this.now();
     await this.publishStorage.releaseExpiredClaims(now);
 
+    const claimOwner = `${this.schedulerOptions.instanceId}:${this.idGenerator()}`;
     const batch = await this.publishStorage.claimUnpublished({
       limit: this.schedulerOptions.batchSize,
-      lockedBy: this.schedulerOptions.instanceId,
+      lockedBy: claimOwner,
       lockUntil: new Date(now.getTime() + this.schedulerOptions.leaseMs),
       now,
     });
@@ -215,7 +216,13 @@ export class CapEngine {
     }
 
     for (const evt of batch) {
-      await this.emitPersistedEvent(evt, 'outbox');
+      if (evt.lockedBy !== claimOwner) {
+        this.logger.warn?.(
+          `outbox #${evt.id} (${evt.topic}) skipped because claimed owner ${String(evt.lockedBy)} did not match expected owner ${claimOwner}`,
+        );
+        continue;
+      }
+      await this.emitClaimedOutboxEvent(evt, claimOwner);
     }
 
     return batch.length;
@@ -304,6 +311,136 @@ export class CapEngine {
           : `publish failed #${evt.id} (${evt.topic})`,
         err,
       );
+    }
+  }
+
+  private async emitClaimedOutboxEvent(
+    evt: CapPublishEvent<JsonValue>,
+    expectedLockedBy: string,
+  ): Promise<void> {
+    const initiallyRenewed = await this.renewClaim(
+      evt,
+      expectedLockedBy,
+      'before broker emission',
+    );
+    if (!initiallyRenewed) return;
+
+    let ownershipLost = false;
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let inFlightRenewal: Promise<void> | undefined;
+    const cadenceMs = Math.max(
+      1,
+      Math.floor(this.schedulerOptions.leaseMs / 3),
+    );
+
+    const scheduleRenewal = (): void => {
+      if (stopped || ownershipLost || !this.publishStorage.renewPublishClaim) {
+        return;
+      }
+      timer = setTimeout(() => {
+        inFlightRenewal = this.renewClaim(
+          evt,
+          expectedLockedBy,
+          'while broker emission was in flight',
+        )
+          .then((renewed) => {
+            if (!renewed) ownershipLost = true;
+          })
+          .finally(() => {
+            inFlightRenewal = undefined;
+            scheduleRenewal();
+          });
+      }, cadenceMs);
+    };
+
+    scheduleRenewal();
+    let emitError: unknown;
+    try {
+      const headers = withCapMessageId(evt.headers, evt.id);
+      await this.publisher.emit(evt.topic, evt.payload, headers, {
+        messageId: evt.id,
+      });
+    } catch (err) {
+      emitError = err;
+    } finally {
+      stopped = true;
+      if (timer) clearTimeout(timer);
+      if (inFlightRenewal) await inFlightRenewal;
+    }
+
+    if (ownershipLost) {
+      this.logger.warn?.(
+        `outbox #${evt.id} (${evt.topic}) broker emission settled after claim ${expectedLockedBy} was lost; database completion was skipped and at-least-once redelivery may occur`,
+      );
+      return;
+    }
+
+    if (emitError !== undefined) {
+      const failed = await this.publishStorage.markPublishFailed(
+        evt.id,
+        emitError,
+        {
+          maxRetries: this.schedulerOptions.maxRetries,
+          nextRetryAt: new Date(
+            this.now().getTime() + expJitter(evt.retryCount),
+          ),
+          now: this.now(),
+          expectedLockedBy,
+        },
+      );
+      if (failed === false) {
+        this.logger.warn?.(
+          `outbox #${evt.id} (${evt.topic}) publisher failed after claim ${expectedLockedBy} was lost; failure state was not written`,
+        );
+      }
+      this.logger.error?.(
+        `outbox #${evt.id} emit failed (${evt.topic}): ${normalizeError(emitError)}`,
+        emitError,
+      );
+      return;
+    }
+
+    const completed = await this.publishStorage.markPublished(
+      evt.id,
+      this.now(),
+      { expectedLockedBy },
+    );
+    if (completed === false) {
+      this.logger.warn?.(
+        `outbox #${evt.id} (${evt.topic}) was published by claim ${expectedLockedBy}, but database completion lost ownership; at-least-once redelivery may occur`,
+      );
+      return;
+    }
+    this.logger.debug?.(`published outbox #${evt.id}`);
+  }
+
+  private async renewClaim(
+    evt: CapPublishEvent<JsonValue>,
+    expectedLockedBy: string,
+    phase: string,
+  ): Promise<boolean> {
+    if (!this.publishStorage.renewPublishClaim) return true;
+    const now = this.now();
+    try {
+      const renewed = await this.publishStorage.renewPublishClaim({
+        id: evt.id,
+        expectedLockedBy,
+        now,
+        lockUntil: new Date(now.getTime() + this.schedulerOptions.leaseMs),
+      });
+      if (!renewed) {
+        this.logger.warn?.(
+          `outbox #${evt.id} (${evt.topic}) skipped because claim ${expectedLockedBy} was lost ${phase}`,
+        );
+      }
+      return renewed;
+    } catch (err) {
+      this.logger.warn?.(
+        `outbox #${evt.id} (${evt.topic}) claim ${expectedLockedBy} renewal failed ${phase}; ownership is treated as lost`,
+        err,
+      );
+      return false;
     }
   }
 

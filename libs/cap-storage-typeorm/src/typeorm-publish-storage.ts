@@ -10,7 +10,9 @@ import type {
   InitOptions,
   JsonValue,
   MarkPublishFailedOptions,
+  PublishClaimOwnership,
   PublishStoragePort,
+  RenewPublishClaimOptions,
 } from '@mikara89/cap-core';
 import { type DataSource } from 'typeorm';
 import { createTypeOrmCapSchema } from './typeorm-cap-schema';
@@ -148,8 +150,12 @@ export class TypeOrmPublishStorage
     });
   }
 
-  async markPublished(id: string, publishedAt = new Date()): Promise<void> {
-    await this.dataSource.manager
+  async markPublished(
+    id: string,
+    publishedAt = new Date(),
+    ownership: PublishClaimOwnership = {},
+  ): Promise<boolean> {
+    let query = this.dataSource.manager
       .createQueryBuilder()
       .update(this.tableName)
       .set({
@@ -160,37 +166,70 @@ export class TypeOrmPublishStorage
         next_retry_at: null,
         updated_at: toRequiredDbDate(new Date()),
       })
-      .where('id = :id', { id })
-      .execute();
+      .where('id = :id', { id });
+    if (ownership.expectedLockedBy !== undefined) {
+      query = query
+        .andWhere('status = :processing', { processing: 'processing' })
+        .andWhere('locked_by = :expectedLockedBy', {
+          expectedLockedBy: ownership.expectedLockedBy,
+        });
+    }
+    const result = await query.execute();
+    return Number(result.affected ?? 0) > 0;
   }
 
   async markPublishFailed(
     id: string,
     error: unknown,
     options: MarkPublishFailedOptions,
-  ): Promise<void> {
-    const row = await this.findPublishRowById(this.dataSource.manager, id);
-    if (!row) return;
-
-    const retryCount = row.retry_count + 1;
-    const status =
-      retryCount >= options.maxRetries ? 'dead_letter' : ('failed' as const);
-
-    await this.dataSource.manager
+  ): Promise<boolean> {
+    const retryCount = escapeIdentifier(this.dataSource, 'retry_count');
+    let query = this.dataSource.manager
       .createQueryBuilder()
       .update(this.tableName)
       .set({
-        retry_count: retryCount,
-        status,
-        next_retry_at:
-          status === 'dead_letter' ? null : toDbDate(options.nextRetryAt),
+        retry_count: () => `${retryCount} + 1`,
+        status: () =>
+          `CASE WHEN ${retryCount} + 1 >= :maxRetries THEN 'dead_letter' ELSE 'failed' END`,
+        next_retry_at: () =>
+          `CASE WHEN ${retryCount} + 1 >= :maxRetries THEN NULL ELSE :nextRetryAt END`,
         last_error: error instanceof Error ? error.message : String(error),
         locked_by: null,
         locked_until: null,
         updated_at: toRequiredDbDate(options.now),
       })
-      .where('id = :id', { id })
+      .where('id = :id', {
+        id,
+        maxRetries: options.maxRetries,
+        nextRetryAt: toDbDate(options.nextRetryAt),
+      });
+    if (options.expectedLockedBy !== undefined) {
+      query = query
+        .andWhere('status = :processing', { processing: 'processing' })
+        .andWhere('locked_by = :expectedLockedBy', {
+          expectedLockedBy: options.expectedLockedBy,
+        });
+    }
+    const result = await query.execute();
+    return Number(result.affected ?? 0) > 0;
+  }
+
+  async renewPublishClaim(options: RenewPublishClaimOptions): Promise<boolean> {
+    const result = await this.dataSource.manager
+      .createQueryBuilder()
+      .update(this.tableName)
+      .set({
+        locked_until: toRequiredDbDate(options.lockUntil),
+        updated_at: toRequiredDbDate(options.now),
+      })
+      .where('id = :id', { id: options.id })
+      .andWhere('status = :status', { status: 'processing' })
+      .andWhere('locked_by = :expectedLockedBy', {
+        expectedLockedBy: options.expectedLockedBy,
+      })
+      .andWhere('locked_until > :now', { now: toDbDate(options.now) })
       .execute();
+    return Number(result.affected ?? 0) > 0;
   }
 
   async releaseExpiredClaims(now: Date): Promise<void> {

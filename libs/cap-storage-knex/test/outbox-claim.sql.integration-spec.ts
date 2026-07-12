@@ -172,6 +172,8 @@ describe.each(providers)('Knex storage $name integration', (provider) => {
       atomicInsertIgnore: false,
       nestedTransactions: false,
       isolationLevels: ['read committed', 'repeatable read', 'serializable'],
+      claimOwnershipFencing: true,
+      claimLeaseRenewal: true,
     });
 
     const now = new Date();
@@ -202,6 +204,85 @@ describe.each(providers)('Knex storage $name integration', (provider) => {
       release.resolve();
       await lockTransaction;
     }
+  });
+
+  it('renews active leases and fences stale owners', async () => {
+    const workerA = new KnexPublishStorage(setupKnex!);
+    const workerB = new KnexPublishStorage(workerKnex!);
+    const now = new Date('2026-07-12T10:00:00.000Z');
+    const oldExpiry = new Date(now.getTime() + 1_000);
+    const renewedExpiry = new Date(now.getTime() + 10_000);
+    const reclaimed = publishEvent(50, now);
+    await workerA.savePublish(reclaimed);
+
+    await workerA.claimUnpublished({
+      limit: 1,
+      lockedBy: 'knex-old-owner',
+      lockUntil: oldExpiry,
+      now,
+    });
+    await workerB.releaseExpiredClaims(new Date(oldExpiry.getTime() + 1));
+    await workerB.claimUnpublished({
+      limit: 1,
+      lockedBy: 'knex-new-owner',
+      lockUntil: renewedExpiry,
+      now: new Date(oldExpiry.getTime() + 1),
+    });
+    await expect(
+      workerA.markPublished(reclaimed.id, new Date(), {
+        expectedLockedBy: 'knex-old-owner',
+      }),
+    ).resolves.toBe(false);
+    await expect(
+      workerA.markPublishFailed(reclaimed.id, 'stale', {
+        maxRetries: 3,
+        nextRetryAt: renewedExpiry,
+        now,
+        expectedLockedBy: 'knex-old-owner',
+      }),
+    ).resolves.toBe(false);
+    await expect(workerB.findPublishById(reclaimed.id)).resolves.toMatchObject({
+      status: 'processing',
+      retryCount: 0,
+      lockedBy: 'knex-new-owner',
+      lockedUntil: renewedExpiry,
+    });
+    await expect(
+      workerB.markPublished(reclaimed.id, new Date(), {
+        expectedLockedBy: 'knex-new-owner',
+      }),
+    ).resolves.toBe(true);
+
+    const renewed = publishEvent(51, new Date(now.getTime() + 1));
+    await workerA.savePublish(renewed);
+    await workerA.claimUnpublished({
+      limit: 1,
+      lockedBy: 'knex-renewing-owner',
+      lockUntil: oldExpiry,
+      now,
+    });
+    await expect(
+      workerA.renewPublishClaim({
+        id: renewed.id,
+        expectedLockedBy: 'knex-renewing-owner',
+        lockUntil: renewedExpiry,
+        now: new Date(now.getTime() + 500),
+      }),
+    ).resolves.toBe(true);
+    await workerB.releaseExpiredClaims(new Date(oldExpiry.getTime() + 1));
+    await expect(
+      workerB.claimUnpublished({
+        limit: 1,
+        lockedBy: 'knex-contender',
+        lockUntil: renewedExpiry,
+        now: new Date(oldExpiry.getTime() + 1),
+      }),
+    ).resolves.toEqual([]);
+    await expect(
+      workerA.markPublished(renewed.id, new Date(), {
+        expectedLockedBy: 'knex-renewing-owner',
+      }),
+    ).resolves.toBe(true);
   });
 
   it('atomically dedupes concurrent inbox inserts', async () => {

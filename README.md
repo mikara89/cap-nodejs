@@ -410,6 +410,10 @@ npm run docs:api
   drivers use a non-locking fallback and should not be used for multi-instance
   dispatch. SQL Server is not multi-instance supported by the first-party
   MikroORM adapter until it has a SQL Server-specific claim implementation.
+  Scheduler claim owners are opaque per-round tokens. First-party durable
+  adapters fence stale completion and renew leases during long broker emits,
+  but an in-flight emit cannot be cancelled; delivery remains at least once and
+  consumers must be idempotent.
   Existing prerelease databases need a migration for new inbox status/dead-letter
   fields and the dedupe index change.
 

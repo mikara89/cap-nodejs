@@ -33,6 +33,8 @@ definePublishStorageContract(
     supportsTransactions: false,
     supportsRollback: false,
     supportsSafeConcurrentClaiming: false,
+    supportsClaimOwnershipFencing: true,
+    supportsClaimLeaseRenewal: true,
   },
 );
 ```
@@ -43,6 +45,11 @@ setup returns a `CapTransactionManagerPort`, set `supportsRollback` when rows
 saved inside a rolled-back transaction disappear, and set
 `supportsSafeConcurrentClaiming` only for adapters that can safely prevent two
 workers from claiming the same outbox row concurrently.
+
+Set `supportsClaimOwnershipFencing` when stale success and failure writes are
+rejected by an atomic owner predicate. Set `supportsClaimLeaseRenewal` when a
+matching, unexpired claim can be extended and release at the old expiry cannot
+overwrite that renewal. The contract also verifies reclaim-to-new-owner races.
 
 The primary publish storage API is `savePublish(event, ctx?)`. Adapters that
 support transactions should read `ctx.tx`. `savePublishWithTx(event, tx)` is

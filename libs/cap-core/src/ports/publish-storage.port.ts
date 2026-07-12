@@ -20,6 +20,18 @@ export interface MarkPublishFailedOptions {
   maxRetries: number;
   nextRetryAt: Date;
   now: Date;
+  expectedLockedBy?: string;
+}
+
+export interface PublishClaimOwnership {
+  expectedLockedBy?: string;
+}
+
+export interface RenewPublishClaimOptions {
+  id: string;
+  expectedLockedBy: string;
+  lockUntil: Date;
+  now: Date;
 }
 
 export interface PublishStoragePort<TTx = unknown> {
@@ -34,13 +46,19 @@ export interface PublishStoragePort<TTx = unknown> {
     options: ClaimUnpublishedOptions,
   ): Promise<CapPublishEvent[]>;
 
-  markPublished(id: string, publishedAt?: Date): Promise<void>;
+  markPublished(
+    id: string,
+    publishedAt?: Date,
+    ownership?: PublishClaimOwnership,
+  ): Promise<boolean | void>;
 
   markPublishFailed(
     id: string,
     error: unknown,
     options: MarkPublishFailedOptions,
-  ): Promise<void>;
+  ): Promise<boolean | void>;
+
+  renewPublishClaim?(options: RenewPublishClaimOptions): Promise<boolean>;
 
   releaseExpiredClaims(now: Date): Promise<void>;
 

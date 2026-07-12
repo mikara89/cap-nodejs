@@ -250,5 +250,87 @@ describe.each(providers)(
         publishStorage.findPublishById(event.id),
       ).resolves.toBeUndefined();
     });
+
+    it('renews active leases and fences stale owners', async () => {
+      await setupDataSource!.query('DELETE FROM cap_publish');
+      const workerA = new TypeOrmPublishStorage(setupDataSource!);
+      const workerB = new TypeOrmPublishStorage(workerDataSource!);
+      const now = new Date('2026-07-12T10:00:00.000Z');
+      const oldExpiry = new Date(now.getTime() + 1_000);
+      const renewedExpiry = new Date(now.getTime() + 10_000);
+      const reclaimed = publishEvent(200, now);
+      await workerA.savePublish(reclaimed);
+
+      await workerA.claimUnpublished({
+        limit: 1,
+        lockedBy: 'typeorm-old-owner',
+        lockUntil: oldExpiry,
+        now,
+      });
+      await workerB.releaseExpiredClaims(new Date(oldExpiry.getTime() + 1));
+      await workerB.claimUnpublished({
+        limit: 1,
+        lockedBy: 'typeorm-new-owner',
+        lockUntil: renewedExpiry,
+        now: new Date(oldExpiry.getTime() + 1),
+      });
+      await expect(
+        workerA.markPublished(reclaimed.id, new Date(), {
+          expectedLockedBy: 'typeorm-old-owner',
+        }),
+      ).resolves.toBe(false);
+      await expect(
+        workerA.markPublishFailed(reclaimed.id, 'stale', {
+          maxRetries: 3,
+          nextRetryAt: renewedExpiry,
+          now,
+          expectedLockedBy: 'typeorm-old-owner',
+        }),
+      ).resolves.toBe(false);
+      await expect(
+        workerB.findPublishById(reclaimed.id),
+      ).resolves.toMatchObject({
+        status: 'processing',
+        retryCount: 0,
+        lockedBy: 'typeorm-new-owner',
+        lockedUntil: renewedExpiry,
+      });
+      await expect(
+        workerB.markPublished(reclaimed.id, new Date(), {
+          expectedLockedBy: 'typeorm-new-owner',
+        }),
+      ).resolves.toBe(true);
+
+      const renewed = publishEvent(201, new Date(now.getTime() + 1));
+      await workerA.savePublish(renewed);
+      await workerA.claimUnpublished({
+        limit: 1,
+        lockedBy: 'typeorm-renewing-owner',
+        lockUntil: oldExpiry,
+        now,
+      });
+      await expect(
+        workerA.renewPublishClaim({
+          id: renewed.id,
+          expectedLockedBy: 'typeorm-renewing-owner',
+          lockUntil: renewedExpiry,
+          now: new Date(now.getTime() + 500),
+        }),
+      ).resolves.toBe(true);
+      await workerB.releaseExpiredClaims(new Date(oldExpiry.getTime() + 1));
+      await expect(
+        workerB.claimUnpublished({
+          limit: 1,
+          lockedBy: 'typeorm-contender',
+          lockUntil: renewedExpiry,
+          now: new Date(oldExpiry.getTime() + 1),
+        }),
+      ).resolves.toEqual([]);
+      await expect(
+        workerA.markPublished(renewed.id, new Date(), {
+          expectedLockedBy: 'typeorm-renewing-owner',
+        }),
+      ).resolves.toBe(true);
+    });
   },
 );

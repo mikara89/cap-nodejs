@@ -7,6 +7,8 @@ export function getMikroStorageCapabilities(
   return {
     transactions: true,
     skipLockedClaiming: supportsSkipLockedClaiming(em),
+    claimOwnershipFencing: true,
+    claimLeaseRenewal: true,
     advisoryLocks: false,
     atomicInsertIgnore: false,
     nestedTransactions: false,

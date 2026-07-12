@@ -57,5 +57,13 @@ the same call.
 
 `CapStorageCapabilities` and `CapabilityAwareStoragePort` let storage adapters
 report informational behavior such as transaction support, safe skip-locked
-claiming, and supported isolation levels. CAP core does not enforce these
+claiming, ownership-fenced completion, active lease renewal, and supported
+isolation levels. CAP core does not enforce these
 capabilities at startup in v2.2.
+
+Scheduler claims use an opaque token unique to every dispatch round. When a
+storage implements `renewPublishClaim`, CAP renews immediately before emit and
+while the broker call is active. Fenced completion prevents stale workers from
+updating reclaimed rows. This narrows duplicate windows but does not change the
+outbox guarantee: broker delivery is at least once, so handlers must remain
+idempotent.

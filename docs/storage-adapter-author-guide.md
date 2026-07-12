@@ -13,12 +13,12 @@ implementation details.
 
 ## Current Reference Matrix
 
-| Adapter | Adapter style | Transaction context |
-| ------- | ------------- | ------------------- |
-| MikroORM | ORM-specific adapter | `MikroORM EntityManager` |
-| Knex | SQL query-builder adapter | `Knex.Transaction` |
-| TypeORM | ORM adapter | `TypeORM EntityManager` |
-| Prisma | Raw-SQL Prisma Client adapter; no CAP models in the Prisma schema | `Prisma.TransactionClient` |
+| Adapter  | Adapter style                                                     | Transaction context        |
+| -------- | ----------------------------------------------------------------- | -------------------------- |
+| MikroORM | ORM-specific adapter                                              | `MikroORM EntityManager`   |
+| Knex     | SQL query-builder adapter                                         | `Knex.Transaction`         |
+| TypeORM  | ORM adapter                                                       | `TypeORM EntityManager`    |
+| Prisma   | Raw-SQL Prisma Client adapter; no CAP models in the Prisma schema | `Prisma.TransactionClient` |
 
 Drizzle, Sequelize, and Mongoose are future candidates. Raw SQL or SQL-core
 extraction remains deferred until duplication across these real adapters proves
@@ -46,8 +46,10 @@ code should call `savePublish(event, ctx?)`.
 Publish storage must also implement:
 
 - `claimUnpublished({ limit, lockedBy, lockUntil, now })`
-- `markPublished(id, publishedAt?)`
-- `markPublishFailed(id, error, { maxRetries, nextRetryAt, now })`
+- `markPublished(id, publishedAt?, { expectedLockedBy }?)`
+- `markPublishFailed(id, error, { maxRetries, nextRetryAt, now,
+expectedLockedBy? })`
+- optional `renewPublishClaim({ id, expectedLockedBy, lockUntil, now })`
 - `releaseExpiredClaims(now)`
 - optional `initialize(options)`
 - optional dashboard helpers: `findPublishById`, `listPublish`
@@ -55,6 +57,21 @@ Publish storage must also implement:
 Use `definePublishStorageContract` from `@mikara89/cap-testing` in the adapter
 test suite. Pass conservative capability options until the adapter has tests
 that prove stronger behavior.
+
+Treat `lockedBy` as an opaque, per-claim-round ownership token. When
+`expectedLockedBy` is supplied, publication and failure updates must be a
+single atomic statement constrained by `id`, `status = processing`, and the
+owner token, and must return `false` when no row matches. Never follow a fenced
+miss with an unconditional update. Failure updates must increment retry state
+in that same statement.
+
+Lease renewal must atomically require the same owner and an unexpired current
+lease (`lockedUntil > now`) before setting the new expiry. Expired-claim release
+must likewise be a conditional update so it cannot overwrite a concurrent
+renewal. Keep the older unconditional completion behavior when ownership is
+omitted; this preserves source compatibility for direct callers and legacy
+adapters. The optional renewal method allows older third-party adapters to keep
+working, but they cannot advertise lease renewal.
 
 ## Received Storage
 
@@ -86,6 +103,8 @@ without guessing. Report conservative capabilities:
 - `atomicInsertIgnore`
 - `nestedTransactions`
 - `isolationLevels`
+- `claimOwnershipFencing`
+- `claimLeaseRenewal`
 
 Capability values are informational in the current release line. They should
 match documented behavior and the contract options used in tests.

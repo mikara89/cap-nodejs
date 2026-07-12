@@ -7,7 +7,9 @@ import { type JsonValue } from '../models/json-value.type';
 import {
   type ClaimUnpublishedOptions,
   type MarkPublishFailedOptions,
+  type PublishClaimOwnership,
   type PublishStoragePort,
+  type RenewPublishClaimOptions,
   type TransactionalPublishStoragePort,
 } from '../ports/publish-storage.port';
 import {
@@ -304,6 +306,192 @@ describe('CapEngine', () => {
     expect(publishStorage.store.get('outbox-1')?.status).toBe('published');
   });
 
+  it('uses a unique diagnostic owner for each claim round', async () => {
+    const engine = createEngine();
+
+    await engine.dispatchOutboxBatch();
+    await engine.dispatchOutboxBatch();
+
+    expect(publishStorage.claimCalls).toHaveLength(2);
+    expect(publishStorage.claimCalls[0]?.lockedBy).toMatch(
+      /^test-instance:id-1$/,
+    );
+    expect(publishStorage.claimCalls[1]?.lockedBy).toMatch(
+      /^test-instance:id-2$/,
+    );
+    expect(publishStorage.claimCalls[0]?.lockedBy).not.toBe(
+      publishStorage.claimCalls[1]?.lockedBy,
+    );
+  });
+
+  it('renews ownership before emitting a claimed event', async () => {
+    const engine = createEngine();
+    addPendingOutbox(publishStorage, 'renew-before-emit');
+
+    await engine.dispatchOutboxBatch();
+
+    expect(publishStorage.renewCalls).toHaveLength(1);
+    expect(publishStorage.renewCalls[0]).toMatchObject({
+      id: 'renew-before-emit',
+      expectedLockedBy: 'test-instance:id-1',
+    });
+    expect(publisher.emitted).toHaveLength(1);
+  });
+
+  it('skips broker emission when ownership is lost before emit and continues the batch', async () => {
+    const logger = { warn: jest.fn() };
+    const engine = createEngine({ logger });
+    addPendingOutbox(publishStorage, 'lost-before-emit');
+    addPendingOutbox(publishStorage, 'still-owned');
+    publishStorage.renewResults.push(false, true);
+
+    await expect(engine.dispatchOutboxBatch()).resolves.toBe(2);
+
+    expect(publisher.emitted.map((entry) => entry.metadata?.messageId)).toEqual(
+      ['still-owned'],
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'lost-before-emit (outbox.topic) skipped because claim test-instance:id-1 was lost before broker emission',
+      ),
+    );
+  });
+
+  it('renews a long active emit without overlapping and stops after success', async () => {
+    jest.useFakeTimers();
+    try {
+      const engine = createEngine({ scheduler: { ...scheduler, leaseMs: 90 } });
+      addPendingOutbox(publishStorage, 'long-emit');
+      const emit = deferred<void>();
+      const heartbeat = deferred<boolean>();
+      publisher.pending = emit.promise;
+      publishStorage.renewResults.push(true, heartbeat.promise);
+
+      const dispatch = engine.dispatchOutboxBatch();
+      await flushPromises();
+      expect(publisher.emitted).toHaveLength(1);
+      expect(publishStorage.renewCalls).toHaveLength(1);
+
+      await jest.advanceTimersByTimeAsync(30);
+      expect(publishStorage.renewCalls).toHaveLength(2);
+      await jest.advanceTimersByTimeAsync(90);
+      expect(publishStorage.renewCalls).toHaveLength(2);
+
+      heartbeat.resolve(true);
+      await flushPromises();
+      emit.resolve();
+      await dispatch;
+      const renewalsAfterCompletion = publishStorage.renewCalls.length;
+      await jest.advanceTimersByTimeAsync(300);
+      expect(publishStorage.renewCalls).toHaveLength(renewalsAfterCompletion);
+      expect(publishStorage.markPublishedCalls).toHaveLength(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('stops heartbeat after publisher failure', async () => {
+    jest.useFakeTimers();
+    try {
+      const engine = createEngine({ scheduler: { ...scheduler, leaseMs: 90 } });
+      addPendingOutbox(publishStorage, 'failed-emit');
+      const emit = deferred<void>();
+      publisher.pending = emit.promise;
+      const dispatch = engine.dispatchOutboxBatch();
+      await flushPromises();
+      await jest.advanceTimersByTimeAsync(30);
+      emit.reject(new Error('broker failed'));
+      await dispatch;
+      const renewalsAfterFailure = publishStorage.renewCalls.length;
+      await jest.advanceTimersByTimeAsync(300);
+
+      expect(publishStorage.renewCalls).toHaveLength(renewalsAfterFailure);
+      expect(publishStorage.markPublishFailedCalls).toHaveLength(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('treats heartbeat renewal errors as ownership loss and skips completion', async () => {
+    jest.useFakeTimers();
+    try {
+      const logger = { warn: jest.fn() };
+      const engine = createEngine({
+        logger,
+        scheduler: { ...scheduler, leaseMs: 90 },
+      });
+      addPendingOutbox(publishStorage, 'renew-error');
+      const emit = deferred<void>();
+      publisher.pending = emit.promise;
+      publishStorage.renewResults.push(true, new Error('renew failed'));
+
+      const dispatch = engine.dispatchOutboxBatch();
+      await flushPromises();
+      await jest.advanceTimersByTimeAsync(30);
+      emit.resolve();
+      await dispatch;
+
+      expect(publishStorage.markPublishedCalls).toHaveLength(0);
+      expect(publishStorage.markPublishFailedCalls).toHaveLength(0);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('ownership is treated as lost'),
+        expect.any(Error),
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not complete stale state when ownership is lost during emit', async () => {
+    jest.useFakeTimers();
+    try {
+      const logger = { warn: jest.fn() };
+      const engine = createEngine({
+        logger,
+        scheduler: { ...scheduler, leaseMs: 90 },
+      });
+      addPendingOutbox(publishStorage, 'lost-during-emit');
+      const emit = deferred<void>();
+      publisher.pending = emit.promise;
+      publishStorage.renewResults.push(true, false);
+
+      const dispatch = engine.dispatchOutboxBatch();
+      await flushPromises();
+      await jest.advanceTimersByTimeAsync(30);
+      emit.resolve();
+      await dispatch;
+
+      expect(publishStorage.markPublishedCalls).toHaveLength(0);
+      expect(publishStorage.markPublishFailedCalls).toHaveLength(0);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('at-least-once redelivery may occur'),
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('logs stale success and stale failure completion without fallback updates', async () => {
+    const successLogger = { warn: jest.fn() };
+    addPendingOutbox(publishStorage, 'stale-success');
+    publishStorage.markPublishedResult = false;
+    await createEngine({ logger: successLogger }).dispatchOutboxBatch();
+    expect(successLogger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('database completion lost ownership'),
+    );
+
+    publishStorage = new InMemoryPublishStorage();
+    publisher = new FakePublisher();
+    publisher.error = new Error('broker failed');
+    const failureLogger = { warn: jest.fn(), error: jest.fn() };
+    addPendingOutbox(publishStorage, 'stale-failure');
+    publishStorage.markPublishFailedResult = false;
+    await createEngine({ logger: failureLogger }).dispatchOutboxBatch();
+    expect(failureLogger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('failure state was not written'),
+    );
+  });
+
   it('subscribe persists received message, runs handler, and skips duplicate', async () => {
     const engine = createEngine();
     const handler = jest.fn();
@@ -351,6 +539,7 @@ class FakePublisher implements PublisherPort {
     metadata?: { messageId: string };
   }> = [];
   error?: Error;
+  pending?: Promise<void>;
 
   emit(
     topic: string,
@@ -360,7 +549,7 @@ class FakePublisher implements PublisherPort {
   ): Promise<void> {
     if (this.error) return Promise.reject(this.error);
     this.emitted.push({ topic, payload, headers, metadata });
-    return Promise.resolve();
+    return this.pending ?? Promise.resolve();
   }
 }
 
@@ -432,6 +621,19 @@ class InMemoryPublishStorage implements TransactionalPublishStoragePort {
   savePublishWithTxCalls = 0;
   ctx?: CapOperationContext;
   tx?: unknown;
+  readonly claimCalls: ClaimUnpublishedOptions[] = [];
+  readonly renewCalls: RenewPublishClaimOptions[] = [];
+  readonly markPublishedCalls: Array<{
+    id: string;
+    ownership?: PublishClaimOwnership;
+  }> = [];
+  readonly markPublishFailedCalls: Array<{
+    id: string;
+    options: MarkPublishFailedOptions;
+  }> = [];
+  readonly renewResults: Array<boolean | Promise<boolean> | Error> = [];
+  markPublishedResult: boolean | undefined;
+  markPublishFailedResult: boolean | undefined;
 
   savePublish<T extends JsonValue = JsonValue>(
     event: CapPublishEvent<T>,
@@ -456,6 +658,7 @@ class InMemoryPublishStorage implements TransactionalPublishStoragePort {
   claimUnpublished(
     options: ClaimUnpublishedOptions,
   ): Promise<CapPublishEvent[]> {
+    this.claimCalls.push(options);
     const claimed: CapPublishEvent[] = [];
     for (const event of this.store.values()) {
       if (claimed.length >= options.limit) break;
@@ -468,24 +671,33 @@ class InMemoryPublishStorage implements TransactionalPublishStoragePort {
     return Promise.resolve(claimed);
   }
 
-  markPublished(id: string, publishedAt?: Date): Promise<void> {
+  markPublished(
+    id: string,
+    publishedAt?: Date,
+    ownership?: PublishClaimOwnership,
+  ): Promise<boolean> {
+    this.markPublishedCalls.push({ id, ownership });
+    if (this.markPublishedResult === false) return Promise.resolve(false);
     const event = this.store.get(id);
-    if (event) {
+    if (event && ownsEvent(event, ownership?.expectedLockedBy)) {
       event.status = 'published';
       event.publishedAt = publishedAt;
       event.lockedBy = null;
       event.lockedUntil = null;
+      return Promise.resolve(true);
     }
-    return Promise.resolve();
+    return Promise.resolve(false);
   }
 
   markPublishFailed(
     id: string,
     error: unknown,
     options: MarkPublishFailedOptions,
-  ): Promise<void> {
+  ): Promise<boolean> {
+    this.markPublishFailedCalls.push({ id, options });
+    if (this.markPublishFailedResult === false) return Promise.resolve(false);
     const event = this.store.get(id);
-    if (event) {
+    if (event && ownsEvent(event, options.expectedLockedBy)) {
       event.retryCount += 1;
       event.status =
         event.retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
@@ -494,13 +706,66 @@ class InMemoryPublishStorage implements TransactionalPublishStoragePort {
       event.lastError = error instanceof Error ? error.message : String(error);
       event.lockedBy = null;
       event.lockedUntil = null;
+      return Promise.resolve(true);
     }
-    return Promise.resolve();
+    return Promise.resolve(false);
+  }
+
+  async renewPublishClaim(options: RenewPublishClaimOptions): Promise<boolean> {
+    this.renewCalls.push(options);
+    const configured = this.renewResults.shift();
+    if (configured instanceof Error) throw configured;
+    if (configured !== undefined) return configured;
+    const event = this.store.get(options.id);
+    if (!event || !ownsEvent(event, options.expectedLockedBy)) return false;
+    event.lockedUntil = options.lockUntil;
+    return true;
   }
 
   releaseExpiredClaims(): Promise<void> {
     return Promise.resolve();
   }
+}
+
+function addPendingOutbox(storage: InMemoryPublishStorage, id: string): void {
+  storage.store.set(id, {
+    id,
+    topic: 'outbox.topic',
+    occurredAt: '2026-01-01T00:00:00.000Z',
+    payload: {},
+    retryCount: 0,
+    status: 'pending',
+  });
+}
+
+function ownsEvent(
+  event: CapPublishEvent,
+  expectedLockedBy: string | undefined,
+): boolean {
+  return (
+    expectedLockedBy === undefined ||
+    (event.status === 'processing' && event.lockedBy === expectedLockedBy)
+  );
+}
+
+function deferred<T>(): {
+  promise: Promise<T>;
+  resolve: (value: T | PromiseLike<T>) => void;
+  reject: (reason?: unknown) => void;
+} {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
+async function flushPromises(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
 }
 
 class NonLegacyPublishStorage implements PublishStoragePort {

@@ -17,5 +17,7 @@ definePublishStorageContract<Prisma.TransactionClient>(
     supportsTransactions: true,
     supportsRollback: true,
     supportsSafeConcurrentClaiming: false,
+    supportsClaimOwnershipFencing: true,
+    supportsClaimLeaseRenewal: true,
   },
 );

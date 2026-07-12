@@ -1,6 +1,7 @@
 import {
   IsolationLevel,
   LockMode,
+  raw,
   type EntityManager,
   type FilterQuery,
   type MikroORM,
@@ -14,7 +15,9 @@ import type {
   ClaimUnpublishedOptions,
   JsonValue,
   MarkPublishFailedOptions,
+  PublishClaimOwnership,
   PublishStoragePort,
+  RenewPublishClaimOptions,
 } from '@mikara89/cap-core';
 import { CapPublishEntity } from '../entities/cap-publish.entity';
 import {
@@ -120,57 +123,78 @@ export class MikroPublishStorage
     }, claimTransactionOptions(this.em));
   }
 
-  async markPublished(id: string, publishedAt = new Date()): Promise<void> {
-    const entity = await this.em.findOne(CapPublishEntity, { id });
-    if (!entity) return;
-    entity.status = 'published';
-    entity.publishedAt = publishedAt;
-    entity.lockedBy = null;
-    entity.lockedUntil = null;
-    entity.nextRetryAt = null;
-    await this.em.flush();
+  async markPublished(
+    id: string,
+    publishedAt = new Date(),
+    ownership: PublishClaimOwnership = {},
+  ): Promise<boolean> {
+    const where = ownershipWhere(id, ownership.expectedLockedBy);
+    const affected = await this.em.nativeUpdate(CapPublishEntity, where, {
+      status: 'published',
+      publishedAt,
+      lockedBy: null,
+      lockedUntil: null,
+      nextRetryAt: null,
+      updatedAt: new Date(),
+    });
+    return affected > 0;
   }
 
   async markPublishFailed(
     id: string,
     error: unknown,
     options: MarkPublishFailedOptions,
-  ): Promise<void> {
-    const entity = await this.em.findOne(CapPublishEntity, { id });
-    if (!entity) return;
+  ): Promise<boolean> {
+    const where = ownershipWhere(id, options.expectedLockedBy);
+    const affected = await this.em.nativeUpdate(CapPublishEntity, where, {
+      retryCount: raw('retry_count + 1'),
+      status: raw('case when retry_count + 1 >= ? then ? else ? end', [
+        options.maxRetries,
+        'dead_letter',
+        'failed',
+      ]),
+      nextRetryAt: raw(
+        'case when retry_count + 1 >= ? then null else coalesce(?, next_retry_at) end',
+        [options.maxRetries, options.nextRetryAt],
+      ),
+      lastError: error instanceof Error ? error.message : String(error),
+      lockedBy: null,
+      lockedUntil: null,
+      updatedAt: options.now,
+    });
+    return affected > 0;
+  }
 
-    const retryCount = entity.retryCount + 1;
-    entity.retryCount = retryCount;
-    entity.status = retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
-    entity.nextRetryAt =
-      entity.status === 'dead_letter' ? null : options.nextRetryAt;
-    entity.lastError = error instanceof Error ? error.message : String(error);
-    entity.lockedBy = null;
-    entity.lockedUntil = null;
-    entity.updatedAt = options.now;
-    await this.em.flush();
+  async renewPublishClaim(options: RenewPublishClaimOptions): Promise<boolean> {
+    const affected = await this.em.nativeUpdate(
+      CapPublishEntity,
+      {
+        id: options.id,
+        status: 'processing',
+        lockedBy: options.expectedLockedBy,
+        lockedUntil: { $gt: options.now },
+      },
+      { lockedUntil: options.lockUntil, updatedAt: options.now },
+    );
+    return affected > 0;
   }
 
   async releaseExpiredClaims(now: Date): Promise<void> {
-    const entities = await this.em.find(CapPublishEntity, {
-      status: 'processing',
-      lockedUntil: { $lte: now },
-    });
-
-    for (const entity of entities) {
-      entity.status = 'failed';
-      entity.lockedBy = null;
-      entity.lockedUntil = null;
-      entity.updatedAt = now;
-    }
-
-    if (entities.length) await this.em.flush();
+    await this.em.nativeUpdate(
+      CapPublishEntity,
+      { status: 'processing', lockedUntil: { $lte: now } },
+      { status: 'failed', lockedBy: null, lockedUntil: null, updatedAt: now },
+    );
   }
 
   async findPublishById(
     id: string,
   ): Promise<CapPublishEvent<JsonValue> | undefined> {
-    const entity = await this.em.findOne(CapPublishEntity, { id });
+    const entity = await this.em.findOne(
+      CapPublishEntity,
+      { id },
+      { refresh: true },
+    );
     return entity ? mapPublishEntity(entity) : undefined;
   }
 
@@ -199,6 +223,14 @@ export class MikroPublishStorage
 
     return { items: entities.map(mapPublishEntity), total };
   }
+}
+
+function ownershipWhere(
+  id: string,
+  expectedLockedBy: string | undefined,
+): FilterQuery<CapPublishEntity> {
+  if (expectedLockedBy === undefined) return { id };
+  return { id, status: 'processing', lockedBy: expectedLockedBy };
 }
 
 function claimFindOptions(

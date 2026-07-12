@@ -10,7 +10,9 @@ import type {
   InitOptions,
   JsonValue,
   MarkPublishFailedOptions,
+  PublishClaimOwnership,
   PublishStoragePort,
+  RenewPublishClaimOptions,
 } from '@mikara89/cap-core';
 import type { PrismaCapClient, PrismaCapExecutor } from './prisma-cap-client';
 import { initializePrismaCapStorage } from './prisma-cap-schema';
@@ -181,12 +183,24 @@ export class PrismaPublishStorage
     });
   }
 
-  async markPublished(id: string, publishedAt = new Date()): Promise<void> {
+  async markPublished(
+    id: string,
+    publishedAt = new Date(),
+    ownership: PublishClaimOwnership = {},
+  ): Promise<boolean> {
     const builder = new PrismaSqlBuilder(this.options.provider);
     const published = builder.parameter(toRequiredPrismaDbDate(publishedAt));
     const updated = builder.parameter(toRequiredPrismaDbDate(new Date()));
     const eventId = builder.parameter(id);
-    await executePrismaSql(
+    const ownershipWhere =
+      ownership.expectedLockedBy === undefined
+        ? ''
+        : ` AND ${this.quote('status')} = ${builder.parameter(
+            'processing',
+          )} AND ${this.quote('locked_by')} = ${builder.parameter(
+            ownership.expectedLockedBy,
+          )}`;
+    const affected = await executePrismaSql(
       this.client,
       `UPDATE ${this.quote(
         this.options.publishTableName,
@@ -196,48 +210,81 @@ export class PrismaPublishStorage
         'locked_until',
       )} = NULL, ${this.quote('next_retry_at')} = NULL, ${this.quote(
         'updated_at',
-      )} = ${updated} WHERE ${this.quote('id')} = ${eventId}`,
+      )} = ${updated} WHERE ${this.quote('id')} = ${eventId}${ownershipWhere}`,
       builder.values,
     );
+    return affected > 0;
   }
 
   async markPublishFailed(
     id: string,
     error: unknown,
     options: MarkPublishFailedOptions,
-  ): Promise<void> {
-    const row = await this.findPublishRowById(this.client, id);
-    if (!row) return;
-
-    const retryCount = Number(row.retry_count) + 1;
-    const status = retryCount >= options.maxRetries ? 'dead_letter' : 'failed';
+  ): Promise<boolean> {
     const builder = new PrismaSqlBuilder(this.options.provider);
-    const retry = builder.parameter(retryCount);
-    const nextRetry = builder.parameter(
-      status === 'dead_letter' ? null : toPrismaDbDate(options.nextRetryAt),
-    );
+    const retryCount = this.quote('retry_count');
+    const maxRetriesForStatus = builder.parameter(options.maxRetries);
+    const deadLetter = builder.parameter('dead_letter');
+    const failed = builder.parameter('failed');
+    const maxRetriesForRetry = builder.parameter(options.maxRetries);
+    const nextRetry = builder.parameter(toPrismaDbDate(options.nextRetryAt));
     const lastError = builder.parameter(
       error instanceof Error ? error.message : String(error),
     );
     const updated = builder.parameter(toRequiredPrismaDbDate(options.now));
     const eventId = builder.parameter(id);
-    await executePrismaSql(
+    const ownershipWhere =
+      options.expectedLockedBy === undefined
+        ? ''
+        : ` AND ${this.quote('status')} = ${builder.parameter(
+            'processing',
+          )} AND ${this.quote('locked_by')} = ${builder.parameter(
+            options.expectedLockedBy,
+          )}`;
+    const affected = await executePrismaSql(
       this.client,
       `UPDATE ${this.quote(
         this.options.publishTableName,
-      )} SET ${this.quote('retry_count')} = ${retry}, ${this.quote(
+      )} SET ${retryCount} = ${retryCount} + 1, ${this.quote(
         'status',
-      )} = '${status}', ${this.quote(
+      )} = CASE WHEN ${retryCount} + 1 >= ${maxRetriesForStatus} THEN ${deadLetter} ELSE ${failed} END, ${this.quote(
         'next_retry_at',
-      )} = ${nextRetry}, ${this.quote(
+      )} = CASE WHEN ${retryCount} + 1 >= ${maxRetriesForRetry} THEN NULL ELSE ${nextRetry} END, ${this.quote(
         'last_error',
       )} = ${lastError}, ${this.quote('locked_by')} = NULL, ${this.quote(
         'locked_until',
       )} = NULL, ${this.quote(
         'updated_at',
-      )} = ${updated} WHERE ${this.quote('id')} = ${eventId}`,
+      )} = ${updated} WHERE ${this.quote('id')} = ${eventId}${ownershipWhere}`,
       builder.values,
     );
+    return affected > 0;
+  }
+
+  async renewPublishClaim(options: RenewPublishClaimOptions): Promise<boolean> {
+    const builder = new PrismaSqlBuilder(this.options.provider);
+    const lockUntil = builder.parameter(
+      toRequiredPrismaDbDate(options.lockUntil),
+    );
+    const updatedAt = builder.parameter(toRequiredPrismaDbDate(options.now));
+    const id = builder.parameter(options.id);
+    const processing = builder.parameter('processing');
+    const owner = builder.parameter(options.expectedLockedBy);
+    const now = builder.parameter(toRequiredPrismaDbDate(options.now));
+    const affected = await executePrismaSql(
+      this.client,
+      `UPDATE ${this.quote(
+        this.options.publishTableName,
+      )} SET ${this.quote('locked_until')} = ${lockUntil}, ${this.quote(
+        'updated_at',
+      )} = ${updatedAt} WHERE ${this.quote('id')} = ${id} AND ${this.quote(
+        'status',
+      )} = ${processing} AND ${this.quote(
+        'locked_by',
+      )} = ${owner} AND ${this.quote('locked_until')} > ${now}`,
+      builder.values,
+    );
+    return affected > 0;
   }
 
   async releaseExpiredClaims(now: Date): Promise<void> {

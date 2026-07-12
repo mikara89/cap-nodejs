@@ -152,6 +152,21 @@ The scheduler is registered by `CapModule` and performs two periodic jobs:
 - inbox retry every minute
 
 Outbox retries claim eligible rows with a lease before emitting them. The
+claim owner is an opaque token that is unique to each claim round, not a stable
+process identity. CAP renews a claim once before broker emission and then at
+roughly one third of the configured lease interval while the emit remains in
+flight. Renewals never overlap. If renewal fails or the row no longer belongs
+to that token, CAP lets an already-started broker call settle but does not mark
+the row published or failed; another worker may reclaim it for at-least-once
+redelivery.
+
+First-party durable adapters fence completion, failure, and renewal with atomic
+`id + processing status + lockedBy` predicates. This prevents an expired worker
+from mutating a row after another worker reclaims it. A lease cannot cancel an
+in-flight broker operation, so consumers must still be idempotent and tolerate
+duplicate delivery.
+
+The
 MikroORM storage adapter uses pessimistic partial write locking for production
 claim safety on lock-capable SQL drivers. SQLite and other local/non-locking
 drivers use a fallback intended only for demos, development, and single-process

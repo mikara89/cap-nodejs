@@ -49,6 +49,12 @@ inbox constraint on `group + dedupeKey`. Applications may instead manage
 equivalent tables with their own migrations. Prisma Migrate is not required
 for CAP-owned tables.
 
+Outbox completion, failure, and active lease renewal use parameterized atomic
+ownership predicates. `lockedBy` is an opaque per-claim token; stale owners
+receive `false` and cannot mutate a reclaimed row. PostgreSQL and MySQL
+multi-instance behavior is covered by the SQL integration gate. SQLite remains
+for local and single-process use rather than multi-instance claim safety.
+
 ## Usage
 
 ```ts

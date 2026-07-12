@@ -75,6 +75,29 @@ describe('CapDashboardCoreService', () => {
     );
   });
 
+  it('fences completion when bulk flushing claimed outbox rows', async () => {
+    const publishStorage = createInMemoryPublishStorage();
+    const publisher = createInMemoryPublisher();
+    await publishStorage.savePublish(publishEvent());
+    const renew = jest.spyOn(publishStorage, 'renewPublishClaim');
+    const complete = jest.spyOn(publishStorage, 'markPublished');
+    const service = newService({ publishStorage, publisher });
+
+    await expect(service.flushOutbox()).resolves.toEqual({
+      success: true,
+      message: 'Flush complete: 1 published, 0 failed',
+    });
+    expect(renew).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'outbox-1',
+        expectedLockedBy: expect.stringMatching(/^cap-dashboard:/),
+      }),
+    );
+    expect(complete).toHaveBeenCalledWith('outbox-1', expect.any(Date), {
+      expectedLockedBy: expect.stringMatching(/^cap-dashboard:/),
+    });
+  });
+
   it('blocks mutations when read-only', async () => {
     const publishStorage = createInMemoryPublishStorage();
     const publisher = createInMemoryPublisher();

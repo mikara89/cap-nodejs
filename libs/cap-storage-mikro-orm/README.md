@@ -42,6 +42,9 @@ export class AppModule {}
   pessimistic partial write locking; use a custom storage adapter if your
   database cannot provide equivalent claim safety.
 - The first-party multi-instance DB gate covers PostgreSQL and MySQL.
+- Outbox completion, failure, and active lease renewal use atomic ownership
+  predicates. `lockedBy` is an opaque per-claim token, and stale owners receive
+  `false` rather than mutating reclaimed rows.
 - SQLite/local demo drivers and SQL Server fall back to non-locking
   transactional claims and are not supported for multi-instance durable
   dispatch by this adapter.

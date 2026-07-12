@@ -247,6 +247,92 @@ describe.each(providers)(
         publishStorage.findPublishById(event.id),
       ).resolves.toBeUndefined();
     });
+
+    it('renews active leases and fences stale owners', async () => {
+      await setupClient!.$executeRawUnsafe('DELETE FROM cap_publish');
+      const workerA = new PrismaPublishStorage(setupClient!, {
+        provider: fixture.provider,
+      });
+      const workerB = new PrismaPublishStorage(workerClient!, {
+        provider: fixture.provider,
+      });
+      const now = new Date('2026-07-12T10:00:00.000Z');
+      const oldExpiry = new Date(now.getTime() + 1_000);
+      const renewedExpiry = new Date(now.getTime() + 10_000);
+      const reclaimed = publishEvent(200, now);
+      await workerA.savePublish(reclaimed);
+
+      await workerA.claimUnpublished({
+        limit: 1,
+        lockedBy: 'prisma-old-owner',
+        lockUntil: oldExpiry,
+        now,
+      });
+      await workerB.releaseExpiredClaims(new Date(oldExpiry.getTime() + 1));
+      await workerB.claimUnpublished({
+        limit: 1,
+        lockedBy: 'prisma-new-owner',
+        lockUntil: renewedExpiry,
+        now: new Date(oldExpiry.getTime() + 1),
+      });
+      await expect(
+        workerA.markPublished(reclaimed.id, new Date(), {
+          expectedLockedBy: 'prisma-old-owner',
+        }),
+      ).resolves.toBe(false);
+      await expect(
+        workerA.markPublishFailed(reclaimed.id, 'stale', {
+          maxRetries: 3,
+          nextRetryAt: renewedExpiry,
+          now,
+          expectedLockedBy: 'prisma-old-owner',
+        }),
+      ).resolves.toBe(false);
+      await expect(
+        workerB.findPublishById(reclaimed.id),
+      ).resolves.toMatchObject({
+        status: 'processing',
+        retryCount: 0,
+        lockedBy: 'prisma-new-owner',
+        lockedUntil: renewedExpiry,
+      });
+      await expect(
+        workerB.markPublished(reclaimed.id, new Date(), {
+          expectedLockedBy: 'prisma-new-owner',
+        }),
+      ).resolves.toBe(true);
+
+      const renewed = publishEvent(201, new Date(now.getTime() + 1));
+      await workerA.savePublish(renewed);
+      await workerA.claimUnpublished({
+        limit: 1,
+        lockedBy: 'prisma-renewing-owner',
+        lockUntil: oldExpiry,
+        now,
+      });
+      await expect(
+        workerA.renewPublishClaim({
+          id: renewed.id,
+          expectedLockedBy: 'prisma-renewing-owner',
+          lockUntil: renewedExpiry,
+          now: new Date(now.getTime() + 500),
+        }),
+      ).resolves.toBe(true);
+      await workerB.releaseExpiredClaims(new Date(oldExpiry.getTime() + 1));
+      await expect(
+        workerB.claimUnpublished({
+          limit: 1,
+          lockedBy: 'prisma-contender',
+          lockUntil: renewedExpiry,
+          now: new Date(oldExpiry.getTime() + 1),
+        }),
+      ).resolves.toEqual([]);
+      await expect(
+        workerA.markPublished(renewed.id, new Date(), {
+          expectedLockedBy: 'prisma-renewing-owner',
+        }),
+      ).resolves.toBe(true);
+    });
   },
 );
 

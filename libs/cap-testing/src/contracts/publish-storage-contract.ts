@@ -19,6 +19,8 @@ export interface PublishStorageContractOptions {
   supportsTransactions?: boolean;
   supportsRollback?: boolean;
   supportsSafeConcurrentClaiming?: boolean;
+  supportsClaimOwnershipFencing?: boolean;
+  supportsClaimLeaseRenewal?: boolean;
 }
 
 export function definePublishStorageContract<TTx = unknown>(
@@ -254,6 +256,226 @@ export function definePublishStorageContract<TTx = unknown>(
       });
     });
 
+    const ownershipIt = options.supportsClaimOwnershipFencing ? it : it.skip;
+    const renewalIt = options.supportsClaimLeaseRenewal ? it : it.skip;
+
+    ownershipIt('claimed event exposes its opaque claim owner', async () => {
+      await withSetup(setup, async ({ storage }) => {
+        const event = publishEvent('claim-owner');
+        await storage.savePublish(event);
+
+        const [claimed] = await storage.claimUnpublished(
+          claimOptions(1, 'contract-worker:claim-1'),
+        );
+
+        expect(claimed).toMatchObject({
+          id: event.id,
+          status: 'processing',
+          lockedBy: 'contract-worker:claim-1',
+        });
+      });
+    });
+
+    renewalIt(
+      'matching owner renews and stale owner cannot renew',
+      async () => {
+        await withSetup(setup, async ({ storage }) => {
+          const event = publishEvent('renew-owner');
+          await storage.savePublish(event);
+          await storage.claimUnpublished(
+            claimOptions(1, 'contract-worker:claim-1'),
+          );
+          const now = new Date('2026-06-16T00:05:30.000Z');
+          const lockUntil = new Date('2026-06-16T00:07:00.000Z');
+
+          await expect(
+            storage.renewPublishClaim?.({
+              id: event.id,
+              expectedLockedBy: 'contract-worker:claim-1',
+              now,
+              lockUntil,
+            }),
+          ).resolves.toBe(true);
+          await expect(
+            storage.renewPublishClaim?.({
+              id: event.id,
+              expectedLockedBy: 'contract-worker:stale',
+              now,
+              lockUntil: new Date('2026-06-16T00:08:00.000Z'),
+            }),
+          ).resolves.toBe(false);
+          await expectPublishedEvent(storage, event.id, {
+            lockedBy: 'contract-worker:claim-1',
+            lockedUntil: lockUntil,
+          });
+        });
+      },
+    );
+
+    ownershipIt(
+      'matching owner completes publish and stale owner cannot mutate it',
+      async () => {
+        await withSetup(setup, async ({ storage }) => {
+          const event = publishEvent('fenced-published');
+          await storage.savePublish(event);
+          await storage.claimUnpublished(
+            claimOptions(1, 'contract-worker:claim-1'),
+          );
+          const publishedAt = new Date('2026-06-16T00:05:30.000Z');
+
+          await expect(
+            storage.markPublished(event.id, publishedAt, {
+              expectedLockedBy: 'contract-worker:stale',
+            }),
+          ).resolves.toBe(false);
+          await expectPublishedEvent(storage, event.id, {
+            status: 'processing',
+            lockedBy: 'contract-worker:claim-1',
+            publishedAt: null,
+          });
+          await expect(
+            storage.markPublished(event.id, publishedAt, {
+              expectedLockedBy: 'contract-worker:claim-1',
+            }),
+          ).resolves.toBe(true);
+          await expectPublishedEvent(storage, event.id, {
+            status: 'published',
+            publishedAt,
+            lockedBy: null,
+          });
+        });
+      },
+    );
+
+    ownershipIt(
+      'matching owner records one failure and stale owner cannot mutate retry state',
+      async () => {
+        await withSetup(setup, async ({ storage }) => {
+          const event = publishEvent('fenced-failed');
+          await storage.savePublish(event);
+          await storage.claimUnpublished(
+            claimOptions(1, 'contract-worker:claim-1'),
+          );
+          const failureOptions = {
+            maxRetries: 3,
+            nextRetryAt: new Date('2026-06-16T00:07:00.000Z'),
+            now: new Date('2026-06-16T00:05:30.000Z'),
+          };
+
+          await expect(
+            storage.markPublishFailed(event.id, 'stale failure', {
+              ...failureOptions,
+              expectedLockedBy: 'contract-worker:stale',
+            }),
+          ).resolves.toBe(false);
+          await expectPublishedEvent(storage, event.id, {
+            status: 'processing',
+            retryCount: 0,
+            lastError: null,
+            lockedBy: 'contract-worker:claim-1',
+          });
+          await expect(
+            storage.markPublishFailed(event.id, 'owned failure', {
+              ...failureOptions,
+              expectedLockedBy: 'contract-worker:claim-1',
+            }),
+          ).resolves.toBe(true);
+          await expectPublishedEvent(storage, event.id, {
+            status: 'failed',
+            retryCount: 1,
+            lastError: 'owned failure',
+            lockedBy: null,
+          });
+        });
+      },
+    );
+
+    ownershipIt(
+      'expired claim is reclaimed and the original owner cannot complete it',
+      async () => {
+        await withSetup(setup, async ({ storage }) => {
+          const event = publishEvent('reclaimed-owner');
+          await storage.savePublish(event);
+          await storage.claimUnpublished({
+            limit: 1,
+            lockedBy: 'contract-worker:claim-1',
+            now: new Date('2026-06-16T00:01:00.000Z'),
+            lockUntil: new Date('2026-06-16T00:02:00.000Z'),
+          });
+          const [reclaimed] = await storage.claimUnpublished({
+            limit: 1,
+            lockedBy: 'contract-worker:claim-2',
+            now: new Date('2026-06-16T00:03:00.000Z'),
+            lockUntil: new Date('2026-06-16T00:04:00.000Z'),
+          });
+
+          expect(reclaimed?.lockedBy).toBe('contract-worker:claim-2');
+          await expect(
+            storage.markPublished(event.id, new Date(), {
+              expectedLockedBy: 'contract-worker:claim-1',
+            }),
+          ).resolves.toBe(false);
+          await expectPublishedEvent(storage, event.id, {
+            status: 'processing',
+            lockedBy: 'contract-worker:claim-2',
+          });
+          await expect(
+            storage.markPublished(event.id, new Date(), {
+              expectedLockedBy: 'contract-worker:claim-2',
+            }),
+          ).resolves.toBe(true);
+        });
+      },
+    );
+
+    renewalIt('renewed claim is not released at its old expiry', async () => {
+      await withSetup(setup, async ({ storage }) => {
+        const event = publishEvent('renewed-not-released');
+        await storage.savePublish(event);
+        await storage.claimUnpublished({
+          limit: 1,
+          lockedBy: 'contract-worker:claim-1',
+          now: new Date('2026-06-16T00:01:00.000Z'),
+          lockUntil: new Date('2026-06-16T00:02:00.000Z'),
+        });
+        await storage.renewPublishClaim?.({
+          id: event.id,
+          expectedLockedBy: 'contract-worker:claim-1',
+          now: new Date('2026-06-16T00:01:30.000Z'),
+          lockUntil: new Date('2026-06-16T00:04:00.000Z'),
+        });
+
+        await storage.releaseExpiredClaims(
+          new Date('2026-06-16T00:02:30.000Z'),
+        );
+
+        await expectPublishedEvent(storage, event.id, {
+          status: 'processing',
+          lockedBy: 'contract-worker:claim-1',
+          lockedUntil: new Date('2026-06-16T00:04:00.000Z'),
+        });
+      });
+    });
+
+    it('reported claim capabilities agree with contract options', async () => {
+      await withSetup(setup, ({ storage }) => {
+        const capabilityStorage = storage as PublishStoragePort<TTx> & {
+          getCapabilities?: () => {
+            claimOwnershipFencing?: boolean;
+            claimLeaseRenewal?: boolean;
+          };
+        };
+        if (!capabilityStorage.getCapabilities) return;
+        const capabilities = capabilityStorage.getCapabilities();
+        expect(capabilities.claimOwnershipFencing ?? false).toBe(
+          options.supportsClaimOwnershipFencing ?? false,
+        );
+        expect(capabilities.claimLeaseRenewal ?? false).toBe(
+          options.supportsClaimLeaseRenewal ?? false,
+        );
+      });
+    });
+
     const concurrentClaimingIt = options.supportsSafeConcurrentClaiming
       ? it
       : it.skip;
@@ -287,7 +509,7 @@ export function definePublishStorageContract<TTx = unknown>(
 
 async function withSetup<TTx>(
   setup: () => Promise<PublishStorageContractSetup<TTx>>,
-  test: (setup: PublishStorageContractSetup<TTx>) => Promise<void>,
+  test: (setup: PublishStorageContractSetup<TTx>) => Promise<void> | void,
 ): Promise<void> {
   const env = await setup();
   try {
