@@ -98,14 +98,13 @@ export function createCapExpress(
   let started = false;
   let initialized = false;
   let startPromise: Promise<void> | undefined;
-  let readyPromise: Promise<void> = new Promise<void>(() => {
-    // Never settles until the first start().
-  });
+  let stopPromise: Promise<void> | undefined;
+  let readiness = createReadinessDeferred();
 
   const app: CapExpressApp = {
     engine,
     get ready() {
-      return readyPromise;
+      return readiness.promise;
     },
     publish: (topic, payload, publishOptions) =>
       engine.publish(topic, payload, publishOptions),
@@ -121,12 +120,22 @@ export function createCapExpress(
     transaction: (fn, transactionOptions) =>
       engine.transaction(fn, transactionOptions),
     start: async () => {
+      if (stopPromise) {
+        return stopPromise.then(() => app.start());
+      }
       if (started) {
         return;
       }
       if (startPromise) {
         return startPromise;
       }
+
+      // A failed startup settled the previous cycle. Retrying starts a new
+      // readiness cycle; the initial and post-stop cycles are already pending.
+      if (readiness.settled) {
+        readiness = createReadinessDeferred();
+      }
+      const thisReadiness = readiness;
 
       // Build the startup operation and share it with concurrent callers.
       const thisStart = (async () => {
@@ -143,7 +152,10 @@ export function createCapExpress(
       })();
 
       startPromise = thisStart;
-      readyPromise = thisStart;
+      void thisStart.then(
+        () => thisReadiness.resolve(),
+        (error: unknown) => thisReadiness.reject(error),
+      );
 
       // Safety catch — prevents unhandled rejections for callers
       // that ignore `ready` or call start() via `void`.
@@ -160,25 +172,38 @@ export function createCapExpress(
       }
     },
     stop: async () => {
-      // Await any in-progress start.
-      if (startPromise) {
-        try {
-          await startPromise;
-        } catch {
-          // Start failed — still need to clean up.
+      if (stopPromise) {
+        return stopPromise;
+      }
+
+      const thisStop = (async () => {
+        // Await any in-progress start.
+        if (startPromise) {
+          try {
+            await startPromise;
+          } catch {
+            // Start failed — still need to clean up.
+          }
+        }
+        // Stop scheduler first.
+        await scheduler.stop();
+        // Close subscriber.
+        await engine.close();
+        started = false;
+        initialized = false;
+
+        // Prepare one stable readiness promise for the next lifecycle cycle.
+        readiness = createReadinessDeferred();
+      })();
+
+      stopPromise = thisStop;
+      try {
+        await thisStop;
+      } finally {
+        if (stopPromise === thisStop) {
+          stopPromise = undefined;
         }
       }
-      // Stop scheduler first.
-      await scheduler.stop();
-      // Close subscriber.
-      await engine.close();
-      started = false;
-      initialized = false;
-
-      // Reset readiness for the next start.
-      readyPromise = new Promise<void>(() => {
-        // Never settles until the next start().
-      });
     },
     healthRouter: () => createCapHealthRouter(app),
     get schedulerRunning() {
@@ -196,6 +221,44 @@ export function createCapExpress(
   }
 
   return app;
+}
+
+interface ReadinessDeferred {
+  promise: Promise<void>;
+  readonly settled: boolean;
+  resolve(): void;
+  reject(error: unknown): void;
+}
+
+function createReadinessDeferred(): ReadinessDeferred {
+  let resolvePromise!: () => void;
+  let rejectPromise!: (error: unknown) => void;
+  let settled = false;
+  const promise = new Promise<void>((resolve, reject) => {
+    resolvePromise = resolve;
+    rejectPromise = reject;
+  });
+
+  // `ready` is optional to observe. Mark its rejection handled internally
+  // while preserving the original promise and rejection for consumers.
+  void promise.catch(() => undefined);
+
+  return {
+    promise,
+    get settled() {
+      return settled;
+    },
+    resolve() {
+      if (settled) return;
+      settled = true;
+      resolvePromise();
+    },
+    reject(error: unknown) {
+      if (settled) return;
+      settled = true;
+      rejectPromise(error);
+    },
+  };
 }
 
 async function initializeAdapters(

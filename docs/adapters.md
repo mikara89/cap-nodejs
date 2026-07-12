@@ -117,6 +117,14 @@ first-party adapter readiness rules.
 - optional `initialize(options)`
 - optional `close()`
 
+`consume()` has a startup-critical readiness contract: its promise must resolve
+only after the initial consumer is attached and able to receive messages. It
+must reject when initial setup, broker connection, topology creation, or handler
+attachment fails. Framework lifecycles await this promise and treat rejection
+as startup failure. Adapters must not resolve merely because attachment work was
+scheduled in the background. Later connection-loss and recovery behavior
+remains adapter-specific and must be documented separately.
+
 ### Transport Conformance
 
 v2.4 PR 1 adds `defineTransportContract()` to

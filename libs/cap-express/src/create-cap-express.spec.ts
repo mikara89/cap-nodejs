@@ -282,6 +282,23 @@ describe('createCapExpress', () => {
     await cap.stop();
   });
 
+  it('settles a ready promise captured before manual start', async () => {
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber: new FakeSubscriber(),
+    });
+
+    const readiness = cap.ready;
+    const startup = cap.start();
+
+    await startup;
+    await expect(readiness).resolves.toBeUndefined();
+
+    await cap.stop();
+  });
+
   it('ready rejects on start failure and resolves on retry', async () => {
     // Use a subscriber whose consume fails on the first attempt.
     const subscriber = new FakeSubscriber();
@@ -383,6 +400,97 @@ describe('createCapExpress', () => {
     await cap.stop();
   });
 
+  it('restarts after stop requested during pending start', async () => {
+    const firstInitialization = deferred<void>();
+    let initializationCount = 0;
+    const publishStorage = withInitializer(new InMemoryPublishStorage(), () => {
+      initializationCount += 1;
+      return initializationCount === 1
+        ? firstInitialization.promise
+        : Promise.resolve();
+    });
+    const subscriber = new ClosableFakeSubscriber();
+    const cap = createCapExpress({
+      publishStorage,
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber,
+      init: { autoInit: true },
+    });
+
+    const initialStart = cap.start();
+    await waitFor(() => initializationCount === 1);
+    const stop = cap.stop();
+    const restart = cap.start();
+
+    firstInitialization.resolve();
+    await Promise.all([initialStart, stop, restart]);
+
+    expect(cap.schedulerRunning).toBe(true);
+    expect(publishStorage.initialize).toHaveBeenCalledTimes(2);
+    expect(subscriber.close).toHaveBeenCalledTimes(1);
+
+    await cap.stop();
+  });
+
+  it('restarts after stop requested from the started state', async () => {
+    const closeBlocker = deferred<void>();
+    const closeStarted = deferred<void>();
+    let closeCount = 0;
+    const subscriber = new ClosableFakeSubscriber(async () => {
+      closeCount += 1;
+      if (closeCount === 1) {
+        closeStarted.resolve();
+        await closeBlocker.promise;
+      }
+    });
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber,
+    });
+
+    await cap.start();
+    const stop = cap.stop();
+    await closeStarted.promise;
+    const restart = cap.start();
+
+    closeBlocker.resolve();
+    await Promise.all([stop, restart]);
+
+    expect(cap.schedulerRunning).toBe(true);
+    expect(subscriber.close).toHaveBeenCalledTimes(1);
+
+    await cap.stop();
+  });
+
+  it('deduplicates concurrent stops', async () => {
+    const closeBlocker = deferred<void>();
+    const closeStarted = deferred<void>();
+    const subscriber = new ClosableFakeSubscriber(async () => {
+      closeStarted.resolve();
+      await closeBlocker.promise;
+    });
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber,
+    });
+
+    await cap.start();
+    const firstStop = cap.stop();
+    await closeStarted.promise;
+    const secondStop = cap.stop();
+
+    closeBlocker.resolve();
+    await Promise.all([firstStop, secondStop]);
+
+    expect(cap.schedulerRunning).toBe(false);
+    expect(subscriber.close).toHaveBeenCalledTimes(1);
+  });
+
   it('start() rejects when adapter initialization fails', async () => {
     const error = new Error('adapter init failed');
     const publishStorage = withInitializer(new InMemoryPublishStorage(), () =>
@@ -459,7 +567,12 @@ function withInitializer<T extends object>(
 }
 
 class ClosableFakeSubscriber extends FakeSubscriber {
-  close = jest.fn(() => Promise.resolve());
+  constructor(onClose: () => Promise<void> = () => Promise.resolve()) {
+    super();
+    this.close = jest.fn(onClose);
+  }
+
+  close: jest.Mock<Promise<void>, []>;
 }
 
 class FakeTransactionManager implements CapTransactionManagerPort {
@@ -482,4 +595,23 @@ async function waitFor(assertion: () => boolean): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 5));
   }
   throw new Error('Timed out waiting for condition');
+}
+
+function deferred<T>(): {
+  promise: Promise<T>;
+  resolve(value?: T): void;
+  reject(error: unknown): void;
+} {
+  let resolvePromise!: (value: T | PromiseLike<T>) => void;
+  let rejectPromise!: (error: unknown) => void;
+  const promise = new Promise<T>((resolve, reject) => {
+    resolvePromise = resolve;
+    rejectPromise = reject;
+  });
+
+  return {
+    promise,
+    resolve: (value?: T) => resolvePromise(value as T),
+    reject: rejectPromise,
+  };
 }

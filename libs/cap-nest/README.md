@@ -35,6 +35,26 @@ async handleUserCreated(payload: unknown) {
 }
 ```
 
+## Subscription Lifecycle
+
+Nest discovers `@CapSubscribe` handlers during `onModuleInit` and registers
+them without broker I/O. After all modules initialize, CAP's
+`onApplicationBootstrap` hook awaits adapter initialization and
+`SubscriberPort.consume()` attachment for every registered handler. An initial
+attachment failure therefore rejects application bootstrap instead of allowing
+the application to become ready without its consumers.
+
+Use Nest's normal awaited bootstrap before accepting traffic:
+
+```ts
+const app = await NestFactory.create(AppModule);
+await app.listen(3000);
+```
+
+Enable Nest shutdown hooks and await `app.close()` (or the framework shutdown
+path) for graceful consumer cleanup. CAP deduplicates shutdown and closes the
+subscriber during `onApplicationShutdown`.
+
 ## Documentation
 
 - [Repository overview](../../README.md)

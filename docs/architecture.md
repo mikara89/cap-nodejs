@@ -96,14 +96,20 @@ transport fails, the row remains eligible for scheduler retry.
 sequenceDiagram
   participant Nest
   participant Scanner
+  participant Lifecycle
   participant CapService
   participant Subscriber
   participant Inbox
   participant Handler
 
   Nest->>Scanner: onModuleInit
-  Scanner->>CapService: subscribe(topic, group, handler)
-  CapService->>Subscriber: consume(topic, group, callback)
+  Scanner->>CapService: registerSubscription(topic, group, handler)
+  Note over Scanner,CapService: registration only; no broker I/O
+  Nest->>Lifecycle: onApplicationBootstrap
+  Lifecycle->>CapService: await startSubscriptions()
+  CapService->>Subscriber: await consume(topic, group, callback)
+  Subscriber-->>CapService: initial consumer attached
+  CapService-->>Lifecycle: all registrations attached
   Subscriber->>CapService: callback(payload, headers?, metadata?)
   CapService->>Inbox: trySaveReceived(event)
   CapService->>Handler: invoke(payload, headers?)
@@ -115,8 +121,12 @@ sequenceDiagram
 ```
 
 `CapSubscriberScanner` scans Nest providers for `@CapSubscribe` metadata and
-registers handlers during module initialization. DTO validation is available
-through the `dto` option on `@CapSubscribe`.
+registers handlers without broker I/O during module initialization. After
+module initialization, `CapLifecycleService.onApplicationBootstrap()` awaits
+adapter initialization and attachment of every registered consumer. Attachment
+failure rejects bootstrap, so application readiness cannot precede consumer
+readiness. DTO validation is available through the `dto` option on
+`@CapSubscribe`.
 
 Handlers receive headers either as the second argument or through the
 `@CapHeaders()` parameter decorator.

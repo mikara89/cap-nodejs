@@ -20,6 +20,38 @@ const engine = new CapEngine({
 NestJS users can continue importing compatible CAP types through
 `@mikara89/cap-nest`.
 
+## Subscription Lifecycle
+
+Registration and broker attachment are separate operations. Register handlers
+first; registration is synchronous and performs no broker I/O. Then explicitly
+await startup so the process does not report itself ready before its consumers
+are attached:
+
+```ts
+engine.registerSubscription('user.created', 'mail-service', async (payload) =>
+  sendWelcomeEmail(payload),
+);
+
+await engine.startSubscriptions();
+```
+
+`startSubscriptions()` resolves only after every initial
+`SubscriberPort.consume()` call has resolved. It rejects with the failing topic
+and group when attachment fails. Concurrent starts share one operation, and a
+successful repeated start is idempotent. After a partial failure, calling it
+again retries registrations that are still unattached without duplicating
+successful attachments.
+
+`getSubscriptionLifecycle()` reports `idle`, `starting`, `ready`, `failed`,
+`stopping`, or `stopped`, plus registration and attachment counts and the most
+recent attachment failure. Use `subscribe()` only for intentional dynamic
+registration and immediate attachment after startup.
+
+For graceful shutdown, await `stopSubscriptions()` or `close()`. Shutdown is
+safe after partial startup, concurrent stops are deduplicated, and a start
+requested during shutdown waits for shutdown before attaching a fresh consumer
+cycle. Registrations remain available for restart.
+
 ## Transaction Context
 
 Existing transaction-handle publishing remains supported:
