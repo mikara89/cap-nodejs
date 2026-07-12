@@ -285,4 +285,47 @@ describe('CAP message envelope', () => {
       );
     });
   });
+
+  describe('JSON value validation', () => {
+    it.each([
+      ['Date', new Date()],
+      ['Map', new Map()],
+      ['Set', new Set()],
+      ['RegExp', /abc/],
+      ['Uint8Array', new Uint8Array([1, 2, 3])],
+      [
+        'class instance',
+        new (class {
+          value = 1;
+        })(),
+      ],
+      [
+        'object with non-JSON nested value',
+        { nested: new Map([['key', 'value']]) },
+      ],
+      ['object with undefined value', { valid: 'string', invalid: undefined }],
+    ])('rejects envelope payload containing %s', (_name, nonJsonPayload) => {
+      const envelope = {
+        $cap: { kind: CAP_MESSAGE_ENVELOPE_KIND, version: 1 },
+        payload: nonJsonPayload,
+      };
+
+      expect(isCapMessageEnvelopeV1(envelope)).toBe(false);
+      expect(() => decodeCapMessage(envelope)).toThrow(
+        MalformedCapMessageEnvelopeError,
+      );
+    });
+
+    it('rejects legacy envelope payload containing a Date', () => {
+      expect(
+        decodeCapMessage(
+          { payload: new Date() },
+          { legacyEnvelopeMode: 'accept' },
+        ),
+      ).toEqual({
+        payload: { payload: new Date() },
+        legacyEnvelope: false,
+      });
+    });
+  });
 });

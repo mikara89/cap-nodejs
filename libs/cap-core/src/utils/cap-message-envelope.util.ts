@@ -218,10 +218,16 @@ function isJsonValue(value: unknown): value is JsonValue {
   }
   if (typeof value === 'number') return Number.isFinite(value);
   if (Array.isArray(value)) return value.every((entry) => isJsonValue(entry));
-  if (!isRecord(value)) return false;
+  if (!isPlainRecord(value)) return false;
   return Object.values(value).every((entry) => isJsonValue(entry));
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (!isRecord(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }

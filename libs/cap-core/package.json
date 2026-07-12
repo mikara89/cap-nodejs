@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-core",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Framework-agnostic CAP core contracts, models, and utilities",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

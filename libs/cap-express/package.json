@@ -30,7 +30,7 @@
     "lint": "eslint \"src/**/*.ts\" --fix"
   },
   "dependencies": {
-    "@mikara89/cap-core": "^2.2.0"
+    "@mikara89/cap-core": "^2.3.0"
   },
   "peerDependencies": {
     "express": "^5.0.0"
