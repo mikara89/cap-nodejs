@@ -30,6 +30,20 @@ export function __resetLegacyNestjsWrapperWarningForTest(): void {
 
 const LEGACY_NESTJS_WRAPPER_KEYS = new Set(['payload', 'headers', 'metadata']);
 
+function hasOwn(value: object, property: PropertyKey): boolean {
+  return Object.prototype.hasOwnProperty.call(value, property);
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === Object.prototype || prototype === null;
+}
+
 /**
  * Detects the historical NestJS microservices transport wrapper
  * `{ payload, headers?, metadata }`. The presence of `metadata`
@@ -41,32 +55,32 @@ function isLegacyNestjsWrapper(value: unknown): value is LegacyNestjsWrapper {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
     return false;
   }
+
   const obj = value as Record<string, unknown>;
-  // Must have own payload and own metadata
-  if (!Object.hasOwn(obj, 'payload') || !Object.hasOwn(obj, 'metadata')) {
+
+  if (!hasOwn(obj, 'payload') || !hasOwn(obj, 'metadata')) {
     return false;
   }
-  // All own keys must be in the allowed set
+
   const keys = Object.keys(obj);
+
   if (keys.some((key) => !LEGACY_NESTJS_WRAPPER_KEYS.has(key))) {
     return false;
   }
-  // metadata must be a plain object (null is rejected by isRecord check above)
-  const metadataProto = Object.getPrototypeOf(obj.metadata);
-  if (metadataProto !== Object.prototype && metadataProto !== null) {
+
+  if (!isPlainRecord(obj.metadata)) {
     return false;
   }
-  // headers, if present and non-null, must be a plain object
+
   if (
-    Object.hasOwn(obj, 'headers') &&
+    hasOwn(obj, 'headers') &&
     obj.headers !== undefined &&
-    obj.headers !== null
+    obj.headers !== null &&
+    !isPlainRecord(obj.headers)
   ) {
-    const headersProto = Object.getPrototypeOf(obj.headers);
-    if (headersProto !== Object.prototype && headersProto !== null) {
-      return false;
-    }
+    return false;
   }
+
   return true;
 }
 
