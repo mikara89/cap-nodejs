@@ -104,6 +104,8 @@ export interface CapEngineOptions {
 
 const TRANSACTION_MANAGER_NOT_CONFIGURED =
   'CAP transaction manager is not configured. Pass an explicit ctx/tx to publish(), or configure a CapTransactionManagerPort.';
+const SUBSCRIPTION_SHUTDOWN_INCOMPLETE =
+  'CAP subscription shutdown is incomplete. Retry stopSubscriptions() before starting or attaching subscriptions.';
 
 const DEFAULT_SCHEDULER_OPTIONS: ResolvedCapEngineSchedulerOptions = {
   batchSize: 200,
@@ -134,6 +136,7 @@ export class CapEngine {
   private startPromise: Promise<void> | undefined;
   private stopPromise: Promise<void> | undefined;
   private stopRequested = false;
+  private shutdownIncomplete = false;
 
   constructor(options: CapEngineOptions) {
     this.publishStorage = options.publishStorage;
@@ -241,6 +244,8 @@ export class CapEngine {
    *
    * If a stop was requested while starting, the startup will abort after
    * the current attachment and the stop will proceed.
+   * Rejects while a previous subscriber shutdown remains incomplete; retry
+   * `stopSubscriptions()` successfully before starting again.
    */
   startSubscriptions(): Promise<void> {
     if (this.lifecycle === 'ready') return Promise.resolve();
@@ -252,6 +257,10 @@ export class CapEngine {
         () => this.startSubscriptions(),
         () => this.startSubscriptions(),
       );
+    }
+
+    if (this.shutdownIncomplete) {
+      return Promise.reject(new Error(SUBSCRIPTION_SHUTDOWN_INCOMPLETE));
     }
 
     if (this.startPromise) return this.startPromise;
@@ -335,6 +344,7 @@ export class CapEngine {
    * If called during an in-progress startup, it records a stop request,
    * awaits the startup, and then proceeds.  The final lifecycle is
    * guaranteed to be `stopped` (or `failed` if close itself fails).
+   * A failed close preserves attachment state and may be retried safely.
    */
   stopSubscriptions(): Promise<void> {
     if (this.lifecycle === 'stopped') return Promise.resolve();
@@ -368,6 +378,10 @@ export class CapEngine {
       }
     } catch (err) {
       this.logger.error?.('Subscriber close failed', err);
+      const message =
+        err instanceof Error ? err.message : 'Subscriber close failed';
+      this.lifecycleFailure = { message };
+      this.shutdownIncomplete = true;
       this.lifecycle = 'failed';
       throw err;
     }
@@ -376,6 +390,8 @@ export class CapEngine {
       sub.attached = false;
     }
 
+    this.shutdownIncomplete = false;
+    this.lifecycleFailure = undefined;
     this.lifecycle = 'stopped';
   }
 
@@ -418,6 +434,10 @@ export class CapEngine {
     this.assertNotDuplicate(topic, group);
     this.assertTopicValid(topic);
     this.assertGroupValid(group);
+
+    if (this.shutdownIncomplete) {
+      throw new Error(SUBSCRIPTION_SHUTDOWN_INCOMPLETE);
+    }
 
     // If already starting/stopping, reject so callers don't inject during
     // a lifecycle transition.

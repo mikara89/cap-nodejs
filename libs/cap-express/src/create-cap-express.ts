@@ -187,13 +187,23 @@ export function createCapExpress(
         }
         // Stop scheduler first.
         await scheduler.stop();
-        // Close subscriber.
-        await engine.close();
         started = false;
-        initialized = false;
 
-        // Prepare one stable readiness promise for the next lifecycle cycle.
-        readiness = createReadinessDeferred();
+        // Once scheduler work is stopped, readiness belongs to the next
+        // lifecycle cycle. Reject it if consumer shutdown cannot complete.
+        if (readiness.settled) {
+          readiness = createReadinessDeferred();
+        }
+        const nextReadiness = readiness;
+
+        // Close subscriber.
+        try {
+          await engine.close();
+        } catch (error) {
+          nextReadiness.reject(error);
+          throw error;
+        }
+        initialized = false;
       })();
 
       stopPromise = thisStop;

@@ -417,6 +417,40 @@ describe('CapEngine subscription lifecycle', () => {
     await expect(engine.stopSubscriptions()).resolves.toBeUndefined();
   });
 
+  it('requires a successful stop retry before restarting after close fails', async () => {
+    const engine = createEngine();
+    engine.registerSubscription('t', 'g', jest.fn());
+    await engine.startSubscriptions();
+
+    subscriber.closeError = new Error('close failed');
+
+    await expect(engine.stopSubscriptions()).rejects.toThrow('close failed');
+
+    expect(engine.getSubscriptionLifecycle()).toEqual({
+      state: 'failed',
+      registeredCount: 1,
+      attachedCount: 1,
+      failure: { message: 'close failed' },
+    });
+    await expect(engine.startSubscriptions()).rejects.toThrow(
+      'subscription shutdown is incomplete',
+    );
+    expect(subscriber.consumeCalls).toHaveLength(1);
+
+    subscriber.closeError = undefined;
+    await expect(engine.stopSubscriptions()).resolves.toBeUndefined();
+
+    expect(engine.getSubscriptionLifecycle()).toEqual({
+      state: 'stopped',
+      registeredCount: 1,
+      attachedCount: 0,
+    });
+
+    await expect(engine.startSubscriptions()).resolves.toBeUndefined();
+    expect(subscriber.consumeCalls).toHaveLength(2);
+    expect(engine.getSubscriptionLifecycle().state).toBe('ready');
+  });
+
   // -----------------------------------------------------------------------
   // Serialized start / stop
   // -----------------------------------------------------------------------

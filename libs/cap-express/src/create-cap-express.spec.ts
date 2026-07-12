@@ -491,6 +491,54 @@ describe('createCapExpress', () => {
     expect(subscriber.close).toHaveBeenCalledTimes(1);
   });
 
+  it('requires a successful stop retry before restarting after close fails', async () => {
+    const closeError = new Error('close failed');
+    let closeAttempt = 0;
+    const subscriber = new ClosableFakeSubscriber(() => {
+      closeAttempt += 1;
+      return closeAttempt === 1
+        ? Promise.reject(closeError)
+        : Promise.resolve();
+    });
+    const consumeSpy = jest.spyOn(subscriber, 'consume');
+    const cap = createCapExpress({
+      publishStorage: new InMemoryPublishStorage(),
+      receivedStorage: new InMemoryReceivedStorage(),
+      publisher: new FakePublisher(),
+      subscriber,
+    });
+
+    await cap.subscribe('t', 'g', jest.fn());
+    await cap.start();
+
+    await expect(cap.stop()).rejects.toThrow('close failed');
+
+    expect(cap.schedulerRunning).toBe(false);
+    expect(cap.subscriptionLifecycle()).toEqual({
+      state: 'failed',
+      registeredCount: 1,
+      attachedCount: 1,
+      failure: { message: 'close failed' },
+    });
+    await expect(cap.ready).rejects.toThrow('close failed');
+    await expect(cap.start()).rejects.toThrow(
+      'subscription shutdown is incomplete',
+    );
+    expect(cap.schedulerRunning).toBe(false);
+    expect(consumeSpy).toHaveBeenCalledTimes(1);
+
+    await expect(cap.stop()).resolves.toBeUndefined();
+    await expect(cap.start()).resolves.toBeUndefined();
+
+    expect(cap.schedulerRunning).toBe(true);
+    expect(cap.subscriptionLifecycle().state).toBe('ready');
+    expect(consumeSpy).toHaveBeenCalledTimes(2);
+    expect(subscriber.close).toHaveBeenCalledTimes(2);
+    await expect(cap.ready).resolves.toBeUndefined();
+
+    await cap.stop();
+  });
+
   it('start() rejects when adapter initialization fails', async () => {
     const error = new Error('adapter init failed');
     const publishStorage = withInitializer(new InMemoryPublishStorage(), () =>
