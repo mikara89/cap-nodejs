@@ -15,8 +15,9 @@ import {
 } from '@mikara89/cap-core';
 
 import { CapService, createNestLogger } from './cap.service';
-import { CAP_ENGINE } from './tokens';
+import { CAP_ENGINE, CAP_INIT } from './tokens';
 import { CapSubscriberScanner } from './scanner/cap-subscriber.scanner';
+import { CapLifecycleService } from './lifecycle/cap-lifecycle.service';
 import { CapSchedulerModule } from './scheduler/schedule.module';
 import {
   PUBLISH_STORAGE,
@@ -86,6 +87,7 @@ export class CapModule {
         capEngineProvider,
         capServiceProvider,
         CapSubscriberScanner,
+        CapLifecycleService,
         initProvider,
         ...CapSchedulerModule.attach(!schedulerDisabled).providers,
       ],
@@ -113,6 +115,7 @@ export class CapModule {
         capEngineProvider,
         capServiceProvider,
         CapSubscriberScanner,
+        CapLifecycleService,
         initProvider,
         ...CapSchedulerModule.attach(true).providers,
       ],
@@ -251,7 +254,7 @@ function createCapServiceProvider(): Provider {
 
 function createInitProvider(): Provider {
   return {
-    provide: 'CAP_INIT',
+    provide: CAP_INIT,
     useFactory: async (
       options: CapModuleOptions,
       pubStorage: IPublishStorage,

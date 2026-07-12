@@ -1,5 +1,6 @@
 import type { DynamicModule, Provider } from '@nestjs/common';
 import { CapModule } from './cap.module';
+import { CAP_INIT } from './tokens';
 import { PUBLISHER, SUBSCRIBER } from './abstractions/transport.interface';
 import {
   PUBLISH_STORAGE,
@@ -35,13 +36,13 @@ describe('CapModule initialization', () => {
       (
         p,
       ): p is Provider & {
-        provide: string;
+        provide: symbol | string;
         useFactory?: (...args: unknown[]) => Promise<void>;
       } =>
         typeof p === 'object' &&
         p !== null &&
         'provide' in p &&
-        p.provide === 'CAP_INIT',
+        p.provide === CAP_INIT,
     );
     expect(initProv).toBeDefined();
 

@@ -83,12 +83,16 @@ export class CapSubscriberScanner implements OnModuleInit {
           `(${topic}|${group || 'broadcast'})`,
       );
 
-      this.cap.subscribe(topic, group, async (payload: unknown, headers) => {
-        const validated = pipe ? pipe.transform(payload) : payload;
-        if (!filter || (await filter(validated))) {
-          await invokeBound(validated, headers);
-        }
-      });
+      this.cap.registerSubscription(
+        topic,
+        group,
+        async (payload: unknown, headers) => {
+          const validated = pipe ? pipe.transform(payload) : payload;
+          if (!filter || (await filter(validated))) {
+            await invokeBound(validated, headers);
+          }
+        },
+      );
     }
   }
 }

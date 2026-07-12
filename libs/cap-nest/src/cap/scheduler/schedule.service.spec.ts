@@ -109,7 +109,7 @@ describe('RetrySchedulerService', () => {
 
   it('retryInbox delegates to CapService and executes due retry handlers', async () => {
     const handler = jest.fn();
-    cap.subscribe('x', 'g', handler);
+    void cap.subscribe('x', 'g', handler);
     const rec: CapReceivedEvent = {
       id: 'r1',
       topic: 'x',

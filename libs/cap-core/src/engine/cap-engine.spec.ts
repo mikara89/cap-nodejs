@@ -496,7 +496,7 @@ describe('CapEngine', () => {
     const engine = createEngine();
     const handler = jest.fn();
 
-    engine.subscribe('topic-x', 'group-1', handler);
+    void engine.subscribe('topic-x', 'group-1', handler);
     await subscriber.deliver(
       'topic-x',
       'group-1',
@@ -516,7 +516,7 @@ describe('CapEngine', () => {
 
   it('subscribe marks received failed when handler throws', async () => {
     const engine = createEngine();
-    engine.subscribe('topic-r', 'group-r', () => {
+    void engine.subscribe('topic-r', 'group-r', () => {
       throw new Error('handler fail');
     });
 

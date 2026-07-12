@@ -81,7 +81,7 @@ describe('CapService (unit)', () => {
   it('subscribe - handler processed successfully and persisted', async () => {
     const handler = jest.fn(async () => undefined);
 
-    cap.subscribe('topic-x', 'group-1', handler);
+    void cap.subscribe('topic-x', 'group-1', handler);
 
     const handlers = subscriber.listeners.get('topic-x|group-1');
     expect(handlers).toBeDefined();
@@ -97,7 +97,7 @@ describe('CapService (unit)', () => {
   it('subscribe - duplicate delivery is persisted once and skipped', async () => {
     const handler = jest.fn(async () => undefined);
 
-    cap.subscribe('topic-x', 'group-1', handler);
+    void cap.subscribe('topic-x', 'group-1', handler);
 
     const handlers = subscriber.listeners.get('topic-x|group-1');
     expect(handlers).toBeDefined();
@@ -115,7 +115,7 @@ describe('CapService (unit)', () => {
       throw new Error('handler fail');
     });
 
-    cap.subscribe('topic-retry', 'group-r', handler);
+    void cap.subscribe('topic-retry', 'group-r', handler);
 
     const handlers = subscriber.listeners.get('topic-retry|group-r');
     expect(handlers).toBeDefined();

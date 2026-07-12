@@ -41,7 +41,43 @@ import {
 import { type CapTransactionContext } from '../transactions/cap-transaction-context';
 
 type Handler<T = unknown> = (payload: T, headers?: CapHeaders) => Promise<void>;
-type HandlerMap = Map<string, Map<string, Handler<JsonValue>>>;
+
+// ---------------------------------------------------------------------------
+// Subscription lifecycle types
+// ---------------------------------------------------------------------------
+
+export type CapSubscriptionLifecycleState =
+  | 'idle'
+  | 'starting'
+  | 'ready'
+  | 'failed'
+  | 'stopping'
+  | 'stopped';
+
+export interface CapSubscriptionLifecycleSnapshot {
+  readonly state: CapSubscriptionLifecycleState;
+  readonly registeredCount: number;
+  readonly attachedCount: number;
+  failure?: {
+    topic?: string;
+    group?: string;
+    message: string;
+  };
+}
+
+interface RegisteredSubscription {
+  readonly key: string;
+  readonly topic: string;
+  readonly group: string;
+  readonly handler: Handler<JsonValue>;
+  attached: boolean;
+}
+
+function subscriptionKey(topic: string, group: string): string {
+  return `${topic}|${group}`;
+}
+
+// ---------------------------------------------------------------------------
 
 export interface ResolvedCapEngineSchedulerOptions {
   batchSize: number;
@@ -89,7 +125,14 @@ export class CapEngine {
   private readonly idGenerator: () => string;
   private readonly transactionManager?: CapTransactionManagerPort;
   private readonly transactionContext?: CapTransactionContext;
-  private readonly handlers: HandlerMap = new Map();
+
+  // -- subscription lifecycle --
+  private readonly subscriptions = new Map<string, RegisteredSubscription>();
+  private lifecycle: CapSubscriptionLifecycleState = 'idle';
+  private lifecycleFailure?: CapSubscriptionLifecycleSnapshot['failure'];
+
+  private startPromise: Promise<void> | undefined;
+  private stopPromise: Promise<void> | undefined;
 
   constructor(options: CapEngineOptions) {
     this.publishStorage = options.publishStorage;
@@ -151,52 +194,276 @@ export class CapEngine {
     return this.transactionManager.runInTransaction(options, fn);
   }
 
-  subscribe<T = unknown>(
+  // -----------------------------------------------------------------------
+  // Registration (deferred, no broker I/O)
+  // -----------------------------------------------------------------------
+
+  /**
+   * Register a subscription handler without performing any broker I/O.
+   * Throws if the same `(topic, group)` pair is already registered.
+   * Rejects if lifecycle is `starting` or `stopping`.
+   */
+  registerSubscription<T = unknown>(
     topic: string,
     group: string,
     handler: Handler<T>,
   ): void {
-    this.registerHandler(topic, group, (payload, headers) =>
-      handler(payload as T, headers),
-    );
+    this.assertTopicValid(topic);
+    this.assertGroupValid(group);
+    this.assertRegistrable();
 
-    this.subscriber
-      .consume(topic, group, async (msg, headers, metadata) => {
-        const saved = await this.persistReceived<T>(
-          topic,
-          group,
-          msg as T,
-          headers,
-          metadata,
-        );
-
-        if (!saved.inserted) {
-          this.logger.debug?.(
-            `duplicate delivery skipped #${saved.id} (${topic}|${group})`,
-          );
-          return;
-        }
-
-        await this.tryHandle<T>(saved.event as CapReceivedEvent<T>, handler);
-      })
-      .catch((err: unknown) =>
-        this.logger.error?.(
-          `Subscriber attach failed (${topic}|${group})`,
-          err,
-        ),
+    const key = subscriptionKey(topic, group);
+    if (this.subscriptions.has(key)) {
+      throw new Error(
+        `Duplicate subscription registration for (${topic}|${group}): another CAP handler is already registered`,
       );
+    }
+
+    this.subscriptions.set(key, {
+      key,
+      topic,
+      group,
+      handler: (payload, headers) => handler(payload as T, headers),
+      attached: false,
+    });
   }
 
+  // -----------------------------------------------------------------------
+  // Startup (awaited attachment)
+  // -----------------------------------------------------------------------
+
+  /**
+   * Attach all registered-but-unattached subscriptions by calling
+   * `subscriber.consume()` for each.  Safe to call with zero registrations.
+   * Idempotent after a successful startup.
+   * Returns the same in-flight promise to concurrent callers.
+   */
+  startSubscriptions(): Promise<void> {
+    if (this.lifecycle === 'ready') return Promise.resolve();
+    if (this.startPromise) return this.startPromise;
+
+    this.startPromise = this.doStartSubscriptions().finally(() => {
+      this.startPromise = undefined;
+    });
+    return this.startPromise;
+  }
+
+  private async doStartSubscriptions(): Promise<void> {
+    if (this.lifecycle === 'starting' || this.lifecycle === 'stopping') {
+      // Let the ongoing operation finish; the retry logic in
+      // doStartSubscriptions handles unattached subscriptions.
+      // If we reach here via a concurrent caller, they are already
+      // waiting on startPromise.
+      return;
+    }
+
+    this.lifecycle = 'starting';
+    this.lifecycleFailure = undefined;
+
+    const unattached = [...this.subscriptions.values()].filter(
+      (s) => !s.attached,
+    );
+
+    if (unattached.length === 0) {
+      this.lifecycle = 'ready';
+      return;
+    }
+
+    // Attach sequentially for deterministic failure reporting.
+    for (const sub of unattached) {
+      try {
+        await this.attachSubscription(sub);
+        sub.attached = true;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Subscriber attachment failed';
+        this.lifecycleFailure = { topic: sub.topic, group: sub.group, message };
+        this.lifecycle = 'failed';
+        this.logger.error?.(
+          `Subscriber attach failed (${sub.topic}|${sub.group}): ${message}`,
+          err,
+        );
+        throw new Error(
+          `Subscription startup failed for (${sub.topic}|${sub.group}): ${message}`,
+          { cause: err },
+        );
+      }
+    }
+
+    this.lifecycle = 'ready';
+  }
+
+  // -----------------------------------------------------------------------
+  // Stop (graceful)
+  // -----------------------------------------------------------------------
+
+  /**
+   * Close all consumers through `subscriber.close()` and mark all
+   * registrations unattached.  Idempotent; safe after a failed start.
+   * Returns the same in-flight promise to concurrent callers.
+   */
+  stopSubscriptions(): Promise<void> {
+    if (this.lifecycle === 'stopped') return Promise.resolve();
+    if (this.stopPromise) return this.stopPromise;
+
+    this.stopPromise = this.doStopSubscriptions().finally(() => {
+      this.stopPromise = undefined;
+    });
+    return this.stopPromise;
+  }
+
+  private async doStopSubscriptions(): Promise<void> {
+    this.lifecycle = 'stopping';
+
+    try {
+      if (this.subscriber.close) {
+        await this.subscriber.close();
+      }
+    } catch (err) {
+      this.logger.error?.('Subscriber close failed', err);
+      this.lifecycle = 'failed';
+      throw err;
+    }
+
+    for (const sub of this.subscriptions.values()) {
+      sub.attached = false;
+    }
+
+    this.lifecycle = 'stopped';
+  }
+
+  // -----------------------------------------------------------------------
+  // Immediate subscribe (register + attach, backward-compatible)
+  // -----------------------------------------------------------------------
+
+  /**
+   * Register a handler and immediately attach it to the broker.
+   *
+   * - Rejects duplicates (synchronously or via returned promise).
+   * - Resolves when `subscriber.consume()` resolves.
+   * - Rejects when attachment fails.
+   *
+   * An internal rejection observer prevents unhandled rejections for
+   * callers that ignore the returned promise.
+   */
+  subscribe<T = unknown>(
+    topic: string,
+    group: string,
+    handler: Handler<T>,
+  ): Promise<void> {
+    try {
+      this.assertNotDuplicate(topic, group);
+      this.assertTopicValid(topic);
+      this.assertGroupValid(group);
+    } catch (err) {
+      return Promise.reject(
+        err instanceof Error ? err : new Error(String(err)),
+      );
+    }
+
+    // If already starting/stopping, reject so callers don't inject during
+    // a lifecycle transition.
+    if (this.lifecycle === 'starting' || this.lifecycle === 'stopping') {
+      return Promise.reject(
+        new Error(
+          `Cannot subscribe (${topic}|${group}) while lifecycle is '${this.lifecycle}'`,
+        ),
+      );
+    }
+
+    const key = subscriptionKey(topic, group);
+    const sub: RegisteredSubscription = {
+      key,
+      topic,
+      group,
+      handler: (payload, headers) => handler(payload as T, headers),
+      attached: false,
+    };
+    this.subscriptions.set(key, sub);
+
+    const attachPromise = this.attachSubscription(sub).then(
+      () => {
+        sub.attached = true;
+        // Only transition from idle→ready for dynamic subscribe after startup.
+        if (this.lifecycle === 'ready') {
+          // Already ready — just increment attached count.
+        } else if (this.lifecycle === 'idle' || this.lifecycle === 'stopped') {
+          // Single subscribe outside of startSubscriptions flow.
+          // Don't automatically become 'ready'—let explicit startSubscriptions
+          // manage the lifecycle transition.
+        }
+      },
+      (err: unknown) => {
+        const message =
+          err instanceof Error ? err.message : 'Subscriber attachment failed';
+        this.lifecycleFailure = { topic, group, message };
+        this.lifecycle = 'failed';
+        throw err;
+      },
+    );
+
+    // Prevent unhandled rejections for callers that ignore the returned promise.
+    // The attached internal observer records failure but does NOT change the
+    // rejection observed by callers that await the original promise.
+    attachPromise.catch((err: unknown) => {
+      // Failure already recorded by the rejection handler above.
+      this.logger.error?.(`Subscriber attach failed (${topic}|${group})`, err);
+    });
+
+    return attachPromise;
+  }
+
+  // -----------------------------------------------------------------------
+  // Lifecycle diagnostics
+  // -----------------------------------------------------------------------
+
+  /**
+   * Return a read-only snapshot of the subscription lifecycle.
+   * The returned object is a shallow copy — mutating it does not affect
+   * engine internals.
+   */
+  getSubscriptionLifecycle(): CapSubscriptionLifecycleSnapshot {
+    const attachedCount = [...this.subscriptions.values()].filter(
+      (s) => s.attached,
+    ).length;
+    const snapshot: CapSubscriptionLifecycleSnapshot = {
+      state: this.lifecycle,
+      registeredCount: this.subscriptions.size,
+      attachedCount,
+    };
+    if (this.lifecycleFailure) {
+      snapshot.failure = { ...this.lifecycleFailure };
+    }
+    return snapshot;
+  }
+
+  // -----------------------------------------------------------------------
+  // Retry (inbox)
+  // -----------------------------------------------------------------------
+
   async retryReceived(rec: CapReceivedEvent): Promise<void> {
-    const handler = this.handlers.get(rec.topic)?.get(rec.group);
-    if (!handler) {
+    const key = subscriptionKey(rec.topic, rec.group);
+    const sub = this.subscriptions.get(key);
+    if (!sub) {
       this.logger.warn?.(
         `No handler registered for ${rec.topic}|${rec.group}; skipping retry`,
       );
       return;
     }
-    await this.tryHandle(rec, handler);
+    await this.tryHandle(rec, sub.handler);
   }
+
+  // -----------------------------------------------------------------------
+  // Close (delegates to subscription stop)
+  // -----------------------------------------------------------------------
+
+  async close(): Promise<void> {
+    await this.stopSubscriptions();
+  }
+
+  // -----------------------------------------------------------------------
+  // Scheduler batch operations
+  // -----------------------------------------------------------------------
 
   async dispatchOutboxBatch(): Promise<number> {
     if (this.schedulerOptions.disabled) return 0;
@@ -245,10 +512,6 @@ export class CapEngine {
     }
 
     return batch.length;
-  }
-
-  async close(): Promise<void> {
-    await this.subscriber.close?.();
   }
 
   private async savePublishEvent<TTx>(
@@ -426,13 +689,78 @@ export class CapEngine {
     }
   }
 
-  private registerHandler(
-    topic: string,
-    group: string,
-    handler: Handler<JsonValue>,
-  ): void {
-    if (!this.handlers.has(topic)) this.handlers.set(topic, new Map());
-    this.handlers.get(topic)?.set(group, handler);
+  // -----------------------------------------------------------------------
+  // Private helpers
+  // -----------------------------------------------------------------------
+
+  private async attachSubscription(sub: RegisteredSubscription): Promise<void> {
+    // Register handler BEFORE calling consume — some transports/test doubles
+    // may deliver synchronously while consume() is still resolving.
+    await this.subscriber.consume(
+      sub.topic,
+      sub.group,
+      async (
+        msg: unknown,
+        headers?: CapHeaders,
+        metadata?: SubscribeMetadata,
+      ) => {
+        const saved = await this.persistReceived(
+          sub.topic,
+          sub.group,
+          msg as JsonValue,
+          headers,
+          metadata,
+        );
+
+        if (!saved.inserted) {
+          this.logger.debug?.(
+            `duplicate delivery skipped #${saved.id} (${sub.topic}|${sub.group})`,
+          );
+          return;
+        }
+
+        await this.tryHandle(saved.event, sub.handler);
+      },
+    );
+  }
+
+  private assertTopicValid(topic: string): void {
+    if (!topic || typeof topic !== 'string') {
+      throw new Error('CAP subscription topic must be a non-empty string');
+    }
+  }
+
+  private assertGroupValid(group: string): void {
+    if (typeof group !== 'string') {
+      throw new Error('CAP subscription group must be a string');
+    }
+  }
+
+  private assertRegistrable(): void {
+    if (this.lifecycle === 'starting') {
+      throw new Error(
+        "Cannot register subscriptions while lifecycle is 'starting'. Wait for startup to complete.",
+      );
+    }
+    if (this.lifecycle === 'stopping') {
+      throw new Error(
+        "Cannot register subscriptions while lifecycle is 'stopping'.",
+      );
+    }
+    if (this.lifecycle === 'ready') {
+      throw new Error(
+        "Cannot use registerSubscription() while lifecycle is 'ready'. Use subscribe() for dynamic subscriptions.",
+      );
+    }
+  }
+
+  private assertNotDuplicate(topic: string, group: string): void {
+    const key = subscriptionKey(topic, group);
+    if (this.subscriptions.has(key)) {
+      throw new Error(
+        `Duplicate subscription for (${topic}|${group}): another CAP handler is already registered`,
+      );
+    }
   }
 
   private async persistReceived<T>(

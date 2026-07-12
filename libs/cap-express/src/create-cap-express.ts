@@ -8,6 +8,7 @@ import {
   type CapOperationContext,
   type CapPublishOptions,
   type CapSchedulerOptions,
+  type CapSubscriptionLifecycleSnapshot,
   type CapTransactionOptions,
   type InitOptions,
   type JsonValue,
@@ -60,6 +61,7 @@ export interface CapExpressApp {
   stop(): Promise<void>;
   healthRouter(): Router;
   readonly schedulerRunning: boolean;
+  readonly subscriptionLifecycle: () => CapSubscriptionLifecycleSnapshot;
 }
 
 const DEFAULT_OUTBOX_INTERVAL_MS = 5_000;
@@ -106,8 +108,13 @@ export function createCapExpress(
     publish: (topic, payload, publishOptions) =>
       engine.publish(topic, payload, publishOptions),
     subscribe: async (topic, group, handler) => {
-      engine.subscribe(topic, group, handler);
-      await Promise.resolve();
+      if (!started) {
+        // Pre-start: deferred registration only, no broker I/O.
+        engine.registerSubscription(topic, group, handler);
+        return;
+      }
+      // Post-start: dynamic immediate subscription.
+      await engine.subscribe(topic, group, handler);
     },
     transaction: (fn, transactionOptions) =>
       engine.transaction(fn, transactionOptions),
@@ -117,10 +124,14 @@ export function createCapExpress(
       }
 
       startPromise ??= (async () => {
+        // 1. Initialize adapters.
         if (!initialized) {
           await initializeAdapters(options);
           initialized = true;
         }
+        // 2. Attach all registered subscriptions.
+        await engine.startSubscriptions();
+        // 3. Start the scheduler.
         scheduler.start();
         started = true;
       })();
@@ -132,10 +143,17 @@ export function createCapExpress(
       }
     },
     stop: async () => {
+      // Await any in-progress start.
       if (startPromise) {
-        await startPromise;
+        try {
+          await startPromise;
+        } catch {
+          // Start failed — still need to clean up.
+        }
       }
+      // Stop scheduler first.
       await scheduler.stop();
+      // Close subscriber.
       await engine.close();
       started = false;
       initialized = false;
@@ -144,6 +162,7 @@ export function createCapExpress(
     get schedulerRunning() {
       return started;
     },
+    subscriptionLifecycle: () => engine.getSubscriptionLifecycle(),
   };
 
   if (options.autoStart) {

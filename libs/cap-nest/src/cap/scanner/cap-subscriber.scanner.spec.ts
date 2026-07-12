@@ -4,7 +4,7 @@ import { CapHeaders } from '../decorators/cap-headers.decorator';
 import { ModulesContainer, Reflector } from '@nestjs/core';
 
 describe('CapSubscriberScanner (integration)', () => {
-  it('discovers @CapSubscribe methods and calls CapService.subscribe', () => {
+  it('discovers @CapSubscribe methods and calls CapService.registerSubscription', () => {
     // create a test class with decorated method
     class ProviderWithHandler {
       @CapSubscribe({ topic: 't.scan', group: 'g-scan' })
@@ -24,7 +24,7 @@ describe('CapSubscriberScanner (integration)', () => {
 
     const reflector = new Reflector();
 
-    const capService = { subscribe: jest.fn() } as unknown as any;
+    const capService = { registerSubscription: jest.fn() } as unknown as any;
 
     const scanner = new CapSubscriberScanner(
       modulesContainer,
@@ -34,7 +34,7 @@ describe('CapSubscriberScanner (integration)', () => {
 
     scanner.onModuleInit();
 
-    expect(capService.subscribe).toHaveBeenCalledWith(
+    expect(capService.registerSubscription).toHaveBeenCalledWith(
       't.scan',
       'g-scan',
       expect.any(Function),
@@ -57,7 +57,7 @@ describe('CapSubscriberScanner (integration)', () => {
     const modulesContainer = new Map() as unknown as ModulesContainer;
     modulesContainer.set('mod', { providers: providersMap as any } as any);
 
-    const capService = { subscribe: jest.fn() } as unknown as any;
+    const capService = { registerSubscription: jest.fn() } as unknown as any;
     const scanner = new CapSubscriberScanner(
       modulesContainer,
       new Reflector(),
@@ -66,7 +66,8 @@ describe('CapSubscriberScanner (integration)', () => {
 
     scanner.onModuleInit();
 
-    const handler = (capService.subscribe as jest.Mock).mock.calls[0][2] as (
+    const handler = (capService.registerSubscription as jest.Mock).mock
+      .calls[0][2] as (
       payload: unknown,
       headers?: Record<string, unknown>,
     ) => Promise<void>;

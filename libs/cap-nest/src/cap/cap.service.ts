@@ -4,6 +4,7 @@ import {
   type CapLogger,
   type CapOperationContext,
   type CapPublishOptions,
+  type CapSubscriptionLifecycleSnapshot,
   type CapTransactionOptions,
 } from '@mikara89/cap-core';
 
@@ -31,6 +32,7 @@ const DEFAULT_SCHEDULER_OPTIONS: ResolvedCapSchedulerOptions = {
 export type {
   CapOperationContext,
   CapPublishOptions,
+  CapSubscriptionLifecycleSnapshot,
   CapTransactionOptions,
 } from '@mikara89/cap-core';
 
@@ -82,12 +84,36 @@ export class CapService {
     return this.engine.publish(topic, payload, options);
   }
 
-  subscribe<T = unknown>(
+  registerSubscription<T = unknown>(
     topic: string,
     group: string,
     handler: Handler<T>,
   ): void {
-    this.engine.subscribe(topic, group, handler as Handler<JsonValue>);
+    this.engine.registerSubscription(
+      topic,
+      group,
+      handler as Handler<JsonValue>,
+    );
+  }
+
+  startSubscriptions(): Promise<void> {
+    return this.engine.startSubscriptions();
+  }
+
+  stopSubscriptions(): Promise<void> {
+    return this.engine.stopSubscriptions();
+  }
+
+  getSubscriptionLifecycle(): CapSubscriptionLifecycleSnapshot {
+    return this.engine.getSubscriptionLifecycle();
+  }
+
+  subscribe<T = unknown>(
+    topic: string,
+    group: string,
+    handler: Handler<T>,
+  ): Promise<void> {
+    return this.engine.subscribe(topic, group, handler as Handler<JsonValue>);
   }
 
   transaction<T>(
