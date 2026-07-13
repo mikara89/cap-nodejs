@@ -346,13 +346,26 @@ function withFixture(specs, fn) {
   try {
     return fn(cwd);
   } finally {
-    fs.rmSync(cwd, {
-      recursive: true,
-      force: true,
-      maxRetries: 5,
-      retryDelay: 100,
-    });
+    removeFixture(cwd);
   }
+}
+
+async function withAsyncFixture(specs, fn) {
+  const cwd = createFixture(specs);
+  try {
+    return await fn(cwd);
+  } finally {
+    removeFixture(cwd);
+  }
+}
+
+function removeFixture(cwd) {
+  fs.rmSync(cwd, {
+    recursive: true,
+    force: true,
+    maxRetries: 5,
+    retryDelay: 100,
+  });
 }
 
 function createPostVersionFixture(specs) {
@@ -576,43 +589,53 @@ function signedPlan(plan) {
   };
 }
 
-test('release executor does not invoke publish when post-version validation fails', async () => {
-  let published = false;
-  const plan = signedPlan({
-    schemaVersion: 1,
-    headSha: command('git', ['rev-parse', 'HEAD'], rootDir).trim(),
-    inputs: {
-      operation: 'release',
-      channel: 'stable',
-      coordinatedMajor: false,
-      confirmation: '',
-    },
-    noChanges: false,
-    packages: [
+test('release executor does not invoke publish when post-version validation fails', () =>
+  withAsyncFixture(
+    [
       {
+        id: 'storage-knex',
         name: '@mikara89/cap-storage-knex',
-        oldVersion: '2.2.1',
-        newVersion: '2.2.2',
+        version: '2.2.1',
       },
     ],
-    command: { args: ['publish', '--yes'] },
-  });
-  await assert.rejects(
-    executePlan(plan, {
-      cwd: rootDir,
-      checkClean: false,
-      checkRemote: false,
-      simulate: () => {
-        throw new ReleaseToolError('simulated manifest/lockfile mismatch');
-      },
-      run: () => {
-        published = true;
-      },
-    }),
-    /simulated manifest\/lockfile mismatch/,
-  );
-  assert.equal(published, false);
-});
+    async (cwd) => {
+      let published = false;
+      const plan = signedPlan({
+        schemaVersion: 1,
+        headSha: command('git', ['rev-parse', 'HEAD'], cwd).trim(),
+        inputs: {
+          operation: 'release',
+          channel: 'stable',
+          coordinatedMajor: false,
+          confirmation: '',
+        },
+        noChanges: false,
+        packages: [
+          {
+            name: '@mikara89/cap-storage-knex',
+            oldVersion: '2.2.1',
+            newVersion: '2.2.2',
+          },
+        ],
+        command: { args: ['publish', '--yes'] },
+      });
+      await assert.rejects(
+        executePlan(plan, {
+          cwd,
+          checkClean: false,
+          checkRemote: false,
+          simulate: () => {
+            throw new ReleaseToolError('simulated manifest/lockfile mismatch');
+          },
+          run: () => {
+            published = true;
+          },
+        }),
+        /simulated manifest\/lockfile mismatch/,
+      );
+      assert.equal(published, false);
+    },
+  ));
 
 test('package ownership classifier distinguishes build inputs from test and documentation inputs', () => {
   for (const file of [
@@ -690,47 +713,86 @@ test('Lerna-generated package changelog excludes root conventional commits and s
     },
   ));
 
-test('release executor does not invoke publish when generated versions drift from plan', async () => {
-  let published = false;
-  const plan = signedPlan({
-    schemaVersion: 1,
-    headSha: command('git', ['rev-parse', 'HEAD'], rootDir).trim(),
-    inputs: {
-      operation: 'release',
-      channel: 'stable',
-      coordinatedMajor: false,
-      confirmation: '',
-    },
-    noChanges: false,
-    packages: [
+test('release executor does not invoke publish when generated versions drift from plan', () =>
+  withAsyncFixture(
+    [
       {
+        id: 'storage-knex',
         name: '@mikara89/cap-storage-knex',
-        oldVersion: '2.2.1',
-        newVersion: '2.2.2',
+        version: '2.2.1',
       },
     ],
-    command: { args: ['publish', '--yes'] },
-  });
-  await assert.rejects(
-    executePlan(plan, {
-      cwd: rootDir,
-      checkClean: false,
-      checkRemote: false,
-      simulate: () => [
-        {
-          name: '@mikara89/cap-storage-knex',
-          oldVersion: '2.2.1',
-          newVersion: '2.2.3',
+    async (cwd) => {
+      let published = false;
+      const plan = signedPlan({
+        schemaVersion: 1,
+        headSha: command('git', ['rev-parse', 'HEAD'], cwd).trim(),
+        inputs: {
+          operation: 'release',
+          channel: 'stable',
+          coordinatedMajor: false,
+          confirmation: '',
         },
-      ],
-      run: () => {
-        published = true;
-      },
-    }),
-    /Simulated post-version state no longer matches the approved release plan/,
-  );
-  assert.equal(published, false);
-});
+        noChanges: false,
+        packages: [
+          {
+            name: '@mikara89/cap-storage-knex',
+            oldVersion: '2.2.1',
+            newVersion: '2.2.2',
+          },
+        ],
+        command: { args: ['publish', '--yes'] },
+      });
+      await assert.rejects(
+        executePlan(plan, {
+          cwd,
+          checkClean: false,
+          checkRemote: false,
+          simulate: () => [
+            {
+              name: '@mikara89/cap-storage-knex',
+              oldVersion: '2.2.1',
+              newVersion: '2.2.3',
+            },
+          ],
+          run: () => {
+            published = true;
+          },
+        }),
+        /Simulated post-version state no longer matches the approved release plan/,
+      );
+      assert.equal(published, false);
+    },
+  ));
+
+test('release executor rejects a detached checkout', () =>
+  withAsyncFixture(
+    [{ id: 'core', name: '@fixture/core', version: '1.0.0' }],
+    async (cwd) => {
+      command('git', ['switch', '--quiet', '--detach'], cwd);
+      const plan = signedPlan({
+        schemaVersion: 1,
+        headSha: command('git', ['rev-parse', 'HEAD'], cwd).trim(),
+        inputs: {
+          operation: 'release',
+          channel: 'stable',
+          coordinatedMajor: false,
+          confirmation: '',
+        },
+        noChanges: true,
+        packages: [],
+        command: { args: ['publish', '--yes'] },
+      });
+      await assert.rejects(
+        executePlan(plan, {
+          cwd,
+          checkClean: false,
+          checkRemote: false,
+        }),
+        /Releases are allowed only from main, not \(detached\)/,
+      );
+    },
+  ));
 
 test('simulated plan comparison is independent of package order', () => {
   const plan = {
