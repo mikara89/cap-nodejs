@@ -7,7 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
+import { resolve, sep } from 'path';
 import { CapDashboardAccess } from './cap-dashboard.auth';
 import { CapDashboardGuard } from './guards/cap-dashboard.guard';
 
@@ -38,10 +38,14 @@ export class CapDashboardAssetsController {
       throw new NotFoundException();
     }
 
-    const path = join(
+    const assetsRoot = resolve(
       (this.constructor as typeof CapDashboardAssetsController).assetsPath,
-      file,
     );
+    const path = resolve(assetsRoot, file);
+    if (path !== assetsRoot && !path.startsWith(assetsRoot + sep)) {
+      throw new NotFoundException();
+    }
+
     if (!existsSync(path)) {
       throw new NotFoundException();
     }
