@@ -317,13 +317,11 @@ describe('CAP message envelope', () => {
     });
 
     it('rejects legacy envelope payload containing a Date', () => {
+      const date = new Date();
       expect(
-        decodeCapMessage(
-          { payload: new Date() },
-          { legacyEnvelopeMode: 'accept' },
-        ),
+        decodeCapMessage({ payload: date }, { legacyEnvelopeMode: 'accept' }),
       ).toEqual({
-        payload: { payload: new Date() },
+        payload: { payload: date },
         legacyEnvelope: false,
       });
     });

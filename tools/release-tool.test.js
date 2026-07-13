@@ -1624,13 +1624,11 @@ test('sourceFilesChanged returns false when both commits are identical', () =>
 
 // --- Development validation guard tests ---
 
-test('affected validation scripts do not modify versions or create tags', () => {
+test('affected validation scripts use repository tooling without release or package-local Jest commands', () => {
   const scripts = [
-    'check:affected',
-    'lint:affected',
-    'build:affected',
-    'test:affected',
-    'pack:dry-run:affected',
+    'ci:affected:plan',
+    'ci:affected',
+    'test:affected-validation',
   ];
   const rootManifest = JSON.parse(
     fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'),
@@ -1650,7 +1648,13 @@ test('affected validation scripts do not modify versions or create tags', () => 
       /git\s+tag/,
       `${script} must not create git tags`,
     );
+    assert.doesNotMatch(
+      command,
+      /lerna\s+(?:run|exec).*?(?:test|jest)/,
+      `${script} must not run Jest from package directories`,
+    );
   }
+  assert.equal(rootManifest.scripts['test:affected'], undefined);
 });
 
 test('release workflow trigger remains manual-only (workflow_dispatch)', () => {

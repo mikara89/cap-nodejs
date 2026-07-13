@@ -31,14 +31,18 @@ on:
         default: false
         type: boolean
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  # ------- fast affected checks -------
-  affected-checks:
+  # Pull requests use one install and the repository-owned affected plan.
+  # Pushes to main and manual runs execute every complete validation step below.
+  build-and-test:
     runs-on: ubuntu-latest
-    outputs:
-      affected_packages: ${{ steps.affected.outputs.packages }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout complete history
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup Node.js
@@ -48,25 +52,87 @@ jobs:
           cache: 'npm'
       - name: Install
         run: npm ci --package-lock=true
-      - name: List affected packages
-        id: affected
-        run: |
-          AFFECTED=$(npx lerna ls --since=origin/main --all 2>/dev/null | grep '^@mikara89/' | tr '\n' ' ')
-          echo "packages=${AFFECTED}" >> "$GITHUB_OUTPUT"
-          echo "Affected packages: ${AFFECTED}"
-      - name: Lint affected
-        run: npm run lint:affected
-      - name: Build affected
-        run: npm run build:affected
-      # Note: test:affected is intentionally excluded from fast checks.
-      # Running jest from sub-package directories via lerna run test
-      # bypasses ts-jest transforms on Linux. The full build-and-test
-      # job runs npm test --silent from root which works correctly.
 
-  # ------- targeted integration: RabbitMQ -------
+      - name: Generate affected validation plan
+        if: ${{ github.event_name == 'pull_request' }}
+        run: >
+          node tools/affected-validation.js plan
+          --base "${{ github.event.pull_request.base.sha }}"
+          --head "${{ github.sha }}"
+          --output affected-plan.json
+      - name: Run affected validation
+        if: ${{ github.event_name == 'pull_request' }}
+        run: node tools/affected-validation.js run --plan affected-plan.json
+
+      - name: Verify workspace packages
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run packages:verify
+      - name: Lint
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run lint:check
+      - name: Verify Lerna release configuration
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run release:verify
+      - name: Verify deprecated package names are absent
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run verify:legacy-package-names
+      - name: Test release tooling
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run test:release-tooling
+      - name: Fallow audit
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run fallow:ci
+        continue-on-error: true
+      - name: Fallow health gate
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run fallow:health:ci
+      - name: Build
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run build
+      - name: Type-check examples
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run examples:check
+      - name: Generate API docs
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run docs:api
+      - name: Verify workspace links
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm ls --workspaces --depth=0
+      - name: Type-check `libs/cap-nest`
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npx tsc -p libs/cap-nest/tsconfig.lib.json --noEmit
+      - name: Run tests
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm test --silent
+      - name: Run e2e tests
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run test:e2e -- --runInBand
+      - name: Run DB integration gate
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run test:integration:db
+      - name: Verify package contents
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run pack:dry-run
+      - name: Verify RabbitMQ package install
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run pack:smoke:rabbitmq
+      - name: Verify Kafka package install
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run pack:smoke:kafka
+      - name: Verify AWS SNS/SQS package install
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run pack:smoke:aws-sns-sqs
+      - name: Verify storage Nest package exports
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run pack:smoke:storage-nest
+      - name: Verify dashboard package isolation
+        if: ${{ github.event_name != 'pull_request' }}
+        run: npm run pack:smoke:dashboard-isolation
+
+  # Optional real-broker gates remain manual and isolated from pull requests.
+  # They install/build independently because jobs do not share a filesystem.
   rabbitmq-integration:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_rabbitmq_integration }}
-    needs: affected-checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -84,10 +150,8 @@ jobs:
       - name: Run RabbitMQ integration gate
         run: npm run test:integration:rabbitmq
 
-  # ------- targeted integration: Kafka -------
   kafka-integration:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_kafka_integration }}
-    needs: affected-checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -105,10 +169,8 @@ jobs:
       - name: Run Kafka integration gate
         run: npm run test:integration:kafka
 
-  # ------- targeted integration: AWS SNS/SQS -------
   aws-sns-sqs-integration:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_aws_sns_sqs_integration }}
-    needs: affected-checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -125,60 +187,6 @@ jobs:
         run: npm run build
       - name: Run AWS SNS/SQS integration gate
         run: npm run test:integration:aws-sns-sqs
-
-  # ------- full validation (PR and push gate) -------
-  build-and-test:
-    needs: affected-checks
-    if: ${{ !cancelled() && !failure() }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-      - name: Install
-        run: npm ci --package-lock=true
-      - name: Verify workspace packages
-        run: npm run packages:verify
-      - name: Lint
-        run: npm run lint:check
-      - name: Verify Lerna release configuration
-        run: npm run release:verify
-      - name: Verify deprecated package names are absent
-        run: npm run verify:legacy-package-names
-      - name: Test release tooling
-        run: npm run test:release-tooling
-      - name: Fallow audit
-        run: npm run fallow:ci
-        continue-on-error: true
-      - name: Fallow health gate
-        run: npm run fallow:health:ci
-      - name: Build
-        run: npm run build
-      - name: Type-check examples
-        run: npm run examples:check
-      - name: Generate API docs
-        run: npm run docs:api
-      - name: Verify workspace links
-        run: npm ls --workspaces --depth=0
-      - name: Type-check `libs/cap-nest`
-        run: npx tsc -p libs/cap-nest/tsconfig.lib.json --noEmit
-      - name: Run tests
-        run: npm test --silent
-      - name: Run e2e tests
-        run: npm run test:e2e -- --runInBand
-      - name: Run DB integration gate
-        run: npm run test:integration:db
-      - name: Verify package contents
-        run: npm run pack:dry-run
-      - name: Verify RabbitMQ package install
-        run: npm run pack:smoke:rabbitmq
-      - name: Verify Kafka package install
-        run: npm run pack:smoke:kafka
-      - name: Verify AWS SNS/SQS package install
-        run: npm run pack:smoke:aws-sns-sqs
 
   servicebus-integration:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_servicebus_integration }}

@@ -374,6 +374,32 @@ function validateWorkspacePackages(options = {}) {
   };
 }
 
+function selectWorkspacePackages(validation, packageNames) {
+  if (!Array.isArray(packageNames))
+    fail('Selected packages must be provided as an array of package names.');
+  const names = [...new Set(packageNames)];
+  for (const name of names) {
+    if (typeof name !== 'string' || name.trim() === '')
+      fail('Selected package names must be non-empty strings.');
+    if (!validation.graph.byName.has(name))
+      fail(`Unknown publishable workspace package ${name}.`);
+  }
+  const selected = new Set(names);
+  return validation.orderedPackages.filter((pkg) => selected.has(pkg.name));
+}
+
+function readPackageSelection(filePath, field) {
+  const resolved = path.resolve(filePath);
+  const value = readJson(resolved);
+  const selected = Array.isArray(value) ? value : value?.[field];
+  if (!Array.isArray(selected)) {
+    fail(
+      `${normalizePath(resolved)} must contain an array or an array field ${field}.`,
+    );
+  }
+  return selected;
+}
+
 function defaultCommandRunner(command, args, options) {
   return spawnSync(command, args, {
     cwd: options.cwd,
@@ -439,8 +465,11 @@ function runWorkspaceScript(options = {}) {
         fixture: options.fixture,
         validateLockfile: options.validateLockfile ?? false,
       })
-    : validateWorkspacePackages({ cwd });
-  for (const pkg of validation.orderedPackages) {
+    : validateWorkspacePackages({ cwd, fixture: options.fixture });
+  const orderedPackages = options.packageNames
+    ? selectWorkspacePackages(validation, options.packageNames)
+    : validation.orderedPackages;
+  for (const pkg of orderedPackages) {
     if (
       typeof pkg.manifest.scripts?.[script] !== 'string' ||
       pkg.manifest.scripts[script].trim() === ''
@@ -455,7 +484,7 @@ function runWorkspaceScript(options = {}) {
       cwd,
     });
   }
-  return validation.orderedPackages;
+  return orderedPackages;
 }
 
 function packWorkspacePackages(options = {}) {
@@ -469,11 +498,15 @@ function packWorkspacePackages(options = {}) {
         requireBuild: options.requireBuild ?? false,
         validateLockfile: options.validateLockfile ?? false,
       })
-    : validateWorkspacePackages({ cwd });
-  for (const pkg of validation.orderedPackages) {
+    : validateWorkspacePackages({ cwd, fixture: options.fixture });
+  const orderedPackages = options.packageNames
+    ? selectWorkspacePackages(validation, options.packageNames)
+    : validation.orderedPackages;
+  for (const pkg of orderedPackages) {
     const invocation = npmInvocation([
       'pack',
       '--dry-run',
+      ...(options.ignoreScripts === true ? ['--ignore-scripts'] : []),
       '--workspace',
       pkg.name,
     ]);
@@ -482,11 +515,11 @@ function packWorkspacePackages(options = {}) {
       cwd,
     });
   }
-  return validation.orderedPackages;
+  return orderedPackages;
 }
 
 function usage() {
-  return `Usage: workspace-packages.js <command> [options]\n\nCommands:\n  list [--json]       List publishable workspace packages\n  verify              Validate workspace metadata, graph, scripts, and lockfile\n  run --script <name> Run a package script in dependency-first order\n  pack --dry-run      Dry-run npm packing in dependency-first order\n`;
+  return `Usage: workspace-packages.js <command> [options]\n\nCommands:\n  list [--json]       List publishable workspace packages\n  verify              Validate workspace metadata, graph, scripts, and lockfile\n  run --script <name> [--packages-file <file>] [--packages-field <field>]\n                      Run a package script in dependency-first order\n  pack --dry-run [--packages-file <file>] [--packages-field <field>]\n                      Dry-run npm packing in dependency-first order\n`;
 }
 
 function parseArgs(argv) {
@@ -499,6 +532,8 @@ function parseArgs(argv) {
     if (arg === '--json') options.json = true;
     else if (arg === '--dry-run') options.dryRun = true;
     else if (arg === '--script') options.script = args[++index];
+    else if (arg === '--packages-file') options.packagesFile = args[++index];
+    else if (arg === '--packages-field') options.packagesField = args[++index];
     else fail(`Unknown option: ${arg}.\n${usage()}`);
   }
   return options;
@@ -550,11 +585,27 @@ function main(argv = process.argv.slice(2)) {
     return;
   }
   if (options.command === 'run') {
-    runWorkspaceScript({ cwd: rootDir, script: options.script });
+    const packageNames = options.packagesFile
+      ? readPackageSelection(
+          options.packagesFile,
+          options.packagesField || 'buildPackages',
+        )
+      : undefined;
+    runWorkspaceScript({ cwd: rootDir, script: options.script, packageNames });
     return;
   }
   if (options.command === 'pack') {
-    packWorkspacePackages({ cwd: rootDir, dryRun: options.dryRun });
+    const packageNames = options.packagesFile
+      ? readPackageSelection(
+          options.packagesFile,
+          options.packagesField || 'packPackages',
+        )
+      : undefined;
+    packWorkspacePackages({
+      cwd: rootDir,
+      dryRun: options.dryRun,
+      packageNames,
+    });
     return;
   }
   fail(`Unknown command: ${options.command}.\n${usage()}`);
@@ -571,7 +622,9 @@ module.exports = {
   npmInvocation,
   packWorkspacePackages,
   parseArgs,
+  readPackageSelection,
   runWorkspaceScript,
+  selectWorkspacePackages,
   sortWorkspacePackages,
   validatePackageIdentities,
   validateWorkspaceConfiguration,

@@ -84,6 +84,19 @@ npm run packages:list
 npm run packages:verify
 ```
 
+Inspect or execute the same affected plan used by pull-request CI:
+
+```sh
+npm run ci:affected:plan -- --base origin/main --head HEAD --json
+npm run ci:affected -- --base origin/main --head HEAD
+```
+
+The planner includes internal dependents for runtime, export, manifest, and
+build-config changes, then builds through the shared dependency graph. Tests
+run from the repository root with the root Jest configuration. Root/global
+configuration changes escalate to complete validation. Storage runtime and
+contract changes conditionally enable the database integration gate.
+
 Run repository health checks:
 
 ```sh
@@ -121,10 +134,22 @@ workspace directory and returns its non-zero exit status.
 The repository-private workspace tool owns generic discovery and deterministic
 local orchestration. Lerna remains the independent version and publish
 authority. Specialized pack smoke tests remain package-specific because they
-validate isolated installation behavior. Expanding Nx adoption or redesigning
-CI optimization is deferred to separate work.
+validate isolated installation behavior. The affected-validation policy reuses
+the same descriptors and graph; it does not maintain another package list.
 
 ## Pull Request Guidelines
+
+Pull requests run one `build-and-test` affected-validation path with one
+dependency install. Package-focused changes build and test the changed packages
+and compatibility dependents; package documentation can select only a pack
+check. Repository-global changes run the complete suite. Pushes to `main`,
+manual CI runs, and the release workflow retain complete validation.
+
+Superseded pull-request runs are cancelled. Optional real-broker integrations
+remain manual and never receive pull-request secrets. Use a manual CI workflow
+dispatch on the intended ref when you want to force the complete suite. See
+[development validation](docs/development-validation.md) for the classification
+rules and local equivalents.
 
 - Keep changes focused and explain the user-facing or maintainer-facing reason.
 - Add or update tests when changing behavior.

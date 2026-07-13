@@ -7,6 +7,12 @@ publisher, and GitHub release source.
 For day-to-day development validation, see
 [docs/development-validation.md](./development-validation.md).
 
+Pull-request CI may use the affected fast path, but pushes to `main` and this
+manual release workflow always run complete repository validation. The
+affected planner never replaces release candidate selection, Lerna versioning,
+environment approval, OIDC publication, tag creation, or the release workflow's
+independent safety gate.
+
 The verified toolchain is Lerna 9.0.7 with
 `conventional-changelog-conventionalcommits` 7.0.2. The explicit preset is
 required because Lerna's bundled Angular preset does not treat a bang header as
