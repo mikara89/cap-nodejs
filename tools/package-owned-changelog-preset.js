@@ -1,7 +1,7 @@
 'use strict';
 
-const fs = require('node:fs');
 const path = require('node:path');
+const packagesByCwd = new Map();
 
 function dependencyRoot() {
   return (
@@ -24,21 +24,21 @@ function loadConventionalCommitsPreset() {
 }
 
 function packageByName(name, cwd = process.cwd()) {
-  const libsDir = path.join(cwd, 'libs');
-  for (const entry of fs.readdirSync(libsDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const dir = path.join(libsDir, entry.name);
-    const manifestPath = path.join(dir, 'package.json');
-    if (!fs.existsSync(manifestPath)) continue;
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-    if (manifest.name !== name) continue;
-    return {
-      dir,
-      manifestPath,
-      name,
-      relativeDir: path.relative(cwd, dir).replaceAll('\\', '/'),
-    };
+  const resolvedCwd = path.resolve(cwd);
+  if (!packagesByCwd.has(resolvedCwd)) {
+    const { discoverPackages } = loadReleasePolicy();
+    packagesByCwd.set(
+      resolvedCwd,
+      new Map(
+        discoverPackages(resolvedCwd, { fixture: true }).map((pkg) => [
+          pkg.name,
+          pkg,
+        ]),
+      ),
+    );
   }
+  const pkg = packagesByCwd.get(resolvedCwd).get(name);
+  if (pkg) return pkg;
   throw new Error(`Unable to resolve changelog package ${name} under libs/*.`);
 }
 

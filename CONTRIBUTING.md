@@ -77,12 +77,52 @@ Verify package contents before publishing:
 npm run pack:dry-run
 ```
 
+Inspect and validate the publishable workspace package set:
+
+```sh
+npm run packages:list
+npm run packages:verify
+```
+
 Run repository health checks:
 
 ```sh
 npm run fallow:audit
 npm run fallow:health
 ```
+
+## Adding a Package
+
+Publishable packages are discovered dynamically from the shared `libs/*`
+workspace boundary. A package participates when its `package.json` is not
+private; aggregate builds run its own `build` script in dependency-first order,
+and aggregate pack dry-runs include it automatically. No root aggregate package
+list needs to be edited. Existing `build:lib:*` root aliases are optional
+developer conveniences, not the package-discovery authority.
+
+Aggregate build and pack commands run sequentially, stream package output, and
+stop at the first failing package. A failure reports that package's name and
+workspace directory and returns its non-zero exit status.
+
+1. Create `libs/<package>/package.json`.
+2. Use an `@mikara89/cap-*` package name.
+3. Add a valid package-owned `build` script.
+4. Add public npm publish metadata.
+5. Add source, tests, README, and exports.
+6. Run:
+
+   ```sh
+   npm run packages:verify
+   npm run build:libs
+   npm run pack:dry-run
+   npm run release:verify
+   ```
+
+The repository-private workspace tool owns generic discovery and deterministic
+local orchestration. Lerna remains the independent version and publish
+authority. Specialized pack smoke tests remain package-specific because they
+validate isolated installation behavior. Expanding Nx adoption or redesigning
+CI optimization is deferred to separate work.
 
 ## Pull Request Guidelines
 

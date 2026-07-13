@@ -292,6 +292,8 @@ Never create a new version merely to retry a partial release.
 ```sh
 npm install
 npm audit --omit=dev
+npm run packages:list
+npm run packages:verify
 npm run release:verify
 npm run release:baseline
 npm run test:release-tooling

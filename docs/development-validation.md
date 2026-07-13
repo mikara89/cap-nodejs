@@ -73,9 +73,20 @@ Cache is local by default (`node_modules/.cache/nx`). It is not committed.
 For a full sequential build (release parity), use:
 
 ```powershell
-npm run build:libs              # Root sequential build
+npm run build:libs              # Dynamic dependency-first sequential build
 npm run build:libs:lerna        # Lerna parallel build
 ```
+
+`build:libs` and `pack:dry-run` discover every non-private package from the
+configured `libs/*` npm/Lerna workspace boundary. Use `npm run packages:list`
+to inspect the deterministic package set and `npm run packages:verify` to check
+package identities, build scripts, the internal dependency graph, and lockfile
+metadata. Adding a valid package does not require editing either aggregate root
+command. Lerna continues to own independent releases; Nx remains available for
+affected/cached development tasks, and package-specific isolated pack smoke
+checks remain separate. Full build and pack orchestration is sequential and
+fail-fast: it streams package output, reports the failing package and directory,
+and stops immediately with a non-zero exit status.
 
 ## Tier 2 — PR acceptance
 
@@ -89,6 +100,9 @@ npm run test:affected
 
 # Full lint (root-level eslint)
 npm run lint:check
+
+# Workspace package metadata and dependency graph
+npm run packages:verify
 
 # Type-check examples
 npm run examples:check

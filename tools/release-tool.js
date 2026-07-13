@@ -7,6 +7,10 @@ const path = require('node:path');
 const zlib = require('node:zlib');
 const { spawnSync } = require('node:child_process');
 const semver = require('semver');
+const {
+  discoverWorkspacePackages,
+  validateWorkspacePackages,
+} = require('./workspace-packages');
 
 const rootDir = path.resolve(__dirname, '..');
 const registry = 'https://registry.npmjs.org/';
@@ -64,28 +68,8 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-function discoverPackages(cwd = rootDir) {
-  const libsDir = path.join(cwd, 'libs');
-  return fs
-    .readdirSync(libsDir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => {
-      const dir = path.join(libsDir, entry.name);
-      const manifestPath = path.join(dir, 'package.json');
-      if (!fs.existsSync(manifestPath)) return undefined;
-      const manifest = readJson(manifestPath);
-      if (manifest.private) return undefined;
-      return {
-        dir,
-        relativeDir: path.relative(cwd, dir).replaceAll('\\', '/'),
-        manifestPath,
-        manifest,
-        name: manifest.name,
-        version: manifest.version,
-      };
-    })
-    .filter(Boolean)
-    .sort((left, right) => left.name.localeCompare(right.name));
+function discoverPackages(cwd = rootDir, options = {}) {
+  return discoverWorkspacePackages({ cwd, fixture: options.fixture === true });
 }
 
 function verifyConfiguration(cwd = rootDir, options = {}) {
@@ -93,19 +77,7 @@ function verifyConfiguration(cwd = rootDir, options = {}) {
   // shares the checked-out toolchain instead of installing dependencies again.
   // Keep the generated repository state and its installed toolchain explicit.
   const dependencyRoot = options.dependencyRoot || cwd;
-  const rootManifest = readJson(path.join(cwd, 'package.json'));
   const lerna = readJson(path.join(cwd, 'lerna.json'));
-  if (rootManifest.private !== true) {
-    fail('The workspace root must remain private.');
-  }
-  if (
-    JSON.stringify(rootManifest.workspaces) !== JSON.stringify(['libs/*']) ||
-    JSON.stringify(lerna.packages) !== JSON.stringify(['libs/*'])
-  ) {
-    fail(
-      'The workspace root must be excluded; npm workspaces and Lerna packages must target only libs/*.',
-    );
-  }
   if (lerna.version !== 'independent')
     fail('lerna.json must use independent versioning.');
   const version = lerna.command?.version;
@@ -187,16 +159,19 @@ function verifyConfiguration(cwd = rootDir, options = {}) {
     fail('Installed Lerna does not create annotated package tags by default.');
   }
 
-  const packages = discoverPackages(cwd);
-  if (packages.length === 0) fail('No publishable packages were discovered.');
-  const names = new Set();
+  const packages = discoverPackages(cwd, options);
+  validateWorkspacePackages({
+    cwd,
+    packages,
+    fixture: options.fixture === true,
+    // Build-script completeness belongs to packages:verify. Release fixtures
+    // intentionally model only versioning metadata and must remain lightweight.
+    requireBuild: false,
+    validateLockfile: options.fixture !== true,
+    validateRanges: options.fixture !== true,
+    dependenciesOnly: options.fixture !== true,
+  });
   for (const pkg of packages) {
-    if (!options.fixture && !pkg.name?.startsWith('@mikara89/cap-'))
-      fail(`Unexpected publishable package ${pkg.name}.`);
-    if (names.has(pkg.name)) fail(`Duplicate package name ${pkg.name}.`);
-    names.add(pkg.name);
-    if (!semver.valid(pkg.version))
-      fail(`${pkg.name} has invalid version ${pkg.version}.`);
     if (
       !options.fixture &&
       (pkg.manifest.publishConfig?.registry !== registry ||
@@ -206,49 +181,6 @@ function verifyConfiguration(cwd = rootDir, options = {}) {
     }
     if (!options.fixture && pkg.manifest.repository?.url !== repositoryUrl) {
       fail(`${pkg.name} repository URL must be ${repositoryUrl}.`);
-    }
-  }
-
-  const byName = new Map(packages.map((pkg) => [pkg.name, pkg]));
-  if (!options.fixture) {
-    const lockfile = readJson(path.join(cwd, 'package-lock.json'));
-    for (const pkg of packages) {
-      const locked = lockfile.packages?.[pkg.relativeDir];
-      if (!locked || locked.version !== pkg.version) {
-        fail(`package-lock.json does not match ${pkg.name}@${pkg.version}.`);
-      }
-      for (const section of [
-        'peerDependencies',
-        'devDependencies',
-        'optionalDependencies',
-      ]) {
-        for (const name of Object.keys(pkg.manifest[section] || {})) {
-          if (byName.has(name)) {
-            fail(
-              `${pkg.name} must declare internal ${name} in dependencies, not ${section}; duplicate/local-only ranges prevent Lerna from updating published ranges.`,
-            );
-          }
-        }
-      }
-      for (const [name, range] of Object.entries(
-        pkg.manifest.dependencies || {},
-      )) {
-        const target = byName.get(name);
-        if (!target) continue;
-        if (
-          !semver.validRange(range) ||
-          !semver.satisfies(target.version, range)
-        ) {
-          fail(
-            `${pkg.name} internal dependency ${name}@${range} does not include ${target.version}.`,
-          );
-        }
-        if (locked.dependencies?.[name] !== range) {
-          fail(
-            `package-lock.json range for ${pkg.name} -> ${name} does not match ${range}.`,
-          );
-        }
-      }
     }
   }
 
