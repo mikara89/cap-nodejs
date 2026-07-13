@@ -18,17 +18,6 @@ const {
 const rootDir = path.resolve(__dirname, '..');
 const planVersion = 1;
 
-function resolveValidationCwd(inputCwd) {
-  const resolved = path.resolve(inputCwd || rootDir);
-  const rel = path.relative(rootDir, resolved);
-  if (rel.startsWith('..') || path.isAbsolute(rel)) {
-    throw new AffectedCommandError(
-      `cwd must be within repository root: ${rootDir}. Received: ${resolved}.`,
-    );
-  }
-  return resolved;
-}
-
 const globalBuildFiles = new Set([
   'package.json',
   'package-lock.json',
@@ -902,7 +891,7 @@ function runCompleteValidation(context, statuses) {
 }
 
 function runAffectedValidation(plan, options = {}) {
-  const cwd = resolveValidationCwd(options.cwd);
+  const cwd = path.resolve(options.cwd || rootDir);
   const validation = validatePlan(plan, {
     cwd,
     validation: options.validation,
