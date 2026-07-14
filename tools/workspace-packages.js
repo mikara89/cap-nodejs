@@ -401,33 +401,48 @@ function readPackageSelection(filePath, field) {
 }
 
 function defaultCommandRunner(command, args, options) {
-  return spawnSync(command, args, {
+  const spawnOptions = {
     cwd: options.cwd,
     env: options.env || process.env,
     stdio: options.stdio || 'inherit',
-  });
+    shell: false,
+  };
+  if (command === process.execPath)
+    return spawnSync(process.execPath, args, spawnOptions);
+  if (command === 'npm') return spawnSync('npm', args, spawnOptions);
+  return {
+    status: null,
+    error: new Error(`Unsupported npm executable resolution: ${command}.`),
+  };
 }
 
-function npmInvocation(args) {
+function npmInvocation(args, options = {}) {
+  const existsSync = options.existsSync || fs.existsSync;
+  const platform = options.platform || process.platform;
+  const nodeDirectory = path.dirname(process.execPath);
   const npmCli = [
-    process.env.npm_execpath,
-    path.join(
-      path.dirname(process.execPath),
+    path.join(nodeDirectory, 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+    path.resolve(
+      nodeDirectory,
+      '..',
+      'lib',
       'node_modules',
       'npm',
       'bin',
       'npm-cli.js',
     ),
-  ]
-    .filter(Boolean)
-    .find((candidate) => fs.existsSync(candidate));
+    path.resolve(
+      nodeDirectory,
+      '..',
+      'node_modules',
+      'npm',
+      'bin',
+      'npm-cli.js',
+    ),
+  ].find((candidate) => existsSync(candidate));
   if (npmCli) return { command: process.execPath, args: [npmCli, ...args] };
-  if (process.platform === 'win32') {
-    return {
-      command: process.env.ComSpec || 'cmd.exe',
-      args: ['/d', '/s', '/c', 'npm.cmd', ...args],
-    };
-  }
+  if (platform === 'win32')
+    fail('Could not locate npm-cli.js in the current Node.js installation.');
   return { command: 'npm', args };
 }
 
@@ -435,9 +450,13 @@ function runCommandForPackage(pkg, command, args, options) {
   const runner = options.runner || defaultCommandRunner;
   const env = { ...process.env, ...(options.env || {}) };
   const result = runner(command, args, {
+    kind: 'npm',
+    command,
+    args: [...args],
     cwd: options.cwd,
     env,
     stdio: options.stdio || 'inherit',
+    shell: false,
     package: pkg,
   });
   if (result?.error) {

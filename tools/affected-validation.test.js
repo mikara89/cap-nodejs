@@ -9,10 +9,15 @@ const test = require('node:test');
 
 const {
   AffectedCommandError,
+  AffectedValidationError,
+  commandKinds,
+  createCommandInvocation,
   createAffectedPlan,
   createPlanFromChangedFiles,
   formatPlanSummary,
   main,
+  resolveCommandInvocation,
+  resolveCommit,
   runAffectedValidation,
 } = require('./affected-validation');
 const { validateWorkspacePackages } = require('./workspace-packages');
@@ -180,8 +185,21 @@ function syntheticPlan(fixture, changedFiles) {
 
 function captureRunner(options = {}) {
   const calls = [];
-  const runner = (command, args, invocation) => {
-    calls.push({ command, args: [...args], options: invocation });
+  const runner = (invocation) => {
+    calls.push({
+      ...invocation,
+      args: [...invocation.args],
+      env: { ...invocation.env },
+      options: invocation,
+    });
+    if (
+      options.startupErrorGate &&
+      invocation.gate === options.startupErrorGate
+    )
+      return {
+        status: null,
+        error: new Error(options.startupErrorMessage || 'could not start'),
+      };
     if (options.failGate && invocation.gate === options.failGate)
       return { status: options.exitCode || 7, stdout: '', stderr: 'failed' };
     return { status: 0, stdout: '', stderr: '' };
@@ -192,6 +210,149 @@ function captureRunner(options = {}) {
 function joinedCalls(calls) {
   return calls.map((call) => call.args.join(' ')).join('\n');
 }
+
+test('command invocation resolves only repository-approved executables', async (t) => {
+  await t.test('1 Git kind resolves to Git and keeps refs as arguments', () => {
+    const invocation = resolveCommandInvocation(commandKinds.git, [
+      'rev-parse',
+      '--verify',
+      'feature^{commit}',
+    ]);
+    assert.equal(invocation.command, 'git');
+    assert.deepEqual(invocation.args, [
+      'rev-parse',
+      '--verify',
+      'feature^{commit}',
+    ]);
+  });
+
+  await t.test(
+    '2 npm kind preserves the repository npm resolver result',
+    () => {
+      const npmCli = path.join(repositoryRoot, 'node_modules', 'npm-cli.js');
+      const invocation = resolveCommandInvocation(
+        commandKinds.npm,
+        ['run', 'lint:check'],
+        {
+          npmResolver: (args) => ({
+            command: process.execPath,
+            args: [npmCli, ...args],
+          }),
+        },
+      );
+      assert.equal(invocation.command, process.execPath);
+      assert.deepEqual(invocation.args, [npmCli, 'run', 'lint:check']);
+    },
+  );
+
+  await t.test('3 POSIX npm fallback is the fixed npm executable', () => {
+    const invocation = resolveCommandInvocation(commandKinds.npm, ['test'], {
+      platform: 'linux',
+      npmResolver: (args) => ({ command: 'npm', args }),
+    });
+    assert.deepEqual(invocation, { command: 'npm', args: ['test'] });
+  });
+
+  await t.test('4 Windows command-processor fallbacks are rejected', () => {
+    assert.throws(
+      () =>
+        resolveCommandInvocation(commandKinds.npm, ['run', 'build'], {
+          platform: 'win32',
+          npmResolver: (args) => ({
+            command: 'cmd.exe',
+            args: ['/d', '/s', '/c', 'npm.cmd', ...args],
+          }),
+        }),
+      /Unsupported npm executable resolution: cmd\.exe/u,
+    );
+  });
+
+  await t.test(
+    '5 Node kind resolves only to the current Node executable',
+    () => {
+      const absoluteTest = path.resolve('libs/core/src/example.spec.ts');
+      const invocation = resolveCommandInvocation(commandKinds.node, [
+        absoluteTest,
+      ]);
+      assert.equal(invocation.command, process.execPath);
+      assert.deepEqual(invocation.args, [absoluteTest]);
+      assert.notEqual(invocation.command, absoluteTest);
+    },
+  );
+
+  await t.test('6 unknown kinds and non-array arguments are rejected', () => {
+    assert.throws(
+      () => resolveCommandInvocation('custom', ['tool.js']),
+      (error) =>
+        error instanceof AffectedValidationError &&
+        /Unsupported command kind: custom/u.test(error.message),
+    );
+    assert.throws(
+      () => resolveCommandInvocation(commandKinds.git, 'status'),
+      /must be an array/u,
+    );
+  });
+
+  await t.test('7 unexpected npm executables are rejected', () => {
+    assert.throws(
+      () =>
+        resolveCommandInvocation(commandKinds.npm, ['test'], {
+          platform: 'linux',
+          npmResolver: (args) => ({ command: '/tmp/npm', args }),
+        }),
+      /Unsupported npm executable resolution/u,
+    );
+  });
+
+  await t.test(
+    '8 invocation records forward environment and explicitly disable shells',
+    () => {
+      const invocation = createCommandInvocation(
+        commandKinds.node,
+        ['tool.js'],
+        {
+          cwd: repositoryRoot,
+          env: {
+            CAP_COMMAND_TEST: 'forwarded',
+            PATH: 'C:\\not-an-executable-selection',
+          },
+          encoding: 'utf8',
+          gate: 'command record',
+        },
+      );
+      assert.equal(invocation.command, process.execPath);
+      assert.equal(invocation.env.CAP_COMMAND_TEST, 'forwarded');
+      assert.equal(invocation.shell, false);
+      assert.equal(invocation.stdio, 'pipe');
+      assert.equal(invocation.gate, 'command record');
+    },
+  );
+
+  await t.test(
+    '9 Git output capture retains deterministic invocation data',
+    () => {
+      let captured;
+      const sha = resolveCommit('topic/ref', {
+        cwd: repositoryRoot,
+        gitRunner: (invocation) => {
+          captured = invocation;
+          return { status: 0, stdout: 'abc123\n', stderr: '' };
+        },
+      });
+      assert.equal(sha, 'abc123');
+      assert.equal(captured.kind, commandKinds.git);
+      assert.equal(captured.command, 'git');
+      assert.deepEqual(captured.args, [
+        'rev-parse',
+        '--verify',
+        'topic/ref^{commit}',
+      ]);
+      assert.equal(captured.encoding, 'utf8');
+      assert.equal(captured.stdio, 'pipe');
+      assert.equal(captured.shell, false);
+    },
+  );
+});
 
 test('changed-file mapping and Git comparison are deterministic', async (t) => {
   const fixture = createFixture();
@@ -764,6 +925,154 @@ test('affected execution uses root tools, selected packages, and fail-fast gates
       });
       assert.deepEqual(fs.readdirSync(tempDir), []);
       fs.rmSync(tempDir, { recursive: true, force: true });
+    });
+    await t.test(
+      '15 Jest and absolute test paths remain arguments to approved Node',
+      () => {
+        const plan = syntheticPlan(fixture, ['libs/core/src/index.ts']);
+        const capture = captureRunner();
+        runAffectedValidation(plan, {
+          cwd: fixture.cwd,
+          validation: fixture.validation,
+          runner: capture.runner,
+          fixture: true,
+        });
+        const jest = capture.calls.find((call) =>
+          call.args.some((arg) => /jest[\\/]bin[\\/]jest\.js$/u.test(arg)),
+        );
+        assert.ok(jest);
+        assert.equal(jest.kind, commandKinds.node);
+        assert.equal(jest.command, process.execPath);
+        assert.equal(path.isAbsolute(jest.args[0]), true);
+        assert.notEqual(jest.command, jest.args[0]);
+        assert.equal(jest.shell, false);
+      },
+    );
+    await t.test(
+      '16 package builds remain allowlisted npm workspace invocations',
+      () => {
+        const plan = syntheticPlan(fixture, ['libs/core/src/index.ts']);
+        const capture = captureRunner();
+        runAffectedValidation(plan, {
+          cwd: fixture.cwd,
+          validation: fixture.validation,
+          runner: capture.runner,
+          fixture: true,
+        });
+        const builds = capture.calls.filter(
+          (call) =>
+            call.args.includes('--workspace') && call.args.includes('build'),
+        );
+        assert.ok(builds.length > 0);
+        for (const call of builds) {
+          assert.equal(call.kind, commandKinds.npm);
+          assert.ok(['npm', process.execPath].includes(call.command));
+          assert.equal(call.shell, false);
+        }
+      },
+    );
+    await t.test(
+      '17 plan JSON cannot select a command kind or executable',
+      () => {
+        const plan = syntheticPlan(fixture, ['libs/independent/src/index.ts']);
+        plan.commandKind = 'custom';
+        plan.command = path.resolve(fixture.cwd, 'untrusted-command.exe');
+        const capture = captureRunner();
+        runAffectedValidation(plan, {
+          cwd: fixture.cwd,
+          validation: fixture.validation,
+          runner: capture.runner,
+          fixture: true,
+        });
+        for (const call of capture.calls) {
+          assert.ok(Object.values(commandKinds).includes(call.kind));
+          assert.notEqual(call.command, plan.command);
+        }
+      },
+    );
+    await t.test(
+      '18 changed filenames remain data rather than executables',
+      () => {
+        const changed = 'libs/independent/src/untrusted-command.exe';
+        const plan = syntheticPlan(fixture, [changed]);
+        const capture = captureRunner();
+        runAffectedValidation(plan, {
+          cwd: fixture.cwd,
+          validation: fixture.validation,
+          runner: capture.runner,
+          fixture: true,
+        });
+        assert.deepEqual(plan.changedFiles, [changed]);
+        assert.equal(
+          capture.calls.some((call) =>
+            call.command.includes('untrusted-command'),
+          ),
+          false,
+        );
+      },
+    );
+    await t.test('19 streaming commands explicitly inherit output', () => {
+      const plan = syntheticPlan(fixture, ['libs/independent/README.md']);
+      const capture = captureRunner();
+      runAffectedValidation(plan, {
+        cwd: fixture.cwd,
+        validation: fixture.validation,
+        runner: capture.runner,
+        fixture: true,
+      });
+      assert.ok(capture.calls.length > 0);
+      assert.ok(capture.calls.every((call) => call.stdio === 'inherit'));
+      assert.ok(capture.calls.every((call) => call.shell === false));
+    });
+    await t.test(
+      '20 startup failures retain the gate and child diagnostic',
+      () => {
+        const plan = syntheticPlan(fixture, ['libs/independent/README.md']);
+        const capture = captureRunner({
+          startupErrorGate: 'packageVerify',
+          startupErrorMessage: 'ENOENT while starting approved executable',
+        });
+        assert.throws(
+          () =>
+            runAffectedValidation(plan, {
+              cwd: fixture.cwd,
+              validation: fixture.validation,
+              runner: capture.runner,
+              fixture: true,
+              printSummary: false,
+            }),
+          (error) =>
+            error instanceof AffectedCommandError &&
+            /packageVerify failed to start: ENOENT while starting approved executable/u.test(
+              error.message,
+            ),
+        );
+      },
+    );
+    await t.test('21 injected invocation records are deterministic', () => {
+      const plan = syntheticPlan(fixture, ['libs/independent/README.md']);
+      const run = () => {
+        const capture = captureRunner();
+        runAffectedValidation(plan, {
+          cwd: fixture.cwd,
+          validation: fixture.validation,
+          runner: capture.runner,
+          fixture: true,
+        });
+        return capture.calls.map(
+          ({ kind, command, args, cwd, encoding, stdio, shell, gate }) => ({
+            kind,
+            command,
+            args,
+            cwd,
+            encoding,
+            stdio,
+            shell,
+            gate,
+          }),
+        );
+      };
+      assert.deepEqual(run(), run());
     });
   } finally {
     fixture.cleanup();
