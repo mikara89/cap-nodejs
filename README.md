@@ -18,15 +18,21 @@ Application code
 
 ## Status
 
-The repository roadmap is at the `v2.4` milestone, beginning with the transport
-contract foundation. The core messaging path, current first-party adapters,
-dashboard auth extension points, header propagation, and release workflow are
-implemented for the supported boundaries documented below.
+The defined `v2.4` implementation scope is complete in the repository. It
+introduced the transport conformance foundation and the first-party RabbitMQ,
+Kafka, and AWS SNS/SQS adapters alongside the supported boundaries documented
+below.
+
+Implementation in the repository is not a blanket npm publication status.
+Publishable packages use independent versions, so each package can be published
+on its own release line. Check the public npm registry and the package-owned
+changelog for the version that is currently published before adopting it.
 
 The root workspace package is private and its `2.4.1` version tracks repository
 roadmap progress. It is not an npm package version and does not imply that all
 libraries are version `2.4.1`. Publishable packages live under `libs/*`, remain
 independently versioned by Lerna, and keep their current release baselines.
+The roadmap milestone name does not require every package to become `2.4.0`.
 Root-only milestone changes must produce zero Lerna package candidates.
 
 ## Packages

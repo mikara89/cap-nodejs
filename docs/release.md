@@ -43,18 +43,17 @@ a breaking change in this installed version.
 
 ## One-time baseline bootstrap
 
-npmjs currently records `2.2.0` for all 14 packages with npmjs registry
-`gitHead` `65f0c11f2cac774da8bd7068e277d25c6ed588b3`. This value comes from
-`https://registry.npmjs.org/` metadata, not GitHub Packages. The npmjs tarballs
-for all 14 packages—including Knex, TypeORM, and Prisma—already exist. Bootstrap
-downloads them, verifies their SRI and SHA-1 hashes and embedded package
-identity, confirms the recorded commit contains the matching package/version,
-and then restores the independent annotated tags Lerna expects:
+Bootstrap is for establishing genuinely missing independent package baselines;
+it is not the normal release path. The planner reads current
+`https://registry.npmjs.org/` metadata, downloads existing tarballs, verifies
+their SRI and SHA-1 hashes and embedded package identity, confirms that each
+recorded commit contains the matching package/version, and restores the
+independent annotated tags Lerna expects:
 
 ```text
-@mikara89/cap-core@2.2.0
-@mikara89/cap-testing@2.2.0
-...one @mikara89/<package>@2.2.0 tag per published package
+@mikara89/cap-core@<version>
+@mikara89/cap-testing@<version>
+...one @mikara89/<package>@<version> tag per published package
 ```
 
 Each tag points to the npmjs-recorded `gitHead`. Bootstrap fails if an existing
@@ -85,15 +84,19 @@ Run the workflow with:
 - `coordinated_major=false`
 - `confirmation=PUBLISH_ALL_TO_NPM`
 
+Generate and inspect a bootstrap plan before selecting this operation. Do not
+assume bootstrap is appropriate merely because a package is new to the v2.4
+milestone; stop if the planner rejects the current registry or tag state.
+
 Use a temporary granular `NPM_TOKEN` only if trusted publishing cannot create
 the initial packages. After bootstrap, configure every npm package's trusted
 publisher for repository `mikara89/cap-nodejs`, workflow `release.yml`, and
 environment `npm-production`; then remove and revoke the token.
 
 The transition from the old fixed `v2.2.0` tag is deliberate: the global tag
-remains historical, while the 14 independent tags at the npm `gitHead` become
-Lerna's per-package Conventional Commits boundary. Already released commits are
-therefore excluded from future recommendations.
+remains historical, while independent tags at each package's npm `gitHead`
+become Lerna's per-package Conventional Commits boundary. Already published
+commits are therefore excluded from future recommendations.
 
 ## Integration gates
 
@@ -111,6 +114,168 @@ The release workflow exposes boolean inputs for each transport:
 
 Before a final GA release, maintainers should run all transport integration
 gates manually by setting each input to `true`.
+
+## Closing the v2.4 transport milestone
+
+The defined v2.4 feature scope is **implemented in the repository**. The
+milestone is not **release verified** until the package-specific registry, tag,
+tarball, installation, and broker checks below succeed. A package can be
+implemented without being published to npm, and a release can be prepared
+without being verified.
+
+Packages use independent versions. The root v2.4 roadmap milestone does not
+require every package to become `2.4.0`; a new transport takes its first
+appropriate independent release. Unchanged packages must not be bumped, and a
+dependent is bumped only when compatibility or its dependency range requires
+it. Normal independent releases must not use `--force-publish`.
+
+### 1. Establish the repository candidate
+
+```sh
+git fetch origin --prune --tags
+git checkout main
+git pull --ff-only origin main
+git rev-parse HEAD
+git status --short
+```
+
+Record the full candidate SHA, require a clean worktree, and confirm required CI
+for that exact SHA before planning publication.
+
+### 2. Validate the repository state
+
+```sh
+npm ci --package-lock=true
+npm run lint:check
+npm run packages:verify
+npm run release:verify
+npm run test:release-tooling
+npm run build
+npm test --silent
+npm run test:e2e -- --runInBand
+npm run test:integration:db
+npm run examples:check
+npm run docs:api
+npm run pack:dry-run
+```
+
+The dry-pack output is part of approval evidence: inspect the file list,
+package identity, version, dependencies, exports, and absence of fixtures,
+generated test clients, credentials, and repository-only tooling.
+
+### 3. Run transport validation at the correct boundary
+
+Contract tests, package installation smoke tests, and real-provider integration
+tests prove different things:
+
+- `npm test --silent` includes the adapter-neutral transport contract tests.
+- `npm run pack:smoke:rabbitmq`, `npm run pack:smoke:kafka`, and
+  `npm run pack:smoke:aws-sns-sqs` install locally packed artifacts and verify
+  their consumer-facing import/type surfaces.
+- `npm run test:integration:rabbitmq`, `npm run test:integration:kafka`, and
+  `npm run test:integration:aws-sns-sqs` exercise real Docker-backed brokers or
+  provider emulation.
+- `npm run test:integration:servicebus` exercises Azure Service Bus and requires
+  `SERVICEBUS_CONNECTION_STRING`.
+
+The manual release workflow exposes matching `run_*_integration` inputs. Set
+the relevant RabbitMQ, Kafka, AWS SNS/SQS, and Azure Service Bus inputs to
+`true` for final closure; a skipped real-provider gate is not evidence that it
+passed.
+
+### 4. Inspect the public npm state
+
+For each package, query the public registry rather than inferring publication
+from repository source or a manifest:
+
+```sh
+npm view <package> version --json \
+  --registry=https://registry.npmjs.org/
+npm view <package> dist-tags --json \
+  --registry=https://registry.npmjs.org/
+npm view <package>@<version> gitHead \
+  --registry=https://registry.npmjs.org/
+```
+
+Apply the checks to at least:
+
+```text
+@mikara89/cap-core
+@mikara89/cap-nest
+@mikara89/cap-express
+@mikara89/cap-testing
+@mikara89/cap-transport-nestjs-microservices
+@mikara89/cap-transport-rabbitmq
+@mikara89/cap-transport-kafka
+@mikara89/cap-transport-aws-sns-sqs
+```
+
+Record missing packages separately from registry or network errors. Registry
+results are operational evidence and must not be copied into manifests or kept
+as a dated snapshot in this guide.
+
+### 5. Generate and inspect the release plan
+
+For a normal stable independent release, use the same planner inputs as the
+manual workflow:
+
+```sh
+node tools/release-tool.js plan \
+  --operation release \
+  --channel stable \
+  --coordinated-major false \
+  --confirmation "" \
+  --output release-plan.generated.json
+```
+
+Inspect every selected package, old and proposed version, npm dist-tag, package
+tag, and GitHub release name. Stop if an unrelated or unchanged package appears.
+Do not execute the plan merely because generation succeeded.
+
+Bootstrap is only for establishing or restoring an independent package
+baseline, including a new unpublished package at its current manifest version
+or an already-published package whose verified baseline tag must be restored.
+Use it only when the current planner accepts the repository, registry, artifact,
+and tag state:
+
+```sh
+node tools/release-tool.js plan \
+  --operation bootstrap \
+  --channel stable \
+  --coordinated-major false \
+  --confirmation PUBLISH_ALL_TO_NPM \
+  --output bootstrap-plan.generated.json
+```
+
+Do not substitute coordinated versions or `--force-publish` for a rejected
+normal plan. The release workflow recalculates the plan on validated `main`,
+uploads it for inspection, and pauses the publish job at the protected
+`npm-production` environment. Approve only the reviewed package plan; the
+workflow then rechecks the exact SHA and plan before publication.
+
+### 6. Verify each publication
+
+For every package selected by the approved plan:
+
+1. Repeat the npm `version`, `dist-tags`, and `gitHead` queries and confirm the
+   intended version and `latest` or prerelease dist-tag.
+2. Resolve `git rev-list -n 1 "@mikara89/<package>@<version>"` and require the
+   package tag target to match npm `gitHead`.
+3. Download the exact published tarball in a temporary directory with
+   `npm pack <package>@<version> --json --registry=https://registry.npmjs.org/`,
+   inspect its contents and identity, and then delete the archive.
+4. Create a new empty consumer project and install only the published package
+   and its documented peer dependencies from the public registry. Verify its
+   root and documented subpath imports.
+5. For each newly published RabbitMQ, Kafka, or AWS SNS/SQS transport, run the
+   package README's minimal publisher/subscriber flow from that isolated
+   consumer against the corresponding real integration environment. Record one
+   successfully published and consumed message, including successful settlement.
+
+Only after these checks pass is that package **release verified**. Close the
+v2.4 milestone only when every package in the approved closure plan is verified;
+planned or deferred Event Hubs compatibility, NATS, Pub/Sub, and richer
+capability work are not closure blockers.
 
 ## Normal releases
 
@@ -195,7 +360,7 @@ Paths are divided into three categories:
 Revert commits are attributed to the package whose behavior they revert, based
 on the changed paths in the revert commit itself (not the original commit).
 
-Expected progression:
+An illustrative progression for one independently versioned package is:
 
 ```text
 2.3.0
@@ -230,6 +395,9 @@ coordinated operation requires:
 coordinated_major=true
 confirmation=PUBLISH_COORDINATED_MAJOR
 ```
+
+This exceptional mode is not part of v2.4 closure and must not be used merely
+to synchronize package versions with the roadmap milestone.
 
 - Stable uses explicit `major --force-publish=*` and `latest`.
 - Beta uses explicit `premajor --preid beta --force-publish=*` and `beta`.

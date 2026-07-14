@@ -107,6 +107,37 @@ PR phases. All five phases are delivered.
    adapter matrix and examples, verify compatibility, and perform release
    readiness review.
 
+### Milestone status and release closure
+
+**Implementation complete:** the five phases above define the v2.4 feature
+scope, and all five are implemented in the repository.
+
+**Release closure pending or package-specific:** closing the roadmap milestone
+is an operational verification step, not another v2.4 feature phase. Packages
+remain independently versioned; the v2.4 milestone does not require every
+package to become `2.4.0`. A new transport can take its first appropriate
+independent release, unchanged packages are not bumped, and dependents move only
+when compatibility or dependency ranges require it.
+
+Before declaring the milestone release verified, maintainers must:
+
+- confirm required CI on the exact candidate SHA;
+- compare package manifest versions with the public npm registry and intended
+  dist-tags;
+- generate and inspect the independent release plan, stopping if an unrelated
+  package appears;
+- run the relevant real RabbitMQ, Kafka, AWS SNS/SQS, and Azure Service Bus
+  integration gates;
+- inspect each candidate package tarball;
+- match each published package's npm `gitHead` to its package tag target;
+- confirm the intended package tags; and
+- install each newly published package in an isolated consumer and complete a
+  basic publish/consume smoke test.
+
+Event Hubs compatibility, Google Pub/Sub, NATS JetStream, and richer transport
+capability work remain planned or deferred beyond this completion boundary;
+they are not v2.4 release-closure criteria.
+
 An explicit `cap-core` transport capability interface is deferred until
 conformance tests demonstrate real portable variation that applications need
 to inspect. PR 1 does not claim broker acknowledgement, delayed delivery,
