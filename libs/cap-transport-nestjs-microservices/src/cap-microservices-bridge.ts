@@ -31,15 +31,16 @@ export function __resetLegacyNestjsWrapperWarningForTest(): void {
 const LEGACY_NESTJS_WRAPPER_KEYS = new Set(['payload', 'headers', 'metadata']);
 
 function hasOwn(value: object, property: PropertyKey): boolean {
-  return Object.prototype.hasOwnProperty.call(value, property);
+  return Object.getOwnPropertyDescriptor(value, property) !== undefined;
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    return false;
-  }
-
-  const prototype = Object.getPrototypeOf(value);
+  if (!isObjectRecord(value)) return false;
+  const prototype: unknown = Object.getPrototypeOf(value);
 
   return prototype === Object.prototype || prototype === null;
 }
@@ -52,11 +53,8 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
  * objects that happen to include a `payload` field.
  */
 function isLegacyNestjsWrapper(value: unknown): value is LegacyNestjsWrapper {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    return false;
-  }
-
-  const obj = value as Record<string, unknown>;
+  if (!isObjectRecord(value)) return false;
+  const obj = value;
 
   if (!hasOwn(obj, 'payload') || !hasOwn(obj, 'metadata')) {
     return false;
@@ -89,10 +87,7 @@ function unwrapLegacyNestjsWrapper(wrapper: LegacyNestjsWrapper): {
   headers?: CapHeaders;
   metadata?: SubscribeMetadata;
 } {
-  const nestedHeaders =
-    wrapper.headers !== undefined && wrapper.headers !== null
-      ? wrapper.headers
-      : undefined;
+  const nestedHeaders = wrapper.headers ?? undefined;
   const nestedMetadata = wrapper.metadata as
     | Record<string, unknown>
     | undefined;
