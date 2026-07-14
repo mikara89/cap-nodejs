@@ -26,7 +26,7 @@ export async function createPrismaTestStorage(): Promise<PrismaTestStorage> {
   const client = new PrismaClient({
     datasourceUrl: `file:${databasePath}`,
   });
-  const capClient = client as unknown as PrismaCapClient;
+  const capClient: PrismaCapClient = client;
   const options = { provider: 'sqlite' as const };
 
   await client.$connect();

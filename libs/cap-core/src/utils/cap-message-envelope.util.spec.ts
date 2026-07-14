@@ -287,6 +287,27 @@ describe('CAP message envelope', () => {
   });
 
   describe('JSON value validation', () => {
+    it('accepts ordinary, null-prototype, and nested JSON records', () => {
+      const nullPrototypePayload = Object.create(null) as Record<
+        string,
+        unknown
+      >;
+      nullPrototypePayload.value = 1;
+
+      for (const payload of [
+        { value: 1 },
+        nullPrototypePayload,
+        { nested: { values: [1, 'two', true, null] } },
+      ]) {
+        expect(
+          isCapMessageEnvelopeV1({
+            $cap: { kind: CAP_MESSAGE_ENVELOPE_KIND, version: 1 },
+            payload,
+          }),
+        ).toBe(true);
+      }
+    });
+
     it.each([
       ['Date', new Date()],
       ['Map', new Map()],
@@ -302,6 +323,10 @@ describe('CAP message envelope', () => {
       [
         'object with non-JSON nested value',
         { nested: new Map([['key', 'value']]) },
+      ],
+      [
+        'object with an inherited property',
+        Object.assign(Object.create({ inherited: true }), { own: true }),
       ],
       ['object with undefined value', { valid: 'string', invalid: undefined }],
     ])('rejects envelope payload containing %s', (_name, nonJsonPayload) => {
