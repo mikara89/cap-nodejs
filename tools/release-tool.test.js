@@ -17,6 +17,7 @@ const {
   bootstrapConfirmation,
   buildBootstrapPackages,
   buildReleaseCommand,
+  changelogSection,
   coordinatedMajorConfirmation,
   coordinatedTagCommit,
   createBootstrapTags,
@@ -2593,7 +2594,76 @@ test('Lerna-generated package changelog includes own fix, feat, breaking, and re
     },
   ));
 
-test('generated-state validation rejects unrelated changelog commit', () =>
+test('changelog sections use semantic-version headings as boundaries', async (t) => {
+  await t.test(
+    'generated ## heading followed by legacy # version heading',
+    () => {
+      const section = changelogSection(
+        '# Change Log\n\n## 2.3.0\n\nCurrent entry.\n\n# 2.2.0\n\nHistorical entry.\n',
+        '2.3.0',
+      );
+      assert.ok(section);
+      assert.match(section.text, /Current entry/u);
+      assert.doesNotMatch(section.text, /Historical entry/u);
+    },
+  );
+
+  await t.test('linked ## version heading', () => {
+    const section = changelogSection(
+      '# Change Log\n\n## [2.3.0](https://example.test/compare/2.2.0...2.3.0) (2026-07-14)\n\nLinked entry.\n',
+      '2.3.0',
+    );
+    assert.ok(section);
+    assert.match(section.text, /Linked entry/u);
+  });
+
+  await t.test('prerelease # version heading', () => {
+    const section = changelogSection(
+      '## 2.3.0\n\nCurrent entry.\n\n# 0.7.0-beta.4\n\nPrerelease history.\n',
+      '2.3.0',
+    );
+    assert.ok(section);
+    assert.doesNotMatch(section.text, /Prerelease history/u);
+  });
+
+  await t.test('# Change Log is not a version', () => {
+    const section = changelogSection(
+      '## 2.3.0\n\nCurrent entry.\n\n# Change Log\n\nStill current.\n\n# 2.2.0\n\nHistorical entry.\n',
+      '2.3.0',
+    );
+    assert.ok(section);
+    assert.match(section.text, /Still current/u);
+    assert.doesNotMatch(section.text, /Historical entry/u);
+  });
+});
+
+test('historical unrelated commit below boundary is ignored', () =>
+  withPostVersionFixture((cwd) => {
+    fs.writeFileSync(path.join(cwd, 'ROADMAP.md'), '# Root roadmap\n');
+    command('git', ['add', 'ROADMAP.md'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'docs: roadmap'], cwd);
+    const rootSha = command('git', ['rev-parse', 'HEAD'], cwd).trim();
+
+    const knexPath = path.join(cwd, 'libs', 'storage-knex', 'CHANGELOG.md');
+    fs.mkdirSync(path.dirname(knexPath), { recursive: true });
+    fs.writeFileSync(
+      knexPath,
+      `# Change Log\n\n## [2.2.2](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-storage-knex@2.2.1...@mikara89/cap-storage-knex@2.2.2) (2026-07-14)\n\n### Bug Fixes\n\n- current generated entry\n\n# 0.7.0-beta.4 (2026-06-24)\n\n- historical root entry ([/commit/${rootSha}](https://github.com/mikara89/cap-nodejs/commit/${rootSha}))\n`,
+    );
+    bumpFixturePackage(cwd, '@mikara89/cap-storage-knex', '2.2.2');
+
+    const beforeState = new Map([
+      ['@mikara89/cap-storage-knex', { version: '2.2.1', changelog: '' }],
+    ]);
+    assert.doesNotThrow(() =>
+      validatePostVersionState(cwd, {
+        dependencyRoot: rootDir,
+        beforeState,
+      }),
+    );
+  }));
+
+test('unrelated commit inside generated section is rejected', () =>
   withPostVersionFixture((cwd) => {
     // Create a root-only commit so we have a real SHA that does not touch the package.
     fs.writeFileSync(path.join(cwd, 'ROADMAP.md'), '# Root roadmap\n');
