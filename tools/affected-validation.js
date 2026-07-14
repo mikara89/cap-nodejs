@@ -17,6 +17,11 @@ const {
 
 const rootDir = path.resolve(__dirname, '..');
 const planVersion = 1;
+const commandKinds = Object.freeze({
+  git: 'git',
+  npm: 'npm',
+  node: 'node',
+});
 
 const globalBuildFiles = new Set([
   'package.json',
@@ -54,6 +59,8 @@ const ciFiles = new Set([
   '.github/workflows/ci.yml',
   'tools/affected-validation.js',
   'tools/affected-validation.test.js',
+  'tools/verify-workflow-actions.js',
+  'tools/verify-workflow-actions.test.js',
   'tools/workspace-packages.test.js',
 ]);
 const packSmokeTools = new Map([
@@ -98,32 +105,103 @@ function fail(message) {
   throw new AffectedValidationError(message);
 }
 
-function defaultCommandRunner(command, args, options = {}) {
-  return spawnSync(command, args, {
-    cwd: options.cwd,
-    env: options.env || process.env,
-    encoding: options.encoding,
-    stdio: options.stdio || (options.encoding ? 'pipe' : 'inherit'),
-  });
+function resolveCommandInvocation(kind, args, options = {}) {
+  if (!Array.isArray(args))
+    throw new AffectedValidationError(
+      `Arguments for command kind ${String(kind)} must be an array.`,
+    );
+  const invocationArgs = [...args];
+  switch (kind) {
+    case commandKinds.git:
+      return { command: 'git', args: invocationArgs };
+    case commandKinds.node:
+      return {
+        command: process.execPath,
+        args: invocationArgs,
+      };
+    case commandKinds.npm: {
+      const npmResolver = options.npmResolver || npmInvocation;
+      const invocation = npmResolver(invocationArgs);
+      if (
+        !invocation ||
+        typeof invocation.command !== 'string' ||
+        !Array.isArray(invocation.args)
+      )
+        throw new AffectedValidationError(
+          'The repository npm resolver returned an invalid invocation.',
+        );
+      if (invocation.command === process.execPath)
+        return {
+          command: process.execPath,
+          args: [...invocation.args],
+        };
+      const platform = options.platform || process.platform;
+      if (platform !== 'win32' && invocation.command === 'npm')
+        return { command: 'npm', args: [...invocation.args] };
+      throw new AffectedValidationError(
+        `Unsupported npm executable resolution: ${invocation.command}.`,
+      );
+    }
+    default:
+      throw new AffectedValidationError(
+        `Unsupported command kind: ${String(kind)}.`,
+      );
+  }
 }
 
-function invoke(command, args, options = {}) {
-  const runner = options.runner || defaultCommandRunner;
-  const result = runner(command, args, {
+function createCommandInvocation(kind, args, options = {}) {
+  const resolved = resolveCommandInvocation(kind, args, options);
+  return {
+    kind,
+    command: resolved.command,
+    args: resolved.args,
     cwd: options.cwd || rootDir,
     env: { ...process.env, ...(options.env || {}) },
     encoding: options.encoding,
-    stdio: options.stdio,
-    gate: options.gate,
-  });
+    stdio: options.stdio || (options.encoding ? 'pipe' : 'inherit'),
+    shell: false,
+    gate: options.gate || kind,
+  };
+}
+
+function defaultCommandRunner(invocation) {
+  const options = {
+    cwd: invocation.cwd,
+    env: invocation.env,
+    encoding: invocation.encoding,
+    stdio: invocation.stdio,
+    shell: false,
+  };
+  if (invocation.kind === commandKinds.git && invocation.command === 'git')
+    return spawnSync('git', invocation.args, options);
+  if (
+    invocation.kind === commandKinds.node &&
+    invocation.command === process.execPath
+  )
+    return spawnSync(process.execPath, invocation.args, options);
+  if (invocation.kind === commandKinds.npm) {
+    if (invocation.command === process.execPath)
+      return spawnSync(process.execPath, invocation.args, options);
+    if (invocation.command === 'npm')
+      return spawnSync('npm', invocation.args, options);
+  }
+  throw new AffectedValidationError(
+    `Unsupported resolved executable for command kind ${String(invocation.kind)}.`,
+  );
+}
+
+function invoke(kind, args, options = {}) {
+  const invocation = createCommandInvocation(kind, args, options);
+  const runner = options.runner || defaultCommandRunner;
+  const result = runner(invocation);
   if (result?.error) {
     throw new AffectedCommandError(
-      `${options.gate || command} failed to start: ${result.error.message}.`,
+      `${invocation.gate} failed to start: ${result.error.message}.`,
     );
   }
   if (result?.status !== 0 && options.allowFailure !== true) {
     throw new AffectedCommandError(
-      `${options.gate || command} failed with exit ${result?.status ?? 'unknown'}.`,
+      `${invocation.gate} failed with exit ${result?.status ?? 'unknown'}.`,
       result?.status,
     );
   }
@@ -131,7 +209,7 @@ function invoke(command, args, options = {}) {
 }
 
 function git(args, options = {}) {
-  return invoke('git', args, {
+  return invoke(commandKinds.git, args, {
     ...options,
     encoding: 'utf8',
     stdio: 'pipe',
@@ -759,8 +837,7 @@ function appendSummary(summary, options = {}) {
 }
 
 function runNpm(args, context, gate, options = {}) {
-  const invocation = npmInvocation(args);
-  return invoke(invocation.command, invocation.args, {
+  return invoke(commandKinds.npm, args, {
     cwd: context.cwd,
     runner: context.runner,
     gate,
@@ -769,11 +846,27 @@ function runNpm(args, context, gate, options = {}) {
 }
 
 function runNode(args, context, gate) {
-  return invoke(process.execPath, args, {
+  return invoke(commandKinds.node, args, {
     cwd: context.cwd,
     runner: context.runner,
     gate,
   });
+}
+
+function adaptInjectedWorkspaceRunner(runner) {
+  return (command, args, options = {}) =>
+    runner({
+      kind: commandKinds.npm,
+      command,
+      args: [...args],
+      cwd: options.cwd || rootDir,
+      env: options.env || process.env,
+      encoding: options.encoding,
+      stdio: options.stdio || 'inherit',
+      shell: false,
+      gate: options.gate || options.package?.name || commandKinds.npm,
+      package: options.package,
+    });
 }
 
 function runRecordedGate(name, statuses, callback, options = {}) {
@@ -901,6 +994,9 @@ function runAffectedValidation(plan, options = {}) {
   const context = {
     cwd,
     runner: options.runner || defaultCommandRunner,
+    workspaceRunner: options.runner
+      ? adaptInjectedWorkspaceRunner(options.runner)
+      : undefined,
     maxFiles: options.maxFiles,
     maxCharacters: options.maxCharacters,
   };
@@ -937,7 +1033,9 @@ function runAffectedValidation(plan, options = {}) {
           cwd,
           script: 'build',
           packageNames: validation.buildPackages,
-          runner: context.runner,
+          ...(context.workspaceRunner
+            ? { runner: context.workspaceRunner }
+            : {}),
           fixture: options.fixture,
         });
         return { status: 0 };
@@ -979,7 +1077,9 @@ function runAffectedValidation(plan, options = {}) {
           dryRun: true,
           ignoreScripts: true,
           packageNames: validation.packPackages,
-          runner: context.runner,
+          ...(context.workspaceRunner
+            ? { runner: context.workspaceRunner }
+            : {}),
           fixture: options.fixture,
         });
         return { status: 0 };
@@ -1107,6 +1207,8 @@ module.exports = {
   AffectedValidationError,
   batchTestFiles,
   collectUnitTestFiles,
+  commandKinds,
+  createCommandInvocation,
   createAffectedPlan,
   createPlanFromChangedFiles,
   formatPlanSummary,
@@ -1121,6 +1223,7 @@ module.exports = {
   packageImpact,
   parseArgs,
   resolveCommit,
+  resolveCommandInvocation,
   resolveComparison,
   runAffectedValidation,
   runSelectedUnitTests,

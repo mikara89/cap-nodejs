@@ -24,7 +24,8 @@
     "---------------------------------------------------------------------": "--- affected-package validation ---",
     "ci:affected:plan": "node tools/affected-validation.js plan",
     "ci:affected": "node tools/affected-validation.js run",
-    "test:affected-validation": "node --test tools/workspace-packages.test.js tools/affected-validation.test.js",
+    "test:affected-validation": "node --test tools/workspace-packages.test.js tools/affected-validation.test.js tools/verify-workflow-actions.test.js",
+    "verify:workflow-actions": "node tools/verify-workflow-actions.js",
     "--------------------------------------------------------------------": "--- release ---",
     "release": "node tools/release-tool.js plan --operation release --channel stable --coordinated-major false",
     "release:verify": "node tools/release-tool.js verify && node tools/verify-legacy-package-names.js",
@@ -102,7 +103,7 @@
     "test:integration:db:postgres": "npm run generate:test-clients --workspace @mikara89/cap-storage-prisma && jest --testRegex=.*outbox-claim.* --testNamePattern=PostgreSQL --runInBand",
     "test:integration:db:mysql": "npm run generate:test-clients --workspace @mikara89/cap-storage-prisma && jest --testRegex=.*outbox-claim.* --testNamePattern=MySQL --runInBand",
     "test:integration": "jest --config ./apps/cap-test-app/test/jest-integration.json",
-    "test:release-tooling": "node --test tools/workspace-packages.test.js tools/affected-validation.test.js tools/release-tool.test.js",
+    "test:release-tooling": "node --test tools/workspace-packages.test.js tools/affected-validation.test.js tools/release-tool.test.js tools/verify-workflow-actions.test.js",
     "verify:legacy-package-names": "node tools/verify-legacy-package-names.js",
     "test:legacy-package-names": "node --test tools/verify-legacy-package-names.test.js"
   },

@@ -69,16 +69,17 @@ jobs:
       head_sha: ${{ steps.head.outputs.sha }}
     steps:
       - name: Checkout complete history
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Record validated HEAD
         id: head
         run: echo "sha=$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22.19.0
           cache: npm
@@ -172,14 +173,15 @@ jobs:
       id-token: write
     steps:
       - name: Checkout main with complete history
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0
+          persist-credentials: true
           token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22.19.0
           cache: npm

@@ -13,6 +13,7 @@ const {
   discoverWorkspacePackages,
   listPackages,
   normalizePath,
+  npmInvocation,
   packWorkspacePackages,
   readPackageSelection,
   runWorkspaceScript,
@@ -236,6 +237,52 @@ test('path normalization uses forward slashes', () => {
   );
 });
 
+test('npm invocation ignores environment-selected executables on every platform', () => {
+  const originalNpmExecPath = process.env.npm_execpath;
+  const originalComSpec = process.env.ComSpec;
+  process.env.npm_execpath = 'C:\\untrusted\\npm-cli.js';
+  process.env.ComSpec = 'C:\\untrusted\\shell.exe';
+  try {
+    const node = npmInvocation(['run', 'build'], {
+      platform: 'linux',
+      existsSync: () => true,
+    });
+    assert.equal(node.command, process.execPath);
+    assert.equal(
+      node.args[0],
+      path.join(
+        path.dirname(process.execPath),
+        'node_modules',
+        'npm',
+        'bin',
+        'npm-cli.js',
+      ),
+    );
+    assert.doesNotMatch(node.args.join(' '), /untrusted/u);
+
+    assert.deepEqual(
+      npmInvocation(['test'], {
+        platform: 'linux',
+        existsSync: () => false,
+      }),
+      { command: 'npm', args: ['test'] },
+    );
+    assert.throws(
+      () =>
+        npmInvocation(['pack'], {
+          platform: 'win32',
+          existsSync: () => false,
+        }),
+      /Could not locate npm-cli\.js/u,
+    );
+  } finally {
+    if (originalNpmExecPath === undefined) delete process.env.npm_execpath;
+    else process.env.npm_execpath = originalNpmExecPath;
+    if (originalComSpec === undefined) delete process.env.ComSpec;
+    else process.env.ComSpec = originalComSpec;
+  }
+});
+
 test('graph orders dependency chains and unrelated packages deterministically', () =>
   withFixture(
     [
@@ -428,6 +475,10 @@ test('build orchestration runs each public package once in dependency order', ()
         runner(command, args, options) {
           assert.equal(options.env.WORKSPACE_TEST_MARKER, 'preserved');
           assert.equal(options.env.PATH, process.env.PATH);
+          assert.equal(options.kind, 'npm');
+          assert.equal(options.command, command);
+          assert.deepEqual(options.args, args);
+          assert.equal(options.shell, false);
           calls.push({ command, args, package: options.package.name });
           return { status: 0 };
         },
@@ -439,10 +490,8 @@ test('build orchestration runs each public package once in dependency order', ()
       assert.ok(
         calls.every(
           (call) =>
-            call.args.includes('--workspace') &&
-            (/^npm(?:\.cmd)?$/.test(call.command) ||
-              call.command === process.execPath ||
-              /cmd(?:\.exe)?$/i.test(call.command)),
+            (call.args.includes('--workspace') && call.command === 'npm') ||
+            call.command === process.execPath,
         ),
       );
     },
