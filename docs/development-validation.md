@@ -1,228 +1,200 @@
-# Development Validation Tiers
+# Development validation
 
-CAP uses three validation tiers to balance speed and thoroughness. The
-workspace root is private (`cap-nodejs`); only `libs/*` packages are
-publishable. Lerna 9 in independent mode is the sole version authority.
+CAP has three validation paths with different responsibilities:
 
-## Tier 1 — Fast local loop
+- Pull requests use repository-owned affected validation.
+- Pushes to `main` and manual CI runs use complete repository validation.
+- The manual release workflow independently repeats complete validation before
+  publication.
 
-Run these after every change before pushing a branch:
+The private root coordinates npm workspaces under `libs/*`. Lerna remains in
+independent mode and is the version/publish authority; affected validation
+does not calculate versions, create tags, publish, or alter release selection.
 
-```powershell
-npm run lint:affected          # Lint changed packages
-npm run build:affected         # Build changed packages + dependents
-npm run test:affected          # Test changed packages
+## Pull-request validation
+
+The required `build-and-test` job checks out complete history, sets up Node,
+and runs `npm ci` exactly once. It then compares GitHub's immutable pull-request
+base SHA with the checked-out head or merge commit:
+
+```sh
+node tools/affected-validation.js plan \
+  --base <pull-request-base-sha> \
+  --head <checked-out-head-sha> \
+  --output affected-plan.json
+
+node tools/affected-validation.js run --plan affected-plan.json
 ```
 
-For focused adapter or storage work, run the package-specific scripts:
+The step summary lists the comparison range, changed files, directly affected
+packages, affected dependents, dependency-first build set, root-Jest test set,
+pack set, enabled gates, skipped gates, and database-gate status. A superseded
+pull-request run is cancelled. Pushes to `main` are never cancelled by a newer
+run.
 
-```powershell
-# Transport adapters
-npm run test:lib:cap-transport-rabbitmq
-npm run test:lib:cap-transport-kafka
-npm run test:lib:cap-transport-aws-sns-sqs
-npm run test:lib:cap-transport-nestjs-microservices
-npm run test:lib:cap-transport-azure-servicebus
+Every pull request retains package verification, affected-tool tests, and full
+repository lint. Full lint currently costs much less than the complete build
+and test suite and avoids missing changed root, application, or test files.
 
-# Transport integration (requires Docker or cloud credentials, manual/on-request)
-npm run test:integration:rabbitmq
-npm run test:integration:kafka
-npm run test:integration:aws-sns-sqs
-npm run test:integration:servicebus
+### Package and dependent selection
 
-# Storage adapters
-npm run test:lib:cap-storage-mikro-orm
-npm run test:lib:cap-storage-knex
-npm run test:lib:cap-storage-typeorm
-npm run test:lib:cap-storage-prisma
+Package ownership comes from `tools/workspace-packages.js`; the affected tool
+does not scan or maintain a second package list. Runtime, export, manifest, and
+build-consumed TypeScript changes include direct and transitive internal
+dependents because their compilation, tests, or packed compatibility can be
+affected. Required unchanged internal dependencies are added to the build set,
+and the shared graph produces dependency-first order.
 
-# Core / engine / dashboard
+Test-only changes select that package without expanding runtime dependents.
+README or changelog-only changes select its pack dry-run without selecting
+runtime tests. Every selected package is built or packed once. Cycles and
+invalid metadata fail through the shared package verifier.
+
+Affected unit tests always run with the root Jest executable and root
+configuration. Package-local Lerna Jest execution is intentionally unsupported
+because it bypasses root `ts-jest` transforms and module mappings on Linux.
+Integration and real-broker tests are excluded from the affected unit-test
+file set. Prisma test clients are generated before selected Prisma tests.
+
+### Impact policy
+
+| Change                                                                                   | Pull-request behavior                                                         |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Package runtime, exports, manifest, or build config                                      | Build/test that package plus compatibility dependents; pack changed artifacts |
+| Package tests only                                                                       | Build/test that package; do not expand runtime dependents                     |
+| Package README or changelog only                                                         | Pack that package; skip runtime tests                                         |
+| Root package/lockfile, root build config, Lerna/Nx/Nest config, shared package discovery | Escalate to the complete repository suite                                     |
+| Release tooling or release workflow                                                      | Package/release verification and release-tool tests; no automatic DB gate     |
+| CI workflow or affected tooling                                                          | Affected/workflow invariants plus package and release safety checks           |
+| Root documentation only                                                                  | Valid zero-package plan with repository/tool checks; no runtime build         |
+| Application or e2e input                                                                 | Application build and e2e tests                                               |
+| Executable example or compiler config                                                    | Examples type-check                                                           |
+| Publishable runtime source, declarations/exports, or TypeDoc input                       | API-doc generation; examples for public/framework integration inputs          |
+
+Database integration runs when storage runtime, storage contracts, core
+publish/received/outbox contracts, lease/claim/retry behavior, Prisma schema,
+SQL-affecting configuration, or DB integration tests change. A storage README
+or unit-spec-only change does not claim database coverage and does not run the
+gate. The summary says whether the DB gate passed, failed, or was not required.
+
+E2E runs for the test application and for core, Nest, Express, or transport
+behavior used by it. When the impact is ambiguous, the policy chooses the
+safer gate.
+
+Storage `/nest` implementation or export changes also type-check examples and
+generate API documentation because those files form public integration inputs.
+
+Selected package dry-runs cover changed packed source, manifests, and included
+documentation. The affected path builds those packages explicitly, then
+disables `prepack` lifecycle scripts during the dry-run so a package is not
+built twice. The standalone complete pack command retains its existing
+lifecycle behavior. Specialized install/isolation smokes are conditional on
+their packages or tooling:
+
+- RabbitMQ, Kafka, and AWS SNS/SQS transport smokes;
+- storage `/nest` export smoke for Knex, TypeORM, and Prisma;
+- dashboard-core/core compatibility isolation smoke.
+
+A generic package-tooling change enables all pack and specialized smoke checks.
+
+## Local affected validation
+
+Commit or stage the comparison state before using Git refs; uncommitted files
+are not part of `git diff <base>..<head>`.
+
+```sh
+npm run ci:affected:plan -- \
+  --base origin/main \
+  --head HEAD \
+  --json
+
+npm run ci:affected -- \
+  --base origin/main \
+  --head HEAD
+```
+
+The first command is diagnostic and does not execute gates. The second creates
+a temporary plan, executes it, preserves child exit status, and removes the
+temporary file. In GitHub Actions the workflow uses
+`github.event.pull_request.base.sha`, not `origin/main`, so a queued run cannot
+silently compare against a later target-branch state.
+
+To force complete validation, use **Run workflow** for CI on the intended ref.
+`workflow_dispatch` always takes the complete path. A global configuration
+change also escalates a pull request automatically.
+
+Useful focused checks remain available:
+
+```sh
+npm run packages:list
+npm run packages:verify
 npm run test:lib:cap-core
-npm run test:lib:cap-testing
-npm run test:lib:cap-nest
-npm run test:lib:cap-express
-npm run test:lib:cap-dashboard-core
-npm run test:lib:cap-dashboard-nest
-npm run test:lib:cap-dashboard-express
-npm run test:lib:cap-dashboard
+npm run test:lib:cap-storage-prisma
+npm run pack:smoke:rabbitmq
 ```
 
-List what changed without running anything:
+## Complete `main` validation
 
-```powershell
-npm run check:affected
-```
+Pushes to `main` and manual CI runs execute the full suite in `build-and-test`
+without a preceding affected job:
 
-### What caching covers
+1. workspace package and release verification;
+2. legacy-name and release-tool tests;
+3. full lint and Fallow gates;
+4. full libraries/application build;
+5. examples and API docs;
+6. workspace-link and cap-nest type checks;
+7. all unit and e2e tests;
+8. complete database integration;
+9. all package dry-runs;
+10. RabbitMQ, Kafka, AWS, storage-Nest, and dashboard isolation pack smokes.
 
-`nx.json` defines task pipelines and cacheable operations for `build`, `lint`,
-and `test`. Nx skips tasks whose inputs (source files, config, dependencies)
-have not changed since the last run. This makes repeated `build:affected` and
-`test:affected` nearly instant when only a single package is touched.
+Optional real-broker jobs remain available only through manual inputs. They
+perform their own checkout, dependency install, and build because GitHub jobs
+do not share a filesystem. The Azure Service Bus job is the only CI job that
+receives its connection secret, and it cannot run for pull requests.
 
-Key pipeline rules:
+## Release validation
 
-- `build` depends on dependent packages' builds (`^build`), outputs `dist/`
-- `test` depends on `build`
-- `lint` is independent of build
+`.github/workflows/release.yml` remains manual, complete, and independent of
+the PR planner. It checks out full history and validates before the protected
+`npm-production` publication job. A green affected PR is not publication
+approval. See [release.md](./release.md) for the release and recovery rules.
 
-Cache is local by default (`node_modules/.cache/nx`). It is not committed.
+## Baseline before the affected fast path
 
-### Build order
+The latest successful PR run inspected before this refactor was
+[CI run 29153945210](https://github.com/mikara89/cap-nodejs/actions/runs/29153945210):
 
-For a full sequential build (release parity), use:
+- `affected-checks`: 63 seconds;
+- complete `build-and-test`: 300 seconds;
+- PR critical path: 369 seconds;
+- dependency installs: 2;
+- aggregate builds: 2 (one affected, one complete).
 
-```powershell
-npm run build:libs              # Dynamic dependency-first sequential build
-npm run build:libs:lerna        # Lerna parallel build
-```
+These are exact observations from one run, not p50 or p95 measurements.
+Multiple documentation, package, storage, and main runs are required before
+claiming stable percentile improvements.
+
+## Package discovery and full local checks
 
 `build:libs` and `pack:dry-run` discover every non-private package from the
-configured `libs/*` npm/Lerna workspace boundary. Use `npm run packages:list`
-to inspect the deterministic package set and `npm run packages:verify` to check
-package identities, build scripts, the internal dependency graph, and lockfile
-metadata. Adding a valid package does not require editing either aggregate root
-command. Lerna continues to own independent releases; Nx remains available for
-affected/cached development tasks, and package-specific isolated pack smoke
-checks remain separate. Full build and pack orchestration is sequential and
-fail-fast: it streams package output, reports the failing package and directory,
-and stops immediately with a non-zero exit status.
+shared `libs/*` npm/Lerna workspace boundary. They run sequentially,
+dependency-first, stream output, fail fast, and identify the failing package.
+Selected execution accepts an affected-plan file without creating another task
+runner:
 
-## Tier 2 — PR acceptance
+```sh
+node tools/workspace-packages.js run \
+  --script build \
+  --packages-file affected-plan.json
 
-Run these before opening a pull request or when CI flags an issue:
-
-```powershell
-# Affected validation (Tier 1)
-npm run lint:affected
-npm run build:affected
-npm run test:affected
-
-# Full lint (root-level eslint)
-npm run lint:check
-
-# Workspace package metadata and dependency graph
-npm run packages:verify
-
-# Type-check examples
-npm run examples:check
-
-# API docs (if public API surface changed)
-npm run docs:api
-
-# Package integrity (for changed publishable packages)
-npm run pack:dry-run:affected
-
-# Release tooling (if release files or lerna config changed)
-npm run test:release-tooling
-npm run release:verify
+node tools/workspace-packages.js pack \
+  --dry-run \
+  --packages-file affected-plan.json
 ```
 
-### When to run what
-
-| Change | Required checks |
-|---|---|
-| New adapter package | `lint:check`, `build`, `test`, `examples:check`, `pack:dry-run`, `test:release-tooling`, `release:verify` |
-| Adapter code only | `lint:affected`, `build:affected`, `test:affected`, `examples:check` |
-| Core engine change | `lint:check`, `build`, `test`, `test:e2e`, `examples:check`, `docs:api` |
-| Storage adapter change | `lint:affected`, `build:affected`, `test:affected`, `test:integration:db` (if schema/query changed) |
-| Dashboard change | `lint:affected`, `build:affected`, `test:affected` |
-| Root docs/config only | `lint:check`, `release:verify`, `test:release-tooling` |
-
-### Transport integration gates
-
-Transport integration tests require external broker connectivity. These run
-only when the relevant transport package changed or when manually triggered:
-
-- **RabbitMQ**: `npm run test:integration:rabbitmq` — requires `RABBITMQ_URL`
-  or local RabbitMQ on `amqp://localhost:5672`
-- **Kafka**: `npm run test:integration:kafka` — requires `KAFKA_BROKERS` or
-  local Kafka on `localhost:9092`
-- **AWS SNS/SQS**: `npm run test:integration:aws-sns-sqs` — requires Docker
-  (LocalStack container)
-- **Azure Service Bus**: `npm run test:integration:servicebus` — requires
-  `SERVICEBUS_CONNECTION_STRING`
-
-Transport integration tests are resource-heavy. They are manual/on-request in
-CI and release workflows. Use the workflow dispatch inputs to enable them:
-`run_rabbitmq_integration`, `run_kafka_integration`,
-`run_aws_sns_sqs_integration`, and `run_servicebus_integration`. Before a final
-GA release, maintainers should run all transport integration gates manually.
-
-Pack smoke tests verify that the published tarball is installable and complete.
-These are always required in CI and release workflows:
-
-- `npm run pack:smoke:rabbitmq`
-- `npm run pack:smoke:kafka`
-- `npm run pack:smoke:aws-sns-sqs`
-
-## Tier 3 — Release gate
-
-The `.github/workflows/release.yml` workflow is manual (`workflow_dispatch`).
-It runs the complete validation suite before publishing.
-
-**Always-on gates** (run on every release):
-
-1. Full audit (`npm audit --omit=dev`)
-2. Full lint (`npm run lint:check`)
-3. Full build (`npm run build`)
-4. Full test (`npm test -- --runInBand`)
-5. E2E tests (`npm run test:e2e`)
-6. DB integration (`npm run test:integration:db`)
-7. Examples check (`npm run examples:check`)
-8. API docs (`npm run docs:api`)
-9. Package integrity (`npm run pack:dry-run`)
-10. Pack smoke: RabbitMQ (`npm run pack:smoke:rabbitmq`)
-11. Pack smoke: Kafka (`npm run pack:smoke:kafka`)
-12. Pack smoke: AWS SNS/SQS (`npm run pack:smoke:aws-sns-sqs`)
-13. Release plan generated by `release:plan`
-
-**Manual/on-request gates** (set workflow input to `true`):
-
-- RabbitMQ integration (`run_rabbitmq_integration`)
-- Kafka integration (`run_kafka_integration`)
-- AWS SNS/SQS integration (`run_aws_sns_sqs_integration`)
-- Azure Service Bus integration (`run_servicebus_integration`)
-
-The release gate is the final authority. Nothing is published unless all steps
-pass.
-
-## CI pipeline
-
-### PR and push to main (`.github/workflows/ci.yml`)
-
-Runs the complete validation suite on every PR and push to main. This is the
-safety net that catches regressions.
-
-### Release (`.github/workflows/release.yml`)
-
-Manual trigger only. Validates, calculates the Lerna release plan, and
-publishes to npm after the protected `npm-production` environment is approved.
-
-## Quick reference
-
-```powershell
-# What changed?
-npm run check:affected
-
-# Fast dev loop
-npm run lint:affected
-npm run build:affected
-npm run test:affected
-
-# Specific package
-npm run test:lib:cap-transport-rabbitmq
-npm run test:integration:rabbitmq
-npm run pack:smoke:rabbitmq
-
-# Full validation (release parity)
-npm run lint:check
-npm run build
-npm test
-npm run test:e2e
-npm run examples:check
-npm run docs:api
-npm run pack:dry-run
-npm run test:release-tooling
-npm run release:verify
-```
+Before a high-risk change or release, run the complete local commands listed in
+the repository validation checklist and explain any environment-only skips.
+Nx remains available for its existing tasks; this refactor does not remove Nx,
+perform a full Nx migration, or add remote caching.

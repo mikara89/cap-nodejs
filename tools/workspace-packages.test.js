@@ -14,7 +14,9 @@ const {
   listPackages,
   normalizePath,
   packWorkspacePackages,
+  readPackageSelection,
   runWorkspaceScript,
+  selectWorkspacePackages,
   sortWorkspacePackages,
   validatePackageIdentities,
   validateWorkspacePackages,
@@ -513,6 +515,7 @@ test('pack dry-run includes every public package once, creates no tarball, and r
         ['@fixture/a', '@fixture/b'],
       );
       assert.ok(calls.every((call) => call.args.includes('--dry-run')));
+      assert.ok(calls.every((call) => !call.args.includes('--ignore-scripts')));
       assert.deepEqual(
         fs.readdirSync(cwd).filter((name) => name.endsWith('.tgz')),
         [],
@@ -530,6 +533,66 @@ test('pack dry-run includes every public package once, creates no tarball, and r
           }),
         /@fixture\/a.*failed with exit 3/,
       );
+    },
+  ));
+
+test('selected package execution reads plan fields and preserves dependency-first order', () =>
+  withFixture(
+    [
+      { id: 'a', name: '@fixture/a' },
+      { id: 'b', name: '@fixture/b', dependencies: { '@fixture/a': '*' } },
+      { id: 'c', name: '@fixture/c' },
+    ],
+    (cwd) => {
+      const validation = validateWorkspacePackages({ cwd, fixture: true });
+      assert.deepEqual(
+        selectWorkspacePackages(validation, ['@fixture/b', '@fixture/a']).map(
+          (pkg) => pkg.name,
+        ),
+        ['@fixture/a', '@fixture/b'],
+      );
+      assert.throws(
+        () => selectWorkspacePackages(validation, ['@fixture/missing']),
+        /Unknown publishable workspace package/,
+      );
+      const planPath = path.join(cwd, 'affected-plan.json');
+      writeJson(planPath, {
+        buildPackages: ['@fixture/b', '@fixture/a'],
+        packPackages: ['@fixture/c'],
+      });
+      assert.deepEqual(readPackageSelection(planPath, 'buildPackages'), [
+        '@fixture/b',
+        '@fixture/a',
+      ]);
+      const built = [];
+      runWorkspaceScript({
+        cwd,
+        fixture: true,
+        script: 'build',
+        packageNames: readPackageSelection(planPath, 'buildPackages'),
+        runner(command, args, options) {
+          built.push(options.package.name);
+          return { status: 0 };
+        },
+      });
+      assert.deepEqual(built, ['@fixture/a', '@fixture/b']);
+      const packed = [];
+      packWorkspacePackages({
+        cwd,
+        fixture: true,
+        dryRun: true,
+        ignoreScripts: true,
+        packageNames: readPackageSelection(planPath, 'packPackages'),
+        runner(command, args, options) {
+          packed.push({ args, name: options.package.name });
+          return { status: 0 };
+        },
+      });
+      assert.deepEqual(
+        packed.map(({ name }) => name),
+        ['@fixture/c'],
+      );
+      assert.ok(packed[0].args.includes('--ignore-scripts'));
     },
   ));
 
