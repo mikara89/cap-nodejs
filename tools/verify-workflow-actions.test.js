@@ -92,11 +92,11 @@ test('workflow verifier rejects version, runtime, and cache regressions', async 
       {
         ci: replaceRequired(
           sources.ci,
-          'actions/checkout@v6',
+          'actions/checkout@v7',
           'actions/checkout@v4',
         ),
       },
-      /must use actions\/checkout@v6/u,
+      /must use actions\/checkout@v7/u,
     );
   });
   await t.test('2 CI setup-node v4', () => {
@@ -104,11 +104,11 @@ test('workflow verifier rejects version, runtime, and cache regressions', async 
       {
         ci: replaceRequired(
           sources.ci,
-          'actions/setup-node@v6',
+          'actions/setup-node@v7',
           'actions/setup-node@v4',
         ),
       },
-      /must use actions\/setup-node@v6/u,
+      /must use actions\/setup-node@v7/u,
     );
   });
   await t.test('3 release checkout v4', () => {
@@ -116,11 +116,11 @@ test('workflow verifier rejects version, runtime, and cache regressions', async 
       {
         release: replaceRequired(
           sources.release,
-          'actions/checkout@v6',
+          'actions/checkout@v7',
           'actions/checkout@v4',
         ),
       },
-      /must use actions\/checkout@v6/u,
+      /must use actions\/checkout@v7/u,
     );
   });
   await t.test('4 release setup-node v4', () => {
@@ -128,18 +128,18 @@ test('workflow verifier rejects version, runtime, and cache regressions', async 
       {
         release: replaceRequired(
           sources.release,
-          'actions/setup-node@v6',
+          'actions/setup-node@v7',
           'actions/setup-node@v4',
         ),
       },
-      /must use actions\/setup-node@v6/u,
+      /must use actions\/setup-node@v7/u,
     );
   });
   await t.test('5 inconsistent action major in an optional job', () => {
     const ci = mutateJob(sources.ci, 'kafka-integration', (job) =>
-      replaceRequired(job, 'actions/checkout@v6', 'actions/checkout@v5'),
+      replaceRequired(job, 'actions/checkout@v7', 'actions/checkout@v6'),
     );
-    expectFailure({ ci }, /kafka-integration must use actions\/checkout@v6/u);
+    expectFailure({ ci }, /kafka-integration must use actions\/checkout@v7/u);
   });
   await t.test('6 CAP CI runtime changed from Node.js 22', () => {
     const ci = mutateJob(sources.ci, 'build-and-test', (job) =>

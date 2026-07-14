@@ -9,8 +9,8 @@ const workflowFiles = Object.freeze({
   release: path.join('.github', 'workflows', 'release.yml'),
 });
 const selectedActions = Object.freeze({
-  checkout: 'actions/checkout@v6',
-  setupNode: 'actions/setup-node@v6',
+  checkout: 'actions/checkout@v7',
+  setupNode: 'actions/setup-node@v7',
 });
 
 class WorkflowActionVerificationError extends Error {}
