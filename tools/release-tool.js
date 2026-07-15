@@ -206,19 +206,26 @@ function snapshotGeneratedState(cwd = rootDir) {
   );
 }
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
-}
-
 function changelogSection(changelog, version) {
-  // Lerna writes "## [version]". Keep a plain-version fallback for package
-  // changelogs that use a hand-maintained heading style.
-  const start = changelog.search(
-    new RegExp(`^## (?:\\[)?${escapeRegExp(version)}(?:\\])?[^\\n]*$`, 'mu'),
+  // Lerna writes a level-two heading for the generated version. Historical
+  // changelogs may use level-one version headings, so either level ends the
+  // generated section. Parse and validate the version token to avoid treating
+  // document titles such as "# Change Log" as section boundaries.
+  const headingPattern =
+    /^(#{1,2})[ \t]+(?:\[([^\]\r\n]+)\](?:\([^\r\n]*\))?|([^\s\r\n]+))(?:[ \t]+[^\r\n]*)?\r?$/gmu;
+  const headings = Array.from(changelog.matchAll(headingPattern), (match) => ({
+    index: match.index,
+    level: match[1].length,
+    version: semver.valid(match[2] || match[3]),
+  })).filter((heading) => heading.version !== null);
+  const targetVersion = semver.valid(version);
+  const startHeading = headings.find(
+    (heading) => heading.level === 2 && heading.version === targetVersion,
   );
-  if (start < 0) return undefined;
-  const endMatch = /\r?\n## /gu.exec(changelog.slice(start + 1));
-  const end = endMatch ? start + 1 + endMatch.index : changelog.length;
+  if (!startHeading) return undefined;
+  const start = startHeading.index;
+  const endHeading = headings.find((heading) => heading.index > start);
+  const end = endHeading ? endHeading.index : changelog.length;
   return { start, end, text: changelog.slice(start, end) };
 }
 
@@ -1755,6 +1762,7 @@ module.exports = {
   bootstrapConfirmation,
   buildBootstrapPackages,
   buildReleaseCommand,
+  changelogSection,
   commitExists,
   coordinatedMajorConfirmation,
   coordinatedTagCommit,
