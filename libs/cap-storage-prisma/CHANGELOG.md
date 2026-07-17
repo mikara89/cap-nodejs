@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.2.2](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-storage-prisma@2.2.1...@mikara89/cap-storage-prisma@2.2.2) (2026-07-17)
+
+### Bug Fixes
+
+- **core:** fence outbox claim ownership ([2a381ad](https://github.com/mikara89/cap-nodejs/commit/2a381adcd8c158779e6260a058851ce378bc6209))
+- **storage:** preserve retry thresholds on MySQL ([4a3579e](https://github.com/mikara89/cap-nodejs/commit/4a3579e60be55baa4a761a67126f6b52af3deff1))
+- **types:** eliminate core and Prisma unsafe-value warnings ([#8](https://github.com/mikara89/cap-nodejs/issues/8)) ([0135a58](https://github.com/mikara89/cap-nodejs/commit/0135a58d95c895347ccf227278c0d9114b4fe9af))
+
 ## [2.2.1](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-storage-prisma@2.2.0...@mikara89/cap-storage-prisma@2.2.1) (2026-07-11)
 
 ### Bug Fixes

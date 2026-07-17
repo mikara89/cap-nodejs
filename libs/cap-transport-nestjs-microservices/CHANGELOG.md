@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.3.0](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-transport-nestjs-microservices@2.2.0...@mikara89/cap-transport-nestjs-microservices@2.3.0) (2026-07-17)
+
+### Features
+
+- **core:** add a versioned CAP message envelope ([de2a854](https://github.com/mikara89/cap-nodejs/commit/de2a8545ead5cf7fdf2f5eb9230c7a23c1a3fc7b))
+- **envelope:** preserve package and bridge compatibility ([b4bdb97](https://github.com/mikara89/cap-nodejs/commit/b4bdb9738b4471273d3081813f840df3d9385dda))
+
+### Bug Fixes
+
+- **nestjs-microservices:** preserve ES2021 own-property checks ([14b7445](https://github.com/mikara89/cap-nodejs/commit/14b74458d8216077a3acca7583501a37a64b28fe))
+- **release:** restore Lerna release authority ([044f165](https://github.com/mikara89/cap-nodejs/commit/044f1658247a8ba6efb4870ca1c76610138a948e))
+- **types:** eliminate core and Prisma unsafe-value warnings ([#8](https://github.com/mikara89/cap-nodejs/issues/8)) ([0135a58](https://github.com/mikara89/cap-nodejs/commit/0135a58d95c895347ccf227278c0d9114b4fe9af))
+
+### Reverts
+
+- Revert "chore(release): prepare 2.3.0" ([de35e0e](https://github.com/mikara89/cap-nodejs/commit/de35e0ef6bec2f4aa6b94092298908be91186c11))
+
 # 0.7.0-beta.4 (2026-06-24)
 
 **Note:** Version bump only for package @mikara89/cap-transport-nestjs-microservices

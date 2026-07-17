@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.3.1](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-core@2.3.0...@mikara89/cap-core@2.3.1) (2026-07-17)
+
+### Bug Fixes
+
+- **types:** eliminate core and Prisma unsafe-value warnings ([#8](https://github.com/mikara89/cap-nodejs/issues/8)) ([0135a58](https://github.com/mikara89/cap-nodejs/commit/0135a58d95c895347ccf227278c0d9114b4fe9af))
+
 ## 2.3.0 (2026-07-12)
 
 ### Features
