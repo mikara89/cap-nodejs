@@ -249,6 +249,18 @@ test('workflow verifier rejects credential and release-safety regressions', asyn
       /publish checkout must retain RELEASE_GITHUB_TOKEN/u,
     );
   });
+  await t.test(
+    '17b release publication stops using the validated commit',
+    () => {
+      const release = mutateJob(sources.release, 'publish', (job) =>
+        replaceRequired(job, '${{ needs.validate.outputs.head_sha }}', 'main'),
+      );
+      expectFailure(
+        { release },
+        /publish checkout must select the immutable validated plan commit/u,
+      );
+    },
+  );
   await t.test('18 CI references a release secret', () => {
     expectFailure(
       { ci: `${sources.ci}\n# \${{ secrets.RELEASE_GITHUB_TOKEN }}\n` },

@@ -261,8 +261,8 @@ function verifyWorkflowSources(sources) {
       'Release publish checkout must retain fetch-depth: 0.',
     );
     check(
-      publishCheckout.with.ref === 'main',
-      'Release publish checkout must continue selecting main.',
+      publishCheckout.with.ref === '${{ needs.validate.outputs.head_sha }}',
+      'Release publish checkout must select the immutable validated plan commit.',
     );
     check(
       publishCheckout.with.token === '${{ secrets.RELEASE_GITHUB_TOKEN }}',

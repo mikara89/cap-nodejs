@@ -19,6 +19,7 @@ const {
   buildReleaseCommand,
   changelogSection,
   coordinatedMajorConfirmation,
+  recoveryConfirmation,
   coordinatedTagCommit,
   createBootstrapTags,
   discoverPackages,
@@ -35,6 +36,7 @@ const {
   packageTag,
   requiredDependents,
   recoveryCommand,
+  recoveryPackagesAtHead,
   sourceFilesChanged,
   simulateLernaVersions,
   validatePlanFile,
@@ -1185,6 +1187,13 @@ test('invalid input combinations are rejected', () => {
     },
     { operation: 'release', channel: 'stable', coordinatedMajor: true },
     { operation: 'bootstrap', channel: 'stable' },
+    { operation: 'recover', channel: 'stable' },
+    {
+      operation: 'recover',
+      channel: 'stable',
+      confirmation: recoveryConfirmation,
+      recoveryRef: 'short-sha',
+    },
   ];
   for (const input of invalid)
     assert.throws(() => normalizeInputs(input), ReleaseToolError);
@@ -1524,6 +1533,54 @@ test('partial publication recovery uses from-git without another version bump', 
   assert.match(lernaSource, /EPUBLISHCONFLICT/);
 });
 
+test('recovery planning selects only current-version package tags at its pinned commit', () =>
+  withFixture(
+    [
+      { id: 'a', name: '@fixture/a', version: '1.0.0' },
+      { id: 'b', name: '@fixture/b', version: '2.0.0' },
+    ],
+    (cwd) => {
+      const taggedHead = command('git', ['rev-parse', 'HEAD'], cwd).trim();
+      assert.deepEqual(
+        recoveryPackagesAtHead(
+          discoverPackages(cwd, { fixture: true }),
+          taggedHead,
+          cwd,
+        ).map((pkg) => pkg.name),
+        ['@fixture/a', '@fixture/b'],
+      );
+      addCommit(cwd, 'a', 'chore: recovery tooling');
+      const laterHead = command('git', ['rev-parse', 'HEAD'], cwd).trim();
+      assert.deepEqual(
+        recoveryPackagesAtHead(
+          discoverPackages(cwd, { fixture: true }),
+          laterHead,
+          cwd,
+        ),
+        [],
+      );
+    },
+  ));
+
+test('recovery command is confirmation-gated and immutable', () => {
+  const recovery = buildReleaseCommand({
+    operation: 'recover',
+    channel: 'stable',
+    confirmation: recoveryConfirmation,
+    recoveryRef: 'a'.repeat(40),
+  });
+  assert.deepEqual(recovery.args, [
+    'publish',
+    'from-git',
+    '--yes',
+    '--registry',
+    'https://registry.npmjs.org/',
+    '--dist-tag',
+    'latest',
+  ]);
+  assert.doesNotMatch(recovery.args.join(' '), /conventional|force-publish/u);
+});
+
 test('tampered release plans fail integrity validation', () => {
   const plan = {
     schemaVersion: 1,
@@ -1634,6 +1691,7 @@ test('release workflow exposes only validated Lerna modes and protects publicati
     'channel:',
     'coordinated_major:',
     'confirmation:',
+    'recovery_ref:',
   ]) {
     assert.match(releaseWorkflow, new RegExp(`^      ${input}`, 'm'));
   }
@@ -1656,6 +1714,11 @@ test('release workflow exposes only validated Lerna modes and protects publicati
   assert.match(releaseWorkflow, /test:release-tooling/);
   assert.match(releaseWorkflow, /release-tool\.js plan/);
   assert.match(releaseWorkflow, /release-tool\.js execute/);
+  assert.match(releaseWorkflow, /RECOVER_PARTIAL_RELEASE|recovery_ref/);
+  assert.match(
+    releaseWorkflow,
+    /ref: \$\{\{ needs\.validate\.outputs\.head_sha \}\}/,
+  );
   assert.match(releaseWorkflow, /cancel-in-progress: false/);
   // Publish job must build workspace before executing the Lerna plan
   // so inter-package dist references (e.g. cap-core/dist) are resolved

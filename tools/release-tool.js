@@ -17,6 +17,7 @@ const registry = 'https://registry.npmjs.org/';
 const repositoryUrl = 'https://github.com/mikara89/cap-nodejs';
 const bootstrapConfirmation = 'PUBLISH_ALL_TO_NPM';
 const coordinatedMajorConfirmation = 'PUBLISH_COORDINATED_MAJOR';
+const recoveryConfirmation = 'RECOVER_PARTIAL_RELEASE';
 const changelogPreset = './tools/package-owned-changelog-preset.js';
 const ignoredReleaseChanges = [
   '**/*.spec.ts',
@@ -298,8 +299,9 @@ function normalizeInputs(input) {
   const coordinatedMajor =
     input.coordinatedMajor === true || input.coordinatedMajor === 'true';
   const confirmation = input.confirmation || '';
+  const recoveryRef = input.recoveryRef || '';
 
-  if (!['release', 'graduate', 'bootstrap'].includes(operation)) {
+  if (!['release', 'graduate', 'bootstrap', 'recover'].includes(operation)) {
     fail(`Unsupported operation: ${operation}.`);
   }
   if (!['stable', 'beta', 'rc'].includes(channel))
@@ -316,13 +318,31 @@ function normalizeInputs(input) {
       fail(`Bootstrap requires confirmation=${bootstrapConfirmation}.`);
     }
   }
+  if (operation === 'recover') {
+    if (coordinatedMajor)
+      fail('Recovery cannot be combined with coordinated_major.');
+    if (confirmation !== recoveryConfirmation) {
+      fail(`Recovery requires confirmation=${recoveryConfirmation}.`);
+    }
+    if (!/^[0-9a-f]{40}$/u.test(recoveryRef)) {
+      fail('Recovery requires recovery_ref as a full lowercase commit SHA.');
+    }
+  } else if (recoveryRef) {
+    fail('recovery_ref is valid only for operation=recover.');
+  }
   if (coordinatedMajor && confirmation !== coordinatedMajorConfirmation) {
     fail(
       `Coordinated major requires confirmation=${coordinatedMajorConfirmation}.`,
     );
   }
 
-  return { operation, channel, coordinatedMajor, confirmation };
+  return {
+    operation,
+    channel,
+    coordinatedMajor,
+    confirmation,
+    recoveryRef,
+  };
 }
 
 function distTagFor(channel) {
@@ -914,6 +934,18 @@ function buildReleaseCommand(input, options = {}) {
     return { args, distTag, normalized };
   }
 
+  if (operation === 'recover') {
+    args.push(
+      'from-git',
+      '--yes',
+      '--registry',
+      registry,
+      '--dist-tag',
+      distTag,
+    );
+    return { args, distTag, normalized };
+  }
+
   if (operation === 'graduate') {
     if (coordinatedMajor) {
       args.push('--conventional-graduate=*', '--force-conventional-graduate');
@@ -1049,6 +1081,12 @@ function assertPlanInvariants(plan, packages) {
     if (!before) fail(`Unknown package in plan: ${change.name}.`);
     const beforePrerelease = semver.prerelease(before);
     const afterPrerelease = semver.prerelease(change.newVersion);
+    if (
+      operation === 'recover' &&
+      (change.oldVersion !== before || change.newVersion !== before)
+    ) {
+      fail(`${change.name} recovery must not change its package version.`);
+    }
     if (channel === 'beta' && afterPrerelease?.[0] !== 'beta')
       fail(`${change.name} is not a beta version.`);
     if (channel === 'rc' && afterPrerelease?.[0] !== 'rc')
@@ -1100,6 +1138,39 @@ function assertPlanInvariants(plan, packages) {
   }
   if (operation === 'graduate' && plan.packages.length === 0) {
     fail('Graduation requires at least one prerelease package.');
+  }
+  if (operation === 'recover' && plan.packages.length === 0) {
+    fail('Recovery requires at least one current package tag at HEAD.');
+  }
+}
+
+function recoveryPackagesAtHead(packages, head, cwd = rootDir) {
+  return packages
+    .filter((pkg) => tagCommit(packageTag(pkg.name, pkg.version), cwd) === head)
+    .map((pkg) => ({
+      name: pkg.name,
+      oldVersion: pkg.version,
+      newVersion: pkg.version,
+      tag: packageTag(pkg.name, pkg.version),
+      githubRelease: undefined,
+    }));
+}
+
+function assertRecoveryTarget(target, mainHead, cwd = rootDir) {
+  if (!commitExists(target, cwd))
+    fail(`Recovery commit ${target} does not exist in the checkout.`);
+  const ancestor = run(
+    'git',
+    ['merge-base', '--is-ancestor', target, mainHead],
+    {
+      cwd,
+      allowFailure: true,
+    },
+  );
+  if (ancestor.status !== 0) {
+    fail(
+      `Recovery commit ${target} is not an ancestor of current main ${mainHead}.`,
+    );
   }
 }
 
@@ -1320,6 +1391,15 @@ async function createPlan(input, options = {}) {
       cwd,
       head: validatedHead,
     });
+  } else if (inputs.operation === 'recover') {
+    assertRecoveryTarget(inputs.recoveryRef, validatedHead, cwd);
+    plannedPackages = recoveryPackagesAtHead(packages, inputs.recoveryRef, cwd);
+    relevant = plannedPackages.map((pkg) => pkg.name);
+    if (plannedPackages.length === 0) {
+      fail(
+        'Recovery requires at least one current package tag at HEAD; select the partial release commit on main.',
+      );
+    }
   } else {
     for (const pkg of packages) {
       if (!tagCommit(packageTag(pkg.name, pkg.version), cwd)) {
@@ -1425,7 +1505,8 @@ async function createPlan(input, options = {}) {
   const command = buildReleaseCommand(inputs, commandOptions);
   const plan = {
     schemaVersion: 1,
-    headSha: validatedHead,
+    headSha:
+      inputs.operation === 'recover' ? inputs.recoveryRef : validatedHead,
     branch,
     lernaVersion: installedLerna,
     changelogPresetVersion: installedPreset,
@@ -1523,6 +1604,26 @@ function verifyHead(expected, options = {}) {
   }
 }
 
+function verifyRecoveryHead(expected, options = {}) {
+  const cwd = options.cwd || rootDir;
+  if (options.checkClean !== false) assertCleanTree(cwd);
+  const local = headSha(cwd);
+  if (local !== expected)
+    fail(`Recovery checkout changed: expected ${expected}, got ${local}.`);
+  if (options.checkRemote !== false) {
+    const remote = run(
+      'git',
+      ['ls-remote', '--heads', 'origin', 'refs/heads/main'],
+      { cwd },
+    ).stdout.trim();
+    const remoteSha = remote.split(/\s+/u)[0];
+    if (!remoteSha || !commitExists(remoteSha, cwd)) {
+      fail(`Cannot verify current origin/main ${remoteSha || '(missing)'}.`);
+    }
+    assertRecoveryTarget(expected, remoteSha, cwd);
+  }
+}
+
 function createBootstrapTags(plan, options = {}) {
   const cwd = options.cwd || rootDir;
   const packageNames = options.packageNames
@@ -1561,7 +1662,9 @@ function createBootstrapTags(plan, options = {}) {
 
 async function executePlan(plan, options = {}) {
   validatePlanFile(plan);
-  verifyHead(plan.headSha, options);
+  if (plan.inputs.operation === 'recover')
+    verifyRecoveryHead(plan.headSha, options);
+  else verifyHead(plan.headSha, options);
   if (plan.noChanges) {
     console.log('No packages selected; nothing to publish.');
     return;
@@ -1570,6 +1673,16 @@ async function executePlan(plan, options = {}) {
   const validateGeneratedState =
     options.validatePostVersionState || validatePostVersionState;
   if (plan.inputs.operation === 'bootstrap') {
+    validateGeneratedState(cwd, {
+      dependencyRoot: options.dependencyRoot || cwd,
+    });
+  } else if (plan.inputs.operation === 'recover') {
+    const current = recoveryPackagesAtHead(
+      discoverPackages(cwd),
+      plan.headSha,
+      cwd,
+    );
+    assertSimulatedPlanMatches(plan, current);
     validateGeneratedState(cwd, {
       dependencyRoot: options.dependencyRoot || cwd,
     });
@@ -1723,6 +1836,7 @@ async function main() {
       channel: options.channel,
       coordinatedMajor: options.coordinatedMajor,
       confirmation: options.confirmation,
+      recoveryRef: options.recoveryRef,
     });
     printPlan(plan);
     if (options.output)
@@ -1765,6 +1879,7 @@ module.exports = {
   changelogSection,
   commitExists,
   coordinatedMajorConfirmation,
+  recoveryConfirmation,
   coordinatedTagCommit,
   createBootstrapTags,
   createPlan,
@@ -1780,6 +1895,7 @@ module.exports = {
   packageTag,
   planHash,
   recoveryCommand,
+  recoveryPackagesAtHead,
   requiredDependents,
   registry,
   sourceFilesChanged,
@@ -1795,6 +1911,7 @@ module.exports = {
   verifyConfiguration,
   validatePostVersionState,
   verifyHead,
+  verifyRecoveryHead,
   versionArgsFromPublish,
 };
 

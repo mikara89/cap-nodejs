@@ -448,6 +448,12 @@ Never create a new version merely to retry a partial release.
 - If npm fails after Lerna pushed the version commit and tags, fix
   authentication/registry availability and retry:
 
+  Run the `Release` workflow with operation `recover`, the original channel,
+  the full SHA of the tagged release commit in `recovery_ref`, and confirmation
+  `RECOVER_PARTIAL_RELEASE`. The protected workflow validates that the commit is
+  still an ancestor of `main`, checks out that exact tag target, and then uses
+  npm OIDC to run the equivalent of:
+
   ```sh
   npx lerna publish from-git --yes \
     --registry https://registry.npmjs.org/ --dist-tag latest
