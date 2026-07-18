@@ -50,7 +50,10 @@ await publisher.close();
 Publish sends JSON payloads to the configured SNS topic with CAP headers as
 SNS message attributes. Subscribe polls the configured SQS queue with
 long-polling. Messages are deleted from the queue only after the CAP handler
-succeeds.
+succeeds. Graceful `close()` stops accepting newly received messages, waits for
+handlers already in flight and their final delete/non-delete settlement, and
+then closes the SQS client. It can therefore wait for a current long poll or
+handler to finish.
 
 Standard SQS delivery can be duplicated, so consumers must remain idempotent.
 The adapter does not claim exactly-once processing, FIFO ordering on Standard
@@ -81,10 +84,14 @@ With `autoProvision: false` (the default), operators must provide the SNS topic,
 SQS queue, queue policy, and SNS-to-SQS subscription. With `autoProvision: true`,
 the adapter uses the configured names to ensure those resources and therefore
 needs only the corresponding create/get/set/subscribe permissions. It never
-deletes provisioned resources. One `AwsSqsSubscriber` instance represents one
-configured SQS queue and one CAP topic/group subscription; use a separate queue
-and subscriber instance for another subscription so messages cannot be
-misattributed between logical topics.
+deletes provisioned resources. When updating an existing queue policy, it
+preserves unrelated statements and inserts or replaces only a stable CAP-owned
+statement for the selected SNS topic. Provisioning fails closed instead of
+overwriting a non-empty policy that cannot be parsed safely. One
+`AwsSqsSubscriber` instance represents one configured SQS queue and one CAP
+topic/group subscription; use a separate queue and subscriber instance for
+another subscription so messages cannot be misattributed between logical
+topics.
 
 ## Dead-Letter Queue and Poison Message Policy
 
