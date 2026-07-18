@@ -28,6 +28,11 @@ Publishable packages use independent versions, so each package can be published
 on its own release line. Check the public npm registry and the package-owned
 changelog for the version that is currently published before adopting it.
 
+The RabbitMQ, Kafka, and AWS SNS/SQS packages are implemented in the repository
+and prepared here for their first independent stable releases. Their current
+registry entries remain `0.0.0` baselines; they are not yet published or
+verified as stable releases.
+
 The root workspace package is private and its `2.4.1` version tracks repository
 roadmap progress. It is not an npm package version and does not imply that all
 libraries are version `2.4.1`. Publishable packages live under `libs/*`, remain
@@ -111,8 +116,9 @@ Adapter-specific requirements:
 
 ## Installation
 
-Packages are public on npmjs. Installation requires no token or custom
-`.npmrc`. Install the framework-agnostic core package with:
+Published packages are public on npmjs and require no token or custom `.npmrc`.
+Registry status remains package-specific. Install the framework-agnostic core
+package with:
 
 ```sh
 npm install @mikara89/cap-core
@@ -130,16 +136,12 @@ For durable MikroORM storage and Azure Service Bus transport:
 npm install @mikara89/cap-nest @mikara89/cap-storage-mikro-orm @mikara89/cap-transport-azure-servicebus
 ```
 
-For RabbitMQ transport:
+After their first stable releases, install the prepared transports with:
 
 ```sh
 npm install @mikara89/cap-transport-rabbitmq
-```
-
-For Kafka transport:
-
-```sh
 npm install @mikara89/cap-transport-kafka
+npm install @mikara89/cap-transport-aws-sns-sqs
 ```
 
 For durable Knex storage, install Knex and a dialect driver such as `pg`,

@@ -1,106 +1,83 @@
 import type { CapLogger } from '@mikara89/cap-core';
-import type {
-  CreateTopicCommandOutput,
-  SubscribeCommandOutput,
-} from '@aws-sdk/client-sns';
-import type { CreateQueueCommandOutput } from '@aws-sdk/client-sqs';
+import type { SnsClient, SqsClient } from './aws-types';
 
 /**
- * Optional topology manager for SNS→SQS subscription setup.
- *
- * When `autoProvision` is enabled and topic/queue names are provided
- * (instead of raw ARNs/URLs), this manager can create the SNS topic,
- * SQS queue, and the subscription between them.
- *
- * This is conservative by design:
- * - It only runs when explicitly opted in via `autoProvision: true`.
- * - It only acts on names (not raw ARNs/URLs).
- * - It does not delete resources on close.
+ * Opt-in SNS/SQS topology provisioning. Resources are never deleted on close.
  */
 export class AwsSnsSqsTopology {
-  private readonly created = new Set<string>();
+  private readonly topics = new Map<string, string>();
+  private readonly queues = new Map<string, string>();
+  private readonly subscriptions = new Set<string>();
 
   constructor(private readonly logger?: CapLogger) {}
 
-  async ensureTopic(
-    snsClient: {
-      send(command: {
-        input: { Name: string };
-      }): Promise<CreateTopicCommandOutput>;
-    },
-    topicName: string,
-  ): Promise<string> {
-    if (this.created.has(`topic:${topicName}`)) {
-      return `arn:aws:sns:*:${topicName}`; // approximate; real impl uses returned ARN
+  async ensureTopic(snsClient: SnsClient, topicName: string): Promise<string> {
+    const existing = this.topics.get(topicName);
+    if (existing) return existing;
+    const result = (await snsClient.send({
+      input: { Name: topicName },
+    })) as { TopicArn?: string };
+    if (!result.TopicArn) {
+      throw new Error(`AWS SNS did not return an ARN for topic ${topicName}`);
     }
-    try {
-      const result = await snsClient.send({
-        input: { Name: topicName },
-      });
-      const arn = result.TopicArn ?? '';
-      this.created.add(`topic:${topicName}`);
-      this.logger?.info?.(`Created SNS topic ${arn}`);
-      return arn;
-    } catch (error) {
-      this.logger?.warn?.(`Failed to create SNS topic ${topicName}`, error);
-      throw error;
-    }
+    this.topics.set(topicName, result.TopicArn);
+    this.logger?.info?.(`Ensured SNS topic ${result.TopicArn}`);
+    return result.TopicArn;
   }
 
-  async ensureQueue(
-    sqsClient: {
-      send(command: {
-        input: { QueueName: string };
-      }): Promise<CreateQueueCommandOutput>;
-    },
-    queueName: string,
-  ): Promise<string> {
-    if (this.created.has(`queue:${queueName}`)) {
-      return `https://sqs.*.amazonaws.com/*/${queueName}`;
+  async ensureQueue(sqsClient: SqsClient, queueName: string): Promise<string> {
+    const existing = this.queues.get(queueName);
+    if (existing) return existing;
+    const result = (await sqsClient.send({
+      input: { QueueName: queueName },
+    })) as { QueueUrl?: string };
+    if (!result.QueueUrl) {
+      throw new Error(`AWS SQS did not return a URL for queue ${queueName}`);
     }
-    try {
-      const result = await sqsClient.send({
-        input: { QueueName: queueName },
-      });
-      const url = result.QueueUrl ?? '';
-      this.created.add(`queue:${queueName}`);
-      this.logger?.info?.(`Created SQS queue ${url}`);
-      return url;
-    } catch (error) {
-      this.logger?.warn?.(`Failed to create SQS queue ${queueName}`, error);
-      throw error;
-    }
+    this.queues.set(queueName, result.QueueUrl);
+    this.logger?.info?.(`Ensured SQS queue ${result.QueueUrl}`);
+    return result.QueueUrl;
   }
 
   async ensureSubscription(
-    snsClient: {
-      send(command: {
-        input: { TopicArn: string; Protocol: string; Endpoint: string };
-      }): Promise<SubscribeCommandOutput>;
-    },
+    snsClient: SnsClient,
+    sqsClient: SqsClient,
     topicArn: string,
-    queueArn: string,
+    queueUrl: string,
   ): Promise<void> {
-    const key = `sub:${topicArn}->${queueArn}`;
-    if (this.created.has(key)) return;
-    try {
-      await snsClient.send({
-        input: {
-          TopicArn: topicArn,
-          Protocol: 'sqs',
-          Endpoint: queueArn,
-        },
-      });
-      this.created.add(key);
-      this.logger?.info?.(
-        `Created SNS→SQS subscription ${topicArn} -> ${queueArn}`,
-      );
-    } catch (error) {
-      this.logger?.warn?.(
-        `Failed to create SNS→SQS subscription ${topicArn} -> ${queueArn}`,
-        error,
-      );
-      throw error;
+    const key = `${topicArn}->${queueUrl}`;
+    if (this.subscriptions.has(key)) return;
+    const attributes = (await sqsClient.send({
+      input: { QueueUrl: queueUrl, AttributeNames: ['QueueArn'] },
+    })) as { Attributes?: Record<string, string> };
+    const queueArn = attributes.Attributes?.['QueueArn'];
+    if (!queueArn) {
+      throw new Error(`AWS SQS did not return an ARN for queue ${queueUrl}`);
     }
+    const policy = JSON.stringify({
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Effect: 'Allow',
+          Principal: { Service: 'sns.amazonaws.com' },
+          Action: 'sqs:SendMessage',
+          Resource: queueArn,
+          Condition: { ArnEquals: { 'aws:SourceArn': topicArn } },
+        },
+      ],
+    });
+    await sqsClient.send({
+      input: {
+        QueueUrl: queueUrl,
+        Attributes: { Policy: policy },
+      },
+    });
+    await snsClient.send({
+      input: { TopicArn: topicArn, Protocol: 'sqs', Endpoint: queueArn },
+    });
+    this.subscriptions.add(key);
+    this.logger?.info?.(
+      `Ensured SNS/SQS subscription ${topicArn} -> ${queueArn}`,
+    );
   }
 }

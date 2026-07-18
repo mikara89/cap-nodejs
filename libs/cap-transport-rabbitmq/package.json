@@ -5,6 +5,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
   "homepage": "https://mikara89.github.io/cap-nodejs/",
   "repository": {
     "type": "git",

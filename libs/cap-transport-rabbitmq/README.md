@@ -2,6 +2,16 @@
 
 Framework-neutral RabbitMQ transport adapter for CAP, built on `amqplib`.
 
+## Installation and compatibility
+
+```sh
+npm install @mikara89/cap-transport-rabbitmq @mikara89/cap-core
+```
+
+Node.js 22 or newer is required. The supported core range starts at
+`@mikara89/cap-core@2.2.0`. `amqplib` and its declarations are runtime
+dependencies of this package; consumers do not need a monorepo checkout.
+
 ## Guarantees
 
 - Publishes persistent JSON messages to a durable topic exchange.
@@ -52,6 +62,14 @@ await subscriber.consume(
     // Register these instances as CAP's PublisherPort and SubscriberPort.
   },
 );
+
+await publisher.emit('orders.created', { id: 'order-1' }, undefined, {
+  messageId: 'outbox-1',
+});
+
+// During graceful shutdown:
+await subscriber.close();
+await publisher.close();
 ```
 
 ## Topology and recovery
@@ -85,3 +103,12 @@ connections idempotently.
 Generated names and numeric settings are validated. Quorum queues and
 dead-lettering are not CAP-wide capabilities and are not advertised unless the
 corresponding RabbitMQ options are explicitly configured.
+
+## Integration verification
+
+The real-broker suite uses the repository-pinned `rabbitmq:4.1.0-alpine`
+image:
+
+```sh
+npm run test:integration:rabbitmq
+```

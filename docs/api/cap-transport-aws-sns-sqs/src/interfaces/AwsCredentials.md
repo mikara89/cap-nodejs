@@ -6,7 +6,7 @@
 
 # Interface: AwsCredentials
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:31](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L31)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L24)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:31](https://github.com/m
 
 > **accessKeyId**: `string`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:32](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L32)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L25)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:32](https://github.com/m
 
 > **secretAccessKey**: `string`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:33](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L33)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:26](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L26)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:33](https://github.com/m
 
 > `optional` **sessionToken?**: `string`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:34](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L34)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:27](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L27)

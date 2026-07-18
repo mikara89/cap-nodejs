@@ -8,6 +8,7 @@ import type {
 import { resolveAwsSnsSqsOptions } from './aws-config';
 import { AwsSqsMalformedMessageError } from './aws-errors';
 import type { AwsSnsSqsOptions, ResolvedAwsSnsSqsOptions } from './aws-options';
+import { AwsSnsSqsTopology } from './aws-topology';
 import type { AwsClientFactory, SqsClient } from './aws-types';
 
 const CONTENT_TYPE = 'content-type';
@@ -23,7 +24,9 @@ interface QueueState {
 export class AwsSqsSubscriber implements SubscriberPort {
   private readonly options: ResolvedAwsSnsSqsOptions;
   private readonly clients: AwsClientFactory;
+  private readonly topology: AwsSnsSqsTopology;
   private readonly queues = new Map<string, QueueState>();
+  private queueSetup?: Promise<{ queueUrl: string; state: QueueState }>;
 
   constructor(options: AwsSnsSqsOptions = {}) {
     this.options = resolveAwsSnsSqsOptions(options);
@@ -32,46 +35,111 @@ export class AwsSqsSubscriber implements SubscriberPort {
       this.options.credentials,
       this.options.endpoint,
     );
+    this.topology = new AwsSnsSqsTopology(this.options.logger);
   }
 
   initialize(_options?: InitOptions): Promise<void> {
     return Promise.resolve();
   }
 
-  consume(topic: string, group: string, handler: CapHandler): Promise<void> {
-    const queueUrl = resolveQueueUrl(this.options, topic);
-    let state = this.queues.get(queueUrl);
-    if (!state) {
-      const client = this.clients.sqsClient(
-        this.options.region,
-        this.options.credentials,
-        this.options.endpoint,
+  async consume(
+    topic: string,
+    group: string,
+    handler: CapHandler,
+  ): Promise<void> {
+    const { queueUrl, state } = await this.setupQueue(topic);
+    const handlerKey = `${topic}/${group}`;
+    if (state.handlers.has(handlerKey)) return;
+    if (state.handlers.size > 0) {
+      throw new Error(
+        'One AwsSqsSubscriber instance supports one CAP subscription; use a separate configured queue for another topic or group',
       );
-      state = {
+    }
+    state.handlers.set(handlerKey, handler);
+
+    for (let index = 0; index < this.options.concurrency; index += 1) {
+      const pollerKey = `${handlerKey}/${index}`;
+      state.pollers.set(pollerKey, true);
+      this.startPolling(
+        queueUrl,
+        state,
+        topic,
+        group,
+        handlerKey,
+        pollerKey,
+      ).catch((error) => {
+        this.options.logger?.error?.(
+          `AWS SQS polling loop failed for ${queueUrl}`,
+          error,
+        );
+      });
+    }
+  }
+
+  private async setupQueue(
+    topic: string,
+  ): Promise<{ queueUrl: string; state: QueueState }> {
+    if (this.queueSetup) return this.queueSetup;
+    const client = this.clients.sqsClient(
+      this.options.region,
+      this.options.credentials,
+      this.options.endpoint,
+    );
+    this.queueSetup = (async () => {
+      const queueUrl = this.options.queueUrl
+        ? this.options.queueUrl
+        : await this.provisionQueue(client, topic);
+      const state: QueueState = {
         client,
         handlers: new Map(),
         pollers: new Map(),
         stopped: false,
       };
       this.queues.set(queueUrl, state);
-    }
+      return { queueUrl, state };
+    })().catch((error) => {
+      client.destroy();
+      this.queueSetup = undefined;
+      throw error;
+    });
+    return this.queueSetup;
+  }
 
-    const handlerKey = `${topic}/${group}`;
-    if (state.handlers.has(handlerKey)) return Promise.resolve();
-    state.handlers.set(handlerKey, handler);
-
-    if (!state.pollers.has(handlerKey)) {
-      state.pollers.set(handlerKey, true);
-      this.startPolling(queueUrl, state, topic, group, handlerKey).catch(
-        (error) => {
-          this.options.logger?.error?.(
-            `AWS SQS polling loop failed for ${queueUrl}`,
-            error,
-          );
-        },
+  private async provisionQueue(
+    sqsClient: SqsClient,
+    topic: string,
+  ): Promise<string> {
+    if (!this.options.autoProvision || !this.options.queueName) {
+      throw new Error(
+        'AWS SQS queueUrl is required unless autoProvision and queueName are configured',
       );
     }
-    return Promise.resolve();
+    const queueUrl = await this.topology.ensureQueue(
+      sqsClient,
+      this.options.queueName,
+    );
+    const snsClient = this.clients.snsClient(
+      this.options.region,
+      this.options.credentials,
+      this.options.endpoint,
+    );
+    try {
+      const topicArn = this.options.topicArn
+        ? this.options.topicArn
+        : await this.topology.ensureTopic(
+            snsClient,
+            this.options.topicName ?? topic,
+          );
+      await this.topology.ensureSubscription(
+        snsClient,
+        sqsClient,
+        topicArn,
+        queueUrl,
+      );
+      return queueUrl;
+    } finally {
+      snsClient.destroy();
+    }
   }
 
   private async startPolling(
@@ -80,8 +148,9 @@ export class AwsSqsSubscriber implements SubscriberPort {
     topic: string,
     group: string,
     handlerKey: string,
+    pollerKey: string,
   ): Promise<void> {
-    while (!state.stopped && state.pollers.get(handlerKey)) {
+    while (!state.stopped && state.pollers.get(pollerKey)) {
       try {
         const response = (await state.client.send({
           input: {
@@ -176,18 +245,9 @@ export class AwsSqsSubscriber implements SubscriberPort {
       state.client.destroy();
     }
     this.queues.clear();
+    this.queueSetup = undefined;
     return Promise.resolve();
   }
-}
-
-function resolveQueueUrl(
-  options: ResolvedAwsSnsSqsOptions,
-  _topic: string,
-): string {
-  if (options.queueUrl) return options.queueUrl;
-  throw new Error(
-    'AWS SQS queue URL must be configured via queueUrl or queueName options',
-  );
 }
 
 function resolveSubscribeMetadata(

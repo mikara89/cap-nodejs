@@ -6,18 +6,9 @@
 
 # Class: AwsSnsSqsTopology
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:20](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L20)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L7)
 
-Optional topology manager for SNS→SQS subscription setup.
-
-When `autoProvision` is enabled and topic/queue names are provided
-(instead of raw ARNs/URLs), this manager can create the SNS topic,
-SQS queue, and the subscription between them.
-
-This is conservative by design:
-- It only runs when explicitly opted in via `autoProvision: true`.
-- It only acts on names (not raw ARNs/URLs).
-- It does not delete resources on close.
+Opt-in SNS/SQS topology provisioning. Resources are never deleted on close.
 
 ## Constructors
 
@@ -25,7 +16,7 @@ This is conservative by design:
 
 > **new AwsSnsSqsTopology**(`logger?`): `AwsSnsSqsTopology`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:23](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L23)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L12)
 
 #### Parameters
 
@@ -43,13 +34,13 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:23](https://github.co
 
 > **ensureQueue**(`sqsClient`, `queueName`): `Promise`\<`string`\>
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:50](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L50)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:28](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L28)
 
 #### Parameters
 
 ##### sqsClient
 
-###### send
+[`SqsClient`](../interfaces/SqsClient.md)
 
 ##### queueName
 
@@ -63,21 +54,25 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:50](https://github.co
 
 ### ensureSubscription()
 
-> **ensureSubscription**(`snsClient`, `topicArn`, `queueArn`): `Promise`\<`void`\>
+> **ensureSubscription**(`snsClient`, `sqsClient`, `topicArn`, `queueUrl`): `Promise`\<`void`\>
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:75](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L75)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:42](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L42)
 
 #### Parameters
 
 ##### snsClient
 
-###### send
+[`SnsClient`](../interfaces/SnsClient.md)
+
+##### sqsClient
+
+[`SqsClient`](../interfaces/SqsClient.md)
 
 ##### topicArn
 
 `string`
 
-##### queueArn
+##### queueUrl
 
 `string`
 
@@ -91,13 +86,13 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:75](https://github.co
 
 > **ensureTopic**(`snsClient`, `topicName`): `Promise`\<`string`\>
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:25](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L25)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-topology.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-topology.ts#L14)
 
 #### Parameters
 
 ##### snsClient
 
-###### send
+[`SnsClient`](../interfaces/SnsClient.md)
 
 ##### topicName
 

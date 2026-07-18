@@ -10,6 +10,7 @@ import {
   AwsSnsPublishTimeoutError,
 } from './aws-errors';
 import type { AwsSnsSqsOptions, ResolvedAwsSnsSqsOptions } from './aws-options';
+import { AwsSnsSqsTopology } from './aws-topology';
 import type { AwsClientFactory, SnsClient } from './aws-types';
 
 const CONTENT_TYPE = 'content-type';
@@ -18,6 +19,7 @@ const MESSAGE_ID = 'cap-message-id';
 export class AwsSnsPublisher implements PublisherPort {
   private readonly options: ResolvedAwsSnsSqsOptions;
   private readonly clients: AwsClientFactory;
+  private readonly topology: AwsSnsSqsTopology;
   private sns?: SnsClient;
   private initializing?: Promise<void>;
 
@@ -28,6 +30,7 @@ export class AwsSnsPublisher implements PublisherPort {
       this.options.credentials,
       this.options.endpoint,
     );
+    this.topology = new AwsSnsSqsTopology(this.options.logger);
   }
 
   async initialize(_options?: InitOptions): Promise<void> {
@@ -56,7 +59,7 @@ export class AwsSnsPublisher implements PublisherPort {
     const sns = this.sns;
     if (!sns) throw new AwsSnsDisconnectedError('publish');
 
-    const topicArn = resolveTopicArn(this.options, topic);
+    const topicArn = await this.resolveTopicArn(sns, topic);
     const encoded = JSON.stringify(payload);
     if (encoded === undefined)
       throw new TypeError('AWS SNS payload must be JSON-serializable');
@@ -84,18 +87,19 @@ export class AwsSnsPublisher implements PublisherPort {
     if (sns) sns.destroy();
     return Promise.resolve();
   }
-}
 
-function resolveTopicArn(
-  options: ResolvedAwsSnsSqsOptions,
-  topic: string,
-): string {
-  if (options.topicArn) return options.topicArn;
-  if (options.region)
-    return `arn:aws:sns:${options.region}:000000000000:${topic}`;
-  throw new Error(
-    'AWS SNS topic ARN must be configured via topicArn or topicName options',
-  );
+  private async resolveTopicArn(
+    sns: SnsClient,
+    topic: string,
+  ): Promise<string> {
+    if (this.options.topicArn) return this.options.topicArn;
+    if (this.options.autoProvision) {
+      return this.topology.ensureTopic(sns, this.options.topicName ?? topic);
+    }
+    throw new Error(
+      'AWS SNS topicArn is required unless autoProvision is enabled',
+    );
+  }
 }
 
 function encodeMessageAttributes(

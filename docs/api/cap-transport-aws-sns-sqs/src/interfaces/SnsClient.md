@@ -6,7 +6,7 @@
 
 # Interface: SnsClient
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:5](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L5)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:1](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L1)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:5](https://github.com/mi
 
 > **destroy**(): `void`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:10](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L10)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:3](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L3)
 
 #### Returns
 
@@ -24,9 +24,9 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:10](https://github.com/m
 
 ### send()
 
-> **send**(`command`): `Promise`\<\{ `MessageId?`: `string`; `SequenceNumber?`: `string`; \}\>
+> **send**(`command`): `Promise`\<`unknown`\>
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L6)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:2](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L2)
 
 #### Parameters
 
@@ -34,8 +34,8 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:6](https://github.com/mi
 
 ###### input
 
-`PublishCommandInput`
+`Record`\<`string`, `unknown`\>
 
 #### Returns
 
-`Promise`\<\{ `MessageId?`: `string`; `SequenceNumber?`: `string`; \}\>
+`Promise`\<`unknown`\>
