@@ -218,6 +218,76 @@ describe('AWS SNS/SQS transport', () => {
     expect(broker.published).toHaveLength(1);
     await publisher.close();
   });
+
+  it('auto-provisions the configured topic, queue, policy, and subscription', async () => {
+    const broker = new FakeAwsBroker();
+    const options = {
+      factory: broker.factory,
+      autoProvision: true,
+      topicName: 'cap-orders',
+      queueName: 'cap-orders-billing',
+      waitTimeSeconds: 7,
+      maxNumberOfMessages: 4,
+      visibilityTimeout: 45,
+      concurrency: 2,
+    };
+    const publisher = new AwsSnsPublisher(options);
+    const subscriber = new AwsSqsSubscriber(options);
+
+    await publisher.initialize();
+    await subscriber.consume('orders', 'billing', jest.fn());
+    await publisher.emit('orders', { id: 1 });
+    await sleep(20);
+
+    expect(broker.createdTopics.get('cap-orders')).toBe(
+      'arn:aws:sns:us-east-1:000000000000:cap-orders',
+    );
+    expect(broker.createdQueues.has('cap-orders-billing')).toBe(true);
+    expect(broker.subscriptions).toEqual([
+      {
+        topicArn: 'arn:aws:sns:us-east-1:000000000000:cap-orders',
+        queueArn: 'arn:aws:sqs:us-east-1:000000000000:cap-orders-billing',
+      },
+    ]);
+    expect(broker.receiveRequests).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          maxNumberOfMessages: 4,
+          waitTimeSeconds: 7,
+          visibilityTimeout: 45,
+        }),
+      ]),
+    );
+    expect(broker.activeSqsClients()).toBe(1);
+    await publisher.close();
+    await subscriber.close();
+    expect(broker.activeSnsClients()).toBe(0);
+    expect(broker.activeSqsClients()).toBe(0);
+  });
+
+  it.each([
+    [{ waitTimeSeconds: -1 }, 'waitTimeSeconds'],
+    [{ waitTimeSeconds: 21 }, 'waitTimeSeconds'],
+    [{ maxNumberOfMessages: 0 }, 'maxNumberOfMessages'],
+    [{ maxNumberOfMessages: 11 }, 'maxNumberOfMessages'],
+    [{ visibilityTimeout: 0 }, 'visibilityTimeout'],
+  ] as const)('validates SQS polling option %s', (options, message) => {
+    expect(() => new AwsSqsSubscriber(options)).toThrow(message);
+  });
+
+  it('rejects ambiguous multiple CAP subscriptions on one configured SQS queue', async () => {
+    const broker = new FakeAwsBroker();
+    const subscriber = new AwsSqsSubscriber({
+      factory: broker.factory,
+      queueUrl: DEFAULT_QUEUE_URL,
+      waitTimeSeconds: 0,
+    });
+    await subscriber.consume('orders', 'billing', jest.fn());
+    await expect(
+      subscriber.consume('payments', 'billing', jest.fn()),
+    ).rejects.toThrow('one CAP subscription');
+    await subscriber.close();
+  });
 });
 
 defineTransportContract(

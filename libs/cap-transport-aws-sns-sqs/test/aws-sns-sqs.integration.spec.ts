@@ -169,6 +169,31 @@ describe('AWS SNS/SQS transport integration', () => {
     });
   });
 
+  it('auto-provisions and connects an SNS topic and SQS queue', async () => {
+    const topicName = uniqueName('topic', 'auto');
+    const queueName = uniqueName('queue', 'auto');
+    const options = localOptions({
+      autoProvision: true,
+      topicName,
+      queueName,
+      waitTimeSeconds: 2,
+    });
+    const publisher = track(new AwsSnsPublisher(options));
+    const subscriber = track(new AwsSqsSubscriber(options));
+    const delivered = deferred<unknown>();
+
+    await publisher.initialize();
+    await subscriber.consume('orders.auto', 'billing', (payload) => {
+      delivered.resolve(payload);
+    });
+    await delay(500);
+    await publisher.emit('orders.auto', { id: 'auto-provisioned' });
+
+    await expect(withDeadline(delivered.promise, 15_000)).resolves.toEqual({
+      id: 'auto-provisioned',
+    });
+  });
+
   it('does not delete message on handler failure (message returns after visibility timeout)', async () => {
     const shortVisibilityQueue = await createQueue('failure');
 

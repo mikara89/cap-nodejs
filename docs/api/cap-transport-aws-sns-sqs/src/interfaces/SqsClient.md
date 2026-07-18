@@ -6,7 +6,7 @@
 
 # Interface: SqsClient
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:13](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L13)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:6](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L6)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:13](https://github.com/m
 
 > **destroy**(): `void`
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:15](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L15)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:8](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L8)
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:15](https://github.com/m
 
 > **send**(`command`): `Promise`\<`unknown`\>
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:14](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L14)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:7](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L7)
 
 #### Parameters
 
@@ -34,7 +34,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:14](https://github.com/m
 
 ###### input
 
-`unknown`
+`Record`\<`string`, `unknown`\>
 
 #### Returns
 

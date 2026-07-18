@@ -21,6 +21,12 @@ export class FakeAwsBroker implements AwsClientFactory {
     topicArn: string;
     queueArn: string;
   }> = [];
+  readonly receiveRequests: Array<{
+    queueUrl: string;
+    maxNumberOfMessages: number;
+    waitTimeSeconds: number;
+    visibilityTimeout: number;
+  }> = [];
   snsClientCount = 0;
   sqsClientCount = 0;
   failNextPublish?: Error;
@@ -42,6 +48,25 @@ export class FakeAwsBroker implements AwsClientFactory {
     return {
       send: async (command) => {
         if (destroyed) throw new Error('SNS client destroyed');
+        const input = command.input;
+        if (typeof input.Name === 'string') {
+          const arn = `arn:aws:sns:${this.region}:000000000000:${input.Name}`;
+          this.createdTopics.set(input.Name, arn);
+          return { TopicArn: arn };
+        }
+        if (
+          input.Protocol === 'sqs' &&
+          typeof input.TopicArn === 'string' &&
+          typeof input.Endpoint === 'string'
+        ) {
+          this.subscriptions.push({
+            topicArn: input.TopicArn,
+            queueArn: input.Endpoint,
+          });
+          return {
+            SubscriptionArn: `subscription-${this.subscriptions.length}`,
+          };
+        }
         if (this.failNextPublish) {
           const error = this.failNextPublish;
           this.failNextPublish = undefined;
@@ -49,10 +74,10 @@ export class FakeAwsBroker implements AwsClientFactory {
         }
         if (this.pendingPublish) return this.pendingPublish;
         this.published.push({
-          topicArn: command.input.TopicArn!,
-          message: command.input.Message!,
+          topicArn: String(input.TopicArn),
+          message: String(input.Message),
           messageAttributes:
-            (command.input.MessageAttributes as Record<
+            (input.MessageAttributes as Record<
               string,
               { DataType: string; StringValue: string }
             >) ?? {},
@@ -77,12 +102,33 @@ export class FakeAwsBroker implements AwsClientFactory {
       send: (command) => {
         if (destroyed) throw new Error('SQS client destroyed');
         const input = command.input as {
+          QueueName?: string;
           QueueUrl?: string;
+          AttributeNames?: string[];
+          Attributes?: Record<string, string>;
           MaxNumberOfMessages?: number;
           WaitTimeSeconds?: number;
           VisibilityTimeout?: number;
           ReceiptHandle?: string;
         };
+
+        if (input.QueueName) {
+          const queueUrl = `https://sqs.${this.region}.amazonaws.com/000000000000/${input.QueueName}`;
+          this.createdQueues.set(input.QueueName, queueUrl);
+          this.getOrCreateQueue(queueUrl);
+          return { QueueUrl: queueUrl } as never;
+        }
+
+        if (input.AttributeNames) {
+          const queueName = input.QueueUrl?.split('/').at(-1) ?? 'unknown';
+          return {
+            Attributes: {
+              QueueArn: `arn:aws:sqs:${this.region}:000000000000:${queueName}`,
+            },
+          } as never;
+        }
+
+        if (input.Attributes) return {} as never;
 
         // DeleteMessage
         if ('ReceiptHandle' in input && input.ReceiptHandle) {
@@ -94,6 +140,12 @@ export class FakeAwsBroker implements AwsClientFactory {
         }
 
         // ReceiveMessage
+        this.receiveRequests.push({
+          queueUrl: input.QueueUrl!,
+          maxNumberOfMessages: input.MaxNumberOfMessages ?? 10,
+          waitTimeSeconds: input.WaitTimeSeconds ?? 20,
+          visibilityTimeout: input.VisibilityTimeout ?? 30,
+        });
         const queue = this.getOrCreateQueue(input.QueueUrl!);
         const messages = queue.receiveMessages(input.MaxNumberOfMessages ?? 10);
         return { Messages: messages } as never;

@@ -3,7 +3,11 @@ import {
   SQSClient,
   ReceiveMessageCommand,
   DeleteMessageCommand,
+  CreateQueueCommand,
+  GetQueueAttributesCommand,
+  SetQueueAttributesCommand,
 } from '@aws-sdk/client-sqs';
+import { CreateTopicCommand, SubscribeCommand } from '@aws-sdk/client-sns';
 import type { AwsClientFactory, AwsCredentials } from './aws-types';
 import type { AwsSnsSqsOptions, ResolvedAwsSnsSqsOptions } from './aws-options';
 
@@ -75,7 +79,9 @@ export function resolveAwsSnsSqsOptions(
     endpoint: options.endpoint,
     credentials: options.credentials,
     topicArn: options.topicArn ?? '',
+    topicName: options.topicName,
     queueUrl: options.queueUrl ?? '',
+    queueName: options.queueName,
     waitTimeSeconds,
     maxNumberOfMessages,
     visibilityTimeout,
@@ -107,8 +113,14 @@ function defaultAwsFactory(
       });
       return {
         send: async (command) => {
-          const cmd = new PublishCommand(command.input);
-          return client.send(cmd);
+          const input = command.input;
+          const cmd =
+            'Name' in input
+              ? new CreateTopicCommand(input as never)
+              : 'Protocol' in input
+                ? new SubscribeCommand(input as never)
+                : new PublishCommand(input as never);
+          return client.send(cmd as never);
         },
         destroy: () => client.destroy(),
       };
@@ -127,11 +139,17 @@ function defaultAwsFactory(
       });
       return {
         send: async (command) => {
-          const input = command.input as Record<string, unknown>;
+          const input = command.input;
           const cmd =
-            'QueueUrl' in input && 'MaxNumberOfMessages' in input
-              ? new ReceiveMessageCommand(input as never)
-              : new DeleteMessageCommand(input as never);
+            'QueueName' in input
+              ? new CreateQueueCommand(input as never)
+              : 'AttributeNames' in input
+                ? new GetQueueAttributesCommand(input as never)
+                : 'Attributes' in input
+                  ? new SetQueueAttributesCommand(input as never)
+                  : 'MaxNumberOfMessages' in input
+                    ? new ReceiveMessageCommand(input as never)
+                    : new DeleteMessageCommand(input as never);
           return client.send(cmd as never);
         },
         destroy: () => client.destroy(),

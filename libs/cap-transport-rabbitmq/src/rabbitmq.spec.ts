@@ -288,22 +288,63 @@ describe('RabbitMqSubscriber', () => {
     expect(channel.nack).toHaveBeenCalledWith(message, false, true);
   });
 
-  it('never requeues malformed payloads', async () => {
+  it.each([
+    [{ rawContent: Buffer.from('{bad json') }, 'invalid JSON'],
+    [{ contentType: 'text/plain' }, 'Expected application/json'],
+  ] as const)(
+    'never requeues malformed payloads',
+    async (messageOptions, message) => {
+      const broker = new FakeBroker();
+      const subscriber = new RabbitMqSubscriber({
+        ...connectionOptions(broker),
+        requeueOnHandlerError: true,
+      });
+      await subscriber.consume('topic', 'group', jest.fn());
+      const channel = currentConsumerChannel(broker);
+      const delivery = broker.message('topic', {}, messageOptions);
+
+      await expect(
+        subscriber.dispatchDelivery('group', delivery),
+      ).rejects.toThrow(message);
+      expect(channel.nack).toHaveBeenCalledWith(delivery, false, false);
+    },
+  );
+
+  it('binds multiple topics to one group consumer', async () => {
+    const broker = new FakeBroker();
+    const subscriber = new RabbitMqSubscriber(connectionOptions(broker));
+    await subscriber.consume('orders.*', 'billing', jest.fn());
+    await subscriber.consume('payments.*', 'billing', jest.fn());
+    const channel = currentConsumerChannel(broker);
+
+    expect(channel.bindQueue).toHaveBeenCalledWith(
+      'cap.billing',
+      'cap',
+      'orders.*',
+    );
+    expect(channel.bindQueue).toHaveBeenCalledWith(
+      'cap.billing',
+      'cap',
+      'payments.*',
+    );
+    expect(channel.consumers.size).toBe(1);
+    await subscriber.close();
+  });
+
+  it('uses pre-provisioned topology without declaring or binding resources', async () => {
     const broker = new FakeBroker();
     const subscriber = new RabbitMqSubscriber({
       ...connectionOptions(broker),
-      requeueOnHandlerError: true,
+      autoCreateTopology: false,
     });
-    await subscriber.consume('topic', 'group', jest.fn());
+    await subscriber.consume('orders.*', 'billing', jest.fn());
     const channel = currentConsumerChannel(broker);
-    const message = broker.message('topic', undefined, {
-      rawContent: Buffer.from('{bad json'),
-    });
 
-    await expect(subscriber.dispatchDelivery('group', message)).rejects.toThrow(
-      'invalid JSON',
-    );
-    expect(channel.nack).toHaveBeenCalledWith(message, false, false);
+    expect(channel.assertExchange).not.toHaveBeenCalled();
+    expect(channel.assertQueue).not.toHaveBeenCalled();
+    expect(channel.bindQueue).not.toHaveBeenCalled();
+    expect(channel.consumers.has('cap.billing')).toBe(true);
+    await subscriber.close();
   });
 
   it('configures quorum and dead-letter arguments only when requested', async () => {

@@ -177,6 +177,26 @@ describe('Kafka transport', () => {
     await publisher.close();
   });
 
+  it('uses one group consumer for multiple topic subscriptions', async () => {
+    const broker = new FakeKafkaBroker();
+    const subscriber = new KafkaSubscriber({ factory: broker.factory });
+    const orders = jest.fn();
+    const payments = jest.fn();
+    await subscriber.consume('orders', 'billing', orders);
+    await subscriber.consume('payments', 'billing', payments);
+
+    expect(broker.consumers.size).toBe(1);
+    await broker.deliver('billing', 'orders', Buffer.from('{"id":1}'), {
+      'content-type': 'application/json',
+    });
+    await broker.deliver('billing', 'payments', Buffer.from('{"id":2}'), {
+      'content-type': 'application/json',
+    });
+    expect(orders).toHaveBeenCalledWith({ id: 1 }, undefined, {});
+    expect(payments).toHaveBeenCalledWith({ id: 2 }, undefined, {});
+    await subscriber.close();
+  });
+
   it('cleans up publisher and all group consumers idempotently', async () => {
     const broker = new FakeKafkaBroker();
     const publisher = new KafkaPublisher({ factory: broker.factory });

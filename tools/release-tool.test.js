@@ -1863,17 +1863,16 @@ test('CI workflow exists and does not publish', () => {
 
 test('new transport package baseline at version 0.0.0 is publish-ready', () => {
   const packages = discoverPackages(rootDir);
-  const rabbitmq = packages.find(
-    (pkg) => pkg.name === '@mikara89/cap-transport-rabbitmq',
-  );
-  const kafka = packages.find(
-    (pkg) => pkg.name === '@mikara89/cap-transport-kafka',
-  );
-  assert.ok(rabbitmq, 'RabbitMQ package must exist');
-  assert.ok(kafka, 'Kafka package must exist');
-  assert.equal(rabbitmq.version, '0.0.0');
-  assert.equal(kafka.version, '0.0.0');
-  for (const pkg of [rabbitmq, kafka]) {
+  const expected = new Map([
+    ['@mikara89/cap-transport-rabbitmq', 'libs/cap-transport-rabbitmq'],
+    ['@mikara89/cap-transport-kafka', 'libs/cap-transport-kafka'],
+    ['@mikara89/cap-transport-aws-sns-sqs', 'libs/cap-transport-aws-sns-sqs'],
+  ]);
+
+  for (const [name, directory] of expected) {
+    const pkg = packages.find((candidate) => candidate.name === name);
+    assert.ok(pkg, `${name} must exist`);
+    assert.equal(pkg.version, '0.0.0');
     assert.equal(pkg.manifest.publishConfig?.access, 'public');
     assert.equal(
       pkg.manifest.publishConfig?.registry,
@@ -1883,6 +1882,25 @@ test('new transport package baseline at version 0.0.0 is publish-ready', () => {
       pkg.manifest.repository?.url,
       'https://github.com/mikara89/cap-nodejs',
     );
+    assert.equal(pkg.manifest.repository?.directory, directory);
+    assert.deepEqual(pkg.manifest.engines, { node: '>=22' });
+    assert.equal(pkg.manifest.sideEffects, false);
+    assert.equal(pkg.manifest.dependencies?.['@mikara89/cap-core'], '^2.2.0');
+    assert.deepEqual(pkg.manifest.files, ['dist', 'README.md', 'CHANGELOG.md']);
+    assert.equal(pkg.manifest.exports?.['.']?.require, './dist/index.js');
+    assert.equal(pkg.manifest.exports?.['.']?.types, './dist/index.d.ts');
+    assert.equal(pkg.manifest.exports?.['./package.json'], './package.json');
+
+    for (const section of [
+      'dependencies',
+      'devDependencies',
+      'peerDependencies',
+      'optionalDependencies',
+    ]) {
+      for (const value of Object.values(pkg.manifest[section] ?? {})) {
+        assert.doesNotMatch(value, /^(?:file:|workspace:)/u);
+      }
+    }
   }
 });
 

@@ -1,17 +1,10 @@
-import type { PublishCommandInput } from '@aws-sdk/client-sns';
-
-export type { PublishCommandInput };
-
 export interface SnsClient {
-  send(command: { input: PublishCommandInput }): Promise<{
-    MessageId?: string;
-    SequenceNumber?: string;
-  }>;
+  send(command: { input: Record<string, unknown> }): Promise<unknown>;
   destroy(): void;
 }
 
 export interface SqsClient {
-  send(command: { input: unknown }): Promise<unknown>;
+  send(command: { input: Record<string, unknown> }): Promise<unknown>;
   destroy(): void;
 }
 

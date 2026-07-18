@@ -27,9 +27,14 @@ provides framework adapters where they are useful:
 - `@mikara89/cap-transport-nestjs-microservices` as the current bridge adapter
   for existing NestJS `ClientProxy` registrations.
 - `@mikara89/cap-transport-rabbitmq` as the current framework-neutral RabbitMQ
-  adapter with confirmed publishing and manual acknowledgements.
+  adapter with confirmed publishing and manual acknowledgements, prepared for
+  its first independent stable release.
 - `@mikara89/cap-transport-kafka` as the current framework-neutral Kafka
-  adapter with acknowledged publishing and success-only offset commits.
+  adapter with acknowledged publishing and success-only offset commits,
+  prepared for its first independent stable release.
+- `@mikara89/cap-transport-aws-sns-sqs` as the current framework-neutral AWS
+  adapter with SNS publishing and success-only SQS deletion, prepared for its
+  first independent stable release.
 - `@mikara89/cap-dashboard-core`, `@mikara89/cap-dashboard-nest`, and
   `@mikara89/cap-dashboard-express` for dashboard service logic and framework
   bindings.
@@ -118,6 +123,10 @@ remain independently versioned; the v2.4 milestone does not require every
 package to become `2.4.0`. A new transport can take its first appropriate
 independent release, unchanged packages are not bumped, and dependents move only
 when compatibility or dependency ranges require it.
+
+RabbitMQ, Kafka, and AWS SNS/SQS are prepared release candidates, not verified
+stable npm releases. Publication and exact-artifact post-publication checks are
+separate operational steps.
 
 Before declaring the milestone release verified, maintainers must:
 

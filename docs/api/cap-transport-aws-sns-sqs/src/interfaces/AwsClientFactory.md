@@ -6,7 +6,7 @@
 
 # Interface: AwsClientFactory
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:18](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L18)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:11](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L11)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:18](https://github.com/m
 
 > **snsClient**(`region`, `credentials?`, `endpoint?`): [`SnsClient`](SnsClient.md)
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:19](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L19)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:12](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L12)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:19](https://github.com/m
 
 > **sqsClient**(`region`, `credentials?`, `endpoint?`): [`SqsClient`](SqsClient.md)
 
-Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:24](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L24)
+Defined in: [cap-transport-aws-sns-sqs/src/aws-types.ts:17](https://github.com/mikara89/cap-nodejs/blob/main/libs/cap-transport-aws-sns-sqs/src/aws-types.ts#L17)
 
 #### Parameters
 

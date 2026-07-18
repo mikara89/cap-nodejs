@@ -7,6 +7,8 @@ const { spawnSync } = require('node:child_process');
 
 const rootDir = path.resolve(__dirname, '..');
 const packageName = '@mikara89/cap-transport-rabbitmq';
+const corePackage = '@mikara89/cap-core';
+const coreMinimum = '2.2.0';
 const npmCli = process.env.npm_execpath;
 if (!npmCli) throw new Error('npm_execpath is required for the pack smoke.');
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-rabbitmq-pack-'));
@@ -33,6 +35,7 @@ try {
   }
 
   const paths = pack.files.map((file) => normalize(file.path));
+  assertIntentionalFiles(paths);
   const forbiddenPath = paths.find(
     (file) =>
       file.startsWith('src/') ||
@@ -72,6 +75,7 @@ try {
       '--no-fund',
       '--save-exact',
       tarball,
+      `${corePackage}@${coreMinimum}`,
     ],
     projectDir,
   );
@@ -83,9 +87,11 @@ try {
     'cap-transport-rabbitmq',
   );
   const installedManifest = readJson(path.join(installedDir, 'package.json'));
+  assertInstalledManifest(installedManifest);
   const dependencyNames = Object.keys(installedManifest.dependencies || {});
   assertNoForbiddenDependencies(dependencyNames);
   assertNoForbiddenImports(installedDir);
+  assertNoMonorepoLinks(projectDir);
 
   run(
     process.execPath,
@@ -95,6 +101,9 @@ try {
         `const transport = require(${JSON.stringify(packageName)});`,
         "if (typeof transport.RabbitMqPublisher !== 'function') process.exit(2);",
         "if (typeof transport.RabbitMqSubscriber !== 'function') process.exit(3);",
+        `const manifest = require(${JSON.stringify(`${packageName}/package.json`)});`,
+        `if (manifest.name !== ${JSON.stringify(packageName)}) process.exit(4);`,
+        `try { require(${JSON.stringify(`${packageName}/rabbitmq-retry`)}); process.exit(5); } catch (error) { if (error.code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED') throw error; }`,
       ].join(' '),
     ],
     projectDir,
@@ -103,10 +112,15 @@ try {
   fs.writeFileSync(
     path.join(projectDir, 'usage.ts'),
     [
+      `import type { PublisherPort, SubscriberPort } from '${corePackage}';`,
       `import { RabbitMqPublisher, RabbitMqSubscriber, type RabbitMqOptions } from '${packageName}';`,
       "const options: RabbitMqOptions = { url: 'amqp://localhost', queueType: 'classic' };",
       'const publisher = new RabbitMqPublisher(options);',
       'const subscriber = new RabbitMqSubscriber(options);',
+      'const publisherPort: PublisherPort = publisher;',
+      'const subscriberPort: SubscriberPort = subscriber;',
+      'void publisherPort;',
+      'void subscriberPort;',
       "void publisher.emit('smoke.topic', { ok: true }, undefined, { messageId: 'smoke-1' });",
       "void subscriber.consume('smoke.topic', 'smoke-group', () => undefined);",
       'void publisher.close();',
@@ -141,7 +155,12 @@ try {
         package: `${installedManifest.name}@${installedManifest.version}`,
         archive: pack.filename,
         files: paths.length,
+        packedBytes: pack.size,
+        unpackedBytes: pack.unpackedSize,
+        minimumCore: `${corePackage}@${coreMinimum}`,
         rootImport: 'passed',
+        packageJsonExport: 'passed',
+        privateSubpath: 'blocked',
         typecheck: 'passed',
         contentAudit: 'passed',
       },
@@ -181,6 +200,77 @@ function assertNoForbiddenDependencies(names) {
   );
   if (forbidden)
     throw new Error(`Packed package has forbidden dependency ${forbidden}.`);
+}
+
+function assertIntentionalFiles(paths) {
+  const unexpected = paths.find(
+    (file) =>
+      !['package.json', 'README.md', 'CHANGELOG.md'].includes(file) &&
+      !file.startsWith('dist/'),
+  );
+  if (unexpected) {
+    throw new Error(`Packed archive contains unexpected file ${unexpected}.`);
+  }
+  const buildInfo = paths.find((file) => file.endsWith('.tsbuildinfo'));
+  if (buildInfo) throw new Error(`Packed archive contains ${buildInfo}.`);
+}
+
+function assertInstalledManifest(manifest) {
+  if (manifest.version !== '0.0.0') {
+    throw new Error(
+      `Expected repository baseline 0.0.0, got ${manifest.version}.`,
+    );
+  }
+  if (manifest.engines?.node !== '>=22') {
+    throw new Error('Packed package is missing the Node.js >=22 contract.');
+  }
+  if (manifest.repository?.directory !== 'libs/cap-transport-rabbitmq') {
+    throw new Error('Packed package has an incorrect repository.directory.');
+  }
+  for (const section of dependencySections(manifest)) {
+    const leaked = Object.entries(section).find(([, value]) =>
+      /^(?:file:|workspace:)/u.test(value),
+    );
+    if (leaked)
+      throw new Error(`Packed dependency ${leaked[0]} leaks ${leaked[1]}.`);
+  }
+  const installedCore = readJson(
+    path.join(
+      projectDir,
+      'node_modules',
+      '@mikara89',
+      'cap-core',
+      'package.json',
+    ),
+  );
+  if (installedCore.version !== coreMinimum) {
+    throw new Error(
+      `Expected ${corePackage}@${coreMinimum}, got ${installedCore.version}.`,
+    );
+  }
+}
+
+function assertNoMonorepoLinks(directory) {
+  const lock = readJson(path.join(directory, 'package-lock.json'));
+  const leaked = Object.entries(lock.packages ?? {}).find(
+    ([key, value]) =>
+      value?.link === true ||
+      (typeof value?.resolved === 'string' &&
+        normalize(value.resolved).includes(normalize(rootDir))),
+  );
+  if (leaked)
+    throw new Error(
+      `Installed dependency tree contains monorepo link ${leaked[0]}.`,
+    );
+}
+
+function dependencySections(manifest) {
+  return [
+    manifest.dependencies ?? {},
+    manifest.devDependencies ?? {},
+    manifest.peerDependencies ?? {},
+    manifest.optionalDependencies ?? {},
+  ];
 }
 
 function assertNoForbiddenImports(directory) {

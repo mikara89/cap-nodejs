@@ -24,7 +24,9 @@ export interface ResolvedAwsSnsSqsOptions {
   endpoint?: string;
   credentials?: AwsCredentials;
   topicArn: string;
+  topicName?: string;
   queueUrl: string;
+  queueName?: string;
   waitTimeSeconds: number;
   maxNumberOfMessages: number;
   visibilityTimeout: number;
