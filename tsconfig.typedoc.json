@@ -5,7 +5,10 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "moduleResolution": "node",
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@mikara89/*": ["./libs/*/src"]
+    }
   },
   "include": ["libs/*/src/**/*.ts"],
   "exclude": [
