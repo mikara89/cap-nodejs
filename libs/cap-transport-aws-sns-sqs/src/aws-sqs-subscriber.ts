@@ -17,7 +17,7 @@ const MESSAGE_ID = 'cap-message-id';
 interface QueueState {
   client: SqsClient;
   handlers: Map<string, CapHandler>;
-  pollers: Map<string, boolean>;
+  pollers: Map<string, Promise<void>>;
   stopped: boolean;
 }
 
@@ -27,6 +27,8 @@ export class AwsSqsSubscriber implements SubscriberPort {
   private readonly topology: AwsSnsSqsTopology;
   private readonly queues = new Map<string, QueueState>();
   private queueSetup?: Promise<{ queueUrl: string; state: QueueState }>;
+  private closePromise?: Promise<void>;
+  private stopping = false;
 
   constructor(options: AwsSnsSqsOptions = {}) {
     this.options = resolveAwsSnsSqsOptions(options);
@@ -47,7 +49,13 @@ export class AwsSqsSubscriber implements SubscriberPort {
     group: string,
     handler: CapHandler,
   ): Promise<void> {
+    if (this.stopping) {
+      throw new Error('AwsSqsSubscriber is closing or closed');
+    }
     const { queueUrl, state } = await this.setupQueue(topic);
+    if (this.stopping) {
+      throw new Error('AwsSqsSubscriber is closing or closed');
+    }
     const handlerKey = `${topic}/${group}`;
     if (state.handlers.has(handlerKey)) return;
     if (state.handlers.size > 0) {
@@ -59,19 +67,23 @@ export class AwsSqsSubscriber implements SubscriberPort {
 
     for (let index = 0; index < this.options.concurrency; index += 1) {
       const pollerKey = `${handlerKey}/${index}`;
-      state.pollers.set(pollerKey, true);
-      this.startPolling(
+      const poller = this.startPolling(
         queueUrl,
         state,
         topic,
         group,
         handlerKey,
-        pollerKey,
       ).catch((error) => {
         this.options.logger?.error?.(
           `AWS SQS polling loop failed for ${queueUrl}`,
           error,
         );
+      });
+      state.pollers.set(pollerKey, poller);
+      void poller.then(() => {
+        if (state.pollers.get(pollerKey) === poller) {
+          state.pollers.delete(pollerKey);
+        }
       });
     }
   }
@@ -148,9 +160,8 @@ export class AwsSqsSubscriber implements SubscriberPort {
     topic: string,
     group: string,
     handlerKey: string,
-    pollerKey: string,
   ): Promise<void> {
-    while (!state.stopped && state.pollers.get(pollerKey)) {
+    while (!state.stopped) {
       try {
         const response = (await state.client.send({
           input: {
@@ -238,15 +249,35 @@ export class AwsSqsSubscriber implements SubscriberPort {
   }
 
   close(): Promise<void> {
-    for (const state of this.queues.values()) {
+    if (this.closePromise) return this.closePromise;
+    this.stopping = true;
+    this.closePromise = this.drainAndClose();
+    return this.closePromise;
+  }
+
+  private async drainAndClose(): Promise<void> {
+    if (this.queueSetup) {
+      try {
+        await this.queueSetup;
+      } catch {
+        // setupQueue destroys its client when provisioning fails
+      }
+    }
+
+    const states = [...this.queues.values()];
+    for (const state of states) {
       state.stopped = true;
+    }
+    await Promise.allSettled(
+      states.flatMap((state) => [...state.pollers.values()]),
+    );
+    for (const state of states) {
       state.pollers.clear();
       state.handlers.clear();
       state.client.destroy();
     }
     this.queues.clear();
     this.queueSetup = undefined;
-    return Promise.resolve();
   }
 }
 

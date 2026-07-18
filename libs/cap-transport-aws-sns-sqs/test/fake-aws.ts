@@ -15,6 +15,7 @@ export interface FakePublishedMessage {
 export class FakeAwsBroker implements AwsClientFactory {
   readonly published: FakePublishedMessage[] = [];
   readonly queues = new Map<string, FakeSqsQueue>();
+  readonly queueAttributes = new Map<string, Record<string, string>>();
   readonly createdTopics = new Map<string, string>(); // topicName -> arn
   readonly createdQueues = new Map<string, string>(); // queueName -> url
   readonly subscriptions: Array<{
@@ -116,19 +117,28 @@ export class FakeAwsBroker implements AwsClientFactory {
           const queueUrl = `https://sqs.${this.region}.amazonaws.com/000000000000/${input.QueueName}`;
           this.createdQueues.set(input.QueueName, queueUrl);
           this.getOrCreateQueue(queueUrl);
+          this.getOrCreateQueueAttributes(queueUrl);
           return { QueueUrl: queueUrl } as never;
         }
 
         if (input.AttributeNames) {
-          const queueName = input.QueueUrl?.split('/').at(-1) ?? 'unknown';
+          const attributes = this.getOrCreateQueueAttributes(input.QueueUrl!);
           return {
-            Attributes: {
-              QueueArn: `arn:aws:sqs:${this.region}:000000000000:${queueName}`,
-            },
+            Attributes: Object.fromEntries(
+              input.AttributeNames.flatMap((name) =>
+                attributes[name] === undefined
+                  ? []
+                  : [[name, attributes[name]]],
+              ),
+            ),
           } as never;
         }
 
-        if (input.Attributes) return {} as never;
+        if (input.Attributes) {
+          const attributes = this.getOrCreateQueueAttributes(input.QueueUrl!);
+          Object.assign(attributes, input.Attributes);
+          return {} as never;
+        }
 
         // DeleteMessage
         if ('ReceiptHandle' in input && input.ReceiptHandle) {
@@ -163,6 +173,26 @@ export class FakeAwsBroker implements AwsClientFactory {
       this.queues.set(queueUrl, new FakeSqsQueue(queueUrl));
     }
     return this.queues.get(queueUrl)!;
+  }
+
+  getOrCreateQueueAttributes(queueUrl: string): Record<string, string> {
+    let attributes = this.queueAttributes.get(queueUrl);
+    if (!attributes) {
+      const queueName = queueUrl.split('/').at(-1) ?? 'unknown';
+      attributes = {
+        QueueArn: `arn:aws:sqs:${this.region ?? 'us-east-1'}:000000000000:${queueName}`,
+      };
+      this.queueAttributes.set(queueUrl, attributes);
+    }
+    return attributes;
+  }
+
+  setQueuePolicy(queueUrl: string, policy: string): void {
+    this.getOrCreateQueueAttributes(queueUrl).Policy = policy;
+  }
+
+  queuePolicy(queueUrl: string): string | undefined {
+    return this.getOrCreateQueueAttributes(queueUrl).Policy;
   }
 
   deliver(

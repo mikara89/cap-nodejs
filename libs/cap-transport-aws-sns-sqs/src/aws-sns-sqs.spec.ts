@@ -265,6 +265,196 @@ describe('AWS SNS/SQS transport', () => {
     expect(broker.activeSqsClients()).toBe(0);
   });
 
+  it('preserves unrelated queue policy statements and replaces only its stable CAP statement', async () => {
+    const broker = new FakeAwsBroker();
+    const queueName = 'cap-orders-billing';
+    const queueUrl =
+      'https://sqs.us-east-1.amazonaws.com/000000000000/cap-orders-billing';
+    const unrelatedStatement = {
+      Sid: 'KeepUnrelatedAccess',
+      Effect: 'Allow',
+      Principal: { AWS: 'arn:aws:iam::000000000000:root' },
+      Action: 'sqs:GetQueueAttributes',
+      Resource: 'arn:aws:sqs:us-east-1:000000000000:cap-orders-billing',
+    };
+    broker.setQueuePolicy(
+      queueUrl,
+      JSON.stringify({
+        Version: '2012-10-17',
+        Id: 'operator-owned-policy',
+        Statement: [unrelatedStatement],
+      }),
+    );
+    const options = {
+      factory: broker.factory,
+      autoProvision: true,
+      topicName: 'cap-orders',
+      queueName,
+      waitTimeSeconds: 0,
+    };
+
+    const firstSubscriber = new AwsSqsSubscriber(options);
+    await firstSubscriber.consume('orders', 'billing', jest.fn());
+    await firstSubscriber.close();
+
+    const firstPolicy = JSON.parse(broker.queuePolicy(queueUrl)!) as {
+      Id: string;
+      Statement: Array<Record<string, unknown>>;
+    };
+    expect(firstPolicy.Id).toBe('operator-owned-policy');
+    expect(firstPolicy.Statement).toContainEqual(unrelatedStatement);
+    const capStatement = firstPolicy.Statement.find((statement) =>
+      String(statement.Sid).startsWith('CapSnsSubscription'),
+    );
+    expect(capStatement).toEqual(
+      expect.objectContaining({
+        Sid: expect.stringMatching(/^CapSnsSubscription[0-9a-f]{16}$/),
+        Effect: 'Allow',
+        Principal: { Service: 'sns.amazonaws.com' },
+        Action: 'sqs:SendMessage',
+        Condition: {
+          ArnEquals: {
+            'aws:SourceArn': 'arn:aws:sns:us-east-1:000000000000:cap-orders',
+          },
+        },
+      }),
+    );
+
+    broker.setQueuePolicy(
+      queueUrl,
+      JSON.stringify({
+        ...firstPolicy,
+        Statement: firstPolicy.Statement.map((statement) =>
+          statement.Sid === capStatement?.Sid
+            ? { ...statement, Effect: 'Deny', Resource: 'wrong-resource' }
+            : statement,
+        ),
+      }),
+    );
+    const secondSubscriber = new AwsSqsSubscriber(options);
+    await secondSubscriber.consume('orders', 'billing', jest.fn());
+    await secondSubscriber.close();
+
+    const secondPolicy = JSON.parse(broker.queuePolicy(queueUrl)!) as {
+      Statement: Array<Record<string, unknown>>;
+    };
+    expect(secondPolicy.Statement).toContainEqual(unrelatedStatement);
+    const capStatements = secondPolicy.Statement.filter(
+      (statement) => statement.Sid === capStatement?.Sid,
+    );
+    expect(capStatements).toHaveLength(1);
+    expect(capStatements[0]).toEqual(
+      expect.objectContaining({
+        Effect: 'Allow',
+        Resource: 'arn:aws:sqs:us-east-1:000000000000:cap-orders-billing',
+      }),
+    );
+  });
+
+  it('fails closed when an existing queue policy cannot be parsed safely', async () => {
+    const broker = new FakeAwsBroker();
+    const queueUrl =
+      'https://sqs.us-east-1.amazonaws.com/000000000000/cap-orders-billing';
+    broker.setQueuePolicy(queueUrl, '{not-json');
+    const subscriber = new AwsSqsSubscriber({
+      factory: broker.factory,
+      autoProvision: true,
+      topicName: 'cap-orders',
+      queueName: 'cap-orders-billing',
+      waitTimeSeconds: 0,
+    });
+
+    await expect(
+      subscriber.consume('orders', 'billing', jest.fn()),
+    ).rejects.toThrow('Cannot safely merge existing SQS queue policy');
+    expect(broker.subscriptions).toHaveLength(0);
+    expect(broker.activeSnsClients()).toBe(0);
+    expect(broker.activeSqsClients()).toBe(0);
+    await subscriber.close();
+  });
+
+  it('waits for a successful in-flight handler and delete settlement before closing', async () => {
+    const broker = new FakeAwsBroker();
+    const subscriber = new AwsSqsSubscriber({
+      factory: broker.factory,
+      queueUrl: DEFAULT_QUEUE_URL,
+      waitTimeSeconds: 0,
+    });
+    const handlerStarted = deferred<void>();
+    const releaseHandler = deferred<void>();
+    await subscriber.consume('orders', 'billing', async () => {
+      handlerStarted.resolve();
+      await releaseHandler.promise;
+    });
+    const messageId = broker.deliver(DEFAULT_QUEUE_URL, '{}', {
+      'content-type': { DataType: 'String', StringValue: 'application/json' },
+    });
+    await handlerStarted.promise;
+
+    const closing = subscriber.close();
+    let closeResolved = false;
+    void closing.then(() => {
+      closeResolved = true;
+    });
+    await sleep(20);
+    expect(closeResolved).toBe(false);
+    expect(broker.activeSqsClients()).toBe(1);
+    expect(
+      broker
+        .getOrCreateQueue(DEFAULT_QUEUE_URL)
+        .deleted.has(`receipt-${messageId}`),
+    ).toBe(false);
+
+    releaseHandler.resolve();
+    await closing;
+    expect(subscriber.close()).toBe(closing);
+    expect(
+      broker
+        .getOrCreateQueue(DEFAULT_QUEUE_URL)
+        .deleted.has(`receipt-${messageId}`),
+    ).toBe(true);
+    expect(broker.activeSqsClients()).toBe(0);
+  });
+
+  it('waits for a failing in-flight handler and preserves the message before closing', async () => {
+    const broker = new FakeAwsBroker();
+    const subscriber = new AwsSqsSubscriber({
+      factory: broker.factory,
+      queueUrl: DEFAULT_QUEUE_URL,
+      waitTimeSeconds: 0,
+    });
+    const handlerStarted = deferred<void>();
+    const releaseHandler = deferred<void>();
+    await subscriber.consume('orders', 'billing', async () => {
+      handlerStarted.resolve();
+      await releaseHandler.promise;
+      throw new Error('CAP inbox boundary failed');
+    });
+    const messageId = broker.deliver(DEFAULT_QUEUE_URL, '{}', {
+      'content-type': { DataType: 'String', StringValue: 'application/json' },
+    });
+    await handlerStarted.promise;
+
+    const closing = subscriber.close();
+    let closeResolved = false;
+    void closing.then(() => {
+      closeResolved = true;
+    });
+    await sleep(20);
+    expect(closeResolved).toBe(false);
+    expect(broker.activeSqsClients()).toBe(1);
+
+    releaseHandler.resolve();
+    await closing;
+    expect(subscriber.close()).toBe(closing);
+    expect(
+      broker
+        .getOrCreateQueue(DEFAULT_QUEUE_URL)
+        .deleted.has(`receipt-${messageId}`),
+    ).toBe(false);
+    expect(broker.activeSqsClients()).toBe(0);
+  });
+
   it.each([
     [{ waitTimeSeconds: -1 }, 'waitTimeSeconds'],
     [{ waitTimeSeconds: 21 }, 'waitTimeSeconds'],
@@ -385,4 +575,15 @@ defineTransportContract(
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function deferred<T>(): {
+  promise: Promise<T>;
+  resolve(value?: T | PromiseLike<T>): void;
+} {
+  let resolve!: (value?: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
 }

@@ -194,6 +194,87 @@ describe('AWS SNS/SQS transport integration', () => {
     });
   });
 
+  it('preserves an unrelated policy statement while auto-provisioning an existing queue', async () => {
+    const topicName = uniqueName('topic', 'policy');
+    const queueName = uniqueName('queue', 'policy');
+    const existingQueue = await sqsClient.send(
+      new CreateQueueCommand({ QueueName: queueName }),
+    );
+    const existingQueueUrl = existingQueue.QueueUrl!;
+    const existingAttributes = await sqsClient.send(
+      new GetQueueAttributesCommand({
+        QueueUrl: existingQueueUrl,
+        AttributeNames: ['QueueArn'],
+      }),
+    );
+    const existingQueueArn = existingAttributes.Attributes?.['QueueArn'];
+    if (!existingQueueArn) throw new Error('Could not get existing queue ARN');
+    const unrelatedStatement = {
+      Sid: 'KeepUnrelatedAccess',
+      Effect: 'Allow',
+      Principal: '*',
+      Action: 'sqs:GetQueueAttributes',
+      Resource: existingQueueArn,
+    };
+    await sqsClient.send(
+      new SetQueueAttributesCommand({
+        QueueUrl: existingQueueUrl,
+        Attributes: {
+          Policy: JSON.stringify({
+            Version: '2012-10-17',
+            Id: 'operator-owned-policy',
+            Statement: [unrelatedStatement],
+          }),
+        },
+      }),
+    );
+
+    const options = localOptions({
+      autoProvision: true,
+      topicName,
+      queueName,
+      waitTimeSeconds: 2,
+    });
+    const publisher = track(new AwsSnsPublisher(options));
+    const subscriber = track(new AwsSqsSubscriber(options));
+    const delivered = deferred<unknown>();
+    await publisher.initialize();
+    await subscriber.consume('orders.policy', 'billing', (payload) => {
+      delivered.resolve(payload);
+    });
+
+    const mergedAttributes = await sqsClient.send(
+      new GetQueueAttributesCommand({
+        QueueUrl: existingQueueUrl,
+        AttributeNames: ['Policy'],
+      }),
+    );
+    const mergedPolicy = JSON.parse(
+      mergedAttributes.Attributes?.['Policy'] ?? '{}',
+    ) as {
+      Id?: string;
+      Statement?: Array<Record<string, unknown>>;
+    };
+    expect(mergedPolicy.Id).toBe('operator-owned-policy');
+    expect(mergedPolicy.Statement).toContainEqual(unrelatedStatement);
+    expect(mergedPolicy.Statement).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          Sid: expect.stringMatching(/^CapSnsSubscription[0-9a-f]{16}$/),
+          Effect: 'Allow',
+          Action: 'sqs:SendMessage',
+          Resource: existingQueueArn,
+        }),
+      ]),
+    );
+
+    await delay(500);
+    await publisher.emit('orders.policy', { id: 'policy-preserved' });
+    await expect(withDeadline(delivered.promise, 15_000)).resolves.toEqual({
+      id: 'policy-preserved',
+    });
+  });
+
   it('does not delete message on handler failure (message returns after visibility timeout)', async () => {
     const shortVisibilityQueue = await createQueue('failure');
 

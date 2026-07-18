@@ -1,5 +1,16 @@
+import { createHash } from 'node:crypto';
 import type { CapLogger } from '@mikara89/cap-core';
 import type { SnsClient, SqsClient } from './aws-types';
+
+interface QueuePolicyStatement {
+  Sid?: string;
+  [key: string]: unknown;
+}
+
+interface QueuePolicyDocument {
+  Statement: QueuePolicyStatement[];
+  [key: string]: unknown;
+}
 
 /**
  * Opt-in SNS/SQS topology provisioning. Resources are never deleted on close.
@@ -48,24 +59,18 @@ export class AwsSnsSqsTopology {
     const key = `${topicArn}->${queueUrl}`;
     if (this.subscriptions.has(key)) return;
     const attributes = (await sqsClient.send({
-      input: { QueueUrl: queueUrl, AttributeNames: ['QueueArn'] },
+      input: { QueueUrl: queueUrl, AttributeNames: ['QueueArn', 'Policy'] },
     })) as { Attributes?: Record<string, string> };
     const queueArn = attributes.Attributes?.['QueueArn'];
     if (!queueArn) {
       throw new Error(`AWS SQS did not return an ARN for queue ${queueUrl}`);
     }
-    const policy = JSON.stringify({
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Effect: 'Allow',
-          Principal: { Service: 'sns.amazonaws.com' },
-          Action: 'sqs:SendMessage',
-          Resource: queueArn,
-          Condition: { ArnEquals: { 'aws:SourceArn': topicArn } },
-        },
-      ],
-    });
+    const policy = mergeQueuePolicy(
+      attributes.Attributes?.['Policy'],
+      topicArn,
+      queueArn,
+      queueUrl,
+    );
     await sqsClient.send({
       input: {
         QueueUrl: queueUrl,
@@ -80,4 +85,93 @@ export class AwsSnsSqsTopology {
       `Ensured SNS/SQS subscription ${topicArn} -> ${queueArn}`,
     );
   }
+}
+
+function mergeQueuePolicy(
+  existingPolicy: string | undefined,
+  topicArn: string,
+  queueArn: string,
+  queueUrl: string,
+): string {
+  const policy = parseQueuePolicy(existingPolicy, queueUrl);
+  const sid = capPolicyStatementId(topicArn);
+  const statement: QueuePolicyStatement = {
+    Sid: sid,
+    Effect: 'Allow',
+    Principal: { Service: 'sns.amazonaws.com' },
+    Action: 'sqs:SendMessage',
+    Resource: queueArn,
+    Condition: { ArnEquals: { 'aws:SourceArn': topicArn } },
+  };
+  const ownedIndexes = policy.Statement.flatMap((candidate, index) =>
+    candidate.Sid === sid ? [index] : [],
+  );
+  if (ownedIndexes.length > 1) {
+    throw new Error(
+      `Cannot safely merge SQS queue policy for ${queueUrl}: duplicate CAP-owned statement ${sid}`,
+    );
+  }
+  const [ownedIndex] = ownedIndexes;
+  if (ownedIndex !== undefined) {
+    policy.Statement[ownedIndex] = statement;
+  } else {
+    policy.Statement.push(statement);
+  }
+  return JSON.stringify(policy);
+}
+
+function parseQueuePolicy(
+  existingPolicy: string | undefined,
+  queueUrl: string,
+): QueuePolicyDocument {
+  if (!existingPolicy?.trim()) {
+    return { Version: '2012-10-17', Statement: [] };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(existingPolicy) as unknown;
+  } catch {
+    throw unsafePolicyError(queueUrl, 'policy is not valid JSON');
+  }
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw unsafePolicyError(queueUrl, 'policy must be a JSON object');
+  }
+
+  const document = parsed as Record<string, unknown>;
+  if (!Object.prototype.hasOwnProperty.call(document, 'Statement')) {
+    throw unsafePolicyError(queueUrl, 'policy has no Statement');
+  }
+  const rawStatements = Array.isArray(document.Statement)
+    ? document.Statement
+    : [document.Statement];
+  if (
+    rawStatements.some(
+      (statement) =>
+        statement === null ||
+        typeof statement !== 'object' ||
+        Array.isArray(statement),
+    )
+  ) {
+    throw unsafePolicyError(queueUrl, 'policy contains a non-object Statement');
+  }
+
+  return {
+    ...document,
+    Statement: rawStatements as QueuePolicyStatement[],
+  };
+}
+
+function capPolicyStatementId(topicArn: string): string {
+  const digest = createHash('sha256')
+    .update(topicArn)
+    .digest('hex')
+    .slice(0, 16);
+  return `CapSnsSubscription${digest}`;
+}
+
+function unsafePolicyError(queueUrl: string, reason: string): Error {
+  return new Error(
+    `Cannot safely merge existing SQS queue policy for ${queueUrl}: ${reason}`,
+  );
 }
