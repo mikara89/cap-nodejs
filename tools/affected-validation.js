@@ -91,6 +91,7 @@ const frameworkAndTransportPackages = new Set([
   '@mikara89/cap-transport-nestjs-microservices',
   '@mikara89/cap-transport-rabbitmq',
 ]);
+const testingPackageName = '@mikara89/cap-testing';
 
 class AffectedValidationError extends Error {
   constructor(message, exitCode = 1) {
@@ -663,6 +664,12 @@ function createPlanFromChangedFiles(options = {}) {
   // not rebuild the same package. Build packed packages explicitly through
   // the shared dependency-first orchestrator instead.
   for (const name of packSeeds) buildSeeds.add(name);
+
+  // Root Jest maps the shared testing package to source, while ts-jest still
+  // resolves its types through the workspace dist path. A clean runner must
+  // therefore build the testing helper before executing selected unit tests.
+  if (testSeeds.size > 0 && validation.graph.byName.has(testingPackageName))
+    buildSeeds.add(testingPackageName);
 
   const expanded = globalImpact
     ? new Set()

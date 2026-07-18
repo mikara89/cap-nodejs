@@ -27,6 +27,7 @@ const names = {
   core: '@mikara89/cap-core',
   nest: '@mikara89/cap-nest',
   dashboardNest: '@mikara89/cap-dashboard-nest',
+  testing: '@mikara89/cap-testing',
   independent: '@fixture/independent',
   storage: '@mikara89/cap-storage-prisma',
   rabbitmq: '@mikara89/cap-transport-rabbitmq',
@@ -60,6 +61,11 @@ function createFixture() {
       id: 'dashboard-nest',
       name: names.dashboardNest,
       dependencies: { [names.nest]: '^1.0.0' },
+    },
+    {
+      id: 'testing',
+      name: names.testing,
+      dependencies: { [names.core]: '^1.0.0' },
     },
     { id: 'independent', name: names.independent },
     {
@@ -647,6 +653,19 @@ test('conditional integration, documentation, and package gates are targeted', a
           'libs/storage-prisma/package.json',
         ]);
         assert.equal(plan.gates.databaseIntegration, true);
+      },
+    );
+    await t.test(
+      'selected unit tests build the shared testing workspace first',
+      () => {
+        const plan = syntheticPlan(fixture, [
+          'libs/transport-aws-sns-sqs/src/unit.spec.ts',
+        ]);
+        assert.ok(plan.buildPackages.includes(names.testing));
+        assert.ok(
+          plan.buildPackages.indexOf(names.testing) <
+            plan.buildPackages.indexOf(names.aws),
+        );
       },
     );
     await t.test('33 README-only enables selected package dry-run', () => {
