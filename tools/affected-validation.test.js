@@ -158,7 +158,7 @@ function createFixture() {
   });
   fs.writeFileSync(
     path.join(cwd, 'apps', 'cap-test-app', 'src', 'main.ts'),
-    'export {};\n',
+    "import '@mikara89/cap-nest';\nimport '@mikara89/cap-storage-prisma/nest';\n",
   );
   fs.mkdirSync(path.join(cwd, 'examples'), { recursive: true });
   fs.writeFileSync(path.join(cwd, 'examples', 'example.ts'), 'export {};\n');
@@ -666,6 +666,16 @@ test('conditional integration, documentation, and package gates are targeted', a
           plan.buildPackages.indexOf(names.testing) <
             plan.buildPackages.indexOf(names.aws),
         );
+      },
+    );
+    await t.test(
+      'e2e builds workspace packages imported by the test application',
+      () => {
+        const plan = syntheticPlan(fixture, [
+          'libs/transport-aws-sns-sqs/src/index.ts',
+        ]);
+        assert.ok(plan.buildPackages.includes(names.nest));
+        assert.ok(plan.buildPackages.includes(names.storage));
       },
     );
     await t.test('33 README-only enables selected package dry-run', () => {

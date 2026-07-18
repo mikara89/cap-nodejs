@@ -435,6 +435,27 @@ function filesRecursively(directory) {
   });
 }
 
+function collectWorkspaceImports(options = {}) {
+  const cwd = path.resolve(options.cwd || rootDir);
+  const validation = options.validation;
+  const packageNames = validation.packages.map((pkg) => pkg.name);
+  const imports = new Set();
+  for (const root of stableUnique(options.roots || [])) {
+    for (const file of filesRecursively(path.join(cwd, root))) {
+      if (!/\.[cm]?[jt]sx?$/u.test(file)) continue;
+      const source = fs.readFileSync(file, 'utf8');
+      for (const match of source.matchAll(/['"]([^'"\r\n]+)['"]/gu)) {
+        const specifier = match[1];
+        const packageName = packageNames.find(
+          (name) => specifier === name || specifier.startsWith(`${name}/`),
+        );
+        if (packageName) imports.add(packageName);
+      }
+    }
+  }
+  return imports;
+}
+
 function isSupportedUnitTestFile(file) {
   const normalized = normalizePath(file);
   return (
@@ -664,6 +685,18 @@ function createPlanFromChangedFiles(options = {}) {
   // not rebuild the same package. Build packed packages explicitly through
   // the shared dependency-first orchestrator instead.
   for (const name of packSeeds) buildSeeds.add(name);
+
+  // The root e2e suite compiles the test application against workspace dist
+  // declarations. Include every workspace package imported by that app so a
+  // clean runner does not depend on declarations left by an earlier build.
+  if (gates.e2e) {
+    for (const name of collectWorkspaceImports({
+      cwd,
+      validation,
+      roots: ['apps/cap-test-app'],
+    }))
+      buildSeeds.add(name);
+  }
 
   // Root Jest maps the shared testing package to source, while ts-jest still
   // resolves its types through the workspace dist path. A clean runner must
