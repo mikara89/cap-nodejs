@@ -378,17 +378,33 @@ function headSha(cwd = rootDir) {
   return run('git', ['rev-parse', 'HEAD'], { cwd }).stdout.trim();
 }
 
-function assertCleanTree(cwd = rootDir) {
+function assertCleanTree(cwd = rootDir, options = {}) {
   const status = run(
     'git',
     ['status', '--porcelain=v1', '--untracked-files=normal'],
     { cwd },
-  ).stdout.trim();
-  if (status) {
+  ).stdout.trimEnd();
+  const allowedPaths = new Set(
+    (options.allowedPaths || []).map((file) => file.replace(/\\/gu, '/')),
+  );
+  const changes = status
+    ? status.split(/\r?\n/u).filter((line) => {
+        const changedPath = line.slice(3).replace(/\\/gu, '/');
+        return !allowedPaths.has(changedPath);
+      })
+    : [];
+  if (changes.length > 0) {
     fail(
-      `Release planning and execution require a clean worktree. First entry: ${status.split(/\r?\n/u)[0]}`,
+      `Release planning and execution require a clean worktree. First entry: ${changes[0]}`,
     );
   }
+}
+
+function releaseToolIntegrity() {
+  return crypto
+    .createHash('sha256')
+    .update(fs.readFileSync(__filename))
+    .digest('hex');
 }
 
 function commitExists(sha, cwd = rootDir) {
@@ -1522,6 +1538,9 @@ async function createPlan(input, options = {}) {
       args: command.args,
     },
   };
+  if (inputs.operation === 'recover') {
+    plan.executorIntegrity = releaseToolIntegrity();
+  }
   if (inputs.operation !== 'bootstrap') assertPlanInvariants(plan, packages);
   plan.integrity = planHash(plan);
   return plan;
@@ -1532,6 +1551,12 @@ function validatePlanFile(plan) {
   if (plan.integrity !== planHash(plan))
     fail('Release plan integrity check failed.');
   normalizeInputs(plan.inputs);
+  if (
+    plan.inputs.operation === 'recover' &&
+    plan.executorIntegrity !== releaseToolIntegrity()
+  ) {
+    fail('Recovery executor does not match the approved release plan.');
+  }
   return plan;
 }
 
@@ -1606,7 +1631,9 @@ function verifyHead(expected, options = {}) {
 
 function verifyRecoveryHead(expected, options = {}) {
   const cwd = options.cwd || rootDir;
-  if (options.checkClean !== false) assertCleanTree(cwd);
+  if (options.checkClean !== false) {
+    assertCleanTree(cwd, { allowedPaths: ['tools/release-tool.js'] });
+  }
   const local = headSha(cwd);
   if (local !== expected)
     fail(`Recovery checkout changed: expected ${expected}, got ${local}.`);
@@ -1622,6 +1649,14 @@ function verifyRecoveryHead(expected, options = {}) {
     }
     assertRecoveryTarget(expected, remoteSha, cwd);
   }
+}
+
+function restoreRecoveryExecutor(cwd = rootDir) {
+  run(
+    'git',
+    ['restore', '--source=HEAD', '--worktree', '--', 'tools/release-tool.js'],
+    { cwd },
+  );
 }
 
 function createBootstrapTags(plan, options = {}) {
@@ -1696,6 +1731,13 @@ async function executePlan(plan, options = {}) {
       },
     );
     assertSimulatedPlanMatches(plan, simulated);
+  }
+  if (
+    plan.inputs.operation === 'recover' &&
+    options.restoreRecoveryExecutor !== false
+  ) {
+    restoreRecoveryExecutor(cwd);
+    if (options.checkClean !== false) assertCleanTree(cwd);
   }
   if (plan.inputs.operation === 'bootstrap') {
     if (options.checkRemote !== false) {
@@ -1896,6 +1938,8 @@ module.exports = {
   planHash,
   recoveryCommand,
   recoveryPackagesAtHead,
+  releaseToolIntegrity,
+  restoreRecoveryExecutor,
   requiredDependents,
   registry,
   sourceFilesChanged,

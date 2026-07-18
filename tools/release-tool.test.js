@@ -34,9 +34,12 @@ const {
   normalizePublishConfigForBootstrap,
   packageJsonSemanticallyChanged,
   packageTag,
+  planHash,
   requiredDependents,
   recoveryCommand,
   recoveryPackagesAtHead,
+  releaseToolIntegrity,
+  restoreRecoveryExecutor,
   sourceFilesChanged,
   simulateLernaVersions,
   validatePlanFile,
@@ -972,6 +975,36 @@ test('release planning rejects a dirty worktree', () =>
     assert.throws(() => assertCleanTree(cwd), /clean worktree/);
   }));
 
+test('recovery permits only its approved executor override and restores the tagged file', () =>
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    command('git', ['config', 'core.autocrlf', 'false'], cwd);
+    const executor = path.join(cwd, 'tools', 'release-tool.js');
+    fs.writeFileSync(executor, "'use strict';\n// tagged executor\n");
+    command('git', ['add', 'tools/release-tool.js'], cwd);
+    command('git', ['commit', '--quiet', '-m', 'chore: add executor'], cwd);
+
+    fs.writeFileSync(
+      executor,
+      "'use strict';\n// approved recovery executor\n",
+    );
+    assert.doesNotThrow(() =>
+      assertCleanTree(cwd, { allowedPaths: ['tools/release-tool.js'] }),
+    );
+    fs.appendFileSync(path.join(cwd, 'libs', 'a', 'index.js'), '// dirty\n');
+    assert.throws(
+      () => assertCleanTree(cwd, { allowedPaths: ['tools/release-tool.js'] }),
+      /clean worktree/,
+    );
+    command('git', ['restore', 'libs/a/index.js'], cwd);
+
+    restoreRecoveryExecutor(cwd);
+    assert.equal(
+      fs.readFileSync(executor, 'utf8').replace(/\r\n/gu, '\n'),
+      "'use strict';\n// tagged executor\n",
+    );
+    assert.doesNotThrow(() => assertCleanTree(cwd));
+  }));
+
 test('patch beta release uses beta dist-tag and prerelease flags', () => {
   const commandSpec = buildReleaseCommand({
     operation: 'release',
@@ -1590,6 +1623,26 @@ test('tampered release plans fail integrity validation', () => {
     integrity: 'wrong',
   };
   assert.throws(() => validatePlanFile(plan), /integrity/);
+});
+
+test('recovery plans bind the approved executor content', () => {
+  const plan = {
+    schemaVersion: 1,
+    headSha: 'a'.repeat(40),
+    inputs: normalizeInputs({
+      operation: 'recover',
+      channel: 'stable',
+      confirmation: recoveryConfirmation,
+      recoveryRef: 'a'.repeat(40),
+    }),
+    executorIntegrity: releaseToolIntegrity(),
+    packages: [],
+  };
+  plan.integrity = planHash(plan);
+  assert.doesNotThrow(() => validatePlanFile(plan));
+  plan.executorIntegrity = '0'.repeat(64);
+  plan.integrity = planHash(plan);
+  assert.throws(() => validatePlanFile(plan), /executor does not match/u);
 });
 
 test('plan invariants reject accidental latest prereleases and unrelated RC bases', () => {
