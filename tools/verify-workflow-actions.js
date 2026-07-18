@@ -269,6 +269,43 @@ function verifyWorkflowSources(sources) {
       'Release publish checkout must retain RELEASE_GITHUB_TOKEN.',
     );
   }
+  const attachApprovedMainSteps =
+    publish?.steps.filter(
+      (step) => step.name === 'Attach approved commit to local main',
+    ) || [];
+  check(
+    attachApprovedMainSteps.length === 1,
+    'Release publish must contain exactly one approved-main attachment step.',
+  );
+  const attachApprovedMain = attachApprovedMainSteps[0];
+  if (attachApprovedMain) {
+    const executeSteps =
+      publish?.steps.filter((step) =>
+        /release-tool\.js\s+execute\s+--plan/u.test(step.raw),
+      ) || [];
+    check(
+      /^        if:\s*\$\{\{\s*inputs\.operation\s*!=\s*'recover'\s*\}\}\s*$/mu.test(
+        attachApprovedMain.raw,
+      ),
+      'Release approved-main attachment must exclude recovery runs.',
+    );
+    check(
+      /^          EXPECTED_HEAD_SHA:\s*\$\{\{\s*needs\.validate\.outputs\.head_sha\s*\}\}\s*$/mu.test(
+        attachApprovedMain.raw,
+      ) &&
+        /^        run:\s*git switch --force-create main "\$\{EXPECTED_HEAD_SHA\}"\s*$/mu.test(
+          attachApprovedMain.raw,
+        ),
+      'Release publish must attach local main to the immutable validated plan commit.',
+    );
+    check(
+      Boolean(publishCheckout) &&
+        publishCheckout.index < attachApprovedMain.index &&
+        executeSteps.length > 0 &&
+        executeSteps.every((step) => attachApprovedMain.index < step.index),
+      'Release approved-main attachment must run after checkout and before execution.',
+    );
+  }
   for (const [name, setup] of [
     ['validate', validateSetup],
     ['publish', publishSetup],
