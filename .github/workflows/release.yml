@@ -193,6 +193,12 @@ jobs:
           persist-credentials: true
           token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
 
+      - name: Attach approved commit to local main
+        if: ${{ inputs.operation != 'recover' }}
+        env:
+          EXPECTED_HEAD_SHA: ${{ needs.validate.outputs.head_sha }}
+        run: git switch --force-create main "${EXPECTED_HEAD_SHA}"
+
       - name: Setup Node
         uses: actions/setup-node@v7
         with:

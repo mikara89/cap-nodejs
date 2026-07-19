@@ -261,6 +261,35 @@ test('workflow verifier rejects credential and release-safety regressions', asyn
       );
     },
   );
+  await t.test(
+    '17c release publication attaches main to an unapproved commit',
+    () => {
+      const release = mutateJob(sources.release, 'publish', (job) =>
+        replaceRequired(
+          job,
+          'git switch --force-create main "${EXPECTED_HEAD_SHA}"',
+          'git switch --force-create main origin/main',
+        ),
+      );
+      expectFailure(
+        { release },
+        /publish must attach local main to the immutable validated plan commit/u,
+      );
+    },
+  );
+  await t.test('17d release publication attaches recovery to main', () => {
+    const release = mutateJob(sources.release, 'publish', (job) =>
+      replaceRequired(
+        job,
+        "if: ${{ inputs.operation != 'recover' }}",
+        'if: ${{ always() }}',
+      ),
+    );
+    expectFailure(
+      { release },
+      /approved-main attachment must exclude recovery runs/u,
+    );
+  });
   await t.test('18 CI references a release secret', () => {
     expectFailure(
       { ci: `${sources.ci}\n# \${{ secrets.RELEASE_GITHUB_TOKEN }}\n` },
