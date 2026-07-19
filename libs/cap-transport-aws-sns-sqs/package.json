@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-transport-aws-sns-sqs",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "AWS SNS/SQS transport adapter for CAP",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
