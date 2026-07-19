@@ -109,7 +109,7 @@ sequenceDiagram
 
   Nest->>Scanner: onModuleInit
   Scanner->>CapService: registerSubscription(topic, group, handler)
-  Note over Scanner,CapService: registration only; no broker I/O
+  Note over Scanner,CapService: registration only, no broker I/O
   Nest->>Lifecycle: onApplicationBootstrap
   Lifecycle->>CapService: await startSubscriptions()
   CapService->>Subscriber: await consume(topic, group, callback)
