@@ -143,7 +143,12 @@ export class KnexReceivedStorage
       }
     });
     const rows = await query
-      .orderBy('next_retry', 'asc')
+      .orderByRaw('CASE WHEN ?? = ? THEN ?? ELSE ?? END ASC', [
+        'status',
+        'failed',
+        'next_retry',
+        'created_at',
+      ])
       .orderBy('created_at', 'asc')
       .orderBy('id', 'asc')
       .limit(limit);

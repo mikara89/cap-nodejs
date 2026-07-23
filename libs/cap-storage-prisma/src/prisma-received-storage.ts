@@ -225,7 +225,9 @@ export class PrismaReceivedStorage
               'created_at',
             )} <= ${pending})`
           : ''
-      } ORDER BY ${this.quote('next_retry')} ASC, ${this.quote(
+      } ORDER BY CASE WHEN ${this.quote('status')} = 'failed' THEN ${this.quote(
+        'next_retry',
+      )} ELSE ${this.quote('created_at')} END ASC, ${this.quote(
         'created_at',
       )} ASC, ${this.quote('id')} ASC LIMIT ${rowLimit}`,
       builder.values,

@@ -160,7 +160,18 @@ export class TypeOrmReceivedStorage
       );
     }
     const rows = await query
-      .orderBy(column(this.dataSource, alias, 'next_retry'), 'ASC')
+      .orderBy(
+        `CASE WHEN ${column(
+          this.dataSource,
+          alias,
+          'status',
+        )} = :failedStatus THEN ${column(
+          this.dataSource,
+          alias,
+          'next_retry',
+        )} ELSE ${column(this.dataSource, alias, 'created_at')} END`,
+        'ASC',
+      )
       .addOrderBy(column(this.dataSource, alias, 'created_at'), 'ASC')
       .addOrderBy(column(this.dataSource, alias, 'id'), 'ASC')
       .limit(limit)

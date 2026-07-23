@@ -267,20 +267,16 @@ export function defineReceivedStorageContract(
           await storage.trySaveReceived(event);
         }
 
-        const eligibleIds = new Set([
-          dueFailed.id,
-          stalePending.id,
-          boundaryPending.id,
-          anotherStalePending.id,
-        ]);
         const full = await storage.getRetryDue(10, now, pendingBefore);
         const limited = await storage.getRetryDue(2, now, pendingBefore);
         const limitedAgain = await storage.getRetryDue(2, now, pendingBefore);
 
-        expect(full.map((event) => event.id)).toEqual(
-          expect.arrayContaining([...eligibleIds]),
-        );
-        expect(full).toHaveLength(eligibleIds.size);
+        expect(full.map((event) => event.id)).toEqual([
+          anotherStalePending.id,
+          dueFailed.id,
+          stalePending.id,
+          boundaryPending.id,
+        ]);
         expect(full.map((event) => event.id)).toContain(boundaryPending.id);
         expect(full.map((event) => event.id)).not.toEqual(
           expect.arrayContaining([
@@ -291,10 +287,12 @@ export function defineReceivedStorageContract(
           ]),
         );
         expect(new Set(full.map((event) => event.id)).size).toBe(full.length);
-        expect(limited).toHaveLength(2);
-        expect(limited.every((event) => eligibleIds.has(event.id))).toBe(true);
-        expect(limited.map((event) => event.id)).toEqual(
-          limitedAgain.map((event) => event.id),
+        expect(limited.map((event) => event.id)).toEqual([
+          anotherStalePending.id,
+          dueFailed.id,
+        ]);
+        expect(limitedAgain.map((event) => event.id)).toEqual(
+          limited.map((event) => event.id),
         );
       });
     });

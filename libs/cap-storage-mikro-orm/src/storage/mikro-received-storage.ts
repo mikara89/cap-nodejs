@@ -1,4 +1,9 @@
-import type { EntityManager, FilterQuery, MikroORM } from '@mikro-orm/core';
+import {
+  raw,
+  type EntityManager,
+  type FilterQuery,
+  type MikroORM,
+} from '@mikro-orm/core';
 import type {
   CapabilityAwareStoragePort,
   CapLogger,
@@ -146,7 +151,13 @@ export class MikroReceivedStorage
       : { status: 'failed', nextRetry: { $lte: now } };
     const entities = await this.em.find(CapReceivedEntity, where, {
       limit,
-      orderBy: { nextRetry: 'ASC', createdAt: 'ASC', id: 'ASC' },
+      orderBy: {
+        [raw(
+          "case when status = 'failed' then next_retry else created_at end",
+        )]: 'ASC',
+        createdAt: 'ASC',
+        id: 'ASC',
+      },
     });
 
     return entities.map(mapReceivedEntity);

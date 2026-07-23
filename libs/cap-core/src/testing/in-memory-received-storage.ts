@@ -68,6 +68,11 @@ export class InMemoryReceivedStorage implements ReceivedStoragePort {
               ? right.nextRetry.getTime()
               : new Date(right.occurredAt).getTime();
           if (leftTime !== rightTime) return leftTime - rightTime;
+          const leftCreatedAt = new Date(left.occurredAt).getTime();
+          const rightCreatedAt = new Date(right.occurredAt).getTime();
+          if (leftCreatedAt !== rightCreatedAt) {
+            return leftCreatedAt - rightCreatedAt;
+          }
           return left.id.localeCompare(right.id);
         })
         .slice(0, limit)
