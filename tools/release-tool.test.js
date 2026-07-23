@@ -1861,7 +1861,7 @@ test('CI workflow exists and does not publish', () => {
   assert.match(ciWorkflow, /test:release-tooling/);
 });
 
-test('new transport package baseline at version 0.0.0 is publish-ready', () => {
+test('released transport packages at version 0.1.0 are publish-ready', () => {
   const packages = discoverPackages(rootDir);
   const expected = new Map([
     ['@mikara89/cap-transport-rabbitmq', 'libs/cap-transport-rabbitmq'],
@@ -1872,7 +1872,7 @@ test('new transport package baseline at version 0.0.0 is publish-ready', () => {
   for (const [name, directory] of expected) {
     const pkg = packages.find((candidate) => candidate.name === name);
     assert.ok(pkg, `${name} must exist`);
-    assert.equal(pkg.version, '0.0.0');
+    assert.equal(pkg.version, '0.1.0');
     assert.equal(pkg.manifest.publishConfig?.access, 'public');
     assert.equal(
       pkg.manifest.publishConfig?.registry,
