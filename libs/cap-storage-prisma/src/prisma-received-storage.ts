@@ -205,17 +205,29 @@ export class PrismaReceivedStorage
   async getRetryDue(
     limit: number,
     now = new Date(),
+    pendingBefore?: Date,
   ): Promise<CapReceivedEvent<JsonValue>[]> {
     const builder = new PrismaSqlBuilder(this.options.provider);
     const due = builder.parameter(toRequiredPrismaDbDate(now));
+    const pending = pendingBefore
+      ? builder.parameter(toRequiredPrismaDbDate(pendingBefore))
+      : undefined;
     const rowLimit = builder.parameter(limit);
     const rows = await queryPrismaSql<ReceivedRow[]>(
       this.client,
       `SELECT * FROM ${this.quote(
         this.options.receivedTableName,
-      )} WHERE ${this.quote('status')} = 'failed' AND ${this.quote(
+      )} WHERE (${this.quote('status')} = 'failed' AND ${this.quote(
         'next_retry',
-      )} <= ${due} ORDER BY ${this.quote('next_retry')} ASC LIMIT ${rowLimit}`,
+      )} <= ${due})${
+        pending
+          ? ` OR (${this.quote('status')} = 'pending' AND ${this.quote(
+              'created_at',
+            )} <= ${pending})`
+          : ''
+      } ORDER BY ${this.quote('next_retry')} ASC, ${this.quote(
+        'created_at',
+      )} ASC, ${this.quote('id')} ASC LIMIT ${rowLimit}`,
       builder.values,
     );
     return rows.map(mapReceivedRow);

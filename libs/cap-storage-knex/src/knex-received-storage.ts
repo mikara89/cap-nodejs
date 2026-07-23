@@ -128,11 +128,24 @@ export class KnexReceivedStorage
   async getRetryDue(
     limit: number,
     now = new Date(),
+    pendingBefore?: Date,
   ): Promise<CapReceivedEvent<JsonValue>[]> {
-    const rows = await this.knex<ReceivedRow>(this.tableName)
-      .where({ status: 'failed' })
-      .where('next_retry', '<=', toDbDate(now))
+    const query = this.knex<ReceivedRow>(this.tableName).where((builder) => {
+      builder
+        .where({ status: 'failed' })
+        .where('next_retry', '<=', toDbDate(now));
+      if (pendingBefore) {
+        builder.orWhere((pending) => {
+          pending
+            .where({ status: 'pending' })
+            .where('created_at', '<=', toDbDate(pendingBefore));
+        });
+      }
+    });
+    const rows = await query
       .orderBy('next_retry', 'asc')
+      .orderBy('created_at', 'asc')
+      .orderBy('id', 'asc')
       .limit(limit);
 
     return rows.map(mapReceivedRow);

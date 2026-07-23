@@ -87,8 +87,11 @@ defineReceivedStorageContract(
 ```
 
 The received contract verifies insert, `group + dedupeKey` idempotency,
-processed state, retry/dead-letter state, and due retry reads. Concurrency
-capability options make unsupported guarantees visible as skipped tests.
+processed state, retry/dead-letter state, and deterministic recovery reads. It
+covers due failed rows, stale pending rows (including the cutoff boundary),
+terminal and recent-row exclusion, one combined limit, and legacy two-argument
+`getRetryDue(limit, now?)` behavior. Concurrency capability options make
+unsupported guarantees visible as skipped tests.
 
 Use this together with the
 [storage adapter author guide](../../docs/storage-adapter-author-guide.md).

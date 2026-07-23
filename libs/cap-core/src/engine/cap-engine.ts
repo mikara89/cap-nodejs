@@ -16,6 +16,7 @@ import { type CapOperationContext } from '../models/cap-operation-context';
 import { type CapPublishEvent } from '../models/cap-publish-event';
 import { type CapReceivedEvent } from '../models/cap-received-event';
 import {
+  DEFAULT_INBOX_FALLBACK_WINDOW_MS,
   type CapPublishOptions,
   type CapSchedulerOptions,
 } from '../models/cap-options';
@@ -87,6 +88,7 @@ function subscriptionKey(topic: string, group: string): string {
 export interface ResolvedCapEngineSchedulerOptions {
   batchSize: number;
   leaseMs: number;
+  inboxFallbackWindowMs: number;
   maxRetries: number;
   maxInboxRetries: number;
   instanceId: string;
@@ -116,6 +118,7 @@ const SUBSCRIPTION_SHUTDOWN_INCOMPLETE =
 const DEFAULT_SCHEDULER_OPTIONS: ResolvedCapEngineSchedulerOptions = {
   batchSize: 200,
   leaseMs: 30_000,
+  inboxFallbackWindowMs: DEFAULT_INBOX_FALLBACK_WINDOW_MS,
   maxRetries: 3,
   maxInboxRetries: 3,
   instanceId: 'cap-engine-default',
@@ -596,9 +599,14 @@ export class CapEngine {
   async retryInboxBatch(): Promise<number> {
     if (this.schedulerOptions.disabled) return 0;
 
+    const now = this.now();
+    const pendingBefore = new Date(
+      now.getTime() - this.schedulerOptions.inboxFallbackWindowMs,
+    );
     const batch = await this.receivedStorage.getRetryDue(
       this.schedulerOptions.batchSize,
-      this.now(),
+      now,
+      pendingBefore,
     );
     if (!batch.length) return 0;
 
@@ -956,6 +964,9 @@ function resolveSchedulerOptions(
   return {
     batchSize: scheduler.batchSize ?? DEFAULT_SCHEDULER_OPTIONS.batchSize,
     leaseMs: scheduler.leaseMs ?? DEFAULT_SCHEDULER_OPTIONS.leaseMs,
+    inboxFallbackWindowMs: resolveInboxFallbackWindowMs(
+      scheduler.inboxFallbackWindowMs,
+    ),
     maxRetries: scheduler.maxRetries ?? DEFAULT_SCHEDULER_OPTIONS.maxRetries,
     maxInboxRetries:
       scheduler.maxInboxRetries ??
@@ -967,6 +978,18 @@ function resolveSchedulerOptions(
       DEFAULT_SCHEDULER_OPTIONS.instanceId,
     disabled: scheduler.disabled ?? DEFAULT_SCHEDULER_OPTIONS.disabled,
   };
+}
+
+function resolveInboxFallbackWindowMs(value: number | undefined): number {
+  if (value === undefined) {
+    return DEFAULT_SCHEDULER_OPTIONS.inboxFallbackWindowMs;
+  }
+  if (!Number.isFinite(value) || value < 0) {
+    throw new RangeError(
+      'scheduler.inboxFallbackWindowMs must be a finite non-negative number',
+    );
+  }
+  return value;
 }
 
 function hasOperationTransaction<TTx>(

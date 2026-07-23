@@ -7,7 +7,9 @@ import {
   CapReceivedEntity,
 } from '@mikara89/cap-storage-mikro-orm';
 import { type CapPublishEvent } from '@mikara89/cap-core';
+import { createReceivedFixture } from '@mikara89/cap-testing';
 import { MikroPublishStorage } from '../src/storage/mikro-publish-storage';
+import { MikroReceivedStorage } from '../src/storage/mikro-received-storage';
 
 jest.mock('archiver', () => ({ __esModule: true, default: jest.fn() }), {
   virtual: true,
@@ -235,6 +237,43 @@ describe.each(providers)(
       await workerOrmA?.close(true);
       await setupOrm?.close(true);
       await container?.stop();
+    });
+
+    it('selects due failed and stale pending inbox rows as one limited recovery batch', async () => {
+      const storage = new MikroReceivedStorage(setupOrm!.em.fork());
+      const now = new Date('2026-07-19T12:00:00.000Z');
+      const pendingBefore = new Date('2026-07-19T11:56:00.000Z');
+      const makeEvent = (
+        overrides: Partial<ReturnType<typeof createReceivedFixture>> = {},
+      ) => ({
+        ...createReceivedFixture({
+          id: randomUUID(),
+          topic: 'mikro.recovery.integration',
+          group: 'mikro-recovery',
+          messageId: randomUUID(),
+          dedupeKey: randomUUID(),
+        }),
+        ...overrides,
+      });
+      const due = makeEvent({
+        status: 'failed',
+        retryCount: 1,
+        nextRetry: new Date('2026-07-19T11:55:00.000Z'),
+      });
+      const stale = makeEvent({ occurredAt: '2026-07-19T11:55:00.000Z' });
+      const recent = makeEvent({ occurredAt: '2026-07-19T11:56:01.000Z' });
+      const terminal = makeEvent({ status: 'dead_letter', retryCount: 3 });
+      await Promise.all(
+        [due, stale, recent, terminal].map((event) =>
+          storage.trySaveReceived(event),
+        ),
+      );
+
+      const recovered = await storage.getRetryDue(2, now, pendingBefore);
+
+      expect(new Set(recovered.map((event) => event.id))).toEqual(
+        new Set([due.id, stale.id]),
+      );
     });
 
     it('does not let two workers claim the same outbox row while locks overlap', async () => {

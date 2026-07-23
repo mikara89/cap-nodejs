@@ -139,19 +139,30 @@ export class TypeOrmReceivedStorage
   async getRetryDue(
     limit: number,
     now = new Date(),
+    pendingBefore?: Date,
   ): Promise<CapReceivedEvent<JsonValue>[]> {
     const alias = 'cap_received_row';
-    const rows = await this.dataSource.manager
+    const query = this.dataSource.manager
       .createQueryBuilder()
       .select(`${alias}.*`)
       .from(this.tableName, alias)
-      .where(`${column(this.dataSource, alias, 'status')} = :status`, {
-        status: 'failed',
-      })
-      .andWhere(`${column(this.dataSource, alias, 'next_retry')} <= :now`, {
-        now: toDbDate(now),
-      })
+      .where(
+        `${column(this.dataSource, alias, 'status')} = :failedStatus AND ${column(this.dataSource, alias, 'next_retry')} <= :now`,
+        { failedStatus: 'failed', now: toDbDate(now) },
+      );
+    if (pendingBefore) {
+      query.orWhere(
+        `${column(this.dataSource, alias, 'status')} = :pendingStatus AND ${column(this.dataSource, alias, 'created_at')} <= :pendingBefore`,
+        {
+          pendingStatus: 'pending',
+          pendingBefore: toDbDate(pendingBefore),
+        },
+      );
+    }
+    const rows = await query
       .orderBy(column(this.dataSource, alias, 'next_retry'), 'ASC')
+      .addOrderBy(column(this.dataSource, alias, 'created_at'), 'ASC')
+      .addOrderBy(column(this.dataSource, alias, 'id'), 'ASC')
       .limit(limit)
       .getRawMany<ReceivedRow>();
 

@@ -206,10 +206,23 @@ Server needs a SQL Server-specific claim implementation before it is supported
 for multi-instance dispatch. Failed emits increment retry state and eventually
 move rows to `dead_letter`.
 
-Inbox retries read due `failed` rows and re-run the registered handler. Handler
-failures increment retry state, store `lastError`, and eventually move rows to
-`dead_letter` once `scheduler.maxInboxRetries` is reached. Handler retry timing
-uses exponential backoff with jitter.
+Inbox retries read due `failed` rows and stale `pending` rows, then re-run the
+registered handler through the same execution path. A pending row becomes
+eligible when its creation time is at or before `now -
+scheduler.inboxFallbackWindowMs`; the default fallback window is `240_000` ms
+(four minutes). Handler failures increment retry state, store `lastError`, and
+eventually move rows to `dead_letter` once `scheduler.maxInboxRetries` is
+reached. Handler retry timing uses exponential backoff with jitter.
+
+Broker duplicates remain deduplicated at persistence time and do not directly
+execute an existing inbox row. Scheduler recovery owns retries of retained rows.
+Inbox processing is nontransactional and at least once: a slow handler or
+backlog can look stale when the fallback window is too short, causing duplicate
+execution. Set the window above normal handler and backlog time, and make
+subscribers idempotent with techniques such as unique business constraints,
+set-to-value updates, processed-operation keys, or external API idempotency
+keys. CAP does not provide transactional inbox completion or cluster-wide
+per-message retry ownership.
 
 ## Transactions
 

@@ -80,13 +80,17 @@ Implement `ReceivedStoragePort` for inbox persistence:
 - `trySaveReceived(event)` returning `{ inserted, id, event }`
 - `markProcessed(id, processedAt?)`
 - `markReceivedFailed(id, error, { maxRetries, nextRetryAt, now })`
-- `getRetryDue(limit, now?)`
+- `getRetryDue(limit, now?, pendingBefore?)`
 - optional `initialize(options)`
 - optional dashboard helpers: `findReceivedById`, `listReceived`
 
 Inbox dedupe must use consumer `group` plus `dedupeKey`. The broker
 `messageId` is traceability metadata unless a transport also uses it to build
 the dedupe key.
+
+When `pendingBefore` is supplied, select due failed rows and pending rows whose
+creation timestamp is at or before that cutoff in one explicitly ordered,
+limited query. Omitting it must retain the legacy due-failed-only behavior.
 
 Use `defineReceivedStorageContract` from `@mikara89/cap-testing` in the adapter
 test suite. Keep unsupported concurrency guarantees explicit through the

@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## Unreleased
+
+- select stale pending inbox rows alongside due failed rows for scheduler recovery
+
 ## [2.2.2](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-storage-prisma@2.2.1...@mikara89/cap-storage-prisma@2.2.2) (2026-07-17)
 
 ### Bug Fixes

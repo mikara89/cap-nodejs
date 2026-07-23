@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## Unreleased
+
+- recover stale pending inbox rows after the configurable four-minute fallback
+  window while retaining due failed-row recovery
+
 ## [2.3.1](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-core@2.3.0...@mikara89/cap-core@2.3.1) (2026-07-17)
 
 ### Bug Fixes

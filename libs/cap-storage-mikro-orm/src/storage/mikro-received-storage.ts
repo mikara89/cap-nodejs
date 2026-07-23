@@ -134,18 +134,20 @@ export class MikroReceivedStorage
   async getRetryDue(
     limit: number,
     now = new Date(),
+    pendingBefore?: Date,
   ): Promise<CapReceivedEvent<JsonValue>[]> {
-    const entities = await this.em.find(
-      CapReceivedEntity,
-      {
-        status: 'failed',
-        nextRetry: { $lte: now },
-      },
-      {
-        limit,
-        orderBy: { nextRetry: 'ASC' },
-      },
-    );
+    const where: FilterQuery<CapReceivedEntity> = pendingBefore
+      ? {
+          $or: [
+            { status: 'failed', nextRetry: { $lte: now } },
+            { status: 'pending', createdAt: { $lte: pendingBefore } },
+          ],
+        }
+      : { status: 'failed', nextRetry: { $lte: now } };
+    const entities = await this.em.find(CapReceivedEntity, where, {
+      limit,
+      orderBy: { nextRetry: 'ASC', createdAt: 'ASC', id: 'ASC' },
+    });
 
     return entities.map(mapReceivedEntity);
   }

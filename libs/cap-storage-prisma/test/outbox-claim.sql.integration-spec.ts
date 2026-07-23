@@ -248,6 +248,45 @@ describe.each(providers)(
       ).resolves.toBeUndefined();
     });
 
+    it('selects due failed and stale pending inbox rows as one limited recovery batch', async () => {
+      const storage = new PrismaReceivedStorage(setupClient!, {
+        provider: fixture.provider,
+      });
+      const now = new Date('2026-07-19T12:00:00.000Z');
+      const pendingBefore = new Date('2026-07-19T11:56:00.000Z');
+      const makeEvent = (
+        overrides: Partial<ReturnType<typeof createReceivedFixture>> = {},
+      ) => ({
+        ...createReceivedFixture({
+          id: randomUUID(),
+          topic: 'prisma.recovery.integration',
+          group: 'prisma-recovery',
+          messageId: randomUUID(),
+          dedupeKey: randomUUID(),
+        }),
+        ...overrides,
+      });
+      const due = makeEvent({
+        status: 'failed',
+        retryCount: 1,
+        nextRetry: new Date('2026-07-19T11:55:00.000Z'),
+      });
+      const stale = makeEvent({ occurredAt: '2026-07-19T11:55:00.000Z' });
+      const recent = makeEvent({ occurredAt: '2026-07-19T11:56:01.000Z' });
+      const terminal = makeEvent({ status: 'dead_letter', retryCount: 3 });
+      await Promise.all(
+        [due, stale, recent, terminal].map((event) =>
+          storage.trySaveReceived(event),
+        ),
+      );
+
+      const recovered = await storage.getRetryDue(2, now, pendingBefore);
+
+      expect(new Set(recovered.map((event) => event.id))).toEqual(
+        new Set([due.id, stale.id]),
+      );
+    });
+
     it('renews active leases and fences stale owners', async () => {
       await setupClient!.$executeRawUnsafe('DELETE FROM cap_publish');
       const workerA = new PrismaPublishStorage(setupClient!, {

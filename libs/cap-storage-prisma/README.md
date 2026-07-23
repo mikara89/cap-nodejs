@@ -49,6 +49,11 @@ inbox constraint on `group + dedupeKey`. Applications may instead manage
 equivalent tables with their own migrations. Prisma Migrate is not required
 for CAP-owned tables.
 
+Inbox recovery queries return due failed rows and, when core supplies a pending
+cutoff, stale pending rows in one deterministic limited result. They do not
+claim rows for execution; inbox processing remains at least once and callers
+must keep subscriber handlers idempotent.
+
 Outbox completion, failure, and active lease renewal use parameterized atomic
 ownership predicates. `lockedBy` is an opaque per-claim token; stale owners
 receive `false` and cannot mutate a reclaimed row. PostgreSQL and MySQL

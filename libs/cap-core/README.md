@@ -101,6 +101,21 @@ safe after partial startup, concurrent stops are deduplicated, and a start
 requested during shutdown waits for shutdown before attaching a fresh consumer
 cycle. Registrations remain available for restart.
 
+## Inbox Recovery
+
+The scheduler retries due `failed` inbox rows and can recover `pending` rows
+that were abandoned after persistence (for example, a process crash before the
+handler completed). Configure `scheduler.inboxFallbackWindowMs` in milliseconds;
+it defaults to `240_000` (four minutes), and `0` is valid when immediate
+fallback eligibility is intended. Negative and non-finite values are rejected.
+
+Recovery reuses the registered subscriber handler. A broker duplicate still
+stops at inbox deduplication; only the scheduler retries an existing retained
+row. Processing is at least once and nontransactional. A fallback window shorter
+than normal handler execution or backlog time can retry a merely slow handler,
+so subscribers must be idempotent. CAP provides neither transactional inbox
+completion nor cluster-wide per-message retry ownership.
+
 ## Transaction Context
 
 Existing transaction-handle publishing remains supported:

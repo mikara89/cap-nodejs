@@ -42,16 +42,34 @@ export class InMemoryReceivedStorage implements ReceivedStoragePort {
   getRetryDue(
     limit: number,
     now = new Date(),
+    pendingBefore?: Date,
   ): Promise<CapReceivedEvent<JsonValue>[]> {
     const nowMs = now.getTime();
     return Promise.resolve(
       [...this.store.values()]
-        .filter(
-          (event) =>
-            event.status === 'failed' &&
-            event.nextRetry &&
-            event.nextRetry.getTime() <= nowMs,
-        )
+        .filter((event) => {
+          if (event.status === 'failed') {
+            return event.nextRetry ? event.nextRetry.getTime() <= nowMs : false;
+          }
+          if (event.status === 'pending' && pendingBefore !== undefined) {
+            return (
+              new Date(event.occurredAt).getTime() <= pendingBefore.getTime()
+            );
+          }
+          return false;
+        })
+        .sort((left, right) => {
+          const leftTime =
+            left.status === 'failed' && left.nextRetry
+              ? left.nextRetry.getTime()
+              : new Date(left.occurredAt).getTime();
+          const rightTime =
+            right.status === 'failed' && right.nextRetry
+              ? right.nextRetry.getTime()
+              : new Date(right.occurredAt).getTime();
+          if (leftTime !== rightTime) return leftTime - rightTime;
+          return left.id.localeCompare(right.id);
+        })
         .slice(0, limit)
         .map((event) => ({ ...event })),
     );

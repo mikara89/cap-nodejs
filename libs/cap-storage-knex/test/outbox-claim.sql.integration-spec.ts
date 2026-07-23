@@ -382,6 +382,46 @@ describe.each(providers)('Knex storage $name integration', (provider) => {
     });
   });
 
+  it('selects due failed and stale pending inbox rows as one limited recovery batch', async () => {
+    const storage = new KnexReceivedStorage(setupKnex!);
+    const now = new Date('2026-07-19T12:00:00.000Z');
+    const pendingBefore = new Date('2026-07-19T11:56:00.000Z');
+    const due = {
+      ...receivedEvent(provider.name, 'knex-recovery'),
+      status: 'failed' as const,
+      retryCount: 1,
+      nextRetry: new Date('2026-07-19T11:55:00.000Z'),
+    };
+    const stale = {
+      ...receivedEvent(provider.name, 'knex-recovery'),
+      occurredAt: '2026-07-19T11:55:00.000Z',
+    };
+    const recent = {
+      ...receivedEvent(provider.name, 'knex-recovery'),
+      occurredAt: '2026-07-19T11:56:01.000Z',
+    };
+    const terminal = {
+      ...receivedEvent(provider.name, 'knex-recovery'),
+      status: 'dead_letter' as const,
+      retryCount: 3,
+    };
+    await Promise.all(
+      [due, stale, recent, terminal].map((event) =>
+        storage.trySaveReceived(event),
+      ),
+    );
+
+    const recovered = await storage.getRetryDue(2, now, pendingBefore);
+
+    expect(recovered).toHaveLength(2);
+    expect(new Set(recovered.map((event) => event.id))).toEqual(
+      new Set([due.id, stale.id]),
+    );
+    expect(recovered.map((event) => event.id)).not.toEqual(
+      expect.arrayContaining([recent.id, terminal.id]),
+    );
+  });
+
   it('publishes inside a committed transaction', async () => {
     const storage = new KnexPublishStorage(setupKnex!);
     const event = publishEvent(1, new Date());

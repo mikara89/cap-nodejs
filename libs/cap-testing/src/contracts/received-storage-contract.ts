@@ -218,6 +218,109 @@ export function defineReceivedStorageContract(
       });
     });
 
+    it('recovers due failed and stale pending records as one deterministic batch', async () => {
+      await withSetup(setup, async ({ storage }) => {
+        const now = new Date('2026-06-16T00:10:00.000Z');
+        const pendingBefore = new Date('2026-06-16T00:06:00.000Z');
+        const dueFailed = receivedEvent('combined-due-failed', {
+          status: 'failed',
+          retryCount: 1,
+          nextRetry: new Date('2026-06-16T00:05:00.000Z'),
+        });
+        const stalePending = receivedEvent('combined-stale-pending', {
+          occurredAt: '2026-06-16T00:05:59.000Z',
+        });
+        const boundaryPending = receivedEvent('combined-boundary-pending', {
+          occurredAt: '2026-06-16T00:06:00.000Z',
+        });
+        const anotherStalePending = receivedEvent('combined-another-pending', {
+          occurredAt: '2026-06-16T00:01:00.000Z',
+        });
+        const recentPending = receivedEvent('combined-recent-pending', {
+          occurredAt: '2026-06-16T00:06:01.000Z',
+        });
+        const futureFailed = receivedEvent('combined-future-failed', {
+          status: 'failed',
+          retryCount: 1,
+          nextRetry: new Date('2026-06-16T00:10:01.000Z'),
+        });
+        const processed = receivedEvent('combined-processed', {
+          status: 'processed',
+          processed: true,
+          processedAt: new Date('2026-06-16T00:05:00.000Z'),
+        });
+        const deadLetter = receivedEvent('combined-dead-letter', {
+          status: 'dead_letter',
+          retryCount: 3,
+        });
+
+        for (const event of [
+          dueFailed,
+          stalePending,
+          boundaryPending,
+          anotherStalePending,
+          recentPending,
+          futureFailed,
+          processed,
+          deadLetter,
+        ]) {
+          await storage.trySaveReceived(event);
+        }
+
+        const eligibleIds = new Set([
+          dueFailed.id,
+          stalePending.id,
+          boundaryPending.id,
+          anotherStalePending.id,
+        ]);
+        const full = await storage.getRetryDue(10, now, pendingBefore);
+        const limited = await storage.getRetryDue(2, now, pendingBefore);
+        const limitedAgain = await storage.getRetryDue(2, now, pendingBefore);
+
+        expect(full.map((event) => event.id)).toEqual(
+          expect.arrayContaining([...eligibleIds]),
+        );
+        expect(full).toHaveLength(eligibleIds.size);
+        expect(full.map((event) => event.id)).toContain(boundaryPending.id);
+        expect(full.map((event) => event.id)).not.toEqual(
+          expect.arrayContaining([
+            recentPending.id,
+            futureFailed.id,
+            processed.id,
+            deadLetter.id,
+          ]),
+        );
+        expect(new Set(full.map((event) => event.id)).size).toBe(full.length);
+        expect(limited).toHaveLength(2);
+        expect(limited.every((event) => eligibleIds.has(event.id))).toBe(true);
+        expect(limited.map((event) => event.id)).toEqual(
+          limitedAgain.map((event) => event.id),
+        );
+      });
+    });
+
+    it('preserves legacy due-failed-only behavior without a pending cutoff', async () => {
+      await withSetup(setup, async ({ storage }) => {
+        const due = receivedEvent('legacy-due', {
+          status: 'failed',
+          retryCount: 1,
+          nextRetry: new Date('2026-06-16T00:05:00.000Z'),
+        });
+        const stalePending = receivedEvent('legacy-stale-pending', {
+          occurredAt: '2026-06-16T00:00:00.000Z',
+        });
+        await storage.trySaveReceived(due);
+        await storage.trySaveReceived(stalePending);
+
+        const result = await storage.getRetryDue(
+          10,
+          new Date('2026-06-16T00:10:00.000Z'),
+        );
+
+        expect(result.map((event) => event.id)).toEqual([due.id]);
+      });
+    });
+
     const atomicInsertIgnoreIt = options.supportsAtomicInsertIgnore
       ? it
       : it.skip;

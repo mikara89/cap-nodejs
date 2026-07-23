@@ -134,7 +134,11 @@ export interface IReceivedStorage {
    * Return records that are not yet processed and
    * whose nextRetry timestamp <= now. Scheduler uses this.
    */
-  getRetryDue(limit: number): Promise<Array<CapReceivedEvent>>;
+  getRetryDue(
+    limit: number,
+    now?: Date,
+    pendingBefore?: Date,
+  ): Promise<Array<CapReceivedEvent>>;
 
   /** Mark inbox processing failed, or dead-letter when retry limit is exceeded. */
   markReceivedFailed(

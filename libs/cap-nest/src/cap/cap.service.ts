@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   CapEngine,
+  DEFAULT_INBOX_FALLBACK_WINDOW_MS,
   type CapLogger,
   type CapOperationContext,
   type CapPublishOptions,
@@ -23,6 +24,7 @@ type Handler<T = unknown> = (payload: T, headers?: CapHeaders) => Promise<void>;
 const DEFAULT_SCHEDULER_OPTIONS: ResolvedCapSchedulerOptions = {
   batchSize: 200,
   leaseMs: 30_000,
+  inboxFallbackWindowMs: DEFAULT_INBOX_FALLBACK_WINDOW_MS,
   maxRetries: 3,
   maxInboxRetries: 3,
   instanceId: 'cap-service-default',

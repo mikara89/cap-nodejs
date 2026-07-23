@@ -50,6 +50,22 @@ async handleUserCreated(payload: unknown) {
 }
 ```
 
+## Inbox Recovery
+
+`CapModule` passes scheduler options to core. `scheduler.inboxFallbackWindowMs`
+defaults to `240_000` milliseconds and controls when a pending inbox row may be
+retried after an interrupted subscriber attempt:
+
+```ts
+CapModule.forRoot({
+  scheduler: { inboxFallbackWindowMs: 300_000 },
+});
+```
+
+Recovery is at least once and nontransactional. Keep the window longer than
+normal handler execution and backlog time, and make handlers idempotent because
+a slow handler may otherwise be recovered as stale.
+
 ## Subscription Lifecycle
 
 Nest discovers `@CapSubscribe` handlers during `onModuleInit` and registers

@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## Unreleased
+
+- select stale pending inbox rows alongside due failed rows for scheduler recovery
+
 ## [2.2.1](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-storage-typeorm@2.2.0...@mikara89/cap-storage-typeorm@2.2.1) (2026-07-11)
 
 ### Bug Fixes

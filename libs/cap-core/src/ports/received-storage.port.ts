@@ -29,7 +29,11 @@ export interface ReceivedStoragePort {
 
   markProcessed(id: string, processedAt?: Date): Promise<void>;
 
-  getRetryDue(limit: number, now?: Date): Promise<CapReceivedEvent[]>;
+  getRetryDue(
+    limit: number,
+    now?: Date,
+    pendingBefore?: Date,
+  ): Promise<CapReceivedEvent[]>;
 
   markReceivedFailed(
     id: string,

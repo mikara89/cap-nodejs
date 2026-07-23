@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## Unreleased
+
+- expose the core inbox fallback-window scheduler option through `CapModule`
+
 ## 2.2.0 (2026-06-26)
 
 ### Features

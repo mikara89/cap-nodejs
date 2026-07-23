@@ -8,6 +8,7 @@ import type {
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import {
+  DEFAULT_INBOX_FALLBACK_WINDOW_MS,
   CapEngine,
   InMemoryPublishStorage,
   InMemoryReceivedStorage,
@@ -200,6 +201,8 @@ function createSchedulerOptionsProvider(): Provider {
       return {
         batchSize: scheduler.batchSize ?? 200,
         leaseMs: scheduler.leaseMs ?? 30_000,
+        inboxFallbackWindowMs:
+          scheduler.inboxFallbackWindowMs ?? DEFAULT_INBOX_FALLBACK_WINDOW_MS,
         maxRetries: scheduler.maxRetries ?? 3,
         maxInboxRetries: scheduler.maxInboxRetries ?? scheduler.maxRetries ?? 3,
         instanceId:

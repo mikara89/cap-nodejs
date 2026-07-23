@@ -80,6 +80,11 @@ export class AppModule {}
   index.
 - Dashboard list/find helpers are included for outbox and inbox records.
 
+Inbox recovery queries return due failed rows and, when core supplies a pending
+cutoff, stale pending rows in one deterministic limited result. They do not
+claim rows for execution; inbox processing remains at least once and callers
+must keep subscriber handlers idempotent.
+
 ## Documentation
 
 - [Repository overview](../../README.md)
