@@ -253,6 +253,7 @@ describe.each(providers)(
 
     it('selects due failed and stale pending inbox rows as one limited recovery batch', async () => {
       const storage = new TypeOrmReceivedStorage(setupDataSource!);
+      await setupDataSource!.query('DELETE FROM cap_received');
       const now = new Date('2026-07-19T12:00:00.000Z');
       const pendingBefore = new Date('2026-07-19T11:56:00.000Z');
       const due = {

@@ -252,6 +252,7 @@ describe.each(providers)(
       const storage = new PrismaReceivedStorage(setupClient!, {
         provider: fixture.provider,
       });
+      await setupClient!.$executeRawUnsafe('DELETE FROM cap_received');
       const now = new Date('2026-07-19T12:00:00.000Z');
       const pendingBefore = new Date('2026-07-19T11:56:00.000Z');
       const makeEvent = (
