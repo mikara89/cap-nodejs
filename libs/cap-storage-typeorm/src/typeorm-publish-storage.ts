@@ -1,6 +1,8 @@
 import type { EntityManager, SelectQueryBuilder } from 'typeorm';
 import type {
   CapOperationContext,
+  CapOutboxSnapshot,
+  CapRequeueResult,
   CapabilityAwareStoragePort,
   CapPublishEvent,
   CapStorageCapabilities,
@@ -11,6 +13,7 @@ import type {
   JsonValue,
   MarkPublishFailedOptions,
   PublishClaimOwnership,
+  PublishStorageAdministrationPort,
   PublishStoragePort,
   RenewPublishClaimOptions,
 } from '@mikara89/cap-core';
@@ -50,7 +53,10 @@ interface PublishRow {
 }
 
 export class TypeOrmPublishStorage
-  implements PublishStoragePort<EntityManager>, CapabilityAwareStoragePort
+  implements
+    PublishStoragePort<EntityManager>,
+    PublishStorageAdministrationPort<EntityManager>,
+    CapabilityAwareStoragePort
 {
   private readonly tableName: string;
 
@@ -259,6 +265,52 @@ export class TypeOrmPublishStorage
     return row ? mapPublishRow(row) : undefined;
   }
 
+  async requeuePublish(
+    id: string,
+    now = new Date(),
+  ): Promise<CapRequeueResult<CapPublishEvent['status']>> {
+    const result = await this.dataSource.manager
+      .createQueryBuilder()
+      .update(this.tableName)
+      .set({
+        status: 'failed',
+        retry_count: 0,
+        last_error: null,
+        next_retry_at: toRequiredDbDate(now),
+        locked_by: null,
+        locked_until: null,
+        published_at: null,
+        updated_at: toRequiredDbDate(now),
+      })
+      .where('id = :id', { id })
+      .andWhere('status IN (:...eligibleStatuses)', {
+        eligibleStatuses: ['failed', 'dead_letter'],
+      })
+      .execute();
+    if (Number(result.affected ?? 0) > 0) return { id, outcome: 'requeued' };
+
+    const row = await this.findPublishRowById(this.dataSource.manager, id);
+    return row
+      ? { id, outcome: 'not_eligible', previousStatus: row.status }
+      : { id, outcome: 'not_found' };
+  }
+
+  async getPublishSnapshot(): Promise<CapOutboxSnapshot> {
+    const alias = 'cap_publish_snapshot';
+    const rows = await this.dataSource.manager
+      .createQueryBuilder()
+      .select(column(this.dataSource, alias, 'status'), 'status')
+      .addSelect('COUNT(*)', 'count')
+      .addSelect(
+        `MIN(${column(this.dataSource, alias, 'created_at')})`,
+        'oldest_at',
+      )
+      .from(this.tableName, alias)
+      .groupBy(column(this.dataSource, alias, 'status'))
+      .getRawMany<SnapshotRow<CapPublishEvent['status']>>();
+    return mapOutboxSnapshot(rows);
+  }
+
   async listPublish(
     options: DashboardListOptions = {},
   ): Promise<DashboardListResult<CapPublishEvent<JsonValue>>> {
@@ -300,6 +352,32 @@ export class TypeOrmPublishStorage
       .getRawMany<PublishRow>();
     return rows[0];
   }
+}
+
+interface SnapshotRow<TStatus extends string> {
+  status: TStatus;
+  count: number | string;
+  oldest_at: string | null;
+}
+
+function mapOutboxSnapshot(
+  rows: SnapshotRow<CapPublishEvent['status']>[],
+): CapOutboxSnapshot {
+  const counts: CapOutboxSnapshot['counts'] = {
+    pending: 0,
+    processing: 0,
+    published: 0,
+    failed: 0,
+    dead_letter: 0,
+  };
+  let oldestPendingAt: Date | null = null;
+  let oldestFailedAt: Date | null = null;
+  for (const row of rows) {
+    counts[row.status] = Number(row.count);
+    if (row.status === 'pending') oldestPendingAt = fromDbDate(row.oldest_at);
+    if (row.status === 'failed') oldestFailedAt = fromDbDate(row.oldest_at);
+  }
+  return { counts, oldestPendingAt, oldestFailedAt };
 }
 
 function usesMySqlAssignmentSemantics(dataSource: DataSource): boolean {

@@ -5,6 +5,8 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## Unreleased
 
+- add optional messaging administration ports, requeue APIs, and operational snapshots
+
 - recover stale pending inbox rows after the configurable four-minute fallback
   window while retaining due failed-row recovery
 
