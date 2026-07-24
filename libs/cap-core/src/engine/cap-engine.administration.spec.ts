@@ -56,14 +56,14 @@ describe('CapEngine messaging administration', () => {
       getPublishSnapshot: undefined,
     }) as PublishStoragePort;
 
-    expect(() =>
+    await expect(
       new CapEngine({
         publishStorage,
         receivedStorage: noInbox,
         publisher,
         subscriber,
       }).requeueInbox('x'),
-    ).toThrow(/received storage does not support/);
+    ).rejects.toThrow(/received storage does not support/);
     await expect(
       new CapEngine({
         publishStorage,
@@ -72,14 +72,14 @@ describe('CapEngine messaging administration', () => {
         subscriber,
       }).getMessagingSnapshot(),
     ).rejects.toThrow(/received storage does not support/);
-    expect(() =>
+    await expect(
       new CapEngine({
         publishStorage: noOutbox,
         receivedStorage,
         publisher,
         subscriber,
       }).requeueOutbox('x'),
-    ).toThrow(/publish storage does not support/);
+    ).rejects.toThrow(/publish storage does not support/);
     await expect(
       new CapEngine({
         publishStorage: noOutbox,
@@ -88,6 +88,15 @@ describe('CapEngine messaging administration', () => {
         subscriber,
       }).getMessagingSnapshot(),
     ).rejects.toThrow(/publish storage does not support/);
+  });
+
+  it('rejects invalid administration IDs through the returned promises', async () => {
+    const { engine } = createEngine();
+
+    await expect(engine.requeueInbox('')).rejects.toThrow(/non-empty string/);
+    await expect(engine.requeueOutbox('   ')).rejects.toThrow(
+      /non-empty string/,
+    );
   });
 
   it('combines defensive inbox and outbox snapshots', async () => {

@@ -544,7 +544,7 @@ export class CapEngine {
   }
 
   /** Requeue an eligible inbox record for normal scheduler processing. */
-  requeueInbox(
+  async requeueInbox(
     id: string,
   ): Promise<CapRequeueResult<CapReceivedEvent['status']>> {
     assertAdministrationId(id);
@@ -557,7 +557,7 @@ export class CapEngine {
   }
 
   /** Requeue an eligible outbox record for normal claim-and-dispatch work. */
-  requeueOutbox(
+  async requeueOutbox(
     id: string,
   ): Promise<CapRequeueResult<CapPublishEvent['status']>> {
     assertAdministrationId(id);
