@@ -1,5 +1,12 @@
 # @mikara89/cap-storage-typeorm
 
+## Messaging administration
+
+`TypeOrmPublishStorage` and `TypeOrmReceivedStorage` implement the optional CAP
+administration ports. Only failed/dead-letter rows are guardedly requeued and
+made immediately due; successful or active rows are rejected. Snapshots are
+aggregate status counts with oldest current pending/failed `created_at` values.
+
 TypeORM storage adapter for CAP outbox and inbox persistence.
 
 ## Install

@@ -52,6 +52,15 @@ async handleUserCreated(payload: unknown) {
 
 ## Inbox Recovery
 
+## Messaging administration
+
+`CapService` delegates `requeueInbox(id)`, `requeueOutbox(id)`, and
+`getMessagingSnapshot()` directly to core. These APIs are storage-capability
+dependent and do not add HTTP endpoints. Only failed/dead-letter records can be
+requeued; the normal scheduler later invokes handlers or emits messages. The
+snapshot is an operational aggregate and its inbox/outbox halves can represent
+slightly different instants.
+
 `CapModule` passes scheduler options to core. `scheduler.inboxFallbackWindowMs`
 defaults to `240_000` milliseconds and controls when a pending inbox row may be
 retried after an interrupted subscriber attempt:

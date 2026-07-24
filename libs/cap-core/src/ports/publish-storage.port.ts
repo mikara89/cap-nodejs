@@ -1,4 +1,11 @@
-import { type CapPublishEvent } from '../models/cap-publish-event';
+import {
+  type CapPublishEvent,
+  type CapPublishStatus,
+} from '../models/cap-publish-event';
+import {
+  type CapOutboxSnapshot,
+  type CapRequeueResult,
+} from '../models/cap-messaging-administration';
 import { type CapOperationContext } from '../models/cap-operation-context';
 import { type JsonValue } from '../models/json-value.type';
 import { type InitOptions } from './initializer.port';
@@ -79,6 +86,28 @@ export interface TransactionalPublishStoragePort<
     event: CapPublishEvent<T>,
     tx: TTx,
   ): Promise<string>;
+}
+
+/** Optional durable outbox administration capability. */
+export interface PublishStorageAdministrationPort<
+  TTx = unknown,
+> extends PublishStoragePort<TTx> {
+  requeuePublish(
+    id: string,
+    now?: Date,
+  ): Promise<CapRequeueResult<CapPublishStatus>>;
+
+  getPublishSnapshot(): Promise<CapOutboxSnapshot>;
+}
+
+export function isPublishStorageAdministrationPort<TTx = unknown>(
+  storage: PublishStoragePort<TTx>,
+): storage is PublishStorageAdministrationPort<TTx> {
+  const candidate = storage as Partial<PublishStorageAdministrationPort<TTx>>;
+  return (
+    typeof candidate.requeuePublish === 'function' &&
+    typeof candidate.getPublishSnapshot === 'function'
+  );
 }
 
 export function isLegacyTransactionalPublishStorage<TTx = unknown>(

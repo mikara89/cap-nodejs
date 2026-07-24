@@ -5,6 +5,8 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## Unreleased
 
+- delegate messaging administration APIs through `CapService`
+
 - expose the core inbox fallback-window scheduler option through `CapModule`
 
 ## 2.2.0 (2026-06-26)

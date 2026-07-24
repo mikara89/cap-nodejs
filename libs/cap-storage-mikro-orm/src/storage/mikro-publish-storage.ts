@@ -10,12 +10,15 @@ import type {
   CapOperationContext,
   CapabilityAwareStoragePort,
   CapLogger,
+  CapOutboxSnapshot,
   CapPublishEvent,
+  CapRequeueResult,
   CapStorageCapabilities,
   ClaimUnpublishedOptions,
   JsonValue,
   MarkPublishFailedOptions,
   PublishClaimOwnership,
+  PublishStorageAdministrationPort,
   PublishStoragePort,
   RenewPublishClaimOptions,
 } from '@mikara89/cap-core';
@@ -43,7 +46,10 @@ type PublishEntityData = {
 };
 
 export class MikroPublishStorage
-  implements PublishStoragePort<EntityManager>, CapabilityAwareStoragePort
+  implements
+    PublishStoragePort<EntityManager>,
+    PublishStorageAdministrationPort<EntityManager>,
+    CapabilityAwareStoragePort
 {
   constructor(
     private readonly em: EntityManager,
@@ -202,6 +208,47 @@ export class MikroPublishStorage
     return entity ? mapPublishEntity(entity) : undefined;
   }
 
+  async requeuePublish(
+    id: string,
+    now = new Date(),
+  ): Promise<CapRequeueResult<CapPublishEvent['status']>> {
+    const affected = await this.em.nativeUpdate(
+      CapPublishEntity,
+      { id, status: { $in: ['failed', 'dead_letter'] } },
+      {
+        status: 'failed',
+        retryCount: 0,
+        lastError: null,
+        nextRetryAt: now,
+        lockedBy: null,
+        lockedUntil: null,
+        publishedAt: null,
+        updatedAt: now,
+      },
+    );
+    if (affected > 0) return { id, outcome: 'requeued' };
+
+    const entity = await this.em.findOne(
+      CapPublishEntity,
+      { id },
+      { refresh: true },
+    );
+    return entity
+      ? { id, outcome: 'not_eligible', previousStatus: entity.status }
+      : { id, outcome: 'not_found' };
+  }
+
+  async getPublishSnapshot(): Promise<CapOutboxSnapshot> {
+    const rows = (await this.em
+      .getConnection()
+      .execute(
+        'SELECT status, COUNT(*) AS count, MIN(created_at) AS oldest_at FROM cap_publish GROUP BY status',
+        [],
+        'all',
+      )) as SnapshotRow<CapPublishEvent['status']>[];
+    return mapOutboxSnapshot(rows);
+  }
+
   async listPublish(opts: {
     limit?: number;
     offset?: number;
@@ -227,6 +274,33 @@ export class MikroPublishStorage
 
     return { items: entities.map(mapPublishEntity), total };
   }
+}
+
+interface SnapshotRow<TStatus extends string> {
+  status: TStatus;
+  count: number | string;
+  oldest_at: Date | string | null;
+}
+
+function mapOutboxSnapshot(
+  rows: SnapshotRow<CapPublishEvent['status']>[],
+): CapOutboxSnapshot {
+  const counts: CapOutboxSnapshot['counts'] = {
+    pending: 0,
+    processing: 0,
+    published: 0,
+    failed: 0,
+    dead_letter: 0,
+  };
+  let oldestPendingAt: Date | null = null;
+  let oldestFailedAt: Date | null = null;
+  for (const row of rows) {
+    counts[row.status] = Number(row.count);
+    const oldest = row.oldest_at ? new Date(row.oldest_at) : null;
+    if (row.status === 'pending') oldestPendingAt = oldest;
+    if (row.status === 'failed') oldestFailedAt = oldest;
+  }
+  return { counts, oldestPendingAt, oldestFailedAt };
 }
 
 function usesMySqlAssignmentSemantics(em: EntityManager): boolean {

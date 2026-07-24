@@ -7,18 +7,24 @@ import {
 import type {
   CapabilityAwareStoragePort,
   CapLogger,
+  CapInboxSnapshot,
   CapReceivedEvent,
+  CapRequeueResult,
   CapStorageCapabilities,
   JsonValue,
   MarkReceivedFailedOptions,
   ReceivedStoragePort,
+  ReceivedStorageAdministrationPort,
   TrySaveReceivedResult,
 } from '@mikara89/cap-core';
 import { CapReceivedEntity } from '../entities/cap-received.entity';
 import { getMikroStorageCapabilities } from './mikro-storage-capabilities';
 
 export class MikroReceivedStorage
-  implements ReceivedStoragePort, CapabilityAwareStoragePort
+  implements
+    ReceivedStoragePort,
+    ReceivedStorageAdministrationPort,
+    CapabilityAwareStoragePort
 {
   constructor(
     private readonly em: EntityManager,
@@ -170,6 +176,49 @@ export class MikroReceivedStorage
     return entity ? mapReceivedEntity(entity) : undefined;
   }
 
+  async requeueReceived(
+    id: string,
+    now = new Date(),
+  ): Promise<CapRequeueResult<CapReceivedEvent['status']>> {
+    const affected = await this.em.nativeUpdate(
+      CapReceivedEntity,
+      { id, status: { $in: ['failed', 'dead_letter'] } },
+      {
+        status: 'failed',
+        retryCount: 0,
+        lastError: null,
+        nextRetry: now,
+        processed: false,
+        processedAt: null,
+        updatedAt: now,
+      },
+    );
+    if (affected > 0) {
+      this.em.clear();
+      return { id, outcome: 'requeued' };
+    }
+
+    const entity = await this.em.findOne(
+      CapReceivedEntity,
+      { id },
+      { refresh: true },
+    );
+    return entity
+      ? { id, outcome: 'not_eligible', previousStatus: entity.status }
+      : { id, outcome: 'not_found' };
+  }
+
+  async getReceivedSnapshot(): Promise<CapInboxSnapshot> {
+    const rows = (await this.em
+      .getConnection()
+      .execute(
+        'SELECT status, COUNT(*) AS count, MIN(created_at) AS oldest_at FROM cap_received GROUP BY status',
+        [],
+        'all',
+      )) as SnapshotRow<CapReceivedEvent['status']>[];
+    return mapInboxSnapshot(rows);
+  }
+
   async listReceived(opts: {
     limit?: number;
     offset?: number;
@@ -196,6 +245,33 @@ export class MikroReceivedStorage
 
     return { items: entities.map(mapReceivedEntity), total };
   }
+}
+
+interface SnapshotRow<TStatus extends string> {
+  status: TStatus;
+  count: number | string;
+  oldest_at: Date | string | null;
+}
+
+function mapInboxSnapshot(
+  rows: SnapshotRow<CapReceivedEvent['status']>[],
+): CapInboxSnapshot {
+  const counts: CapInboxSnapshot['counts'] = {
+    pending: 0,
+    processing: 0,
+    processed: 0,
+    failed: 0,
+    dead_letter: 0,
+  };
+  let oldestPendingAt: Date | null = null;
+  let oldestFailedAt: Date | null = null;
+  for (const row of rows) {
+    counts[row.status] = Number(row.count);
+    const oldest = row.oldest_at ? new Date(row.oldest_at) : null;
+    if (row.status === 'pending') oldestPendingAt = oldest;
+    if (row.status === 'failed') oldestFailedAt = oldest;
+  }
+  return { counts, oldestPendingAt, oldestFailedAt };
 }
 
 function mapReceivedEntity(

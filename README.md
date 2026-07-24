@@ -416,6 +416,24 @@ npm run docs:api
   the npm cache and rerun the command.
 - Keep automatic schema and broker provisioning disabled in production unless
   you explicitly want CAP to create those resources.
+
+## Messaging administration
+
+`CapEngine` exposes framework-neutral operational APIs: `requeueInbox(id)`,
+`requeueOutbox(id)`, and `getMessagingSnapshot()`. Manual requeue accepts only
+`failed` and `dead_letter` rows; `pending`, `processing`, `processed`, and
+`published` records are not replayable. Requeue resets retry state and makes a
+row due immediately, but does not execute a subscriber or emit to a broker in
+the request. The normal inbox retry and outbox claim/lease scheduler paths do
+that work.
+
+Snapshots include every durable status plus the oldest current `pending` and
+`failed` row by durable creation time. They are an operational view, not a
+cross-table transaction: inbox and outbox halves can be observed at slightly
+different instants. Administration is an optional storage capability; all
+first-party storage adapters implement it, while third-party base adapters do
+not need to change.
+
 - Durable MikroORM inbox deduplication uses `(group, dedupeKey)`, and outbox
   claiming relies on pessimistic partial write locking. Multi-instance durable
   outbox dispatch is production-supported for lock-capable drivers covered by

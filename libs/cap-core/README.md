@@ -151,6 +151,21 @@ the same call.
 
 ## Storage Capabilities
 
+## Messaging administration
+
+`CapEngine.requeueInbox(id)`, `requeueOutbox(id)`, and
+`getMessagingSnapshot()` require optional structural storage capabilities:
+`ReceivedStorageAdministrationPort` and `PublishStorageAdministrationPort`.
+This leaves existing third-party `ReceivedStoragePort` and `PublishStoragePort`
+implementations compatible. Unsupported storage produces an actionable error.
+
+Only `failed` and `dead_letter` rows are eligible. A requeue immediately makes
+the row due through its normal scheduler path; it never synchronously invokes a
+subscriber or publisher, and it cannot replay `pending`, `processing`,
+`processed`, or `published` records. Snapshot ages are `MIN(created_at)` for
+rows currently pending or failed, return `null` when absent, and are not a
+cross-table transactional view.
+
 `CapStorageCapabilities` and `CapabilityAwareStoragePort` let storage adapters
 report informational behavior such as transaction support, safe skip-locked
 claiming, ownership-fenced completion, active lease renewal, and supported

@@ -248,6 +248,20 @@ queue post-commit sends without coupling the core package to a specific ORM.
 
 ## Dashboard Role
 
+## Messaging administration
+
+CAP core can manually requeue only failed or dead-letter inbox/outbox rows.
+Inbox requeue writes `failed` with `nextRetry = now`; outbox requeue writes
+`failed` with `nextRetryAt = now`, clears retry/error/processed or lease fields,
+and lets the existing scheduler paths perform the handler or broker call. It
+never forces successful (`processed`/`published`) or active (`pending`/
+`processing`) records to replay.
+
+`getMessagingSnapshot()` aggregates every durable status and uses the oldest
+current pending/failed `created_at` timestamps. It deliberately reads inbox and
+outbox independently, so it is operational state rather than a transactional
+cross-table point-in-time snapshot.
+
 The dashboard package is optional. It reads the same storage contracts used by
 the scheduler and exposes REST endpoints plus a static UI for inspection and
 manual actions. It must be protected by application-provided authentication and

@@ -16,6 +16,10 @@ import { type CapOperationContext } from '../models/cap-operation-context';
 import { type CapPublishEvent } from '../models/cap-publish-event';
 import { type CapReceivedEvent } from '../models/cap-received-event';
 import {
+  type CapMessagingSnapshot,
+  type CapRequeueResult,
+} from '../models/cap-messaging-administration';
+import {
   DEFAULT_INBOX_FALLBACK_WINDOW_MS,
   type CapPublishOptions,
   type CapSchedulerOptions,
@@ -27,11 +31,13 @@ import {
 } from '../models/cap-message-envelope';
 import { type CapLogger } from '../ports/logger.port';
 import {
+  isPublishStorageAdministrationPort,
   isLegacyTransactionalPublishStorage,
   type PublishStoragePort,
 } from '../ports/publish-storage.port';
 import { type PublisherPort } from '../ports/publisher.port';
 import {
+  isReceivedStorageAdministrationPort,
   type ReceivedStoragePort,
   type MarkReceivedFailedOptions,
   type TrySaveReceivedResult,
@@ -537,6 +543,57 @@ export class CapEngine {
     return snapshot;
   }
 
+  /** Requeue an eligible inbox record for normal scheduler processing. */
+  requeueInbox(
+    id: string,
+  ): Promise<CapRequeueResult<CapReceivedEvent['status']>> {
+    assertAdministrationId(id);
+    if (!isReceivedStorageAdministrationPort(this.receivedStorage)) {
+      throw new Error(
+        'Configured received storage does not support CAP messaging administration',
+      );
+    }
+    return this.receivedStorage.requeueReceived(id, this.now());
+  }
+
+  /** Requeue an eligible outbox record for normal claim-and-dispatch work. */
+  requeueOutbox(
+    id: string,
+  ): Promise<CapRequeueResult<CapPublishEvent['status']>> {
+    assertAdministrationId(id);
+    if (!isPublishStorageAdministrationPort(this.publishStorage)) {
+      throw new Error(
+        'Configured publish storage does not support CAP messaging administration',
+      );
+    }
+    return this.publishStorage.requeuePublish(id, this.now());
+  }
+
+  /**
+   * Read independent inbox and outbox operational snapshots. This is not a
+   * cross-table point-in-time database snapshot.
+   */
+  async getMessagingSnapshot(): Promise<CapMessagingSnapshot> {
+    if (!isReceivedStorageAdministrationPort(this.receivedStorage)) {
+      throw new Error(
+        'Configured received storage does not support CAP messaging administration',
+      );
+    }
+    if (!isPublishStorageAdministrationPort(this.publishStorage)) {
+      throw new Error(
+        'Configured publish storage does not support CAP messaging administration',
+      );
+    }
+    const [inbox, outbox] = await Promise.all([
+      this.receivedStorage.getReceivedSnapshot(),
+      this.publishStorage.getPublishSnapshot(),
+    ]);
+    return {
+      inbox: copyInboxSnapshot(inbox),
+      outbox: copyOutboxSnapshot(outbox),
+    };
+  }
+
   // -----------------------------------------------------------------------
   // Retry (inbox)
   // -----------------------------------------------------------------------
@@ -955,6 +1012,42 @@ export class CapEngine {
       );
     }
   }
+}
+
+function assertAdministrationId(id: string): void {
+  if (typeof id !== 'string' || id.trim().length === 0) {
+    throw new Error(
+      'CAP messaging administration id must be a non-empty string',
+    );
+  }
+}
+
+function copyInboxSnapshot(
+  snapshot: CapMessagingSnapshot['inbox'],
+): CapMessagingSnapshot['inbox'] {
+  return {
+    counts: { ...snapshot.counts },
+    oldestPendingAt: snapshot.oldestPendingAt
+      ? new Date(snapshot.oldestPendingAt)
+      : null,
+    oldestFailedAt: snapshot.oldestFailedAt
+      ? new Date(snapshot.oldestFailedAt)
+      : null,
+  };
+}
+
+function copyOutboxSnapshot(
+  snapshot: CapMessagingSnapshot['outbox'],
+): CapMessagingSnapshot['outbox'] {
+  return {
+    counts: { ...snapshot.counts },
+    oldestPendingAt: snapshot.oldestPendingAt
+      ? new Date(snapshot.oldestPendingAt)
+      : null,
+    oldestFailedAt: snapshot.oldestFailedAt
+      ? new Date(snapshot.oldestFailedAt)
+      : null,
+  };
 }
 
 function resolveSchedulerOptions(
