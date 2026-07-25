@@ -262,6 +262,25 @@ current pending/failed `created_at` timestamps. It deliberately reads inbox and
 outbox independently, so it is operational state rather than a transactional
 cross-table point-in-time snapshot.
 
+## Messaging diagnostics
+
+Core may additionally send typed best-effort operational diagnostics to an
+optional `CapMessagingDiagnosticsPort`. This is an engine concern, not a
+storage or transport capability: diagnostics do not add columns, migrations,
+adapter callbacks, or broker traffic. Events are emitted only after their
+durable transition succeeds (for example, after `markPublished`,
+`markProcessed`, or failure/requeue persistence). A fenced outbox completion
+that returns `false` emits no completion diagnostic.
+
+The sink runs outside the reliability path. CAP neither awaits it nor lets its
+throws or rejected promises change state, retry behavior, settlement, or manual
+requeue results. Events carry operational identifiers, timestamps, retry state,
+and normalized failure text only. They intentionally exclude message payloads
+and headers. Diagnostics are not durable audit records and have no ordering,
+replay, transactional-consistency, or exactly-once guarantee. See
+[messaging diagnostics](diagnostics.md) for event definitions and retry
+semantics.
+
 The dashboard package is optional. It reads the same storage contracts used by
 the scheduler and exposes REST endpoints plus a static UI for inspection and
 manual actions. It must be protected by application-provided authentication and

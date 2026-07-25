@@ -12,31 +12,33 @@ framework adapters, and pluggable storage and transport adapters.
    diagrams.
 3. [Transactions](transactions.md) - publish transaction handles, operation
    contexts, and immediate emit behavior.
-4. [Adapters](adapters.md) - storage and transport contracts, current adapters,
+4. [Messaging diagnostics](diagnostics.md) - optional typed operational events,
+   privacy boundary, and best-effort delivery semantics.
+5. [Adapters](adapters.md) - storage and transport contracts, current adapters,
    and planned storage/transport adapter matrices.
-5. [Transport adapter author guide](transport-adapter-author-guide.md) - the
+6. [Transport adapter author guide](transport-adapter-author-guide.md) - the
    verified common transport contract, conformance harness, and settlement
    boundary.
-6. [Dashboard](cap-dashboard.md) - admin API and UI behavior.
-7. [API reference](api/README.md) - generated package API documentation.
-8. [Package export surface](package-exports.md) - supported import paths and
+7. [Dashboard](cap-dashboard.md) - admin API and UI behavior.
+8. [API reference](api/README.md) - generated package API documentation.
+9. [Package export surface](package-exports.md) - supported import paths and
    current package `exports` maps.
-9. [Future libs layout](architecture/libs-layout.md) - proposed package folder
-   grouping without moving folders in v2.1.1.
-10. [GitHub Pages homepage](github-pages.md) - public homepage setup.
-11. [Roadmap](roadmap.md) - current package set and the v2.2, v2.3, v2.4, and
+10. [Future libs layout](architecture/libs-layout.md) - proposed package folder
+    grouping without moving folders in v2.1.1.
+11. [GitHub Pages homepage](github-pages.md) - public homepage setup.
+12. [Roadmap](roadmap.md) - current package set and the v2.2, v2.3, v2.4, and
     v2.5+ ecosystem plan.
-12. [Release checklist](release.md) - validation and publishing safety.
-13. [Legacy npm package names](legacy-packages.md) - mappings from deprecated
+13. [Release checklist](release.md) - validation and publishing safety.
+14. [Legacy npm package names](legacy-packages.md) - mappings from deprecated
     npm identities to current packages.
-14. [Schema/API migration](migrations/0.7-to-1.0.md) - upgrade notes for
+15. [Schema/API migration](migrations/0.7-to-1.0.md) - upgrade notes for
     stable schema and API behavior.
-15. [Framework-agnostic core migration](migration/framework-agnostic-core.md) -
+16. [Framework-agnostic core migration](migration/framework-agnostic-core.md) -
     package rename and adapter split notes.
-16. [v2.2 transaction context migration](migration/v2.2-transaction-context.md) -
+17. [v2.2 transaction context migration](migration/v2.2-transaction-context.md) -
     operation-context foundation notes.
-17. [ADRs](adr/README.md) - durable architecture decisions.
-18. [Contributing](contributing.md) - local workflow, repo health checks, tests,
+18. [ADRs](adr/README.md) - durable architecture decisions.
+19. [Contributing](contributing.md) - local workflow, repo health checks, tests,
     coverage, and docs rules.
 
 ## Current Maturity

@@ -5,6 +5,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## Unreleased
 
+- pass the optional core messaging diagnostics sink through all `CapModule`
+  configuration paths
+
 - delegate messaging administration APIs through `CapService`
 
 - expose the core inbox fallback-window scheduler option through `CapModule`

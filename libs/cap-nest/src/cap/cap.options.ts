@@ -1,6 +1,7 @@
 import type { ModuleMetadata } from '@nestjs/common';
 import type {
   CapMessageEnvelopeOptions,
+  CapMessagingDiagnosticsPort,
   CapTransactionContext,
   CapTransactionManagerPort,
 } from '@mikara89/cap-core';
@@ -36,4 +37,6 @@ export interface CapModuleOptions {
   transactionManager?: CapTransactionManagerPort;
   transactionContext?: CapTransactionContext;
   messageEnvelope?: CapMessageEnvelopeOptions;
+  /** Optional framework-neutral, best-effort core diagnostics sink. */
+  diagnostics?: CapMessagingDiagnosticsPort;
 }

@@ -5,6 +5,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## Unreleased
 
+- add optional framework-neutral typed messaging diagnostics for durable inbox
+  and outbox transitions
+
 - add optional messaging administration ports, requeue APIs, and operational snapshots
 
 - recover stale pending inbox rows after the configurable four-minute fallback
