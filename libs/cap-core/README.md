@@ -20,6 +20,21 @@ const engine = new CapEngine({
 NestJS users can continue importing compatible CAP types through
 `@mikara89/cap-nest`.
 
+## Messaging diagnostics
+
+`CapEngineOptions.diagnostics` accepts an optional, framework-neutral
+`CapMessagingDiagnosticsPort`. Its `emit(event)` method receives typed,
+best-effort operational transitions for inbox and outbox work. Events contain
+no message payloads or headers. CAP does not await asynchronous sinks; thrown
+or rejected sink work is logged and swallowed, so it cannot alter durable
+messaging state. Diagnostics are not durable, replayable, exactly-once, or an
+audit log. See the repository [diagnostics guide](../../docs/diagnostics.md).
+
+The optional inbox/outbox administration capability includes its corresponding
+`find*ById()` read so manual-requeue diagnostics can capture immutable identity
+metadata without delaying the guarded requeue mutation. The read does not
+decide eligibility; the durable requeue operation remains authoritative.
+
 ## Versioned Message Envelopes
 
 CAP normally sends the business payload as the broker body and carries headers

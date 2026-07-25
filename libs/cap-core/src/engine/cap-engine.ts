@@ -19,6 +19,7 @@ import {
   type CapMessagingSnapshot,
   type CapRequeueResult,
 } from '../models/cap-messaging-administration';
+import { type CapMessagingDiagnosticEvent } from '../models/cap-messaging-diagnostic';
 import {
   DEFAULT_INBOX_FALLBACK_WINDOW_MS,
   type CapPublishOptions,
@@ -30,15 +31,18 @@ import {
   type LegacyCapEnvelopeMode,
 } from '../models/cap-message-envelope';
 import { type CapLogger } from '../ports/logger.port';
+import { type CapMessagingDiagnosticsPort } from '../ports/messaging-diagnostics.port';
 import {
   isPublishStorageAdministrationPort,
   isLegacyTransactionalPublishStorage,
+  type PublishStorageAdministrationPort,
   type PublishStoragePort,
 } from '../ports/publish-storage.port';
 import { type PublisherPort } from '../ports/publisher.port';
 import {
   isReceivedStorageAdministrationPort,
   type ReceivedStoragePort,
+  type ReceivedStorageAdministrationPort,
   type MarkReceivedFailedOptions,
   type TrySaveReceivedResult,
 } from '../ports/received-storage.port';
@@ -114,6 +118,8 @@ export interface CapEngineOptions {
   transactionManager?: CapTransactionManagerPort;
   transactionContext?: CapTransactionContext;
   messageEnvelope?: CapMessageEnvelopeOptions;
+  /** Optional sink for best-effort, payload-free messaging diagnostics. */
+  diagnostics?: CapMessagingDiagnosticsPort;
 }
 
 const TRANSACTION_MANAGER_NOT_CONFIGURED =
@@ -142,6 +148,7 @@ export class CapEngine {
   private readonly idGenerator: () => string;
   private readonly transactionManager?: CapTransactionManagerPort;
   private readonly transactionContext?: CapTransactionContext;
+  private readonly diagnostics?: CapMessagingDiagnosticsPort;
   private readonly legacyEnvelopeMode: LegacyCapEnvelopeMode;
   private legacyEnvelopeWarningEmitted = false;
 
@@ -166,6 +173,7 @@ export class CapEngine {
     this.idGenerator = options.idGenerator ?? randomUUID;
     this.transactionManager = options.transactionManager;
     this.transactionContext = options.transactionContext;
+    this.diagnostics = options.diagnostics;
     this.legacyEnvelopeMode =
       options.messageEnvelope?.legacyUnversioned ?? 'warn';
   }
@@ -548,12 +556,33 @@ export class CapEngine {
     id: string,
   ): Promise<CapRequeueResult<CapReceivedEvent['status']>> {
     assertAdministrationId(id);
-    if (!isReceivedStorageAdministrationPort(this.receivedStorage)) {
+    const storage = this.receivedStorage;
+    if (!isReceivedStorageAdministrationPort(storage)) {
       throw new Error(
         'Configured received storage does not support CAP messaging administration',
       );
     }
-    return this.receivedStorage.requeueReceived(id, this.now());
+    const now = this.now();
+    const metadataPromise = this.diagnostics
+      ? this.captureInboxRequeueMetadata(storage, id)
+      : undefined;
+    const result = await storage.requeueReceived(id, now);
+    if (result.outcome === 'requeued' && metadataPromise) {
+      void metadataPromise.then((metadata) => {
+        if (!metadata) return;
+        this.emitDiagnostic({
+          type: 'inbox.manually_requeued',
+          direction: 'inbox',
+          ...metadata,
+          retryCount: 0,
+          ...(result.previousStatus === undefined
+            ? {}
+            : { previousStatus: result.previousStatus }),
+          at: now.toISOString(),
+        });
+      });
+    }
+    return result;
   }
 
   /** Requeue an eligible outbox record for normal claim-and-dispatch work. */
@@ -561,12 +590,33 @@ export class CapEngine {
     id: string,
   ): Promise<CapRequeueResult<CapPublishEvent['status']>> {
     assertAdministrationId(id);
-    if (!isPublishStorageAdministrationPort(this.publishStorage)) {
+    const storage = this.publishStorage;
+    if (!isPublishStorageAdministrationPort(storage)) {
       throw new Error(
         'Configured publish storage does not support CAP messaging administration',
       );
     }
-    return this.publishStorage.requeuePublish(id, this.now());
+    const now = this.now();
+    const metadataPromise = this.diagnostics
+      ? this.captureOutboxRequeueMetadata(storage, id)
+      : undefined;
+    const result = await storage.requeuePublish(id, now);
+    if (result.outcome === 'requeued' && metadataPromise) {
+      void metadataPromise.then((metadata) => {
+        if (!metadata) return;
+        this.emitDiagnostic({
+          type: 'outbox.manually_requeued',
+          direction: 'outbox',
+          ...metadata,
+          retryCount: 0,
+          ...(result.previousStatus === undefined
+            ? {}
+            : { previousStatus: result.previousStatus }),
+          at: now.toISOString(),
+        });
+      });
+    }
+    return result;
   }
 
   /**
@@ -670,6 +720,20 @@ export class CapEngine {
     this.logger.info?.(`Inbox retry - ${batch.length} message(s)`);
 
     for (const rec of batch) {
+      const sub = this.subscriptions.get(subscriptionKey(rec.topic, rec.group));
+      if (sub) {
+        this.emitDiagnostic({
+          type: 'inbox.retried',
+          direction: 'inbox',
+          id: rec.id,
+          topic: rec.topic,
+          group: rec.group,
+          messageId: rec.messageId,
+          retryCount: rec.retryCount,
+          reason: rec.status === 'pending' ? 'stale_pending' : 'failed',
+          at: now.toISOString(),
+        });
+      }
       await this.retryReceived(rec);
     }
 
@@ -719,18 +783,46 @@ export class CapEngine {
       await this.publisher.emit(evt.topic, evt.payload, headers, {
         messageId: evt.id,
       });
-      await this.publishStorage.markPublished(evt.id, this.now());
+      const publishedAt = this.now();
+      const completed = await this.publishStorage.markPublished(
+        evt.id,
+        publishedAt,
+      );
+      if (completed !== false) {
+        this.emitDiagnostic({
+          type: 'outbox.published',
+          direction: 'outbox',
+          id: evt.id,
+          topic: evt.topic,
+          retryCount: evt.retryCount,
+          at: publishedAt.toISOString(),
+        });
+      }
       this.logger.debug?.(
         source === 'outbox'
           ? `published outbox #${evt.id}`
           : `published #${evt.id} ${evt.topic}`,
       );
     } catch (err) {
-      await this.publishStorage.markPublishFailed(evt.id, err, {
+      const nextRetryCount = evt.retryCount + 1;
+      const failureAt = this.now();
+      const nextRetryAt = new Date(
+        failureAt.getTime() + expJitter(evt.retryCount),
+      );
+      const failed = await this.publishStorage.markPublishFailed(evt.id, err, {
         maxRetries: this.schedulerOptions.maxRetries,
-        nextRetryAt: new Date(this.now().getTime() + expJitter(evt.retryCount)),
-        now: this.now(),
+        nextRetryAt,
+        now: failureAt,
       });
+      if (failed !== false) {
+        this.emitOutboxFailureDiagnostic(
+          evt,
+          err,
+          nextRetryCount,
+          nextRetryAt,
+          failureAt,
+        );
+      }
       this.logger.error?.(
         source === 'outbox'
           ? `outbox #${evt.id} emit failed (${evt.topic}): ${normalizeError(err)}`
@@ -750,6 +842,18 @@ export class CapEngine {
       'before broker emission',
     );
     if (!initiallyRenewed) return;
+
+    if (evt.retryCount > 0) {
+      const retryAt = this.now();
+      this.emitDiagnostic({
+        type: 'outbox.retried',
+        direction: 'outbox',
+        id: evt.id,
+        topic: evt.topic,
+        retryCount: evt.retryCount,
+        at: retryAt.toISOString(),
+      });
+    }
 
     const cadenceMs = Math.max(
       1,
@@ -784,21 +888,32 @@ export class CapEngine {
 
     if (emitResult.status === 'rejected') {
       const emitError = emitResult.reason;
+      const nextRetryCount = evt.retryCount + 1;
+      const failureAt = this.now();
+      const nextRetryAt = new Date(
+        failureAt.getTime() + expJitter(evt.retryCount),
+      );
       const failed = await this.publishStorage.markPublishFailed(
         evt.id,
         emitError,
         {
           maxRetries: this.schedulerOptions.maxRetries,
-          nextRetryAt: new Date(
-            this.now().getTime() + expJitter(evt.retryCount),
-          ),
-          now: this.now(),
+          nextRetryAt,
+          now: failureAt,
           expectedLockedBy,
         },
       );
       if (failed === false) {
         this.logger.warn?.(
           `outbox #${evt.id} (${evt.topic}) publisher failed after claim ${expectedLockedBy} was lost; failure state was not written`,
+        );
+      } else {
+        this.emitOutboxFailureDiagnostic(
+          evt,
+          emitError,
+          nextRetryCount,
+          nextRetryAt,
+          failureAt,
         );
       }
       this.logger.error?.(
@@ -808,9 +923,10 @@ export class CapEngine {
       return;
     }
 
+    const publishedAt = this.now();
     const completed = await this.publishStorage.markPublished(
       evt.id,
-      this.now(),
+      publishedAt,
       { expectedLockedBy },
     );
     if (completed === false) {
@@ -819,6 +935,14 @@ export class CapEngine {
       );
       return;
     }
+    this.emitDiagnostic({
+      type: 'outbox.published',
+      direction: 'outbox',
+      id: evt.id,
+      topic: evt.topic,
+      retryCount: evt.retryCount,
+      at: publishedAt.toISOString(),
+    });
     this.logger.debug?.(`published outbox #${evt.id}`);
   }
 
@@ -848,6 +972,128 @@ export class CapEngine {
         err,
       );
       return false;
+    }
+  }
+
+  /**
+   * Invoke the optional diagnostics sink without allowing it onto the
+   * messaging correctness path. Both synchronous throws and asynchronous
+   * rejections are observed, logged, and swallowed.
+   */
+  private emitDiagnostic(event: CapMessagingDiagnosticEvent): void {
+    if (!this.diagnostics) return;
+
+    try {
+      // Copy only the primitive operational fields in the discriminated event
+      // before passing them to user code; core message objects are never sent.
+      const emitted = this.diagnostics.emit({ ...event });
+      if (isPromiseLike(emitted)) {
+        void Promise.resolve(emitted).catch((err: unknown) => {
+          this.logger.warn?.('CAP messaging diagnostics emission failed', err);
+        });
+      }
+    } catch (err) {
+      this.logger.warn?.('CAP messaging diagnostics emission failed', err);
+    }
+  }
+
+  private emitInboxFailureDiagnostic<T>(
+    rec: CapReceivedEvent<T>,
+    at: Date,
+  ): void {
+    const base = {
+      direction: 'inbox' as const,
+      id: rec.id,
+      topic: rec.topic,
+      group: rec.group,
+      messageId: rec.messageId,
+      retryCount: rec.retryCount,
+      error: rec.lastError ?? '',
+      at: at.toISOString(),
+    };
+    if (rec.status === 'dead_letter') {
+      this.emitDiagnostic({
+        ...base,
+        type: 'inbox.dead_lettered',
+        nextRetryAt: null,
+      });
+      return;
+    }
+    this.emitDiagnostic({
+      ...base,
+      type: 'inbox.failed',
+      nextRetryAt: rec.nextRetry?.toISOString() ?? at.toISOString(),
+    });
+  }
+
+  private emitOutboxFailureDiagnostic(
+    evt: CapPublishEvent,
+    error: unknown,
+    retryCount: number,
+    nextRetryAt: Date,
+    at: Date,
+  ): void {
+    const base = {
+      direction: 'outbox' as const,
+      id: evt.id,
+      topic: evt.topic,
+      retryCount,
+      error: normalizeError(error),
+      at: at.toISOString(),
+    };
+    if (retryCount >= this.schedulerOptions.maxRetries) {
+      this.emitDiagnostic({
+        ...base,
+        type: 'outbox.dead_lettered',
+        nextRetryAt: null,
+      });
+      return;
+    }
+    this.emitDiagnostic({
+      ...base,
+      type: 'outbox.failed',
+      nextRetryAt: nextRetryAt.toISOString(),
+    });
+  }
+
+  private async captureInboxRequeueMetadata(
+    storage: ReceivedStorageAdministrationPort,
+    id: string,
+  ): Promise<
+    Pick<CapReceivedEvent, 'id' | 'topic' | 'group' | 'messageId'> | undefined
+  > {
+    try {
+      const rec = await storage.findReceivedById(id);
+      return rec
+        ? {
+            id: rec.id,
+            topic: rec.topic,
+            group: rec.group,
+            messageId: rec.messageId,
+          }
+        : undefined;
+    } catch (err) {
+      this.logger.warn?.(
+        'CAP messaging diagnostics metadata lookup failed',
+        err,
+      );
+      return undefined;
+    }
+  }
+
+  private async captureOutboxRequeueMetadata(
+    storage: PublishStorageAdministrationPort,
+    id: string,
+  ): Promise<Pick<CapPublishEvent, 'id' | 'topic'> | undefined> {
+    try {
+      const evt = await storage.findPublishById(id);
+      return evt ? { id: evt.id, topic: evt.topic } : undefined;
+    } catch (err) {
+      this.logger.warn?.(
+        'CAP messaging diagnostics metadata lookup failed',
+        err,
+      );
+      return undefined;
     }
   }
 
@@ -980,20 +1226,32 @@ export class CapEngine {
   ): Promise<void> {
     try {
       await handler(rec.payload, rec.headers);
-      await this.receivedStorage.markProcessed(rec.id);
+      const processedAt = this.now();
+      await this.receivedStorage.markProcessed(rec.id, processedAt);
       rec.status = 'processed';
       rec.processed = true;
-      rec.processedAt = this.now();
+      rec.processedAt = processedAt;
       rec.nextRetry = null;
+      this.emitDiagnostic({
+        type: 'inbox.processed',
+        direction: 'inbox',
+        id: rec.id,
+        topic: rec.topic,
+        group: rec.group,
+        messageId: rec.messageId,
+        retryCount: rec.retryCount,
+        at: processedAt.toISOString(),
+      });
       this.logger.debug?.(`processed #${rec.id} (${rec.topic}|${rec.group})`);
     } catch (err) {
       const nextRetryCount = rec.retryCount + 1;
       const nextDelay = expJitter(rec.retryCount);
-      const nextTime = new Date(this.now().getTime() + nextDelay);
+      const failureAt = this.now();
+      const nextTime = new Date(failureAt.getTime() + nextDelay);
       const failureOptions: MarkReceivedFailedOptions = {
         maxRetries: this.schedulerOptions.maxInboxRetries,
         nextRetryAt: nextTime,
-        now: this.now(),
+        now: failureAt,
       };
       await this.receivedStorage.markReceivedFailed(
         rec.id,
@@ -1005,6 +1263,8 @@ export class CapEngine {
         rec.retryCount >= failureOptions.maxRetries ? 'dead_letter' : 'failed';
       rec.nextRetry = rec.status === 'dead_letter' ? null : nextTime;
       rec.lastError = normalizeError(err);
+
+      this.emitInboxFailureDiagnostic(rec, failureAt);
 
       this.logger.error?.(
         `handler failed #${rec.id}; retry ${rec.retryCount} at ${nextTime.toISOString()}`,
@@ -1089,4 +1349,12 @@ function hasOperationTransaction<TTx>(
   ctx?: CapOperationContext<TTx>,
 ): ctx is CapOperationContext<TTx> & { tx: TTx } {
   return ctx !== undefined && 'tx' in ctx && ctx.tx !== undefined;
+}
+
+function isPromiseLike(value: unknown): value is PromiseLike<void> {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof (value as PromiseLike<void>).then === 'function'
+  );
 }

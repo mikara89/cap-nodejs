@@ -448,12 +448,26 @@ not need to change.
   Existing prerelease databases need a migration for new inbox status/dead-letter
   fields and the dedupe index change.
 
+## Messaging diagnostics
+
+CAP can optionally emit typed, framework-neutral operational diagnostics from
+core. Configure a `CapMessagingDiagnosticsPort` through `CapEngine` or the
+Nest `CapModule` `diagnostics` option. The events cover durable inbox/outbox
+processed, failed, dead-lettered, retry, published, and manual-requeue
+transitions. They intentionally contain no message payloads or headers.
+
+Diagnostics are best-effort, non-blocking notifications: sink failures are
+logged and swallowed, and they are not an audit log or an exactly-once event
+stream. See [messaging diagnostics](docs/diagnostics.md) for the event model,
+retry semantics, and configuration example.
+
 ## Documentation
 
 - [Documentation index](docs/README.md)
 - [Getting started](docs/getting-started.md)
 - [Transactions](docs/transactions.md)
 - [Architecture](docs/architecture.md)
+- [Messaging diagnostics](docs/diagnostics.md)
 - [Adapters](docs/adapters.md)
 - [Transport adapter author guide](docs/transport-adapter-author-guide.md)
 - [Dashboard](docs/cap-dashboard.md)

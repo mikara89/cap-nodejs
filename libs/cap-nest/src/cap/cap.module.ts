@@ -236,6 +236,7 @@ function createCapEngineProvider(): Provider {
         transactionManager: options.transactionManager,
         transactionContext: options.transactionContext,
         messageEnvelope: options.messageEnvelope,
+        diagnostics: options.diagnostics,
       }),
     inject: [
       CAP_MODULE_OPTIONS,

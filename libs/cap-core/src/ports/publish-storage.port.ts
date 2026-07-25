@@ -92,6 +92,9 @@ export interface TransactionalPublishStoragePort<
 export interface PublishStorageAdministrationPort<
   TTx = unknown,
 > extends PublishStoragePort<TTx> {
+  /** Read immutable identity metadata before a guarded manual requeue. */
+  findPublishById(id: string): Promise<CapPublishEvent | undefined>;
+
   requeuePublish(
     id: string,
     now?: Date,
@@ -105,6 +108,7 @@ export function isPublishStorageAdministrationPort<TTx = unknown>(
 ): storage is PublishStorageAdministrationPort<TTx> {
   const candidate = storage as Partial<PublishStorageAdministrationPort<TTx>>;
   return (
+    typeof candidate.findPublishById === 'function' &&
     typeof candidate.requeuePublish === 'function' &&
     typeof candidate.getPublishSnapshot === 'function'
   );

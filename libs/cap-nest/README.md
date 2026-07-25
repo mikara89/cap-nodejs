@@ -34,6 +34,28 @@ CapModule.forRoot({
 });
 ```
 
+They also accept the optional framework-neutral core diagnostics sink:
+
+```ts
+import { type CapMessagingDiagnosticsPort } from '@mikara89/cap-core';
+
+const diagnostics: CapMessagingDiagnosticsPort = {
+  emit(event) {
+    console.log(event.type, event.id, event.at);
+  },
+};
+
+CapModule.forRoot({
+  imports: [storageModule, transportModule],
+  diagnostics,
+});
+```
+
+Diagnostics are best-effort and non-blocking. Events intentionally exclude
+message payloads and headers; sink failures are logged and swallowed. They are
+not a durable audit stream. See the repository
+[diagnostics guide](../../docs/diagnostics.md) for event and retry semantics.
+
 The default `warn` mode accepts strict legacy `{ payload, headers? }` bodies and
 warns once per engine. New bridges that need one body should use
 `createCapMessageEnvelope()` re-exported by `@mikara89/cap-nest`. Ordinary

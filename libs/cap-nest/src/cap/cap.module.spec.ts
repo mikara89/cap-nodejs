@@ -15,6 +15,7 @@ import { type CapReceivedEvent } from './models/cap-received-event';
 import { CAP_ENGINE } from './tokens';
 import {
   type CapEngine,
+  type CapMessagingDiagnosticEvent,
   InMemoryPublishStorage,
   InMemoryReceivedStorage,
   LocalBus,
@@ -123,6 +124,35 @@ describe('CapModule builders', () => {
     }
   });
 
+  it('forInMemory passes the optional core diagnostics sink to CapEngine', async () => {
+    const events: CapMessagingDiagnosticEvent[] = [];
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        CapModule.forInMemory({
+          scheduler: { disabled: true },
+          diagnostics: {
+            emit(event): void {
+              events.push(event);
+            },
+          },
+        }),
+      ],
+    }).compile();
+
+    try {
+      const engine = moduleRef.get<CapEngine>(CAP_ENGINE);
+      await engine.publish('diagnostic.topic', { private: true });
+      expect(events).toEqual([
+        expect.objectContaining({
+          type: 'outbox.published',
+          topic: 'diagnostic.topic',
+        }),
+      ]);
+    } finally {
+      await moduleRef.close();
+    }
+  });
+
   it('forRootAsync passes message envelope compatibility options to core', async () => {
     const bus = new LocalBus();
     const adaptersModule: DynamicModule = {
@@ -135,6 +165,7 @@ describe('CapModule builders', () => {
       ],
       exports: [PUBLISH_STORAGE, RECEIVED_STORAGE, PUBLISHER, SUBSCRIBER],
     };
+    const events: CapMessagingDiagnosticEvent[] = [];
     const moduleRef = await Test.createTestingModule({
       imports: [
         CapModule.forRootAsync({
@@ -142,6 +173,11 @@ describe('CapModule builders', () => {
           useFactory: () => ({
             scheduler: { disabled: true },
             messageEnvelope: { legacyUnversioned: 'reject' as const },
+            diagnostics: {
+              emit(event): void {
+                events.push(event);
+              },
+            },
           }),
         }),
       ],
@@ -158,6 +194,13 @@ describe('CapModule builders', () => {
         'Legacy unversioned CAP message envelopes are rejected',
       );
       expect(handler).not.toHaveBeenCalled();
+      await engine.publish('diagnostic-async', { private: true });
+      expect(events).toEqual([
+        expect.objectContaining({
+          type: 'outbox.published',
+          topic: 'diagnostic-async',
+        }),
+      ]);
     } finally {
       await moduleRef.close();
     }
