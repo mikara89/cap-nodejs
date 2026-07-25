@@ -10,35 +10,38 @@ framework adapters, and pluggable storage and transport adapters.
    registration shape.
 2. [Architecture](architecture.md) - core flow, modules, transactions, and
    diagrams.
-3. [Transactions](transactions.md) - publish transaction handles, operation
+3. [DotNetCore.CAP comparison](dotnet-cap-comparison.md) - architectural
+   lineage, delivery semantics, consumer groups, retries, storage/transport
+   support, observability, and current capability differences.
+4. [Transactions](transactions.md) - publish transaction handles, operation
    contexts, and immediate emit behavior.
-4. [Messaging diagnostics](diagnostics.md) - optional typed operational events,
+5. [Messaging diagnostics](diagnostics.md) - optional typed operational events,
    privacy boundary, and best-effort delivery semantics.
-5. [Adapters](adapters.md) - storage and transport contracts, current adapters,
+6. [Adapters](adapters.md) - storage and transport contracts, current adapters,
    and planned storage/transport adapter matrices.
-6. [Transport adapter author guide](transport-adapter-author-guide.md) - the
+7. [Transport adapter author guide](transport-adapter-author-guide.md) - the
    verified common transport contract, conformance harness, and settlement
    boundary.
-7. [Dashboard](cap-dashboard.md) - admin API and UI behavior.
-8. [API reference](api/README.md) - generated package API documentation.
-9. [Package export surface](package-exports.md) - supported import paths and
-   current package `exports` maps.
-10. [Future libs layout](architecture/libs-layout.md) - proposed package folder
+8. [Dashboard](cap-dashboard.md) - admin API and UI behavior.
+9. [API reference](api/README.md) - generated package API documentation.
+10. [Package export surface](package-exports.md) - supported import paths and
+    current package `exports` maps.
+11. [Future libs layout](architecture/libs-layout.md) - proposed package folder
     grouping without moving folders in v2.1.1.
-11. [GitHub Pages homepage](github-pages.md) - public homepage setup.
-12. [Roadmap](roadmap.md) - current package set and the v2.2, v2.3, v2.4, and
+12. [GitHub Pages homepage](github-pages.md) - public homepage setup.
+13. [Roadmap](roadmap.md) - current package set and the v2.2, v2.3, v2.4, and
     v2.5+ ecosystem plan.
-13. [Release checklist](release.md) - validation and publishing safety.
-14. [Legacy npm package names](legacy-packages.md) - mappings from deprecated
+14. [Release checklist](release.md) - validation and publishing safety.
+15. [Legacy npm package names](legacy-packages.md) - mappings from deprecated
     npm identities to current packages.
-15. [Schema/API migration](migrations/0.7-to-1.0.md) - upgrade notes for
+16. [Schema/API migration](migrations/0.7-to-1.0.md) - upgrade notes for
     stable schema and API behavior.
-16. [Framework-agnostic core migration](migration/framework-agnostic-core.md) -
+17. [Framework-agnostic core migration](migration/framework-agnostic-core.md) -
     package rename and adapter split notes.
-17. [v2.2 transaction context migration](migration/v2.2-transaction-context.md) -
+18. [v2.2 transaction context migration](migration/v2.2-transaction-context.md) -
     operation-context foundation notes.
-18. [ADRs](adr/README.md) - durable architecture decisions.
-19. [Contributing](contributing.md) - local workflow, repo health checks, tests,
+19. [ADRs](adr/README.md) - durable architecture decisions.
+20. [Contributing](contributing.md) - local workflow, repo health checks, tests,
     coverage, and docs rules.
 
 ## Current Maturity
