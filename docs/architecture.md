@@ -42,6 +42,45 @@ provide different adapters by implementing the same interfaces.
 root with the storage and transport modules it should use; `CapService` is then
 available app-wide through Nest dependency injection.
 
+## Design lineage
+
+CAP Node.js is architecturally inspired by
+[DotNetCore.CAP](https://github.com/dotnetcore/CAP): both use a durable
+outbox/inbox model around broker-based publish/subscribe, consumer groups, and
+background retry. CAP Node.js is nevertheless an independent TypeScript/Node.js
+implementation. It owns its TypeScript APIs, ports, adapters, package
+structure, storage and transport contracts, diagnostics contracts, framework
+integrations, and release/versioning model. It makes no claim of code-level
+derivation, API compatibility, schema compatibility, wire-format compatibility,
+or behavioral compatibility with DotNetCore.CAP.
+
+At a broad level, the flow is:
+
+```text
+application transaction
+        |
+        v
+durable published/outbox record
+        |
+        v
+background broker dispatch
+        |
+        v
+broker consumer group
+        |
+        v
+durable received/inbox record
+        |
+        v
+subscriber execution
+        |
+        v
+success / retry / terminal failure
+```
+
+See [CAP Node.js and DotNetCore.CAP](dotnet-cap-comparison.md) for the
+evidence-based comparison and its revision-specific limits.
+
 ## Framework Integration Boundary
 
 Storage adapter roots are framework-neutral. In particular,

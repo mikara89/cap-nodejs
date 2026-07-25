@@ -461,12 +461,22 @@ logged and swallowed, and they are not an audit log or an exactly-once event
 stream. See [messaging diagnostics](docs/diagnostics.md) for the event model,
 retry semantics, and configuration example.
 
+## Inspiration and relationship to DotNetCore.CAP
+
+CAP Node.js is inspired by the durable outbox/inbox and event-bus architecture
+of [DotNetCore.CAP](https://github.com/dotnetcore/CAP). It is independently
+implemented for TypeScript and Node.js, with its own APIs and adapters; it is
+not an official port and compatibility is not guaranteed. See the
+[DotNetCore.CAP comparison](docs/dotnet-cap-comparison.md) for the shared model
+and current capability differences.
+
 ## Documentation
 
 - [Documentation index](docs/README.md)
 - [Getting started](docs/getting-started.md)
 - [Transactions](docs/transactions.md)
 - [Architecture](docs/architecture.md)
+- [DotNetCore.CAP comparison](docs/dotnet-cap-comparison.md)
 - [Messaging diagnostics](docs/diagnostics.md)
 - [Adapters](docs/adapters.md)
 - [Transport adapter author guide](docs/transport-adapter-author-guide.md)
