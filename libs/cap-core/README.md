@@ -32,8 +32,8 @@ audit log. See the repository [diagnostics guide](../../docs/diagnostics.md).
 
 The optional inbox/outbox administration capability includes its corresponding
 `find*ById()` read so manual-requeue diagnostics can capture immutable identity
-metadata before the guarded requeue mutation. The read does not decide
-eligibility; the durable requeue operation remains authoritative.
+metadata without delaying the guarded requeue mutation. The read does not
+decide eligibility; the durable requeue operation remains authoritative.
 
 ## Versioned Message Envelopes
 

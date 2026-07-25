@@ -563,20 +563,23 @@ export class CapEngine {
       );
     }
     const now = this.now();
-    const metadata = this.diagnostics
-      ? await this.captureInboxRequeueMetadata(storage, id)
+    const metadataPromise = this.diagnostics
+      ? this.captureInboxRequeueMetadata(storage, id)
       : undefined;
     const result = await storage.requeueReceived(id, now);
-    if (result.outcome === 'requeued' && metadata) {
-      this.emitDiagnostic({
-        type: 'inbox.manually_requeued',
-        direction: 'inbox',
-        ...metadata,
-        retryCount: 0,
-        ...(result.previousStatus === undefined
-          ? {}
-          : { previousStatus: result.previousStatus }),
-        at: now.toISOString(),
+    if (result.outcome === 'requeued' && metadataPromise) {
+      void metadataPromise.then((metadata) => {
+        if (!metadata) return;
+        this.emitDiagnostic({
+          type: 'inbox.manually_requeued',
+          direction: 'inbox',
+          ...metadata,
+          retryCount: 0,
+          ...(result.previousStatus === undefined
+            ? {}
+            : { previousStatus: result.previousStatus }),
+          at: now.toISOString(),
+        });
       });
     }
     return result;
@@ -594,20 +597,23 @@ export class CapEngine {
       );
     }
     const now = this.now();
-    const metadata = this.diagnostics
-      ? await this.captureOutboxRequeueMetadata(storage, id)
+    const metadataPromise = this.diagnostics
+      ? this.captureOutboxRequeueMetadata(storage, id)
       : undefined;
     const result = await storage.requeuePublish(id, now);
-    if (result.outcome === 'requeued' && metadata) {
-      this.emitDiagnostic({
-        type: 'outbox.manually_requeued',
-        direction: 'outbox',
-        ...metadata,
-        retryCount: 0,
-        ...(result.previousStatus === undefined
-          ? {}
-          : { previousStatus: result.previousStatus }),
-        at: now.toISOString(),
+    if (result.outcome === 'requeued' && metadataPromise) {
+      void metadataPromise.then((metadata) => {
+        if (!metadata) return;
+        this.emitDiagnostic({
+          type: 'outbox.manually_requeued',
+          direction: 'outbox',
+          ...metadata,
+          retryCount: 0,
+          ...(result.previousStatus === undefined
+            ? {}
+            : { previousStatus: result.previousStatus }),
+          at: now.toISOString(),
+        });
       });
     }
     return result;

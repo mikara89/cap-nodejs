@@ -354,7 +354,7 @@ describe('CapEngine messaging diagnostics', () => {
     expect(events).toHaveLength(2);
   });
 
-  it('captures manual requeue metadata before the guarded transition', async () => {
+  it('captures manual requeue identity without delaying the guarded transition', async () => {
     const engine = createEngine();
     receivedStorage.store.set(
       'inbox',
@@ -375,19 +375,22 @@ describe('CapEngine messaging diagnostics', () => {
     const inboxResult = engine.requeueInbox('inbox');
     const outboxResult = engine.requeueOutbox('outbox');
     await flushPromises();
-    expect(requeueInbox).not.toHaveBeenCalled();
-    expect(requeueOutbox).not.toHaveBeenCalled();
-
-    inboxLookup.resolve({
-      ...inboxEvent('inbox', 'orders.created', 'billing', 'dead_letter', 2),
-    });
-    outboxLookup.resolve(outboxEvent('outbox', 'dead_letter', 2));
-    await Promise.all([inboxResult, outboxResult]);
+    await expect(inboxResult).resolves.toMatchObject({ outcome: 'requeued' });
+    await expect(outboxResult).resolves.toMatchObject({ outcome: 'requeued' });
+    expect(requeueInbox).toHaveBeenCalled();
+    expect(requeueOutbox).toHaveBeenCalled();
+    expect(events).toEqual([]);
 
     receivedStorage.store.get('inbox')!.status = 'processed';
     receivedStorage.store.get('inbox')!.retryCount = 9;
     publishStorage.store.get('outbox')!.status = 'published';
     publishStorage.store.get('outbox')!.retryCount = 9;
+
+    inboxLookup.resolve({
+      ...inboxEvent('inbox', 'orders.created', 'billing', 'dead_letter', 2),
+    });
+    outboxLookup.resolve(outboxEvent('outbox', 'dead_letter', 2));
+    await flushPromises();
 
     expect(events).toEqual(
       expect.arrayContaining([
