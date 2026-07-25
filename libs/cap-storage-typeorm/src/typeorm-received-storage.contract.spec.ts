@@ -1,4 +1,7 @@
-import { defineReceivedStorageContract } from '@mikara89/cap-testing';
+import {
+  defineReceivedStorageAdministrationContract,
+  defineReceivedStorageContract,
+} from '@mikara89/cap-testing';
 import { createTypeOrmTestStorage } from './testing/create-typeorm-test-storage';
 
 defineReceivedStorageContract(
@@ -14,5 +17,13 @@ defineReceivedStorageContract(
   {
     supportsAtomicInsertIgnore: false,
     supportsSafeConcurrentInsert: false,
+  },
+);
+
+defineReceivedStorageAdministrationContract(
+  'TypeORM received storage',
+  async () => {
+    const env = await createTypeOrmTestStorage();
+    return { storage: env.receivedStorage, cleanup: env.cleanup };
   },
 );

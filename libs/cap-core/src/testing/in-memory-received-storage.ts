@@ -1,12 +1,19 @@
 import { type CapReceivedEvent } from '../models/cap-received-event';
+import {
+  type CapInboxSnapshot,
+  type CapRequeueResult,
+} from '../models/cap-messaging-administration';
 import { type JsonValue } from '../models/json-value.type';
 import {
   type MarkReceivedFailedOptions,
+  type ReceivedStorageAdministrationPort,
   type ReceivedStoragePort,
   type TrySaveReceivedResult,
 } from '../ports/received-storage.port';
 
-export class InMemoryReceivedStorage implements ReceivedStoragePort {
+export class InMemoryReceivedStorage
+  implements ReceivedStoragePort, ReceivedStorageAdministrationPort
+{
   readonly store = new Map<string, CapReceivedEvent<JsonValue>>();
   private readonly dedupe = new Map<string, string>();
 
@@ -101,6 +108,56 @@ export class InMemoryReceivedStorage implements ReceivedStoragePort {
   ): Promise<CapReceivedEvent<JsonValue> | undefined> {
     const event = this.store.get(id);
     return Promise.resolve(event ? { ...event } : undefined);
+  }
+
+  requeueReceived(
+    id: string,
+    now = new Date(),
+  ): Promise<CapRequeueResult<CapReceivedEvent['status']>> {
+    const event = this.store.get(id);
+    if (!event) return Promise.resolve({ id, outcome: 'not_found' });
+    const previousStatus = event.status;
+    if (previousStatus !== 'failed' && previousStatus !== 'dead_letter') {
+      return Promise.resolve({ id, outcome: 'not_eligible', previousStatus });
+    }
+    event.status = 'failed';
+    event.retryCount = 0;
+    event.lastError = null;
+    event.nextRetry = new Date(now);
+    event.processed = false;
+    event.processedAt = null;
+    return Promise.resolve({ id, outcome: 'requeued', previousStatus });
+  }
+
+  getReceivedSnapshot(): Promise<CapInboxSnapshot> {
+    const counts: CapInboxSnapshot['counts'] = {
+      pending: 0,
+      processing: 0,
+      processed: 0,
+      failed: 0,
+      dead_letter: 0,
+    };
+    let oldestPendingAt: Date | null = null;
+    let oldestFailedAt: Date | null = null;
+    for (const event of this.store.values()) {
+      counts[event.status] += 1;
+      const occurredAt = new Date(event.occurredAt);
+      if (
+        event.status === 'pending' &&
+        (!oldestPendingAt || occurredAt < oldestPendingAt)
+      )
+        oldestPendingAt = occurredAt;
+      if (
+        event.status === 'failed' &&
+        (!oldestFailedAt || occurredAt < oldestFailedAt)
+      )
+        oldestFailedAt = occurredAt;
+    }
+    return Promise.resolve({
+      counts: { ...counts },
+      oldestPendingAt,
+      oldestFailedAt,
+    });
   }
 
   listReceived(

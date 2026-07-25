@@ -11,14 +11,27 @@ export interface CreatePublishFixtureOptions<T extends JsonValue = JsonValue> {
   occurredAt?: string;
   payload?: T;
   headers?: CapHeaders;
+  retryCount?: number;
+  status?: CapPublishEvent<T>['status'];
+  nextRetryAt?: Date | null;
+  lastError?: string | null;
+  lockedBy?: string | null;
+  lockedUntil?: Date | null;
+  publishedAt?: Date | null;
 }
 
 export interface CreateReceivedFixtureOptions<
   T extends JsonValue = JsonValue,
-> extends CreatePublishFixtureOptions<T> {
+> extends Omit<CreatePublishFixtureOptions<T>, 'status'> {
   group?: string;
   messageId?: string;
   dedupeKey?: string;
+  retryCount?: number;
+  status?: CapReceivedEvent<T>['status'];
+  processed?: boolean;
+  lastError?: string | null;
+  processedAt?: Date | null;
+  nextRetry?: Date | null;
 }
 
 export function createPublishFixture<T extends JsonValue = JsonValue>(
@@ -30,13 +43,13 @@ export function createPublishFixture<T extends JsonValue = JsonValue>(
     occurredAt: options.occurredAt ?? '2026-06-16T00:00:00.000Z',
     payload: options.payload ?? ({} as T),
     headers: options.headers,
-    retryCount: 0,
-    status: 'pending',
-    nextRetryAt: null,
-    lastError: null,
-    lockedBy: null,
-    lockedUntil: null,
-    publishedAt: null,
+    retryCount: options.retryCount ?? 0,
+    status: options.status ?? 'pending',
+    nextRetryAt: options.nextRetryAt ?? null,
+    lastError: options.lastError ?? null,
+    lockedBy: options.lockedBy ?? null,
+    lockedUntil: options.lockedUntil ?? null,
+    publishedAt: options.publishedAt ?? null,
   };
 }
 
@@ -55,11 +68,11 @@ export function createReceivedFixture<T extends JsonValue = JsonValue>(
     occurredAt: options.occurredAt ?? '2026-06-16T00:00:00.000Z',
     payload: options.payload ?? ({} as T),
     headers: options.headers,
-    retryCount: 0,
-    status: 'pending',
-    processed: false,
-    lastError: null,
-    processedAt: null,
-    nextRetry: null,
+    retryCount: options.retryCount ?? 0,
+    status: options.status ?? 'pending',
+    processed: options.processed ?? false,
+    lastError: options.lastError ?? null,
+    processedAt: options.processedAt ?? null,
+    nextRetry: options.nextRetry ?? null,
   };
 }

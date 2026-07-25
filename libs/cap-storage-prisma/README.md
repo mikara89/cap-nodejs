@@ -1,5 +1,13 @@
 # @mikara89/cap-storage-prisma
 
+## Messaging administration
+
+`PrismaPublishStorage` and `PrismaReceivedStorage` implement CAP's optional
+administration ports with provider-quoted guarded updates. Failed/dead-letter
+rows become immediately scheduler-eligible; pending, processing, processed,
+and published rows cannot be manually replayed. Snapshots use database
+aggregates rather than list APIs or payload reads.
+
 Framework-free Prisma storage adapter for CAP outbox and inbox persistence.
 
 ## Install

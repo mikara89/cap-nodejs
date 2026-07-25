@@ -1,7 +1,10 @@
 import { MikroORM, type EntityManager } from '@mikro-orm/core';
 import { BetterSqliteDriver } from '@mikro-orm/better-sqlite';
 import type { CapTransactionManagerPort } from '@mikara89/cap-core';
-import { definePublishStorageContract } from '@mikara89/cap-testing';
+import {
+  definePublishStorageAdministrationContract,
+  definePublishStorageContract,
+} from '@mikara89/cap-testing';
 import { CapPublishEntity } from '../entities/cap-publish.entity';
 import { MikroPublishStorage } from './mikro-publish-storage';
 
@@ -35,5 +38,21 @@ definePublishStorageContract<EntityManager>(
     supportsSafeConcurrentClaiming: false,
     supportsClaimOwnershipFencing: true,
     supportsClaimLeaseRenewal: true,
+  },
+);
+
+definePublishStorageAdministrationContract(
+  'MikroORM publish storage',
+  async () => {
+    const orm = await MikroORM.init({
+      driver: BetterSqliteDriver,
+      dbName: ':memory:',
+      entities: [CapPublishEntity],
+    });
+    await orm.getSchemaGenerator().createSchema();
+    return {
+      storage: new MikroPublishStorage(orm.em.fork(), orm),
+      cleanup: async () => orm.close(true),
+    };
   },
 );

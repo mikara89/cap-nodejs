@@ -1,5 +1,8 @@
 import type { Knex } from 'knex';
-import { definePublishStorageContract } from '@mikara89/cap-testing';
+import {
+  definePublishStorageAdministrationContract,
+  definePublishStorageContract,
+} from '@mikara89/cap-testing';
 import { createKnexTestStorage } from './testing/create-knex-test-storage';
 
 definePublishStorageContract<Knex.Transaction>(
@@ -21,3 +24,8 @@ definePublishStorageContract<Knex.Transaction>(
     supportsClaimLeaseRenewal: true,
   },
 );
+
+definePublishStorageAdministrationContract('Knex publish storage', async () => {
+  const env = await createKnexTestStorage();
+  return { storage: env.publishStorage, cleanup: env.cleanup };
+});

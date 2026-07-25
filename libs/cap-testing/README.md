@@ -98,6 +98,15 @@ Use this together with the
 
 ## Transport Contract
 
+## Messaging administration contracts
+
+Use `defineReceivedStorageAdministrationContract` and
+`definePublishStorageAdministrationContract` for adapters that implement the
+optional administration ports. They verify eligible failed/dead-letter requeue,
+terminal/active rejection, immediate normal retry/claim eligibility, immutable
+event preservation, complete status counts, and oldest current pending/failed
+timestamps. Snapshot assertions use deliberately out-of-order timestamps.
+
 Adapter authors can use `defineTransportContract` to qualify publisher and
 subscriber implementations with fast client fakes. The suite verifies logical
 topic and payload mapping (including business objects with a `payload` field),
