@@ -57,6 +57,9 @@ export interface ReceivedStoragePort {
 
 /** Optional durable inbox administration capability. */
 export interface ReceivedStorageAdministrationPort extends ReceivedStoragePort {
+  /** Read immutable identity metadata before a guarded manual requeue. */
+  findReceivedById(id: string): Promise<CapReceivedEvent | undefined>;
+
   requeueReceived(
     id: string,
     now?: Date,
@@ -70,6 +73,7 @@ export function isReceivedStorageAdministrationPort(
 ): storage is ReceivedStorageAdministrationPort {
   const candidate = storage as Partial<ReceivedStorageAdministrationPort>;
   return (
+    typeof candidate.findReceivedById === 'function' &&
     typeof candidate.requeueReceived === 'function' &&
     typeof candidate.getReceivedSnapshot === 'function'
   );

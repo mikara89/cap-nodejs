@@ -55,6 +55,12 @@ describe('CapEngine messaging administration', () => {
       requeuePublish: undefined,
       getPublishSnapshot: undefined,
     }) as PublishStoragePort;
+    const inboxWithoutLookup = Object.assign(Object.create(receivedStorage), {
+      findReceivedById: undefined,
+    }) as ReceivedStoragePort;
+    const outboxWithoutLookup = Object.assign(Object.create(publishStorage), {
+      findPublishById: undefined,
+    }) as PublishStoragePort;
 
     await expect(
       new CapEngine({
@@ -87,6 +93,22 @@ describe('CapEngine messaging administration', () => {
         publisher,
         subscriber,
       }).getMessagingSnapshot(),
+    ).rejects.toThrow(/publish storage does not support/);
+    await expect(
+      new CapEngine({
+        publishStorage,
+        receivedStorage: inboxWithoutLookup,
+        publisher,
+        subscriber,
+      }).requeueInbox('x'),
+    ).rejects.toThrow(/received storage does not support/);
+    await expect(
+      new CapEngine({
+        publishStorage: outboxWithoutLookup,
+        receivedStorage,
+        publisher,
+        subscriber,
+      }).requeueOutbox('x'),
     ).rejects.toThrow(/publish storage does not support/);
   });
 

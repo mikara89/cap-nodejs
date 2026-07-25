@@ -35,12 +35,14 @@ import { type CapMessagingDiagnosticsPort } from '../ports/messaging-diagnostics
 import {
   isPublishStorageAdministrationPort,
   isLegacyTransactionalPublishStorage,
+  type PublishStorageAdministrationPort,
   type PublishStoragePort,
 } from '../ports/publish-storage.port';
 import { type PublisherPort } from '../ports/publisher.port';
 import {
   isReceivedStorageAdministrationPort,
   type ReceivedStoragePort,
+  type ReceivedStorageAdministrationPort,
   type MarkReceivedFailedOptions,
   type TrySaveReceivedResult,
 } from '../ports/received-storage.port';
@@ -554,15 +556,28 @@ export class CapEngine {
     id: string,
   ): Promise<CapRequeueResult<CapReceivedEvent['status']>> {
     assertAdministrationId(id);
-    if (!isReceivedStorageAdministrationPort(this.receivedStorage)) {
+    const storage = this.receivedStorage;
+    if (!isReceivedStorageAdministrationPort(storage)) {
       throw new Error(
         'Configured received storage does not support CAP messaging administration',
       );
     }
     const now = this.now();
-    const result = await this.receivedStorage.requeueReceived(id, now);
-    if (result.outcome === 'requeued') {
-      this.emitInboxManuallyRequeued(id, result, now);
+    const metadata = this.diagnostics
+      ? await this.captureInboxRequeueMetadata(storage, id)
+      : undefined;
+    const result = await storage.requeueReceived(id, now);
+    if (result.outcome === 'requeued' && metadata) {
+      this.emitDiagnostic({
+        type: 'inbox.manually_requeued',
+        direction: 'inbox',
+        ...metadata,
+        retryCount: 0,
+        ...(result.previousStatus === undefined
+          ? {}
+          : { previousStatus: result.previousStatus }),
+        at: now.toISOString(),
+      });
     }
     return result;
   }
@@ -572,15 +587,28 @@ export class CapEngine {
     id: string,
   ): Promise<CapRequeueResult<CapPublishEvent['status']>> {
     assertAdministrationId(id);
-    if (!isPublishStorageAdministrationPort(this.publishStorage)) {
+    const storage = this.publishStorage;
+    if (!isPublishStorageAdministrationPort(storage)) {
       throw new Error(
         'Configured publish storage does not support CAP messaging administration',
       );
     }
     const now = this.now();
-    const result = await this.publishStorage.requeuePublish(id, now);
-    if (result.outcome === 'requeued') {
-      this.emitOutboxManuallyRequeued(id, result, now);
+    const metadata = this.diagnostics
+      ? await this.captureOutboxRequeueMetadata(storage, id)
+      : undefined;
+    const result = await storage.requeuePublish(id, now);
+    if (result.outcome === 'requeued' && metadata) {
+      this.emitDiagnostic({
+        type: 'outbox.manually_requeued',
+        direction: 'outbox',
+        ...metadata,
+        retryCount: 0,
+        ...(result.previousStatus === undefined
+          ? {}
+          : { previousStatus: result.previousStatus }),
+        at: now.toISOString(),
+      });
     }
     return result;
   }
@@ -1022,66 +1050,45 @@ export class CapEngine {
     });
   }
 
-  private emitInboxManuallyRequeued(
+  private async captureInboxRequeueMetadata(
+    storage: ReceivedStorageAdministrationPort,
     id: string,
-    result: CapRequeueResult<CapReceivedEvent['status']>,
-    at: Date,
-  ): void {
-    const storage = this.receivedStorage;
-    if (!this.diagnostics || !storage.findReceivedById) return;
-
-    void storage
-      .findReceivedById(id)
-      .then((rec: CapReceivedEvent | undefined) => {
-        if (!rec) return;
-        this.emitDiagnostic({
-          type: 'inbox.manually_requeued',
-          direction: 'inbox',
-          id: rec.id,
-          topic: rec.topic,
-          group: rec.group,
-          messageId: rec.messageId,
-          retryCount: rec.retryCount,
-          previousStatus: result.previousStatus,
-          at: at.toISOString(),
-        });
-      })
-      .catch((err: unknown) => {
-        this.logger.warn?.(
-          'CAP messaging diagnostics metadata lookup failed',
-          err,
-        );
-      });
+  ): Promise<
+    Pick<CapReceivedEvent, 'id' | 'topic' | 'group' | 'messageId'> | undefined
+  > {
+    try {
+      const rec = await storage.findReceivedById(id);
+      return rec
+        ? {
+            id: rec.id,
+            topic: rec.topic,
+            group: rec.group,
+            messageId: rec.messageId,
+          }
+        : undefined;
+    } catch (err) {
+      this.logger.warn?.(
+        'CAP messaging diagnostics metadata lookup failed',
+        err,
+      );
+      return undefined;
+    }
   }
 
-  private emitOutboxManuallyRequeued(
+  private async captureOutboxRequeueMetadata(
+    storage: PublishStorageAdministrationPort,
     id: string,
-    result: CapRequeueResult<CapPublishEvent['status']>,
-    at: Date,
-  ): void {
-    const storage = this.publishStorage;
-    if (!this.diagnostics || !storage.findPublishById) return;
-
-    void storage
-      .findPublishById(id)
-      .then((evt: CapPublishEvent | undefined) => {
-        if (!evt) return;
-        this.emitDiagnostic({
-          type: 'outbox.manually_requeued',
-          direction: 'outbox',
-          id: evt.id,
-          topic: evt.topic,
-          retryCount: evt.retryCount,
-          previousStatus: result.previousStatus,
-          at: at.toISOString(),
-        });
-      })
-      .catch((err: unknown) => {
-        this.logger.warn?.(
-          'CAP messaging diagnostics metadata lookup failed',
-          err,
-        );
-      });
+  ): Promise<Pick<CapPublishEvent, 'id' | 'topic'> | undefined> {
+    try {
+      const evt = await storage.findPublishById(id);
+      return evt ? { id: evt.id, topic: evt.topic } : undefined;
+    } catch (err) {
+      this.logger.warn?.(
+        'CAP messaging diagnostics metadata lookup failed',
+        err,
+      );
+      return undefined;
+    }
   }
 
   // -----------------------------------------------------------------------

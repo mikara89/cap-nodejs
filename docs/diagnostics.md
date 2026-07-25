@@ -58,6 +58,13 @@ Every event has `type`, `id`, `topic`, `at` (an ISO-8601 UTC timestamp), and
 | `outbox.retried`           | —                                     | a claimed scheduler row with `retryCount > 0` begins broker work |
 | `outbox.manually_requeued` | optional `previousStatus`             | a durable outbox requeue succeeds                                |
 
+Manual-requeue events use immutable identity metadata read before the guarded
+requeue mutation and always report `retryCount: 0`, the durable post-requeue
+value. Storage adapters that expose CAP messaging administration therefore also
+provide the corresponding `findReceivedById()` or `findPublishById()` lookup.
+The preliminary read is observational; eligibility remains exclusively decided
+by the guarded durable requeue update.
+
 Failure retry counts are the count after the durable failure transition.
 `error` is CAP's normalized error string, never the original error object or a
 stack trace. Transition timestamps reuse the corresponding processing,

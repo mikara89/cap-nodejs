@@ -354,6 +354,65 @@ describe('CapEngine messaging diagnostics', () => {
     expect(events).toHaveLength(2);
   });
 
+  it('captures manual requeue metadata before the guarded transition', async () => {
+    const engine = createEngine();
+    receivedStorage.store.set(
+      'inbox',
+      inboxEvent('inbox', 'orders.created', 'billing', 'dead_letter', 2),
+    );
+    publishStorage.store.set('outbox', outboxEvent('outbox', 'dead_letter', 2));
+    const inboxLookup = deferred<CapReceivedEvent | undefined>();
+    const outboxLookup = deferred<CapPublishEvent | undefined>();
+    const requeueInbox = jest.spyOn(receivedStorage, 'requeueReceived');
+    const requeueOutbox = jest.spyOn(publishStorage, 'requeuePublish');
+    jest
+      .spyOn(receivedStorage, 'findReceivedById')
+      .mockReturnValue(inboxLookup.promise);
+    jest
+      .spyOn(publishStorage, 'findPublishById')
+      .mockReturnValue(outboxLookup.promise);
+
+    const inboxResult = engine.requeueInbox('inbox');
+    const outboxResult = engine.requeueOutbox('outbox');
+    await flushPromises();
+    expect(requeueInbox).not.toHaveBeenCalled();
+    expect(requeueOutbox).not.toHaveBeenCalled();
+
+    inboxLookup.resolve({
+      ...inboxEvent('inbox', 'orders.created', 'billing', 'dead_letter', 2),
+    });
+    outboxLookup.resolve(outboxEvent('outbox', 'dead_letter', 2));
+    await Promise.all([inboxResult, outboxResult]);
+
+    receivedStorage.store.get('inbox')!.status = 'processed';
+    receivedStorage.store.get('inbox')!.retryCount = 9;
+    publishStorage.store.get('outbox')!.status = 'published';
+    publishStorage.store.get('outbox')!.retryCount = 9;
+
+    expect(events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'inbox.manually_requeued',
+          id: 'inbox',
+          topic: 'orders.created',
+          group: 'billing',
+          messageId: 'inbox-message',
+          retryCount: 0,
+          previousStatus: 'dead_letter',
+          at: now.toISOString(),
+        }),
+        expect.objectContaining({
+          type: 'outbox.manually_requeued',
+          id: 'outbox',
+          topic: 'orders.created',
+          retryCount: 0,
+          previousStatus: 'dead_letter',
+          at: now.toISOString(),
+        }),
+      ]),
+    );
+  });
+
   it('swallows synchronous and rejected asynchronous sink failures without changing outcomes', async () => {
     diagnostics = {
       emit: jest
