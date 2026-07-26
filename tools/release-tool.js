@@ -938,11 +938,7 @@ function buildReleaseCommand(input, options = {}) {
   const args = ['publish'];
 
   if (options.prepared === true) {
-    if (
-      operation !== 'release' ||
-      channel !== 'stable' ||
-      coordinatedMajor
-    ) {
+    if (operation !== 'release' || channel !== 'stable' || coordinatedMajor) {
       fail(
         'Prepared versions support only a normal independent stable release.',
       );
@@ -1406,6 +1402,7 @@ async function buildBootstrapPackages(packages, options = {}) {
 }
 
 async function buildPreparedPackages(packages, options = {}) {
+  const target = options.head || headSha(options.cwd || rootDir);
   const items = [];
   for (const pkg of packages) {
     const metadata = await registryMetadata(pkg.name, options.fetchImpl);
@@ -1422,16 +1419,62 @@ async function buildPreparedPackages(packages, options = {}) {
         `${pkg.name}@${pkg.version} is prepared for publication but has no package-owned changelog section.`,
       );
     }
+    const tag = packageTag(pkg.name, pkg.version);
+    const existing = (options.getTagCommit || tagCommit)(
+      tag,
+      options.cwd || rootDir,
+    );
+    if (existing && existing !== target) {
+      fail(
+        `${tag} points to ${existing}, expected prepared release HEAD ${target}.`,
+      );
+    }
     items.push({
       name: pkg.name,
       oldVersion: latest,
       newVersion: pkg.version,
-      tag: packageTag(pkg.name, pkg.version),
+      tag,
+      tagTarget: target,
+      tagAction: existing ? 'keep' : 'create',
+      tagTiming: 'before-publish-for-recovery',
       githubRelease: undefined,
       npmAction: 'publish',
     });
   }
   return items;
+}
+
+async function verifyPreparedPublication(plan, options = {}) {
+  const cwd = options.cwd || rootDir;
+  const packages = new Map(
+    discoverPackages(cwd, { fixture: options.fixture === true }).map((pkg) => [
+      pkg.name,
+      pkg,
+    ]),
+  );
+  for (const change of plan.packages) {
+    const pkg = packages.get(change.name);
+    if (!pkg || pkg.version !== change.newVersion) {
+      fail(`${change.name} no longer matches its approved prepared version.`);
+    }
+    const metadata = await registryMetadata(pkg.name, options.fetchImpl);
+    const published = metadata?.versions?.[change.newVersion];
+    if (!published) {
+      fail(
+        `${change.name}@${change.newVersion} is absent from npm after publication.`,
+      );
+    }
+    if (published.gitHead !== plan.headSha) {
+      fail(
+        `${change.name}@${change.newVersion} npm gitHead ${published.gitHead || '(missing)'} does not match approved HEAD ${plan.headSha}.`,
+      );
+    }
+    await (options.verifyArtifact || verifyRegistryArtifact)(
+      pkg,
+      published,
+      options,
+    );
+  }
 }
 
 function planHash(plan) {
@@ -1462,7 +1505,11 @@ async function createPlan(input, options = {}) {
     inputs.operation === 'release' &&
     inputs.channel === 'stable' &&
     !inputs.coordinatedMajor
-      ? await buildPreparedPackages(packages, options)
+      ? await buildPreparedPackages(packages, {
+          ...options,
+          cwd,
+          head: validatedHead,
+        })
       : [];
 
   if (preparedPackages.length > 0) {
@@ -1792,7 +1839,10 @@ async function executePlan(plan, options = {}) {
       dependencyRoot: options.dependencyRoot || cwd,
     });
   } else if (plan.preparedVersions === true) {
-    const prepared = await buildPreparedPackages(discoverPackages(cwd), options);
+    const prepared = await buildPreparedPackages(
+      discoverPackages(cwd, { fixture: options.fixture === true }),
+      { ...options, head: plan.headSha },
+    );
     assertSimulatedPlanMatches(plan, prepared);
     validateGeneratedState(cwd, {
       dependencyRoot: options.dependencyRoot || cwd,
@@ -1807,6 +1857,11 @@ async function executePlan(plan, options = {}) {
       },
     );
     assertSimulatedPlanMatches(plan, simulated);
+  }
+  if (plan.preparedVersions === true) {
+    // Publish from-package does not version or tag. Push the approved tags
+    // first so a partial npm publication remains recoverable from-git.
+    createBootstrapTags(plan, options);
   }
   if (
     plan.inputs.operation === 'recover' &&
@@ -1863,6 +1918,9 @@ async function executePlan(plan, options = {}) {
     },
     inherit: true,
   });
+  if (plan.preparedVersions === true) {
+    await verifyPreparedPublication(plan, options);
+  }
   if (plan.inputs.operation === 'bootstrap') {
     const newNames = plan.packages
       .filter((pkg) => pkg.npmAction === 'publish')
@@ -1993,6 +2051,7 @@ module.exports = {
   assertCleanTree,
   bootstrapConfirmation,
   buildBootstrapPackages,
+  buildPreparedPackages,
   buildReleaseCommand,
   changelogSection,
   commitExists,
@@ -2028,6 +2087,7 @@ module.exports = {
   stableBase,
   validatePlanFile,
   verifyRegistryArtifact,
+  verifyPreparedPublication,
   verifyConfiguration,
   validatePostVersionState,
   verifyHead,

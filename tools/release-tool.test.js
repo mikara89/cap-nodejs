@@ -16,6 +16,7 @@ const {
   assertSimulatedPlanMatches,
   bootstrapConfirmation,
   buildBootstrapPackages,
+  buildPreparedPackages,
   buildReleaseCommand,
   changelogSection,
   coordinatedMajorConfirmation,
@@ -45,6 +46,7 @@ const {
   validatePlanFile,
   validatePostVersionState,
   verifyConfiguration,
+  verifyPreparedPublication,
 } = require('./release-tool');
 
 const rootDir = path.resolve(__dirname, '..');
@@ -819,6 +821,299 @@ test('simulated plan comparison is independent of package order', () => {
     assertSimulatedPlanMatches(plan, [...plan.packages].reverse()),
   );
 });
+
+test('prepared versions use from-package and carry immutable head tags', async () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-prepared-release-'));
+  try {
+    fs.writeFileSync(
+      path.join(cwd, 'CHANGELOG.md'),
+      '# Change Log\n\n## 1.1.0\n\n- prepared feature\n',
+    );
+    const packages = [
+      {
+        name: '@fixture/a',
+        version: '1.1.0',
+        dir: cwd,
+        relativeDir: 'libs/a',
+      },
+    ];
+    const fetchImpl = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        'dist-tags': { latest: '1.0.0' },
+        versions: { '1.0.0': {} },
+      }),
+    });
+    const prepared = await buildPreparedPackages(packages, {
+      head: 'approved-head',
+      fetchImpl,
+      getTagCommit: () => undefined,
+    });
+    assert.deepEqual(prepared, [
+      {
+        name: '@fixture/a',
+        oldVersion: '1.0.0',
+        newVersion: '1.1.0',
+        tag: '@fixture/a@1.1.0',
+        tagTarget: 'approved-head',
+        tagAction: 'create',
+        tagTiming: 'before-publish-for-recovery',
+        githubRelease: undefined,
+        npmAction: 'publish',
+      },
+    ]);
+    assert.deepEqual(
+      buildReleaseCommand(
+        { operation: 'release', channel: 'stable', coordinatedMajor: false },
+        { prepared: true },
+      ).args,
+      [
+        'publish',
+        'from-package',
+        '--yes',
+        '--registry',
+        'https://registry.npmjs.org/',
+        '--dist-tag',
+        'latest',
+      ],
+    );
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('prepared release tags are created at the approved head and are never moved', () =>
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.1.0' }], (cwd) => {
+    const head = command('git', ['rev-parse', 'HEAD'], cwd).trim();
+    const plan = {
+      packages: [
+        {
+          name: '@fixture/a',
+          tag: '@fixture/a@1.1.0',
+          tagTarget: head,
+          tagAction: 'create',
+        },
+      ],
+    };
+    createBootstrapTags(plan, { cwd, push: false });
+    assert.equal(
+      command(
+        'git',
+        ['rev-list', '-n', '1', '@fixture/a@1.1.0^{}'],
+        cwd,
+      ).trim(),
+      head,
+    );
+    assert.deepEqual(
+      recoveryPackagesAtHead(
+        discoverPackages(cwd, { fixture: true }),
+        head,
+        cwd,
+      ).map((pkg) => pkg.name),
+      ['@fixture/a'],
+    );
+    plan.packages[0].tagAction = 'keep';
+    assert.doesNotThrow(() => createBootstrapTags(plan, { cwd, push: false }));
+    command('git', ['commit', '--allow-empty', '-m', 'next'], cwd);
+    plan.packages[0].tagTarget = command(
+      'git',
+      ['rev-parse', 'HEAD'],
+      cwd,
+    ).trim();
+    assert.throws(
+      () => createBootstrapTags(plan, { cwd, push: false }),
+      /moved after planning/,
+    );
+  }));
+
+test('prepared publication requires the approved npm gitHead', async () =>
+  withAsyncFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.1.0' }],
+    async (cwd) => {
+      const head = command('git', ['rev-parse', 'HEAD'], cwd).trim();
+      const plan = {
+        headSha: head,
+        packages: [
+          {
+            name: '@fixture/a',
+            oldVersion: '1.0.0',
+            newVersion: '1.1.0',
+          },
+        ],
+      };
+      const published = { gitHead: head, dist: {} };
+      await assert.doesNotReject(() =>
+        verifyPreparedPublication(plan, {
+          cwd,
+          fixture: true,
+          fetchImpl: async () => ({
+            ok: true,
+            status: 200,
+            json: async () => ({ versions: { '1.1.0': published } }),
+          }),
+          verifyArtifact: () => undefined,
+        }),
+      );
+      await assert.rejects(
+        verifyPreparedPublication(plan, {
+          cwd,
+          fixture: true,
+          fetchImpl: async () => ({
+            ok: true,
+            status: 200,
+            json: async () => ({
+              versions: { '1.1.0': { ...published, gitHead: 'wrong-head' } },
+            }),
+          }),
+          verifyArtifact: () => undefined,
+        }),
+        /does not match approved HEAD/,
+      );
+    },
+  ));
+
+test('failed prepared publication leaves approved tags available for recovery', () =>
+  withAsyncFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.1.0' }],
+    async (cwd) => {
+      fs.writeFileSync(
+        path.join(cwd, 'libs', 'a', 'CHANGELOG.md'),
+        '# Change Log\n\n## 1.1.0\n\n- prepared feature\n',
+      );
+      const head = command('git', ['rev-parse', 'HEAD'], cwd).trim();
+      const plan = signedPlan({
+        schemaVersion: 1,
+        headSha: head,
+        inputs: {
+          operation: 'release',
+          channel: 'stable',
+          coordinatedMajor: false,
+          confirmation: '',
+          recoveryRef: '',
+        },
+        preparedVersions: true,
+        noChanges: false,
+        packages: [
+          {
+            name: '@fixture/a',
+            oldVersion: '1.0.0',
+            newVersion: '1.1.0',
+            tag: '@fixture/a@1.1.0',
+            tagTarget: head,
+            tagAction: 'create',
+            npmAction: 'publish',
+          },
+        ],
+        command: { args: ['publish', 'from-package', '--yes'] },
+      });
+      const fetchImpl = async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          'dist-tags': { latest: '1.0.0' },
+          versions: { '1.0.0': {} },
+        }),
+      });
+      await assert.rejects(
+        executePlan(plan, {
+          cwd,
+          fixture: true,
+          push: false,
+          checkClean: false,
+          checkRemote: false,
+          fetchImpl,
+          validatePostVersionState: () => undefined,
+          run: () => {
+            throw new Error('simulated partial publish failure');
+          },
+        }),
+        /simulated partial publish failure/,
+      );
+      assert.equal(
+        command(
+          'git',
+          ['rev-list', '-n', '1', '@fixture/a@1.1.0^{}'],
+          cwd,
+        ).trim(),
+        head,
+      );
+      assert.deepEqual(
+        recoveryPackagesAtHead(
+          discoverPackages(cwd, { fixture: true }),
+          head,
+          cwd,
+        ).map((pkg) => pkg.name),
+        ['@fixture/a'],
+      );
+    },
+  ));
+
+test('prepared registry drift blocks tag creation and publication', () =>
+  withAsyncFixture(
+    [{ id: 'a', name: '@fixture/a', version: '1.1.0' }],
+    async (cwd) => {
+      fs.writeFileSync(
+        path.join(cwd, 'libs', 'a', 'CHANGELOG.md'),
+        '# Change Log\n\n## 1.1.0\n\n- prepared feature\n',
+      );
+      const head = command('git', ['rev-parse', 'HEAD'], cwd).trim();
+      const plan = signedPlan({
+        schemaVersion: 1,
+        headSha: head,
+        inputs: {
+          operation: 'release',
+          channel: 'stable',
+          coordinatedMajor: false,
+          confirmation: '',
+          recoveryRef: '',
+        },
+        preparedVersions: true,
+        noChanges: false,
+        packages: [
+          {
+            name: '@fixture/a',
+            oldVersion: '1.0.0',
+            newVersion: '1.1.0',
+            tag: '@fixture/a@1.1.0',
+            tagTarget: head,
+            tagAction: 'create',
+            npmAction: 'publish',
+          },
+        ],
+        command: { args: ['publish', 'from-package', '--yes'] },
+      });
+      let published = false;
+      command('git', ['tag', '-d', '@fixture/a@1.1.0'], cwd);
+      await assert.rejects(
+        executePlan(plan, {
+          cwd,
+          fixture: true,
+          push: false,
+          checkClean: false,
+          checkRemote: false,
+          fetchImpl: async () => ({
+            ok: true,
+            status: 200,
+            json: async () => ({
+              'dist-tags': { latest: '1.1.0' },
+              versions: { '1.1.0': { gitHead: head } },
+            }),
+          }),
+          validatePostVersionState: () => undefined,
+          run: () => {
+            published = true;
+          },
+        }),
+        /Simulated post-version state no longer matches the approved release plan/,
+      );
+      assert.equal(published, false);
+      assert.equal(
+        command('git', ['tag', '-l', '@fixture/a@1.1.0'], cwd).trim(),
+        '',
+      );
+    },
+  ));
 
 test('root-only roadmap version change creates zero Lerna candidates', () =>
   withFixture(

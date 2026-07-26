@@ -5,25 +5,19 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## [2.3.0](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-storage-prisma@2.2.2...@mikara89/cap-storage-prisma@2.3.0) (2026-07-25)
 
-
 ### Features
 
-* **core:** add messaging administration APIs ([#15](https://github.com/mikara89/cap-nodejs/issues/15)) ([2dc1ae9](https://github.com/mikara89/cap-nodejs/commit/2dc1ae983187d4e599ead38ee0bc814036d59ae0))
-* **inbox:** recover stale pending messages during scheduled retries ([912557a](https://github.com/mikara89/cap-nodejs/commit/912557a94af07c8da4aad81aaecd41bf91815738))
+- **core:** add messaging administration APIs ([#15](https://github.com/mikara89/cap-nodejs/issues/15)) ([2dc1ae9](https://github.com/mikara89/cap-nodejs/commit/2dc1ae983187d4e599ead38ee0bc814036d59ae0))
+- **inbox:** recover stale pending messages during scheduled retries ([912557a](https://github.com/mikara89/cap-nodejs/commit/912557a94af07c8da4aad81aaecd41bf91815738))
 
+* add guarded inbox/outbox requeue and aggregate messaging snapshot support
+* include stale pending inbox rows in scheduler recovery alongside due failed rows
 
 ### Bug Fixes
 
-* **storage:** update order by logic for received storage to prioritize failed status ([e42aa67](https://github.com/mikara89/cap-nodejs/commit/e42aa6705b4bd4864ad6ce1db3c4b92b221775bd))
-
-
-
+- **storage:** update order by logic for received storage to prioritize failed status ([e42aa67](https://github.com/mikara89/cap-nodejs/commit/e42aa6705b4bd4864ad6ce1db3c4b92b221775bd))
 
 ## Unreleased
-
-- add guarded messaging requeue and aggregate snapshot administration support
-
-- select stale pending inbox rows alongside due failed rows for scheduler recovery
 
 ## [2.2.2](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-storage-prisma@2.2.1...@mikara89/cap-storage-prisma@2.2.2) (2026-07-17)
 
