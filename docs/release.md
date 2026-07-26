@@ -1,17 +1,18 @@
 # npm and GitHub Release Guide
 
-CAP publishes only to `https://registry.npmjs.org/`. Lerna 9 in independent
-mode is the sole version calculator, changelog generator, tag creator, npm
-publisher, and GitHub release source.
+CAP publishes only to `https://registry.npmjs.org/`. Publishable packages use
+independent versions. Stable package versions and package-owned changelogs are
+reviewed in a release-preparation PR; the release tool verifies them against
+npm registry truth and Lerna 9 publishes only those prepared versions.
 
 For day-to-day development validation, see
 [docs/development-validation.md](./development-validation.md).
 
 Pull-request CI may use the affected fast path, but pushes to `main` and this
 manual release workflow always run complete repository validation. The
-affected planner never replaces release candidate selection, Lerna versioning,
-environment approval, OIDC publication, tag creation, or the release workflow's
-independent safety gate.
+affected planner never replaces release candidate selection, prepared-version
+review, environment approval, OIDC publication, tag creation, or the release
+workflow's independent safety gate.
 
 The verified toolchain is Lerna 9.0.7 with
 `conventional-changelog-conventionalcommits` 7.0.2. The explicit preset is
@@ -20,14 +21,13 @@ a breaking change in this installed version.
 
 ## Release invariants
 
-- Package manifests always contain the last published version before a normal
-  release. Contributors never prepare speculative synchronized versions.
-- `fix:` produces a patch, `feat:` produces a minor, and a bang header or
-  `BREAKING CHANGE:` footer produces a major.
-- Commits without release semantics are filtered before Lerna runs. Lerna still
-  calculates every selected version.
-- Internal CAP packages use ordinary semver dependencies. This lets Lerna bump
-  only dependents whose published range would become incompatible.
+- A stable release-preparation PR bumps only packages whose packed artifact or
+  required internal dependency range changed. Unchanged manifests remain at
+  npm `latest`; prepared target versions must not already exist on npm.
+- Patch, minor, and major decisions follow the public package change, not a
+  synchronized roadmap version or commit prefix alone.
+- Internal CAP packages use ordinary semver dependencies. A package that uses a
+  newly prepared internal API must raise its minimum compatible range.
 - Independent tags and GitHub releases use the complete
   `@mikara89/package@version` name, including beta or RC suffixes.
 - Stable packages use `latest`; beta and RC packages use only their matching
@@ -35,11 +35,10 @@ a breaking change in this installed version.
 - `.github/workflows/release.yml` is manual, serialized by concurrency, and
   publishes only after the protected `npm-production` environment is approved.
 - Before approval and again immediately before publication, the release tool
-  simulates Lerna's versioning in a temporary checkout. The generated
-  independent-version state must pass release configuration plus
-  manifest/lockfile validation; any failure aborts before Lerna can publish,
-  create a release commit, or push tags. The private root roadmap version is
-  deliberately not a package-version baseline.
+  compares every workspace manifest with npm, rejects unversioned artifact
+  changes and existing targets, and validates package changelog sections. Any
+  failure aborts before Lerna can publish or push tags. The private root roadmap
+  version is deliberately not a package-version baseline.
 
 ## One-time baseline bootstrap
 
@@ -228,8 +227,8 @@ node tools/release-tool.js plan \
   --output release-plan.generated.json
 ```
 
-Inspect every selected package, old and proposed version, npm dist-tag, package
-tag, and GitHub release name. Stop if an unrelated or unchanged package appears.
+Inspect every selected package, registry version, prepared target, npm action,
+dist-tag, and package tag. Stop if an unrelated or unchanged package appears.
 Do not execute the plan merely because generation succeeded.
 
 Bootstrap is only for establishing or restoring an independent package
@@ -277,42 +276,44 @@ v2.4 milestone only when every package in the approved closure plan is verified;
 planned or deferred Event Hubs compatibility, NATS, Pub/Sub, and richer
 capability work are not closure blockers.
 
-## Normal releases
+## Normal stable releases
 
-Run `operation=release`, `coordinated_major=false`, and choose a channel.
-The stable command is:
+Commit independently reviewed package versions, internal ranges, lock metadata,
+and package-owned changelog sections before running `operation=release`,
+`channel=stable`, and `coordinated_major=false`. The stable command is:
 
 ```sh
-npx lerna publish --conventional-commits --create-release github --yes \
-  --registry https://registry.npmjs.org/ --dist-tag latest
+npx lerna publish from-package --yes \
+  --registry https://registry.npmjs.org/ --dist-tag latest \
+  --git-head <validated-main-sha>
 ```
 
-Beta adds `--conventional-prerelease --preid beta --dist-tag beta`; RC adds
-`--conventional-prerelease --preid rc --dist-tag rc`. Verified Lerna
-configuration ignores package-local tests, fixtures, Markdown, and explicitly
-test-, lint-, or documentation-only TypeScript configurations. It does not use
-a blanket `tsconfig*.json` rule: `tsconfig.json`, `tsconfig.build.json`, and
-`tsconfig.lib.json` are build-consumed and therefore release-significant.
+The planner reads npm `latest`, exact target availability, dist-tags, and
+`gitHead`; it does not calculate a second version bump. Lerna publishes only
+the npm-missing prepared versions in dependency order. After publication, the
+executor verifies every artifact records the approved HEAD before creating the
+independent annotated tags.
+
+Verified release configuration ignores package-local tests, fixtures, Markdown,
+and explicitly test-, lint-, or documentation-only TypeScript configurations.
+It does not use a blanket `tsconfig*.json` rule: `tsconfig.json`,
+`tsconfig.build.json`, and `tsconfig.lib.json` are build-consumed and therefore
+release-significant.
 Runtime source, public declarations, exports and entry points, runtime and peer
 dependencies, artifact-affecting package metadata, `.npmignore`, included
 schemas/migrations, and other packed-artifact inputs are package-owned release
 paths. README files, changelogs, tests, fixtures, and documentation alone are
 not.
 
-The planner rejects publishable package changes that have no release-signaling
-commit, then lets Lerna select packages and calculate versions. It explicitly
-forces only stable-release dependents whose internal range would otherwise
-become invalid. A prerelease never pulls unchanged stable packages into beta or
-RC merely to widen their ranges. No-change requests succeed without publishing.
+The planner rejects publishable package changes whose version was not prepared,
+prepared versions without artifact changes, missing package changelog sections,
+and targets that already exist at another commit. No-change requests succeed
+without publishing. Normal stable releases never use `--force-publish`.
 
-Package changelog ownership is path-based, not scope-based. Lerna loads the
-repository-private package-owned Conventional Commits preset and generates each
-independent package section while retaining only commits that change an
-artifact-significant path in that package. The release tool then validates
-every generated commit reference against the same policy. Lerna calculates
-versions, generates changelogs, creates tags, and publishes. This keeps valid
-package fixes, features, breaking-change notes, and package-owned reverts while
-excluding root, documentation-only, test-only, and sibling-package commits.
+Package changelog ownership is path-based, not scope-based. Each stable
+candidate must contain the exact prepared version section in its own changelog.
+The release tool validates package ownership with the same
+`isArtifactSignificantPath` policy used for registry-boundary comparisons.
 Existing published changelog sections are historical artifacts and are never
 rewritten.
 
@@ -413,40 +414,45 @@ assumes that `--force-publish` changes the semantic bump.
 ## Approval and repository security
 
 The validation job checks out full history, records HEAD, tests the release
-tooling, prints packages, old/proposed versions, dist-tag, tags, GitHub releases,
-and runs every product/package gate. Planning and execution both require a clean
-worktree. Its integrity-protected plan is uploaded for one day.
+tooling, prints packages, registry/prepared versions, npm actions, dist-tag, and
+tags, and runs every product/package gate. Planning and execution both require
+a clean worktree. Its integrity-protected plan is uploaded for one day.
 
 The publish job starts only after `npm-production` approval. It checks out
 `main` with full history, requires local HEAD and `origin/main` to equal the
-validated SHA, and performs a dry-run push before Lerna can create versions.
-Configure branch protection or repository rules so
-`github-actions[bot]` may push the Lerna version commit and annotated tags.
-Lerna pushes before npm publication, so a denied branch push cannot leave npm
-ahead of Git.
+validated SHA, and performs a dry-run push before Lerna can publish.
+`from-package --git-head` pins every npm artifact to that SHA. Only after all
+prepared artifacts are re-read and verified does the executor create and push
+their annotated tags. Configure branch protection or repository rules so
+`github-actions[bot]` may push those tags.
 
-The job grants `contents: write` for commits, tags, and GitHub releases,
-`id-token: write` for npm OIDC, and passes `GH_TOKEN` from
-`secrets.GITHUB_TOKEN`.
+The job grants `contents: write` for annotated tags, `id-token: write` for npm
+OIDC, and passes `GH_TOKEN` from `secrets.GITHUB_TOKEN`.
 
 As audited on 2026-06-28, GitHub's public branch endpoint reports
 `main.protected=false` and the repository rulesets endpoint returns no rulesets.
 With the workflow's explicit `contents: write`, `GITHUB_TOKEN` can therefore
-push the Lerna version commit, push annotated package tags, and create GitHub
-releases. The release preflight also requires a successful branch-push dry run.
+push annotated package tags. The release preflight also requires a successful
+branch-push dry run.
 
-Re-audit those settings before enabling protection. If a branch or tag ruleset
-later blocks the Actions token, either grant a narrowly scoped GitHub App a
-documented ruleset bypass or change to a release-PR workflow in which the
-version commit is reviewed and merged before `lerna publish from-git`. Do not
-solve this with an unreviewed long-lived personal access token.
+Re-audit those settings before enabling protection. If a tag ruleset later
+blocks the Actions token, grant a narrowly scoped GitHub App a documented
+ruleset bypass. Do not solve this with an unreviewed long-lived personal access
+token.
 
 ## Recovery
 
 Never create a new version merely to retry a partial release.
 
-- If npm fails after Lerna pushed the version commit and tags, fix
-  authentication/registry availability and retry:
+- If a prepared stable publication is partial, fix authentication or registry
+  availability and regenerate the stable plan at the same reviewed HEAD.
+  Targets already present with that exact npm `gitHead` are recorded as
+  `skip-existing`; missing targets remain `publish`. Rerunning `from-package`
+  completes only the missing artifacts, then verifies all targets before
+  creating tags.
+
+- If a legacy conventional release fails after Lerna pushed its version commit
+  and tags, retry through the explicit recovery operation:
 
   Run the `Release` workflow with operation `recover`, the original channel,
   the full SHA of the tagged release commit in `recovery_ref`, and confirmation

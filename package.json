@@ -164,7 +164,8 @@
     "tmp": "0.2.7",
     "form-data": "4.0.6",
     "multer": "2.2.0",
-    "tar": "7.5.16",
+    "typeorm": "0.3.31",
+    "tar": "7.5.22",
     "node-gyp": {
       "undici": "6.27.0"
     },
@@ -172,7 +173,7 @@
       "undici": "8.5.0",
       "archiver": "7.0.1"
     },
-    "js-yaml": "4.2.0"
+    "js-yaml": "4.3.0"
   },
   "jest": {
     "moduleFileExtensions": [

@@ -95,6 +95,9 @@ jobs:
       - name: Verify Lerna release configuration
         run: npm run release:verify
 
+      - name: Verify publishable workspace packages
+        run: npm run packages:verify
+
       - name: Test release tooling
         run: npm run test:release-tooling
 
@@ -167,6 +170,12 @@ jobs:
 
       - name: Verify package archives
         run: npm run pack:dry-run
+
+      - name: Verify storage Nest package boundaries
+        run: npm run pack:smoke:storage-nest
+
+      - name: Verify dashboard package isolation
+        run: npm run pack:smoke:dashboard-isolation
 
       - name: Verify RabbitMQ package install
         run: npm run pack:smoke:rabbitmq

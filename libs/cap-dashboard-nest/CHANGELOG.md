@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.3.0 (2026-07-26)
+
+### Features
+
+- apply the configurable stale pending inbox fallback window to dashboard retry
+  defaults
+
+### Bug Fixes
+
+- install CAP core, CAP Nest, and dashboard core as runtime dependencies for
+  reliable consumer resolution
+
 # 0.7.0-beta.4 (2026-06-24)
 
 **Note:** Version bump only for package @mikara89/cap-dashboard-nest

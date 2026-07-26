@@ -3,14 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## Unreleased
+## 2.3.0 (2026-07-26)
 
-- pass the optional core messaging diagnostics sink through all `CapModule`
-  configuration paths
+### Features
 
-- delegate messaging administration APIs through `CapService`
+- pass optional typed messaging diagnostics and message-envelope configuration
+  through all `CapModule` configuration paths
+- delegate guarded inbox/outbox administration and messaging snapshot APIs
+  through `CapService`
+- expose `inboxFallbackWindowMs` through the optional scheduler configuration
+- add awaited subscriber startup/shutdown lifecycle handling
 
-- expose the core inbox fallback-window scheduler option through `CapModule`
+### Compatibility
+
+- preserve existing subscriber, publisher, and optional scheduler signatures
 
 ## 2.2.0 (2026-06-26)
 

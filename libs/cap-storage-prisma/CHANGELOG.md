@@ -3,11 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## Unreleased
+## 2.3.0 (2026-07-26)
 
-- add guarded messaging requeue and aggregate snapshot administration support
+### Features
 
-- select stale pending inbox rows alongside due failed rows for scheduler recovery
+- add guarded inbox/outbox requeue operations and aggregate messaging snapshots
+- recover stale pending inbox rows alongside due failed rows with deterministic
+  ordering
 
 ## [2.2.2](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-storage-prisma@2.2.1...@mikara89/cap-storage-prisma@2.2.2) (2026-07-17)
 

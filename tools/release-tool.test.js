@@ -16,6 +16,7 @@ const {
   assertSimulatedPlanMatches,
   bootstrapConfirmation,
   buildBootstrapPackages,
+  buildPreparedPackages,
   buildReleaseCommand,
   changelogSection,
   coordinatedMajorConfirmation,
@@ -1027,6 +1028,76 @@ test('patch beta release uses beta dist-tag and prerelease flags', () => {
     ]);
     assert.equal(versions['@fixture/a'].version, '2.3.1-beta.0');
   });
+});
+
+test('prepared stable releases publish reviewed versions from package', () => {
+  const commandSpec = buildReleaseCommand(
+    {
+      operation: 'release',
+      channel: 'stable',
+      coordinatedMajor: false,
+    },
+    { prepared: true, gitHead: 'approved-head' },
+  );
+  assert.deepEqual(commandSpec.args, [
+    'publish',
+    'from-package',
+    '--yes',
+    '--registry',
+    'https://registry.npmjs.org/',
+    '--dist-tag',
+    'latest',
+    '--git-head',
+    'approved-head',
+  ]);
+  assert.doesNotMatch(commandSpec.args.join(' '), /force-publish|conventional/u);
+});
+
+test('prepared package planning uses npm latest and does not republish targets', async () => {
+  const head = 'approved-head';
+  const baseline = 'baseline-head';
+  const packages = [{ name: '@fixture/a', version: '1.1.0' }];
+  const metadata = {
+    'dist-tags': { latest: '1.0.0' },
+    versions: { '1.0.0': { gitHead: baseline } },
+  };
+  const fetchImpl = async () => ({
+    status: 200,
+    ok: true,
+    json: async () => metadata,
+  });
+  const options = {
+    head,
+    fetchImpl,
+    packageAtCommit: () => ({ name: '@fixture/a', version: '1.1.0' }),
+    commitExists: () => true,
+    getTagCommit: (tag) => (tag.endsWith('@1.0.0') ? baseline : undefined),
+    sourceChanged: (from, to) => from === baseline && to === 'HEAD',
+    readChangelog: () =>
+      '# Change Log\n\n## 1.1.0 (2026-07-26)\n\n- add feature\n',
+  };
+
+  const plan = await buildPreparedPackages(packages, options);
+  assert.deepEqual(
+    plan.map((pkg) => [
+      pkg.name,
+      pkg.oldVersion,
+      pkg.newVersion,
+      pkg.changeType,
+      pkg.targetExists,
+      pkg.tagTarget,
+    ]),
+    [['@fixture/a', '1.0.0', '1.1.0', 'minor', false, head]],
+  );
+
+  metadata.versions['1.1.0'] = { gitHead: head };
+  metadata['dist-tags'].latest = '1.1.0';
+  assert.deepEqual(
+    (
+      await buildPreparedPackages(packages, options)
+    ).map((pkg) => [pkg.name, pkg.npmAction, pkg.targetExists]),
+    [['@fixture/a', 'skip-existing', true]],
+  );
 });
 
 test('feature beta release starts the next minor beta line', () =>

@@ -1,6 +1,6 @@
 {
   "name": "@mikara89/cap-express",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Express adapter for the framework-agnostic CAP engine",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

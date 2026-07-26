@@ -3,15 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## Unreleased
+## 2.4.0 (2026-07-26)
 
-- add optional framework-neutral typed messaging diagnostics for durable inbox
-  and outbox transitions
+### Features
 
-- add optional messaging administration ports, requeue APIs, and operational snapshots
+- recover stale pending inbox rows through the optional
+  `inboxFallbackWindowMs` scheduler setting while retaining failed-row recovery
+- add optional framework-neutral messaging administration ports, guarded inbox
+  and outbox requeue APIs, aggregate snapshots, and capability type guards
+- add optional typed diagnostics for durable inbox and outbox transitions
 
-- recover stale pending inbox rows after the configurable four-minute fallback
-  window while retaining due failed-row recovery
+### Compatibility
+
+- preserve at-least-once delivery and idempotent inbox semantics
+- keep administration and diagnostics optional for third-party storage and
+  transport implementations
+- keep existing publisher, subscriber, and base storage-port contracts
+  compatible; no transactional inbox processing is introduced
 
 ## [2.3.1](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-core@2.3.0...@mikara89/cap-core@2.3.1) (2026-07-17)
 
