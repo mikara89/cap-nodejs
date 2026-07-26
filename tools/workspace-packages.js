@@ -104,6 +104,17 @@ function validatePackageIdentities(packages, options = {}) {
         `${packagePath} field private must not be true for a publishable package.`,
       );
     }
+    if (!options.fixture) {
+      const publishConfig = pkg.manifest?.publishConfig;
+      if (
+        publishConfig?.registry !== 'https://registry.npmjs.org/' ||
+        publishConfig.access !== 'public'
+      ) {
+        fail(
+          `${packagePath} publishConfig must target https://registry.npmjs.org/ with public access.`,
+        );
+      }
+    }
 
     const declaredRelativeDir = normalizePath(
       pkg.relativeDir || path.relative(cwd, pkg.dir),

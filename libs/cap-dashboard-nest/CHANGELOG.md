@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.3.0](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-dashboard-nest@2.2.0...@mikara89/cap-dashboard-nest@2.3.0) (2026-07-25)
+
+
+### Features
+
+* **inbox:** recover stale pending messages during scheduled retries ([912557a](https://github.com/mikara89/cap-nodejs/commit/912557a94af07c8da4aad81aaecd41bf91815738))
+
+
+### Bug Fixes
+
+* **release:** restore Lerna release authority ([044f165](https://github.com/mikara89/cap-nodejs/commit/044f1658247a8ba6efb4870ca1c76610138a948e))
+
+
+### Reverts
+
+* Revert "chore(release): prepare 2.3.0" ([de35e0e](https://github.com/mikara89/cap-nodejs/commit/de35e0ef6bec2f4aa6b94092298908be91186c11))
+
+
+
+
 # 0.7.0-beta.4 (2026-06-24)
 
 **Note:** Version bump only for package @mikara89/cap-dashboard-nest

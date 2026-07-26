@@ -937,6 +937,27 @@ function buildReleaseCommand(input, options = {}) {
   const distTag = distTagFor(channel);
   const args = ['publish'];
 
+  if (options.prepared === true) {
+    if (
+      operation !== 'release' ||
+      channel !== 'stable' ||
+      coordinatedMajor
+    ) {
+      fail(
+        'Prepared versions support only a normal independent stable release.',
+      );
+    }
+    args.push(
+      'from-package',
+      '--yes',
+      '--registry',
+      registry,
+      '--dist-tag',
+      'latest',
+    );
+    return { args, distTag, normalized };
+  }
+
   if (operation === 'bootstrap') {
     args.push(
       'from-package',
@@ -1095,6 +1116,15 @@ function assertPlanInvariants(plan, packages) {
   for (const change of plan.packages) {
     const before = byName.get(change.name)?.version;
     if (!before) fail(`Unknown package in plan: ${change.name}.`);
+    if (plan.preparedVersions === true) {
+      if (change.newVersion !== before) {
+        fail(`${change.name} prepared version does not match its manifest.`);
+      }
+      if (!semver.gt(change.newVersion, change.oldVersion)) {
+        fail(`${change.name} prepared version is not newer than npm latest.`);
+      }
+      continue;
+    }
     const beforePrerelease = semver.prerelease(before);
     const afterPrerelease = semver.prerelease(change.newVersion);
     if (
@@ -1375,6 +1405,35 @@ async function buildBootstrapPackages(packages, options = {}) {
   return items;
 }
 
+async function buildPreparedPackages(packages, options = {}) {
+  const items = [];
+  for (const pkg of packages) {
+    const metadata = await registryMetadata(pkg.name, options.fetchImpl);
+    const latest = metadata?.['dist-tags']?.latest;
+    if (!latest) fail(`${pkg.name} has no npm latest dist-tag.`);
+    if (metadata?.versions?.[pkg.version]) continue;
+    if (!semver.gt(pkg.version, latest)) {
+      fail(
+        `${pkg.name}@${pkg.version} is not published, but it is not newer than npm latest ${latest}.`,
+      );
+    }
+    if (!changelogSection(readPackageChangelog(pkg), pkg.version)) {
+      fail(
+        `${pkg.name}@${pkg.version} is prepared for publication but has no package-owned changelog section.`,
+      );
+    }
+    items.push({
+      name: pkg.name,
+      oldVersion: latest,
+      newVersion: pkg.version,
+      tag: packageTag(pkg.name, pkg.version),
+      githubRelease: undefined,
+      npmAction: 'publish',
+    });
+  }
+  return items;
+}
+
 function planHash(plan) {
   const copy = { ...plan };
   delete copy.integrity;
@@ -1399,8 +1458,18 @@ async function createPlan(input, options = {}) {
   let plannedPackages;
   let forcedDependents = [];
   let commandOptions = {};
+  const preparedPackages =
+    inputs.operation === 'release' &&
+    inputs.channel === 'stable' &&
+    !inputs.coordinatedMajor
+      ? await buildPreparedPackages(packages, options)
+      : [];
 
-  if (inputs.operation === 'bootstrap') {
+  if (preparedPackages.length > 0) {
+    relevant = preparedPackages.map((pkg) => pkg.name);
+    plannedPackages = preparedPackages;
+    commandOptions = { prepared: true };
+  } else if (inputs.operation === 'bootstrap') {
     commandOptions = { gitHead: validatedHead };
     plannedPackages = await buildBootstrapPackages(packages, {
       ...options,
@@ -1530,6 +1599,7 @@ async function createPlan(input, options = {}) {
     inputs,
     distTag: command.distTag,
     forcedDependents,
+    preparedVersions: commandOptions.prepared === true,
     relevantPackages: relevant,
     packages: plannedPackages,
     noChanges: plannedPackages.length === 0,
@@ -1718,6 +1788,12 @@ async function executePlan(plan, options = {}) {
       cwd,
     );
     assertSimulatedPlanMatches(plan, current);
+    validateGeneratedState(cwd, {
+      dependencyRoot: options.dependencyRoot || cwd,
+    });
+  } else if (plan.preparedVersions === true) {
+    const prepared = await buildPreparedPackages(discoverPackages(cwd), options);
+    assertSimulatedPlanMatches(plan, prepared);
     validateGeneratedState(cwd, {
       dependencyRoot: options.dependencyRoot || cwd,
     });

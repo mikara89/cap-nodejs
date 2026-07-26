@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.3.0](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-nest@2.2.0...@mikara89/cap-nest@2.3.0) (2026-07-25)
+
+
+### Features
+
+* **core:** add a versioned CAP message envelope ([de2a854](https://github.com/mikara89/cap-nodejs/commit/de2a8545ead5cf7fdf2f5eb9230c7a23c1a3fc7b))
+* **core:** add messaging administration APIs ([#15](https://github.com/mikara89/cap-nodejs/issues/15)) ([2dc1ae9](https://github.com/mikara89/cap-nodejs/commit/2dc1ae983187d4e599ead38ee0bc814036d59ae0))
+* **core:** implement awaited subscriber startup lifecycle ([580d38c](https://github.com/mikara89/cap-nodejs/commit/580d38cdd90270090af5015709d97185d77e4c82))
+* **envelope:** preserve package and bridge compatibility ([b4bdb97](https://github.com/mikara89/cap-nodejs/commit/b4bdb9738b4471273d3081813f840df3d9385dda))
+* **inbox:** recover stale pending messages during scheduled retries ([912557a](https://github.com/mikara89/cap-nodejs/commit/912557a94af07c8da4aad81aaecd41bf91815738))
+
+
+### Bug Fixes
+
+* **core:** fence outbox claim ownership ([2a381ad](https://github.com/mikara89/cap-nodejs/commit/2a381adcd8c158779e6260a058851ce378bc6209))
+
+
+
+
 ## Unreleased
 
 - pass the optional core messaging diagnostics sink through all `CapModule`
