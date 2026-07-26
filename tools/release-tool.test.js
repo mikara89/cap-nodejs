@@ -25,6 +25,7 @@ const {
   createBootstrapTags,
   discoverPackages,
   distTagFor,
+  ensureGitHubRelease,
   executePlan,
   hasReleaseRelevantCommit,
   isArtifactSignificantPath,
@@ -859,7 +860,7 @@ test('prepared versions use from-package and carry immutable head tags', async (
         tagTarget: 'approved-head',
         tagAction: 'create',
         tagTiming: 'before-publish-for-recovery',
-        githubRelease: undefined,
+        githubRelease: '@fixture/a@1.1.0',
         npmAction: 'publish',
       },
     ]);
@@ -926,6 +927,62 @@ test('prepared release tags are created at the approved head and are never moved
       /moved after planning/,
     );
   }));
+
+test('GitHub releases are idempotent and remain bound to approved tags', () => {
+  const change = {
+    name: '@fixture/a',
+    tag: '@fixture/a@1.1.0',
+    githubRelease: '@fixture/a@1.1.0',
+    tagTarget: 'a'.repeat(40),
+  };
+  const calls = [];
+  const ghRun = (commandName, args, options) => {
+    calls.push({ commandName, args, options });
+    return {
+      status: 0,
+      stdout: JSON.stringify({
+        tagName: '@fixture/a@1.1.0',
+        targetCommitish: 'a'.repeat(40),
+      }),
+      stderr: '',
+    };
+  };
+  assert.equal(ensureGitHubRelease(change, { ghRun }), 'keep');
+  assert.equal(calls.length, 1);
+
+  const missingCalls = [];
+  assert.equal(
+    ensureGitHubRelease(change, {
+      ghRun: (commandName, args, options) => {
+        missingCalls.push({ commandName, args, options });
+        return missingCalls.length === 1
+          ? { status: 1, stdout: '', stderr: 'HTTP 404: release not found' }
+          : { status: 0, stdout: '', stderr: '' };
+      },
+    }),
+    'create',
+  );
+  assert.deepEqual(missingCalls[1].args.slice(0, 3), [
+    'release',
+    'create',
+    '@fixture/a@1.1.0',
+  ]);
+
+  assert.throws(
+    () =>
+      ensureGitHubRelease(change, {
+        ghRun: () => ({
+          status: 0,
+          stdout: JSON.stringify({
+            tagName: '@fixture/a@1.1.0',
+            targetCommitish: 'b'.repeat(40),
+          }),
+          stderr: '',
+        }),
+      }),
+    /targets .* expected/,
+  );
+});
 
 test('prepared publication requires the approved npm gitHead', async () =>
   withAsyncFixture(

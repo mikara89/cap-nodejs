@@ -15,6 +15,7 @@ const {
 const rootDir = path.resolve(__dirname, '..');
 const registry = 'https://registry.npmjs.org/';
 const repositoryUrl = 'https://github.com/mikara89/cap-nodejs';
+const repositorySlug = 'mikara89/cap-nodejs';
 const bootstrapConfirmation = 'PUBLISH_ALL_TO_NPM';
 const coordinatedMajorConfirmation = 'PUBLISH_COORDINATED_MAJOR';
 const recoveryConfirmation = 'RECOVER_PARTIAL_RELEASE';
@@ -1194,7 +1195,9 @@ function recoveryPackagesAtHead(packages, head, cwd = rootDir) {
       oldVersion: pkg.version,
       newVersion: pkg.version,
       tag: packageTag(pkg.name, pkg.version),
-      githubRelease: undefined,
+      tagTarget: head,
+      tagAction: 'keep',
+      githubRelease: packageTag(pkg.name, pkg.version),
     }));
 }
 
@@ -1437,7 +1440,7 @@ async function buildPreparedPackages(packages, options = {}) {
       tagTarget: target,
       tagAction: existing ? 'keep' : 'create',
       tagTiming: 'before-publish-for-recovery',
-      githubRelease: undefined,
+      githubRelease: tag,
       npmAction: 'publish',
     });
   }
@@ -1475,6 +1478,76 @@ async function verifyPreparedPublication(plan, options = {}) {
       options,
     );
   }
+}
+
+function isMissingGitHubRelease(result) {
+  return /(?:HTTP 404|release not found|not found)/iu.test(
+    [result.stdout, result.stderr].filter(Boolean).join('\n'),
+  );
+}
+
+function ensureGitHubRelease(change, options = {}) {
+  const gh = options.ghRun || run;
+  const release = change.githubRelease || change.tag;
+  if (!release) fail(`${change.name} has no approved GitHub release tag.`);
+  const viewed = gh(
+    'gh',
+    [
+      'release',
+      'view',
+      release,
+      '--repo',
+      repositorySlug,
+      '--json',
+      'tagName,targetCommitish',
+    ],
+    { allowFailure: true },
+  );
+  if (viewed.status === 0) {
+    let existing;
+    try {
+      existing = JSON.parse(viewed.stdout);
+    } catch (error) {
+      fail(
+        `Could not parse existing GitHub release ${release}: ${error.message}`,
+      );
+    }
+    if (existing.tagName !== release) {
+      fail(`GitHub release ${release} identifies as ${existing.tagName}.`);
+    }
+    if (
+      /^[0-9a-f]{40}$/iu.test(existing.targetCommitish || '') &&
+      existing.targetCommitish !== change.tagTarget
+    ) {
+      fail(
+        `GitHub release ${release} targets ${existing.targetCommitish}, expected ${change.tagTarget}.`,
+      );
+    }
+    return 'keep';
+  }
+  if (!isMissingGitHubRelease(viewed)) {
+    fail(`Could not inspect GitHub release ${release}.`);
+  }
+  gh(
+    'gh',
+    [
+      'release',
+      'create',
+      release,
+      '--repo',
+      repositorySlug,
+      '--verify-tag',
+      '--title',
+      release,
+      '--generate-notes',
+    ],
+    { inherit: true },
+  );
+  return 'create';
+}
+
+function ensureGitHubReleases(plan, options = {}) {
+  return plan.packages.map((change) => ensureGitHubRelease(change, options));
 }
 
 function planHash(plan) {
@@ -1920,6 +1993,9 @@ async function executePlan(plan, options = {}) {
   });
   if (plan.preparedVersions === true) {
     await verifyPreparedPublication(plan, options);
+    ensureGitHubReleases(plan, options);
+  } else if (plan.inputs.operation === 'recover') {
+    ensureGitHubReleases(plan, options);
   }
   if (plan.inputs.operation === 'bootstrap') {
     const newNames = plan.packages
@@ -2062,6 +2138,8 @@ module.exports = {
   createPlan,
   discoverPackages,
   distTagFor,
+  ensureGitHubRelease,
+  ensureGitHubReleases,
   executePlan,
   hasReleaseRelevantCommit,
   isArtifactSignificantPath,
