@@ -23,6 +23,7 @@ const {
   recoveryConfirmation,
   coordinatedTagCommit,
   createBootstrapTags,
+  createGitHubReleases,
   discoverPackages,
   distTagFor,
   executePlan,
@@ -56,6 +57,10 @@ const releaseWorkflow = fs.readFileSync(
 );
 const ciWorkflow = fs.readFileSync(
   path.join(rootDir, '.github', 'workflows', 'ci.yml'),
+  'utf8',
+);
+const releaseGuide = fs.readFileSync(
+  path.join(rootDir, 'docs', 'release.md'),
   'utf8',
 );
 const commandTimeoutMs = 60_000;
@@ -1050,7 +1055,10 @@ test('prepared stable releases publish reviewed versions from package', () => {
     '--git-head',
     'approved-head',
   ]);
-  assert.doesNotMatch(commandSpec.args.join(' '), /force-publish|conventional/u);
+  assert.doesNotMatch(
+    commandSpec.args.join(' '),
+    /force-publish|conventional/u,
+  );
 });
 
 test('prepared package planning uses npm latest and does not republish targets', async () => {
@@ -1066,12 +1074,18 @@ test('prepared package planning uses npm latest and does not republish targets',
     ok: true,
     json: async () => metadata,
   });
+  let targetTagged = false;
   const options = {
     head,
     fetchImpl,
     packageAtCommit: () => ({ name: '@fixture/a', version: '1.1.0' }),
     commitExists: () => true,
-    getTagCommit: (tag) => (tag.endsWith('@1.0.0') ? baseline : undefined),
+    getTagCommit: (tag) => {
+      if (tag === packageTag('@fixture/a', '1.0.0')) return baseline;
+      if (targetTagged && tag === packageTag('@fixture/a', '1.1.0'))
+        return head;
+      return undefined;
+    },
     sourceChanged: (from, to) => from === baseline && to === 'HEAD',
     readChangelog: () =>
       '# Change Log\n\n## 1.1.0 (2026-07-26)\n\n- add feature\n',
@@ -1086,17 +1100,183 @@ test('prepared package planning uses npm latest and does not republish targets',
       pkg.changeType,
       pkg.targetExists,
       pkg.tagTarget,
+      pkg.githubRelease,
     ]),
-    [['@fixture/a', '1.0.0', '1.1.0', 'minor', false, head]],
+    [
+      [
+        '@fixture/a',
+        '1.0.0',
+        '1.1.0',
+        'minor',
+        false,
+        head,
+        '@fixture/a@1.1.0',
+      ],
+    ],
   );
 
   metadata.versions['1.1.0'] = { gitHead: head };
   metadata['dist-tags'].latest = '1.1.0';
   assert.deepEqual(
-    (
-      await buildPreparedPackages(packages, options)
-    ).map((pkg) => [pkg.name, pkg.npmAction, pkg.targetExists]),
+    (await buildPreparedPackages(packages, options)).map((pkg) => [
+      pkg.name,
+      pkg.npmAction,
+      pkg.targetExists,
+    ]),
     [['@fixture/a', 'skip-existing', true]],
+  );
+
+  targetTagged = true;
+  assert.deepEqual(await buildPreparedPackages(packages, options), []);
+  assert.deepEqual(
+    (
+      await buildPreparedPackages(packages, {
+        ...options,
+        includeCompletedAtHead: true,
+      })
+    ).map((pkg) => [
+      pkg.name,
+      pkg.npmAction,
+      pkg.targetExists,
+      pkg.githubRelease,
+    ]),
+    [['@fixture/a', 'skip-existing', true, '@fixture/a@1.1.0']],
+  );
+});
+
+test('prepared tags use Release annotations while bootstrap tags keep Baseline annotations', () =>
+  withFixture([{ id: 'a', name: '@fixture/a', version: '1.0.0' }], (cwd) => {
+    const head = command('git', ['rev-parse', 'HEAD'], cwd).trim();
+    const releaseTag = packageTag('@fixture/a', '1.1.0');
+    const baselineTag = packageTag('@fixture/a', '1.2.0');
+
+    createBootstrapTags(
+      {
+        packages: [
+          {
+            name: '@fixture/a',
+            tag: releaseTag,
+            tagTarget: head,
+          },
+        ],
+      },
+      { cwd, push: false, annotation: 'Release' },
+    );
+    createBootstrapTags(
+      {
+        packages: [
+          {
+            name: '@fixture/a',
+            tag: baselineTag,
+            tagTarget: head,
+          },
+        ],
+      },
+      { cwd, push: false },
+    );
+
+    assert.match(
+      command(
+        'git',
+        ['for-each-ref', '--format=%(contents)', `refs/tags/${releaseTag}`],
+        cwd,
+      ),
+      new RegExp(`Release ${releaseTag}`),
+    );
+    assert.match(
+      command(
+        'git',
+        ['for-each-ref', '--format=%(contents)', `refs/tags/${baselineTag}`],
+        cwd,
+      ),
+      new RegExp(`Baseline ${baselineTag}`),
+    );
+  }));
+
+test('prepared GitHub Releases are changelog-backed and idempotent', () => {
+  const createdTag = packageTag('@fixture/a', '1.1.0');
+  const existingTag = packageTag('@fixture/b', '2.1.0');
+  const calls = [];
+  let releaseNotes;
+  const runGitHub = (commandName, args) => {
+    calls.push([commandName, ...args]);
+    if (args[1] === 'view') {
+      return args[2] === existingTag
+        ? { status: 0, stdout: JSON.stringify({ tagName: existingTag }) }
+        : { status: 1, stderr: 'release not found' };
+    }
+    if (args[1] === 'create') {
+      const notesPath = args[args.indexOf('--notes-file') + 1];
+      releaseNotes = fs.readFileSync(notesPath, 'utf8');
+      return { status: 0 };
+    }
+    throw new Error(`Unexpected GitHub command: ${args.join(' ')}`);
+  };
+  const plan = {
+    packages: [
+      {
+        name: '@fixture/a',
+        newVersion: '1.1.0',
+        tag: createdTag,
+        githubRelease: createdTag,
+      },
+      {
+        name: '@fixture/b',
+        newVersion: '2.1.0',
+        tag: existingTag,
+        githubRelease: existingTag,
+      },
+    ],
+  };
+
+  const result = createGitHubReleases(plan, {
+    workspacePackages: [{ name: '@fixture/a' }, { name: '@fixture/b' }],
+    readChangelog: (pkg) =>
+      `# Change Log\n\n## ${pkg.name === '@fixture/a' ? '1.1.0' : '2.1.0'} (2026-07-26)\n\n- reviewed release\n`,
+    runGitHub,
+  });
+
+  assert.deepEqual(result, {
+    created: [createdTag],
+    skipped: [existingTag],
+  });
+  assert.match(releaseNotes, /## 1\.1\.0/);
+  assert.match(releaseNotes, /reviewed release/);
+  const createCall = calls.find((call) => call[2] === 'create');
+  assert.deepEqual(createCall.slice(0, 5), [
+    'gh',
+    'release',
+    'create',
+    createdTag,
+    '--repo',
+  ]);
+  assert.ok(createCall.includes('--verify-tag'));
+  assert.ok(createCall.includes('mikara89/cap-nodejs'));
+});
+
+test('GitHub Release verification fails closed on credential errors', () => {
+  const tag = packageTag('@fixture/a', '1.1.0');
+  assert.throws(
+    () =>
+      createGitHubReleases(
+        {
+          packages: [
+            {
+              name: '@fixture/a',
+              newVersion: '1.1.0',
+              tag,
+              githubRelease: tag,
+            },
+          ],
+        },
+        {
+          workspacePackages: [{ name: '@fixture/a' }],
+          readChangelog: () =>
+            '# Change Log\n\n## 1.1.0 (2026-07-26)\n\n- release\n',
+          runGitHub: () => ({ status: 1, stderr: 'HTTP 401 unauthorized' }),
+        },
+      ),
+    /Could not verify GitHub Release/,
   );
 });
 
@@ -1830,6 +2010,15 @@ test('release workflow exposes only validated Lerna modes and protects publicati
   assert.match(
     releaseWorkflow,
     /GH_TOKEN: \$\{\{ secrets\.RELEASE_GITHUB_TOKEN \}\}/,
+  );
+  assert.match(
+    releaseGuide,
+    /uses `secrets\.RELEASE_GITHUB_TOKEN` both for the publish checkout/,
+  );
+  assert.doesNotMatch(releaseGuide, /secrets\.GITHUB_TOKEN/);
+  assert.match(
+    releaseGuide,
+    /creates one GitHub Release per package from its reviewed/,
   );
   assert.match(
     releaseWorkflow,

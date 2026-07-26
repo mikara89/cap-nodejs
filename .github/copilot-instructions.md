@@ -118,7 +118,7 @@ package imports at `dist`.
   `npm-production` environment after printing the registry-verified prepared
   plan.
 - Release uses Node 22, `npm ci`, full validation, package dry-run, independent
-  annotated tags, npm OIDC, and Lerna publish.
+  annotated tags and GitHub Releases, npm OIDC, and Lerna publish.
 - Normal stable releases use reviewed package versions and package-owned
   changelogs committed by a release-preparation PR; Lerna publishes them with
   `from-package` without calculating a second bump.

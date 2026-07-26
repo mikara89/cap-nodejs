@@ -291,8 +291,14 @@ npx lerna publish from-package --yes \
 The planner reads npm `latest`, exact target availability, dist-tags, and
 `gitHead`; it does not calculate a second version bump. Lerna publishes only
 the npm-missing prepared versions in dependency order. After publication, the
-executor verifies every artifact records the approved HEAD before creating the
-independent annotated tags.
+executor verifies every artifact records the approved HEAD, creates and pushes
+the independent annotated tags with `Release @mikara89/package@version`
+annotations, and then creates one GitHub Release per package from its reviewed
+changelog section. Existing GitHub Releases are detected and skipped so the
+same approved publish job can be retried after a partial GitHub API failure.
+The verified Lerna `createRelease: "github"` setting remains required for
+legacy conventional/prerelease paths; prepared stable releases enforce the
+same GitHub Release contract in the post-publication executor.
 
 Verified release configuration ignores package-local tests, fixtures, Markdown,
 and explicitly test-, lint-, or documentation-only TypeScript configurations.
@@ -423,17 +429,22 @@ The publish job starts only after `npm-production` approval. It checks out
 validated SHA, and performs a dry-run push before Lerna can publish.
 `from-package --git-head` pins every npm artifact to that SHA. Only after all
 prepared artifacts are re-read and verified does the executor create and push
-their annotated tags. Configure branch protection or repository rules so
-`github-actions[bot]` may push those tags.
+their annotated tags and create the matching GitHub Releases. Configure branch
+protection or repository rules so the configured release credential may push
+those tags and create releases.
 
 The job grants `contents: write` for annotated tags, `id-token: write` for npm
-OIDC, and passes `GH_TOKEN` from `secrets.GITHUB_TOKEN`.
+OIDC, and uses `secrets.RELEASE_GITHUB_TOKEN` both for the publish checkout and
+as `GH_TOKEN`. Configure that secret as a narrowly scoped GitHub App token or
+fine-grained personal access token with repository Contents read/write access;
+it must be allowed to push the independent tags and create GitHub Releases.
+The workflow does not use the automatically provided `GITHUB_TOKEN` for these
+operations.
 
 As audited on 2026-06-28, GitHub's public branch endpoint reports
 `main.protected=false` and the repository rulesets endpoint returns no rulesets.
-With the workflow's explicit `contents: write`, `GITHUB_TOKEN` can therefore
-push annotated package tags. The release preflight also requires a successful
-branch-push dry run.
+The release preflight still requires a successful branch-push dry run using
+`RELEASE_GITHUB_TOKEN`.
 
 Re-audit those settings before enabling protection. If a tag ruleset later
 blocks the Actions token, grant a narrowly scoped GitHub App a documented
@@ -449,7 +460,7 @@ Never create a new version merely to retry a partial release.
   Targets already present with that exact npm `gitHead` are recorded as
   `skip-existing`; missing targets remain `publish`. Rerunning `from-package`
   completes only the missing artifacts, then verifies all targets before
-  creating tags.
+  creating tags and GitHub Releases.
 
 - If a legacy conventional release fails after Lerna pushed its version commit
   and tags, retry through the explicit recovery operation:
@@ -469,9 +480,12 @@ Never create a new version merely to retry a partial release.
 
 - If bootstrap publication is partial, rerun the same bootstrap operation;
   `from-package` skips versions already on npm.
-- If npm succeeded but a GitHub release is missing, recreate it from the
-  existing annotated tag with `gh release create <tag> --verify-tag`. Do not
-  change package versions or tags.
+- If npm and tags succeeded but GitHub Release creation was partial, rerun the
+  failed publish job with its original approved plan. Existing releases are
+  skipped and only missing releases are created. As a manual fallback, recreate
+  a missing release from its existing annotated tag with
+  `gh release create <tag> --verify-tag`; do not change package versions or
+  tags.
 
 ## Validation
 

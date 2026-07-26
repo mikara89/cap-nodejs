@@ -945,11 +945,7 @@ function buildReleaseCommand(input, options = {}) {
   const args = ['publish'];
 
   if (options.prepared === true) {
-    if (
-      operation !== 'release' ||
-      channel !== 'stable' ||
-      coordinatedMajor
-    ) {
+    if (operation !== 'release' || channel !== 'stable' || coordinatedMajor) {
       fail(
         'Prepared versions are supported only for a normal independent stable release.',
       );
@@ -1316,22 +1312,25 @@ async function buildPreparedPackages(packages, options = {}) {
           );
         }
         if (
-          sourceChanged(
-            publishedTarget.gitHead,
-            'HEAD',
-            pkg,
-            cwd,
-            undefined,
-            { ignoreVersion: true },
-          )
+          sourceChanged(publishedTarget.gitHead, 'HEAD', pkg, cwd, undefined, {
+            ignoreVersion: true,
+          })
         ) {
           fail(
             `${pkg.name} has publishable changes since npm ${latest}, but its manifest version was not prepared.`,
           );
         }
-        continue;
+        const completedAtApprovedHead =
+          publishedTarget.gitHead === currentHead &&
+          existingTargetTag === currentHead;
+        if (
+          options.includeCompletedAtHead !== true ||
+          !completedAtApprovedHead
+        ) {
+          continue;
+        }
       }
-      if (publishedTarget.gitHead !== currentHead) {
+      if (!existingTargetTag && publishedTarget.gitHead !== currentHead) {
         fail(
           `${pkg.name}@${pkg.version} exists on npm without a local tag, but its gitHead is ${publishedTarget.gitHead}, not approved HEAD ${currentHead}.`,
         );
@@ -1430,7 +1429,7 @@ async function buildPreparedPackages(packages, options = {}) {
         baselineTagTarget === baselinePublished.gitHead,
       tag: packageTag(pkg.name, pkg.version),
       tagTarget: currentHead,
-      githubRelease: undefined,
+      githubRelease: packageTag(pkg.name, pkg.version),
     });
   }
 
@@ -1887,6 +1886,7 @@ function restoreRecoveryExecutor(cwd = rootDir) {
 
 function createBootstrapTags(plan, options = {}) {
   const cwd = options.cwd || rootDir;
+  const annotation = options.annotation || 'Baseline';
   const packageNames = options.packageNames
     ? new Set(options.packageNames)
     : undefined;
@@ -1906,7 +1906,7 @@ function createBootstrapTags(plan, options = {}) {
     if (!existing || pkg.tagAction === 'move') {
       run(
         'git',
-        ['tag', '-a', pkg.tag, pkg.tagTarget, '-m', `Baseline ${pkg.tag}`],
+        ['tag', '-a', pkg.tag, pkg.tagTarget, '-m', `${annotation} ${pkg.tag}`],
         { cwd },
       );
       if (pkg.tagAction !== 'move') created.push(pkg.tag);
@@ -1919,6 +1919,104 @@ function createBootstrapTags(plan, options = {}) {
       run('git', ['push', '--force', 'origin', tag], { cwd, inherit: true });
   }
   return created;
+}
+
+function createGitHubReleases(plan, options = {}) {
+  const cwd = options.cwd || rootDir;
+  const packageNames = options.packageNames
+    ? new Set(options.packageNames)
+    : undefined;
+  const workspacePackages = options.workspacePackages || discoverPackages(cwd);
+  const byName = new Map(workspacePackages.map((pkg) => [pkg.name, pkg]));
+  const readChangelog = options.readChangelog || readPackageChangelog;
+  const runGitHub = options.runGitHub || run;
+  const created = [];
+  const skipped = [];
+
+  for (const pkg of plan.packages) {
+    if (packageNames && !packageNames.has(pkg.name)) continue;
+    if (!pkg.githubRelease) continue;
+    if (pkg.githubRelease !== pkg.tag) {
+      fail(
+        `${pkg.name} GitHub Release ${pkg.githubRelease} must match tag ${pkg.tag}.`,
+      );
+    }
+
+    const view = runGitHub(
+      'gh',
+      [
+        'release',
+        'view',
+        pkg.githubRelease,
+        '--repo',
+        'mikara89/cap-nodejs',
+        '--json',
+        'tagName',
+      ],
+      { cwd, allowFailure: true },
+    );
+    if (view?.status === 0) {
+      skipped.push(pkg.githubRelease);
+      continue;
+    }
+    const viewOutput = [view?.stdout, view?.stderr]
+      .filter(Boolean)
+      .join('\n')
+      .trim();
+    if (!/release not found|HTTP 404/iu.test(viewOutput)) {
+      fail(
+        `Could not verify GitHub Release ${pkg.githubRelease}.${viewOutput ? `\n${viewOutput}` : ''}`,
+      );
+    }
+
+    const workspacePackage = byName.get(pkg.name);
+    if (!workspacePackage) {
+      fail(`Unknown workspace package for GitHub Release ${pkg.name}.`);
+    }
+    const releaseNotes = changelogSection(
+      readChangelog(workspacePackage),
+      pkg.newVersion,
+    );
+    if (!releaseNotes) {
+      fail(
+        `${pkg.name}@${pkg.newVersion} has no changelog section for its GitHub Release.`,
+      );
+    }
+
+    const notesDirectory = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'cap-github-release-'),
+    );
+    const notesPath = path.join(notesDirectory, 'notes.md');
+    try {
+      fs.writeFileSync(notesPath, `${releaseNotes.text.trim()}\n`, 'utf8');
+      const result = runGitHub(
+        'gh',
+        [
+          'release',
+          'create',
+          pkg.githubRelease,
+          '--repo',
+          'mikara89/cap-nodejs',
+          '--verify-tag',
+          '--title',
+          pkg.githubRelease,
+          '--notes-file',
+          notesPath,
+        ],
+        { cwd, inherit: true },
+      );
+      if (result?.status !== 0) {
+        fail(
+          `Failed to create GitHub Release ${pkg.githubRelease} with exit ${result?.status ?? 'unknown'}.`,
+        );
+      }
+    } finally {
+      fs.rmSync(notesDirectory, { recursive: true, force: true });
+    }
+    created.push(pkg.githubRelease);
+  }
+
+  return { created, skipped };
 }
 
 async function executePlan(plan, options = {}) {
@@ -1938,6 +2036,7 @@ async function executePlan(plan, options = {}) {
       ...options,
       cwd,
       head: plan.headSha,
+      includeCompletedAtHead: true,
     });
     const expected = plan.packages.map((pkg) => ({
       name: pkg.name,
@@ -2060,8 +2159,13 @@ async function executePlan(plan, options = {}) {
     }
     createBootstrapTags(
       { ...plan, packages: published },
-      { ...options, packageNames: candidateNames },
+      {
+        ...options,
+        packageNames: candidateNames,
+        annotation: 'Release',
+      },
     );
+    createGitHubReleases(plan, { ...options, packageNames: candidateNames });
   } else if (plan.inputs.operation === 'bootstrap') {
     const newNames = plan.packages
       .filter((pkg) => pkg.npmAction === 'publish')
@@ -2200,6 +2304,7 @@ module.exports = {
   recoveryConfirmation,
   coordinatedTagCommit,
   createBootstrapTags,
+  createGitHubReleases,
   createPlan,
   discoverPackages,
   distTagFor,
