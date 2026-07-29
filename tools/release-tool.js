@@ -637,6 +637,7 @@ function sourceFilesChanged(
   pkg,
   cwd = rootDir,
   bootstrapVersion = undefined,
+  options = {},
 ) {
   const result = run(
     'git',
@@ -651,7 +652,7 @@ function sourceFilesChanged(
   // If the caller supplied an expected bootstrap version and the current
   // manifest does not match, this is a significant change regardless of
   // whether any other files differ.
-  if (bootstrapVersion !== undefined) {
+  if (bootstrapVersion !== undefined && options.ignoreVersion !== true) {
     const headManifest = packageManifestAtCommit(pkg, headCommit, cwd);
     if (!headManifest || headManifest.version !== bootstrapVersion) return true;
   }
@@ -673,6 +674,7 @@ function sourceFilesChanged(
           pkg,
           cwd,
           bootstrapVersion,
+          options,
         )
       )
         return true;
@@ -714,6 +716,7 @@ function packageJsonSemanticallyChanged(
   pkg,
   cwd = rootDir,
   bootstrapVersion = undefined,
+  options = {},
 ) {
   const baseManifest = packageManifestAtCommit(pkg, baseCommit, cwd);
   const headManifest = packageManifestAtCommit(pkg, headCommit, cwd);
@@ -722,7 +725,11 @@ function packageJsonSemanticallyChanged(
   const expectedVersion = bootstrapVersion ?? baseManifest.version;
 
   // — Version invariant —
-  if (headManifest.version !== expectedVersion) return true;
+  if (
+    options.ignoreVersion !== true &&
+    headManifest.version !== expectedVersion
+  )
+    return true;
 
   const baseNorm = normalizePackageForBootstrap(baseManifest, pkg, cwd);
   const headNorm = normalizePackageForBootstrap(headManifest, pkg, cwd);
@@ -937,6 +944,24 @@ function buildReleaseCommand(input, options = {}) {
   const distTag = distTagFor(channel);
   const args = ['publish'];
 
+  if (options.prepared === true) {
+    if (operation !== 'release' || channel !== 'stable' || coordinatedMajor) {
+      fail(
+        'Prepared versions are supported only for a normal independent stable release.',
+      );
+    }
+    args.push(
+      'from-package',
+      '--yes',
+      '--registry',
+      registry,
+      '--dist-tag',
+      'latest',
+    );
+    if (options.gitHead) args.push('--git-head', options.gitHead);
+    return { args, distTag, normalized };
+  }
+
   if (operation === 'bootstrap') {
     args.push(
       'from-package',
@@ -1093,8 +1118,11 @@ function assertPlanInvariants(plan, packages) {
     fail('Prereleases must never use latest.');
 
   for (const change of plan.packages) {
-    const before = byName.get(change.name)?.version;
-    if (!before) fail(`Unknown package in plan: ${change.name}.`);
+    if (!byName.has(change.name))
+      fail(`Unknown package in plan: ${change.name}.`);
+    const before = change.oldVersion;
+    if (!semver.valid(before))
+      fail(`Invalid previous version for ${change.name}: ${before}.`);
     const beforePrerelease = semver.prerelease(before);
     const afterPrerelease = semver.prerelease(change.newVersion);
     if (
@@ -1225,6 +1253,187 @@ async function registryMetadata(name, fetchImpl = globalThis.fetch) {
   if (!response.ok)
     fail(`npm registry returned HTTP ${response.status} for ${name}.`);
   return response.json();
+}
+
+async function buildPreparedPackages(packages, options = {}) {
+  const cwd = options.cwd || rootDir;
+  const currentHead = options.head || headSha(cwd);
+  const getTagCommit = options.getTagCommit || tagCommit;
+  const commitIsAvailable = options.commitExists || commitExists;
+  const readPackageAtCommit =
+    options.packageAtCommit || packageManifestAtCommit;
+  const sourceChanged = options.sourceChanged || sourceFilesChanged;
+  const readChangelog = options.readChangelog || readPackageChangelog;
+  const items = [];
+
+  for (const pkg of packages) {
+    const preparedManifest = readPackageAtCommit(pkg, currentHead, cwd);
+    if (
+      preparedManifest?.name !== pkg.name ||
+      preparedManifest?.version !== pkg.version
+    ) {
+      fail(
+        `${pkg.name}@${pkg.version} is not committed at approved HEAD ${currentHead}.`,
+      );
+    }
+    const metadata = await registryMetadata(pkg.name, options.fetchImpl);
+    const latest = metadata?.['dist-tags']?.latest;
+    if (!semver.valid(latest)) {
+      fail(`${pkg.name} has no valid npm latest version.`);
+    }
+    const publishedTarget = metadata.versions?.[pkg.version];
+    let baselineVersion = latest;
+    let npmAction = 'publish';
+    let targetExists = false;
+
+    if (publishedTarget) {
+      if (pkg.version !== latest) {
+        fail(
+          `${pkg.name}@${pkg.version} already exists on npm while latest is ${latest}; restore registry latest before preparing another release.`,
+        );
+      }
+      const existingTargetTag = getTagCommit(
+        packageTag(pkg.name, pkg.version),
+        cwd,
+      );
+      if (existingTargetTag) {
+        if (
+          publishedTarget.gitHead !== existingTargetTag &&
+          sourceChanged(
+            publishedTarget.gitHead,
+            existingTargetTag,
+            pkg,
+            cwd,
+            pkg.version,
+          )
+        ) {
+          fail(
+            `${pkg.name}@${pkg.version} tag and npm gitHead are not artifact-equivalent.`,
+          );
+        }
+        if (
+          sourceChanged(publishedTarget.gitHead, 'HEAD', pkg, cwd, undefined, {
+            ignoreVersion: true,
+          })
+        ) {
+          fail(
+            `${pkg.name} has publishable changes since npm ${latest}, but its manifest version was not prepared.`,
+          );
+        }
+        const completedAtApprovedHead =
+          publishedTarget.gitHead === currentHead &&
+          existingTargetTag === currentHead;
+        if (
+          options.includeCompletedAtHead !== true ||
+          !completedAtApprovedHead
+        ) {
+          continue;
+        }
+      }
+      if (!existingTargetTag && publishedTarget.gitHead !== currentHead) {
+        fail(
+          `${pkg.name}@${pkg.version} exists on npm without a local tag, but its gitHead is ${publishedTarget.gitHead}, not approved HEAD ${currentHead}.`,
+        );
+      }
+      baselineVersion = Object.keys(metadata.versions || {})
+        .filter(
+          (version) =>
+            semver.valid(version) &&
+            !semver.prerelease(version) &&
+            semver.lt(version, pkg.version),
+        )
+        .sort(semver.rcompare)[0];
+      if (!baselineVersion) {
+        fail(
+          `${pkg.name}@${pkg.version} has no previous stable npm version for prepared-release recovery.`,
+        );
+      }
+      npmAction = 'skip-existing';
+      targetExists = true;
+    } else if (!semver.valid(pkg.version) || !semver.gt(pkg.version, latest)) {
+      fail(
+        `${pkg.name} prepared version ${pkg.version} must be greater than npm latest ${latest}.`,
+      );
+    }
+
+    if (semver.prerelease(pkg.version)) {
+      fail(`${pkg.name}@${pkg.version} is not a stable prepared version.`);
+    }
+
+    const baselinePublished = metadata.versions?.[baselineVersion];
+    if (!baselinePublished?.gitHead) {
+      fail(`${pkg.name}@${baselineVersion} has no npm gitHead.`);
+    }
+    if (!commitIsAvailable(baselinePublished.gitHead, cwd)) {
+      fail(
+        `${pkg.name}@${baselineVersion} npm gitHead ${baselinePublished.gitHead} is absent from repository history.`,
+      );
+    }
+    const baselineTag = packageTag(pkg.name, baselineVersion);
+    const baselineTagTarget = getTagCommit(baselineTag, cwd);
+    if (!baselineTagTarget) {
+      fail(`${pkg.name} is missing published baseline tag ${baselineTag}.`);
+    }
+    let baselineEquivalent = baselineTagTarget === baselinePublished.gitHead;
+    if (
+      !baselineEquivalent &&
+      !sourceChanged(
+        baselinePublished.gitHead,
+        baselineTagTarget,
+        pkg,
+        cwd,
+        baselineVersion,
+      )
+    ) {
+      baselineEquivalent = true;
+    }
+    if (!baselineEquivalent) {
+      fail(
+        `${baselineTag} points to ${baselineTagTarget}, but npm records ${baselinePublished.gitHead}; the sources are not artifact-equivalent.`,
+      );
+    }
+
+    const artifactChanged = sourceChanged(
+      baselinePublished.gitHead,
+      'HEAD',
+      pkg,
+      cwd,
+      undefined,
+      { ignoreVersion: true },
+    );
+    if (!artifactChanged) {
+      fail(
+        `${pkg.name}@${pkg.version} is prepared without an artifact-significant change since npm ${baselineVersion}.`,
+      );
+    }
+    const releaseNotes = changelogSection(readChangelog(pkg), pkg.version);
+    if (!releaseNotes) {
+      fail(
+        `${pkg.name}@${pkg.version} requires a package-owned changelog section before release.`,
+      );
+    }
+
+    items.push({
+      name: pkg.name,
+      oldVersion: baselineVersion,
+      newVersion: pkg.version,
+      registryVersion: latest,
+      registryDistTags: metadata['dist-tags'],
+      npmAction,
+      targetExists,
+      changeType: semver.diff(baselineVersion, pkg.version),
+      baselineTag,
+      baselineTagTarget,
+      registryGitHead: baselinePublished.gitHead,
+      baselineTagMatchesRegistry:
+        baselineTagTarget === baselinePublished.gitHead,
+      tag: packageTag(pkg.name, pkg.version),
+      tagTarget: currentHead,
+      githubRelease: packageTag(pkg.name, pkg.version),
+    });
+  }
+
+  return items;
 }
 
 async function buildBootstrapPackages(packages, options = {}) {
@@ -1416,6 +1625,18 @@ async function createPlan(input, options = {}) {
         'Recovery requires at least one current package tag at HEAD; select the partial release commit on main.',
       );
     }
+  } else if (
+    inputs.operation === 'release' &&
+    inputs.channel === 'stable' &&
+    !inputs.coordinatedMajor
+  ) {
+    commandOptions = { prepared: true, gitHead: validatedHead };
+    plannedPackages = await buildPreparedPackages(packages, {
+      ...options,
+      cwd,
+      head: validatedHead,
+    });
+    relevant = plannedPackages.map((pkg) => pkg.name);
   } else {
     for (const pkg of packages) {
       if (!tagCommit(packageTag(pkg.name, pkg.version), cwd)) {
@@ -1531,6 +1752,10 @@ async function createPlan(input, options = {}) {
     distTag: command.distTag,
     forcedDependents,
     relevantPackages: relevant,
+    prepared:
+      inputs.operation === 'release' &&
+      inputs.channel === 'stable' &&
+      !inputs.coordinatedMajor,
     packages: plannedPackages,
     noChanges: plannedPackages.length === 0,
     command: {
@@ -1661,6 +1886,7 @@ function restoreRecoveryExecutor(cwd = rootDir) {
 
 function createBootstrapTags(plan, options = {}) {
   const cwd = options.cwd || rootDir;
+  const annotation = options.annotation || 'Baseline';
   const packageNames = options.packageNames
     ? new Set(options.packageNames)
     : undefined;
@@ -1680,7 +1906,7 @@ function createBootstrapTags(plan, options = {}) {
     if (!existing || pkg.tagAction === 'move') {
       run(
         'git',
-        ['tag', '-a', pkg.tag, pkg.tagTarget, '-m', `Baseline ${pkg.tag}`],
+        ['tag', '-a', pkg.tag, pkg.tagTarget, '-m', `${annotation} ${pkg.tag}`],
         { cwd },
       );
       if (pkg.tagAction !== 'move') created.push(pkg.tag);
@@ -1695,6 +1921,104 @@ function createBootstrapTags(plan, options = {}) {
   return created;
 }
 
+function createGitHubReleases(plan, options = {}) {
+  const cwd = options.cwd || rootDir;
+  const packageNames = options.packageNames
+    ? new Set(options.packageNames)
+    : undefined;
+  const workspacePackages = options.workspacePackages || discoverPackages(cwd);
+  const byName = new Map(workspacePackages.map((pkg) => [pkg.name, pkg]));
+  const readChangelog = options.readChangelog || readPackageChangelog;
+  const runGitHub = options.runGitHub || run;
+  const created = [];
+  const skipped = [];
+
+  for (const pkg of plan.packages) {
+    if (packageNames && !packageNames.has(pkg.name)) continue;
+    if (!pkg.githubRelease) continue;
+    if (pkg.githubRelease !== pkg.tag) {
+      fail(
+        `${pkg.name} GitHub Release ${pkg.githubRelease} must match tag ${pkg.tag}.`,
+      );
+    }
+
+    const view = runGitHub(
+      'gh',
+      [
+        'release',
+        'view',
+        pkg.githubRelease,
+        '--repo',
+        'mikara89/cap-nodejs',
+        '--json',
+        'tagName',
+      ],
+      { cwd, allowFailure: true },
+    );
+    if (view?.status === 0) {
+      skipped.push(pkg.githubRelease);
+      continue;
+    }
+    const viewOutput = [view?.stdout, view?.stderr]
+      .filter(Boolean)
+      .join('\n')
+      .trim();
+    if (!/release not found|HTTP 404/iu.test(viewOutput)) {
+      fail(
+        `Could not verify GitHub Release ${pkg.githubRelease}.${viewOutput ? `\n${viewOutput}` : ''}`,
+      );
+    }
+
+    const workspacePackage = byName.get(pkg.name);
+    if (!workspacePackage) {
+      fail(`Unknown workspace package for GitHub Release ${pkg.name}.`);
+    }
+    const releaseNotes = changelogSection(
+      readChangelog(workspacePackage),
+      pkg.newVersion,
+    );
+    if (!releaseNotes) {
+      fail(
+        `${pkg.name}@${pkg.newVersion} has no changelog section for its GitHub Release.`,
+      );
+    }
+
+    const notesDirectory = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'cap-github-release-'),
+    );
+    const notesPath = path.join(notesDirectory, 'notes.md');
+    try {
+      fs.writeFileSync(notesPath, `${releaseNotes.text.trim()}\n`, 'utf8');
+      const result = runGitHub(
+        'gh',
+        [
+          'release',
+          'create',
+          pkg.githubRelease,
+          '--repo',
+          'mikara89/cap-nodejs',
+          '--verify-tag',
+          '--title',
+          pkg.githubRelease,
+          '--notes-file',
+          notesPath,
+        ],
+        { cwd, inherit: true },
+      );
+      if (result?.status !== 0) {
+        fail(
+          `Failed to create GitHub Release ${pkg.githubRelease} with exit ${result?.status ?? 'unknown'}.`,
+        );
+      }
+    } finally {
+      fs.rmSync(notesDirectory, { recursive: true, force: true });
+    }
+    created.push(pkg.githubRelease);
+  }
+
+  return { created, skipped };
+}
+
 async function executePlan(plan, options = {}) {
   validatePlanFile(plan);
   if (plan.inputs.operation === 'recover')
@@ -1707,7 +2031,33 @@ async function executePlan(plan, options = {}) {
   const cwd = options.cwd || rootDir;
   const validateGeneratedState =
     options.validatePostVersionState || validatePostVersionState;
-  if (plan.inputs.operation === 'bootstrap') {
+  if (plan.prepared) {
+    const refreshed = await buildPreparedPackages(discoverPackages(cwd), {
+      ...options,
+      cwd,
+      head: plan.headSha,
+      includeCompletedAtHead: true,
+    });
+    const expected = plan.packages.map((pkg) => ({
+      name: pkg.name,
+      oldVersion: pkg.oldVersion,
+      newVersion: pkg.newVersion,
+      registryGitHead: pkg.registryGitHead,
+      tagTarget: pkg.tagTarget,
+    }));
+    const actual = refreshed.map((pkg) => ({
+      name: pkg.name,
+      oldVersion: pkg.oldVersion,
+      newVersion: pkg.newVersion,
+      registryGitHead: pkg.registryGitHead,
+      tagTarget: pkg.tagTarget,
+    }));
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      fail(
+        'Prepared package or npm registry state changed after approval; generate a new plan.',
+      );
+    }
+  } else if (plan.inputs.operation === 'bootstrap') {
     validateGeneratedState(cwd, {
       dependencyRoot: options.dependencyRoot || cwd,
     });
@@ -1787,7 +2137,36 @@ async function executePlan(plan, options = {}) {
     },
     inherit: true,
   });
-  if (plan.inputs.operation === 'bootstrap') {
+  if (plan.prepared) {
+    const published = await buildBootstrapPackages(discoverPackages(cwd), {
+      ...options,
+      cwd,
+      head: plan.headSha,
+    });
+    const candidateNames = plan.packages.map((pkg) => pkg.name);
+    for (const expected of plan.packages) {
+      const actual = published.find((pkg) => pkg.name === expected.name);
+      if (
+        !actual ||
+        actual.npmAction !== 'skip-existing' ||
+        actual.newVersion !== expected.newVersion ||
+        actual.recordedGitHead !== plan.headSha
+      ) {
+        fail(
+          `${expected.name}@${expected.newVersion} was not verified on npm at approved HEAD ${plan.headSha}; no release tags were created.`,
+        );
+      }
+    }
+    createBootstrapTags(
+      { ...plan, packages: published },
+      {
+        ...options,
+        packageNames: candidateNames,
+        annotation: 'Release',
+      },
+    );
+    createGitHubReleases(plan, { ...options, packageNames: candidateNames });
+  } else if (plan.inputs.operation === 'bootstrap') {
     const newNames = plan.packages
       .filter((pkg) => pkg.npmAction === 'publish')
       .map((pkg) => pkg.name);
@@ -1917,6 +2296,7 @@ module.exports = {
   assertCleanTree,
   bootstrapConfirmation,
   buildBootstrapPackages,
+  buildPreparedPackages,
   buildReleaseCommand,
   changelogSection,
   commitExists,
@@ -1924,6 +2304,7 @@ module.exports = {
   recoveryConfirmation,
   coordinatedTagCommit,
   createBootstrapTags,
+  createGitHubReleases,
   createPlan,
   discoverPackages,
   distTagFor,

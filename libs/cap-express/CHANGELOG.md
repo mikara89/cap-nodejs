@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.3.0 (2026-07-26)
+
+### Features
+
+- add optional versioned message-envelope configuration
+- expose subscription lifecycle snapshots and awaited startup/shutdown behavior
+
+### Bug Fixes
+
+- report lifecycle-aware readiness and preserve readiness across repeated start
+  and stop cycles
+- install CAP core as a runtime dependency for reliable consumer resolution
+
 ## 2.2.0 (2026-06-26)
 
 ### Features

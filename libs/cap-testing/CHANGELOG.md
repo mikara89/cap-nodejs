@@ -3,12 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## Unreleased
+## 2.3.0 (2026-07-26)
 
-- add reusable inbox and outbox administration storage contracts
+### Features
 
-- extend the received-storage contract with stale pending inbox recovery
-  eligibility, combined limits, deterministic reads, and legacy-call coverage
+- add reusable inbox and outbox administration contract suites covering guarded
+  requeue operations and aggregate messaging snapshots
+- extend the received-storage contract with stale pending recovery eligibility,
+  combined limits, deterministic reads, failed recovery, and legacy-call
+  compatibility
+- add a reusable transport contract for message-envelope and lifecycle
+  compatibility
 
 ## 2.2.0 (2026-06-27)
 

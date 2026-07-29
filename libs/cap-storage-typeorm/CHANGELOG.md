@@ -3,11 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## Unreleased
+## 2.3.0 (2026-07-26)
 
-- add guarded messaging requeue and aggregate snapshot administration support
+### Features
 
-- select stale pending inbox rows alongside due failed rows for scheduler recovery
+- add guarded inbox/outbox requeue operations and aggregate messaging snapshots
+- recover stale pending inbox rows alongside due failed rows
+- fence outbox completion by claim ownership and renew active claims
+
+### Bug Fixes
+
+- preserve PostgreSQL and MySQL retry thresholds and deterministic recovery
+  ordering
 
 ## [2.2.1](https://github.com/mikara89/cap-nodejs/compare/@mikara89/cap-storage-typeorm@2.2.0...@mikara89/cap-storage-typeorm@2.2.1) (2026-07-11)
 
