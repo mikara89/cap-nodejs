@@ -1,6 +1,8 @@
 import type { Knex } from 'knex';
 import type {
   CapOperationContext,
+  CapOutboxSnapshot,
+  CapRequeueResult,
   CapabilityAwareStoragePort,
   CapPublishEvent,
   CapStorageCapabilities,
@@ -11,6 +13,7 @@ import type {
   JsonValue,
   MarkPublishFailedOptions,
   PublishClaimOwnership,
+  PublishStorageAdministrationPort,
   PublishStoragePort,
   RenewPublishClaimOptions,
 } from '@mikara89/cap-core';
@@ -47,7 +50,10 @@ interface PublishRow {
 }
 
 export class KnexPublishStorage
-  implements PublishStoragePort<Knex.Transaction>, CapabilityAwareStoragePort
+  implements
+    PublishStoragePort<Knex.Transaction>,
+    PublishStorageAdministrationPort<Knex.Transaction>,
+    CapabilityAwareStoragePort
 {
   private readonly tableName: string;
 
@@ -213,6 +219,42 @@ export class KnexPublishStorage
     return row ? mapPublishRow(row) : undefined;
   }
 
+  async requeuePublish(
+    id: string,
+    now = new Date(),
+  ): Promise<CapRequeueResult<CapPublishEvent['status']>> {
+    const affected = await this.knex<PublishRow>(this.tableName)
+      .where({ id })
+      .whereIn('status', ['failed', 'dead_letter'])
+      .update({
+        status: 'failed',
+        retry_count: 0,
+        last_error: null,
+        next_retry_at: toRequiredDbDate(now),
+        locked_by: null,
+        locked_until: null,
+        published_at: null,
+        updated_at: toRequiredDbDate(now),
+      } as Record<string, unknown>);
+    if (Number(affected) > 0) return { id, outcome: 'requeued' };
+
+    const row = await this.knex<PublishRow>(this.tableName)
+      .where({ id })
+      .first();
+    return row
+      ? { id, outcome: 'not_eligible', previousStatus: row.status }
+      : { id, outcome: 'not_found' };
+  }
+
+  async getPublishSnapshot(): Promise<CapOutboxSnapshot> {
+    const rows = await this.knex<PublishRow, SnapshotRow[]>(this.tableName)
+      .select('status')
+      .count({ count: '*' })
+      .min({ oldest_at: 'created_at' })
+      .groupBy('status');
+    return mapOutboxSnapshot(rows);
+  }
+
   async listPublish(
     options: DashboardListOptions = {},
   ): Promise<DashboardListResult<CapPublishEvent<JsonValue>>> {
@@ -236,6 +278,34 @@ export class KnexPublishStorage
       total: Number(total),
     };
   }
+}
+
+interface SnapshotRow {
+  status: CapPublishEvent['status'];
+  count?: number | string;
+  oldest_at?: string | null;
+}
+
+function mapOutboxSnapshot(rows: SnapshotRow[]): CapOutboxSnapshot {
+  const counts: CapOutboxSnapshot['counts'] = {
+    pending: 0,
+    processing: 0,
+    published: 0,
+    failed: 0,
+    dead_letter: 0,
+  };
+  let oldestPendingAt: Date | null = null;
+  let oldestFailedAt: Date | null = null;
+  for (const row of rows) {
+    counts[row.status] = Number(row.count ?? 0);
+    if (row.status === 'pending') {
+      oldestPendingAt = fromDbDate(row.oldest_at ?? null);
+    }
+    if (row.status === 'failed') {
+      oldestFailedAt = fromDbDate(row.oldest_at ?? null);
+    }
+  }
+  return { counts, oldestPendingAt, oldestFailedAt };
 }
 
 function usesMySqlAssignmentSemantics(knex: Knex): boolean {

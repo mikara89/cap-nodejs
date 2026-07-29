@@ -6,6 +6,7 @@ import {
   Optional,
 } from '@nestjs/common';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { DEFAULT_INBOX_FALLBACK_WINDOW_MS } from '@mikara89/cap-core';
 
 import { CapService } from '../cap.service';
 import {
@@ -26,6 +27,7 @@ export class RetrySchedulerService implements OnModuleDestroy {
     private readonly options: ResolvedCapSchedulerOptions = {
       batchSize: 200,
       leaseMs: 30_000,
+      inboxFallbackWindowMs: DEFAULT_INBOX_FALLBACK_WINDOW_MS,
       maxRetries: 3,
       maxInboxRetries: 3,
       instanceId: 'cap-scheduler-default',

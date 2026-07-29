@@ -12,6 +12,7 @@ import { CapService } from '../cap.service';
 const schedulerOptions = {
   batchSize: 200,
   leaseMs: 30_000,
+  inboxFallbackWindowMs: 240_000,
   maxRetries: 3,
   maxInboxRetries: 3,
   instanceId: 'test-instance',

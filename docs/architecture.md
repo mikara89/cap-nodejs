@@ -42,6 +42,45 @@ provide different adapters by implementing the same interfaces.
 root with the storage and transport modules it should use; `CapService` is then
 available app-wide through Nest dependency injection.
 
+## Design lineage
+
+CAP Node.js is architecturally inspired by
+[DotNetCore.CAP](https://github.com/dotnetcore/CAP): both use a durable
+outbox/inbox model around broker-based publish/subscribe, consumer groups, and
+background retry. CAP Node.js is nevertheless an independent TypeScript/Node.js
+implementation. It owns its TypeScript APIs, ports, adapters, package
+structure, storage and transport contracts, diagnostics contracts, framework
+integrations, and release/versioning model. It makes no claim of code-level
+derivation, API compatibility, schema compatibility, wire-format compatibility,
+or behavioral compatibility with DotNetCore.CAP.
+
+At a broad level, the flow is:
+
+```text
+application transaction
+        |
+        v
+durable published/outbox record
+        |
+        v
+background broker dispatch
+        |
+        v
+broker consumer group
+        |
+        v
+durable received/inbox record
+        |
+        v
+subscriber execution
+        |
+        v
+success / retry / terminal failure
+```
+
+See [CAP Node.js and DotNetCore.CAP](dotnet-cap-comparison.md) for the
+evidence-based comparison and its revision-specific limits.
+
 ## Framework Integration Boundary
 
 Storage adapter roots are framework-neutral. In particular,
@@ -206,10 +245,23 @@ Server needs a SQL Server-specific claim implementation before it is supported
 for multi-instance dispatch. Failed emits increment retry state and eventually
 move rows to `dead_letter`.
 
-Inbox retries read due `failed` rows and re-run the registered handler. Handler
-failures increment retry state, store `lastError`, and eventually move rows to
-`dead_letter` once `scheduler.maxInboxRetries` is reached. Handler retry timing
-uses exponential backoff with jitter.
+Inbox retries read due `failed` rows and stale `pending` rows, then re-run the
+registered handler through the same execution path. A pending row becomes
+eligible when its creation time is at or before `now -
+scheduler.inboxFallbackWindowMs`; the default fallback window is `240_000` ms
+(four minutes). Handler failures increment retry state, store `lastError`, and
+eventually move rows to `dead_letter` once `scheduler.maxInboxRetries` is
+reached. Handler retry timing uses exponential backoff with jitter.
+
+Broker duplicates remain deduplicated at persistence time and do not directly
+execute an existing inbox row. Scheduler recovery owns retries of retained rows.
+Inbox processing is nontransactional and at least once: a slow handler or
+backlog can look stale when the fallback window is too short, causing duplicate
+execution. Set the window above normal handler and backlog time, and make
+subscribers idempotent with techniques such as unique business constraints,
+set-to-value updates, processed-operation keys, or external API idempotency
+keys. CAP does not provide transactional inbox completion or cluster-wide
+per-message retry ownership.
 
 ## Transactions
 
@@ -234,6 +286,39 @@ The helper `withTransactionAndPostCommit` exists for applications that want to
 queue post-commit sends without coupling the core package to a specific ORM.
 
 ## Dashboard Role
+
+## Messaging administration
+
+CAP core can manually requeue only failed or dead-letter inbox/outbox rows.
+Inbox requeue writes `failed` with `nextRetry = now`; outbox requeue writes
+`failed` with `nextRetryAt = now`, clears retry/error/processed or lease fields,
+and lets the existing scheduler paths perform the handler or broker call. It
+never forces successful (`processed`/`published`) or active (`pending`/
+`processing`) records to replay.
+
+`getMessagingSnapshot()` aggregates every durable status and uses the oldest
+current pending/failed `created_at` timestamps. It deliberately reads inbox and
+outbox independently, so it is operational state rather than a transactional
+cross-table point-in-time snapshot.
+
+## Messaging diagnostics
+
+Core may additionally send typed best-effort operational diagnostics to an
+optional `CapMessagingDiagnosticsPort`. This is an engine concern, not a
+storage or transport capability: diagnostics do not add columns, migrations,
+adapter callbacks, or broker traffic. Events are emitted only after their
+durable transition succeeds (for example, after `markPublished`,
+`markProcessed`, or failure/requeue persistence). A fenced outbox completion
+that returns `false` emits no completion diagnostic.
+
+The sink runs outside the reliability path. CAP neither awaits it nor lets its
+throws or rejected promises change state, retry behavior, settlement, or manual
+requeue results. Events carry operational identifiers, timestamps, retry state,
+and normalized failure text only. They intentionally exclude message payloads
+and headers. Diagnostics are not durable audit records and have no ordering,
+replay, transactional-consistency, or exactly-once guarantee. See
+[messaging diagnostics](diagnostics.md) for event definitions and retry
+semantics.
 
 The dashboard package is optional. It reads the same storage contracts used by
 the scheduler and exposes REST endpoints plus a static UI for inspection and

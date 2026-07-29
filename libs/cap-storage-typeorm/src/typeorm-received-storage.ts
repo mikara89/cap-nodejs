@@ -3,6 +3,8 @@ import type { SelectQueryBuilder } from 'typeorm';
 import type {
   CapabilityAwareStoragePort,
   CapReceivedEvent,
+  CapInboxSnapshot,
+  CapRequeueResult,
   CapStorageCapabilities,
   DashboardListOptions,
   DashboardListResult,
@@ -10,6 +12,7 @@ import type {
   JsonValue,
   MarkReceivedFailedOptions,
   ReceivedStoragePort,
+  ReceivedStorageAdministrationPort,
   TrySaveReceivedResult,
 } from '@mikara89/cap-core';
 import { createTypeOrmCapSchema } from './typeorm-cap-schema';
@@ -47,7 +50,10 @@ interface ReceivedRow {
 }
 
 export class TypeOrmReceivedStorage
-  implements ReceivedStoragePort, CapabilityAwareStoragePort
+  implements
+    ReceivedStoragePort,
+    ReceivedStorageAdministrationPort,
+    CapabilityAwareStoragePort
 {
   private readonly tableName: string;
 
@@ -139,19 +145,41 @@ export class TypeOrmReceivedStorage
   async getRetryDue(
     limit: number,
     now = new Date(),
+    pendingBefore?: Date,
   ): Promise<CapReceivedEvent<JsonValue>[]> {
     const alias = 'cap_received_row';
-    const rows = await this.dataSource.manager
+    const query = this.dataSource.manager
       .createQueryBuilder()
       .select(`${alias}.*`)
       .from(this.tableName, alias)
-      .where(`${column(this.dataSource, alias, 'status')} = :status`, {
-        status: 'failed',
-      })
-      .andWhere(`${column(this.dataSource, alias, 'next_retry')} <= :now`, {
-        now: toDbDate(now),
-      })
-      .orderBy(column(this.dataSource, alias, 'next_retry'), 'ASC')
+      .where(
+        `${column(this.dataSource, alias, 'status')} = :failedStatus AND ${column(this.dataSource, alias, 'next_retry')} <= :now`,
+        { failedStatus: 'failed', now: toDbDate(now) },
+      );
+    if (pendingBefore) {
+      query.orWhere(
+        `${column(this.dataSource, alias, 'status')} = :pendingStatus AND ${column(this.dataSource, alias, 'created_at')} <= :pendingBefore`,
+        {
+          pendingStatus: 'pending',
+          pendingBefore: toDbDate(pendingBefore),
+        },
+      );
+    }
+    const rows = await query
+      .orderBy(
+        `CASE WHEN ${column(
+          this.dataSource,
+          alias,
+          'status',
+        )} = :failedStatus THEN ${column(
+          this.dataSource,
+          alias,
+          'next_retry',
+        )} ELSE ${column(this.dataSource, alias, 'created_at')} END`,
+        'ASC',
+      )
+      .addOrderBy(column(this.dataSource, alias, 'created_at'), 'ASC')
+      .addOrderBy(column(this.dataSource, alias, 'id'), 'ASC')
       .limit(limit)
       .getRawMany<ReceivedRow>();
 
@@ -163,6 +191,51 @@ export class TypeOrmReceivedStorage
   ): Promise<CapReceivedEvent<JsonValue> | undefined> {
     const row = await this.findReceivedRowById(id);
     return row ? mapReceivedRow(row) : undefined;
+  }
+
+  async requeueReceived(
+    id: string,
+    now = new Date(),
+  ): Promise<CapRequeueResult<CapReceivedEvent['status']>> {
+    const result = await this.dataSource.manager
+      .createQueryBuilder()
+      .update(this.tableName)
+      .set({
+        status: 'failed',
+        retry_count: 0,
+        last_error: null,
+        next_retry: toRequiredDbDate(now),
+        processed: false,
+        processed_at: null,
+        updated_at: toRequiredDbDate(now),
+      })
+      .where('id = :id', { id })
+      .andWhere('status IN (:...eligibleStatuses)', {
+        eligibleStatuses: ['failed', 'dead_letter'],
+      })
+      .execute();
+    if (Number(result.affected ?? 0) > 0) return { id, outcome: 'requeued' };
+
+    const row = await this.findReceivedRowById(id);
+    return row
+      ? { id, outcome: 'not_eligible', previousStatus: row.status }
+      : { id, outcome: 'not_found' };
+  }
+
+  async getReceivedSnapshot(): Promise<CapInboxSnapshot> {
+    const alias = 'cap_received_snapshot';
+    const rows = await this.dataSource.manager
+      .createQueryBuilder()
+      .select(column(this.dataSource, alias, 'status'), 'status')
+      .addSelect('COUNT(*)', 'count')
+      .addSelect(
+        `MIN(${column(this.dataSource, alias, 'created_at')})`,
+        'oldest_at',
+      )
+      .from(this.tableName, alias)
+      .groupBy(column(this.dataSource, alias, 'status'))
+      .getRawMany<SnapshotRow<CapReceivedEvent['status']>>();
+    return mapInboxSnapshot(rows);
   }
 
   async listReceived(
@@ -226,6 +299,32 @@ export class TypeOrmReceivedStorage
       .getRawMany<ReceivedRow>();
     return rows[0];
   }
+}
+
+interface SnapshotRow<TStatus extends string> {
+  status: TStatus;
+  count: number | string;
+  oldest_at: string | null;
+}
+
+function mapInboxSnapshot(
+  rows: SnapshotRow<CapReceivedEvent['status']>[],
+): CapInboxSnapshot {
+  const counts: CapInboxSnapshot['counts'] = {
+    pending: 0,
+    processing: 0,
+    processed: 0,
+    failed: 0,
+    dead_letter: 0,
+  };
+  let oldestPendingAt: Date | null = null;
+  let oldestFailedAt: Date | null = null;
+  for (const row of rows) {
+    counts[row.status] = Number(row.count);
+    if (row.status === 'pending') oldestPendingAt = fromDbDate(row.oldest_at);
+    if (row.status === 'failed') oldestFailedAt = fromDbDate(row.oldest_at);
+  }
+  return { counts, oldestPendingAt, oldestFailedAt };
 }
 
 function applyReceivedListFilters(

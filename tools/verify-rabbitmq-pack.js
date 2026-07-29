@@ -216,9 +216,9 @@ function assertIntentionalFiles(paths) {
 }
 
 function assertInstalledManifest(manifest) {
-  if (manifest.version !== '0.0.0') {
+  if (manifest.version !== '0.1.0') {
     throw new Error(
-      `Expected repository baseline 0.0.0, got ${manifest.version}.`,
+      `Expected released repository version 0.1.0, got ${manifest.version}.`,
     );
   }
   if (manifest.engines?.node !== '>=22') {

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## Unreleased
+
+- add guarded messaging requeue and aggregate snapshot administration support
+
+- select stale pending inbox rows alongside due failed rows for scheduler recovery
+
 ## 2.2.0 (2026-06-26)
 
 ### Features

@@ -2,6 +2,8 @@ import type { Knex } from 'knex';
 import type {
   CapabilityAwareStoragePort,
   CapReceivedEvent,
+  CapInboxSnapshot,
+  CapRequeueResult,
   CapStorageCapabilities,
   DashboardListOptions,
   DashboardListResult,
@@ -9,6 +11,7 @@ import type {
   JsonValue,
   MarkReceivedFailedOptions,
   ReceivedStoragePort,
+  ReceivedStorageAdministrationPort,
   TrySaveReceivedResult,
 } from '@mikara89/cap-core';
 import { createKnexCapSchema } from './knex-cap-schema';
@@ -45,7 +48,10 @@ interface ReceivedRow {
 }
 
 export class KnexReceivedStorage
-  implements ReceivedStoragePort, CapabilityAwareStoragePort
+  implements
+    ReceivedStoragePort,
+    ReceivedStorageAdministrationPort,
+    CapabilityAwareStoragePort
 {
   private readonly tableName: string;
 
@@ -128,11 +134,29 @@ export class KnexReceivedStorage
   async getRetryDue(
     limit: number,
     now = new Date(),
+    pendingBefore?: Date,
   ): Promise<CapReceivedEvent<JsonValue>[]> {
-    const rows = await this.knex<ReceivedRow>(this.tableName)
-      .where({ status: 'failed' })
-      .where('next_retry', '<=', toDbDate(now))
-      .orderBy('next_retry', 'asc')
+    const query = this.knex<ReceivedRow>(this.tableName).where((builder) => {
+      builder
+        .where({ status: 'failed' })
+        .where('next_retry', '<=', toDbDate(now));
+      if (pendingBefore) {
+        builder.orWhere((pending) => {
+          pending
+            .where({ status: 'pending' })
+            .where('created_at', '<=', toDbDate(pendingBefore));
+        });
+      }
+    });
+    const rows = await query
+      .orderByRaw('CASE WHEN ?? = ? THEN ?? ELSE ?? END ASC', [
+        'status',
+        'failed',
+        'next_retry',
+        'created_at',
+      ])
+      .orderBy('created_at', 'asc')
+      .orderBy('id', 'asc')
       .limit(limit);
 
     return rows.map(mapReceivedRow);
@@ -145,6 +169,41 @@ export class KnexReceivedStorage
       .where({ id })
       .first();
     return row ? mapReceivedRow(row) : undefined;
+  }
+
+  async requeueReceived(
+    id: string,
+    now = new Date(),
+  ): Promise<CapRequeueResult<CapReceivedEvent['status']>> {
+    const affected = await this.knex<ReceivedRow>(this.tableName)
+      .where({ id })
+      .whereIn('status', ['failed', 'dead_letter'])
+      .update({
+        status: 'failed',
+        retry_count: 0,
+        last_error: null,
+        next_retry: toRequiredDbDate(now),
+        processed: false,
+        processed_at: null,
+        updated_at: toRequiredDbDate(now),
+      } as Record<string, unknown>);
+    if (Number(affected) > 0) return { id, outcome: 'requeued' };
+
+    const row = await this.knex<ReceivedRow>(this.tableName)
+      .where({ id })
+      .first();
+    return row
+      ? { id, outcome: 'not_eligible', previousStatus: row.status }
+      : { id, outcome: 'not_found' };
+  }
+
+  async getReceivedSnapshot(): Promise<CapInboxSnapshot> {
+    const rows = await this.knex<ReceivedRow, SnapshotRow[]>(this.tableName)
+      .select('status')
+      .count({ count: '*' })
+      .min({ oldest_at: 'created_at' })
+      .groupBy('status');
+    return mapInboxSnapshot(rows);
   }
 
   async listReceived(
@@ -179,6 +238,34 @@ export class KnexReceivedStorage
       .where({ group, dedupe_key: dedupeKey })
       .first();
   }
+}
+
+interface SnapshotRow {
+  status: CapReceivedEvent['status'];
+  count?: number | string;
+  oldest_at?: string | null;
+}
+
+function mapInboxSnapshot(rows: SnapshotRow[]): CapInboxSnapshot {
+  const counts: CapInboxSnapshot['counts'] = {
+    pending: 0,
+    processing: 0,
+    processed: 0,
+    failed: 0,
+    dead_letter: 0,
+  };
+  let oldestPendingAt: Date | null = null;
+  let oldestFailedAt: Date | null = null;
+  for (const row of rows) {
+    counts[row.status] = Number(row.count ?? 0);
+    if (row.status === 'pending') {
+      oldestPendingAt = fromDbDate(row.oldest_at ?? null);
+    }
+    if (row.status === 'failed') {
+      oldestFailedAt = fromDbDate(row.oldest_at ?? null);
+    }
+  }
+  return { counts, oldestPendingAt, oldestFailedAt };
 }
 
 function applyReceivedListFilters(

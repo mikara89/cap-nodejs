@@ -251,6 +251,137 @@ describe.each(providers)(
       ).resolves.toBeUndefined();
     });
 
+    it('selects due failed and stale pending inbox rows as one limited recovery batch', async () => {
+      const storage = new TypeOrmReceivedStorage(setupDataSource!);
+      await setupDataSource!.query('DELETE FROM cap_received');
+      const now = new Date('2026-07-19T12:00:00.000Z');
+      const pendingBefore = new Date('2026-07-19T11:56:00.000Z');
+      const due = {
+        ...createReceivedFixture({
+          id: randomUUID(),
+          topic: 'typeorm.recovery.integration',
+          group: 'typeorm-recovery',
+          messageId: randomUUID(),
+          dedupeKey: randomUUID(),
+        }),
+        status: 'failed' as const,
+        retryCount: 1,
+        nextRetry: new Date('2026-07-19T11:55:00.000Z'),
+      };
+      const stale = createReceivedFixture({
+        id: randomUUID(),
+        topic: 'typeorm.recovery.integration',
+        group: 'typeorm-recovery',
+        messageId: randomUUID(),
+        dedupeKey: randomUUID(),
+        occurredAt: '2026-07-19T11:55:00.000Z',
+      });
+      const recent = createReceivedFixture({
+        id: randomUUID(),
+        topic: 'typeorm.recovery.integration',
+        group: 'typeorm-recovery',
+        messageId: randomUUID(),
+        dedupeKey: randomUUID(),
+        occurredAt: '2026-07-19T11:56:01.000Z',
+      });
+      const terminal = {
+        ...createReceivedFixture({
+          id: randomUUID(),
+          topic: 'typeorm.recovery.integration',
+          group: 'typeorm-recovery',
+          messageId: randomUUID(),
+          dedupeKey: randomUUID(),
+        }),
+        status: 'dead_letter' as const,
+        retryCount: 3,
+      };
+      await Promise.all(
+        [due, stale, recent, terminal].map((event) =>
+          storage.trySaveReceived(event),
+        ),
+      );
+
+      const recovered = await storage.getRetryDue(2, now, pendingBefore);
+
+      expect(new Set(recovered.map((event) => event.id))).toEqual(
+        new Set([due.id, stale.id]),
+      );
+    });
+
+    it('requeues durable failed/dead-letter rows and aggregates operational snapshots', async () => {
+      await setupDataSource!.query('DELETE FROM cap_publish');
+      await setupDataSource!.query('DELETE FROM cap_received');
+      const publishStorage = new TypeOrmPublishStorage(setupDataSource!);
+      const receivedStorage = new TypeOrmReceivedStorage(setupDataSource!);
+      const now = new Date('2026-07-20T12:00:00.000Z');
+      const inbox = createReceivedFixture({
+        id: randomUUID(),
+        messageId: randomUUID(),
+        dedupeKey: randomUUID(),
+        status: 'dead_letter',
+        retryCount: 3,
+        occurredAt: '2026-07-20T10:00:00.000Z',
+      });
+      const terminalInbox = createReceivedFixture({
+        id: randomUUID(),
+        messageId: randomUUID(),
+        dedupeKey: randomUUID(),
+        status: 'processed',
+        processed: true,
+      });
+      const outbox = {
+        ...publishEvent(300, new Date('2026-07-20T09:00:00.000Z')),
+        status: 'dead_letter' as const,
+        retryCount: 3,
+      };
+      const published = {
+        ...publishEvent(301, new Date()),
+        status: 'published' as const,
+      };
+      await Promise.all([
+        receivedStorage.trySaveReceived(inbox),
+        receivedStorage.trySaveReceived(terminalInbox),
+        publishStorage.savePublish(outbox),
+        publishStorage.savePublish(published),
+      ]);
+
+      await expect(
+        receivedStorage.requeueReceived(inbox.id, now),
+      ).resolves.toMatchObject({ outcome: 'requeued' });
+      await expect(
+        publishStorage.requeuePublish(outbox.id, now),
+      ).resolves.toMatchObject({ outcome: 'requeued' });
+      await expect(
+        receivedStorage.requeueReceived(terminalInbox.id, now),
+      ).resolves.toMatchObject({ outcome: 'not_eligible' });
+      await expect(
+        publishStorage.requeuePublish(published.id, now),
+      ).resolves.toMatchObject({ outcome: 'not_eligible' });
+      await expect(receivedStorage.getRetryDue(10, now)).resolves.toEqual(
+        expect.arrayContaining([expect.objectContaining({ id: inbox.id })]),
+      );
+      await expect(
+        receivedStorage.getReceivedSnapshot(),
+      ).resolves.toMatchObject({
+        counts: { failed: 1, processed: 1 },
+        oldestFailedAt: new Date('2026-07-20T10:00:00.000Z'),
+      });
+      await expect(publishStorage.getPublishSnapshot()).resolves.toMatchObject({
+        counts: { failed: 1, published: 1 },
+        oldestFailedAt: new Date('2026-07-20T09:00:00.000Z'),
+      });
+      await expect(
+        publishStorage.claimUnpublished({
+          limit: 10,
+          now,
+          lockedBy: 'admin-check',
+          lockUntil: new Date(now.getTime() + 60_000),
+        }),
+      ).resolves.toEqual(
+        expect.arrayContaining([expect.objectContaining({ id: outbox.id })]),
+      );
+    });
+
     it('renews active leases and fences stale owners', async () => {
       await setupDataSource!.query('DELETE FROM cap_publish');
       const workerA = new TypeOrmPublishStorage(setupDataSource!);

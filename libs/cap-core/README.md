@@ -20,6 +20,21 @@ const engine = new CapEngine({
 NestJS users can continue importing compatible CAP types through
 `@mikara89/cap-nest`.
 
+## Messaging diagnostics
+
+`CapEngineOptions.diagnostics` accepts an optional, framework-neutral
+`CapMessagingDiagnosticsPort`. Its `emit(event)` method receives typed,
+best-effort operational transitions for inbox and outbox work. Events contain
+no message payloads or headers. CAP does not await asynchronous sinks; thrown
+or rejected sink work is logged and swallowed, so it cannot alter durable
+messaging state. Diagnostics are not durable, replayable, exactly-once, or an
+audit log. See the repository [diagnostics guide](../../docs/diagnostics.md).
+
+The optional inbox/outbox administration capability includes its corresponding
+`find*ById()` read so manual-requeue diagnostics can capture immutable identity
+metadata without delaying the guarded requeue mutation. The read does not
+decide eligibility; the durable requeue operation remains authoritative.
+
 ## Versioned Message Envelopes
 
 CAP normally sends the business payload as the broker body and carries headers
@@ -101,6 +116,21 @@ safe after partial startup, concurrent stops are deduplicated, and a start
 requested during shutdown waits for shutdown before attaching a fresh consumer
 cycle. Registrations remain available for restart.
 
+## Inbox Recovery
+
+The scheduler retries due `failed` inbox rows and can recover `pending` rows
+that were abandoned after persistence (for example, a process crash before the
+handler completed). Configure `scheduler.inboxFallbackWindowMs` in milliseconds;
+it defaults to `240_000` (four minutes), and `0` is valid when immediate
+fallback eligibility is intended. Negative and non-finite values are rejected.
+
+Recovery reuses the registered subscriber handler. A broker duplicate still
+stops at inbox deduplication; only the scheduler retries an existing retained
+row. Processing is at least once and nontransactional. A fallback window shorter
+than normal handler execution or backlog time can retry a merely slow handler,
+so subscribers must be idempotent. CAP provides neither transactional inbox
+completion nor cluster-wide per-message retry ownership.
+
 ## Transaction Context
 
 Existing transaction-handle publishing remains supported:
@@ -135,6 +165,21 @@ commit. Use `immediate: true` only when intentionally attempting broker emit in
 the same call.
 
 ## Storage Capabilities
+
+## Messaging administration
+
+`CapEngine.requeueInbox(id)`, `requeueOutbox(id)`, and
+`getMessagingSnapshot()` require optional structural storage capabilities:
+`ReceivedStorageAdministrationPort` and `PublishStorageAdministrationPort`.
+This leaves existing third-party `ReceivedStoragePort` and `PublishStoragePort`
+implementations compatible. Unsupported storage produces an actionable error.
+
+Only `failed` and `dead_letter` rows are eligible. A requeue immediately makes
+the row due through its normal scheduler path; it never synchronously invokes a
+subscriber or publisher, and it cannot replay `pending`, `processing`,
+`processed`, or `published` records. Snapshot ages are `MIN(created_at)` for
+rows currently pending or failed, return `null` when absent, and are not a
+cross-table transactional view.
 
 `CapStorageCapabilities` and `CapabilityAwareStoragePort` let storage adapters
 report informational behavior such as transaction support, safe skip-locked

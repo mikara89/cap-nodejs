@@ -1,5 +1,12 @@
 # @mikara89/cap-storage-typeorm
 
+## Messaging administration
+
+`TypeOrmPublishStorage` and `TypeOrmReceivedStorage` implement the optional CAP
+administration ports. Only failed/dead-letter rows are guardedly requeued and
+made immediately due; successful or active rows are rejected. Snapshots are
+aggregate status counts with oldest current pending/failed `created_at` values.
+
 TypeORM storage adapter for CAP outbox and inbox persistence.
 
 ## Install
@@ -45,6 +52,11 @@ The schema creates:
 - `cap_received` for inbox records and retry/dead-letter state
 - a unique received constraint on `group + dedupeKey`
 - indexes for publish claiming and inbox retry reads
+
+Inbox recovery queries return due failed rows and, when core supplies a pending
+cutoff, stale pending rows in one deterministic limited result. They do not
+claim rows for execution; inbox processing remains at least once and callers
+must keep subscriber handlers idempotent.
 
 Outbox completion, failure, and active lease renewal use atomic ownership
 predicates. `lockedBy` is an opaque per-claim token; stale owners receive
@@ -289,5 +301,5 @@ The package runs both shared storage contracts:
 
 Adapter-specific tests also cover explicit `EntityManager` transaction usage,
 rollback, deprecated `savePublishWithTx` compatibility, received dedupe
-behavior, `markProcessed(processedAt)`, `getRetryDue(now)`, schema creation,
+behavior, `markProcessed(processedAt)`, `getRetryDue(limit, now?, pendingBefore?)`, schema creation,
 and conservative SQLite capabilities.

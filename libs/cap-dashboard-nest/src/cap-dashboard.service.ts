@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import type { CapLogger, PublisherPort } from '@mikara89/cap-core';
 import {
+  DEFAULT_INBOX_FALLBACK_WINDOW_MS,
   PUBLISH_STORAGE,
   PUBLISHER,
   RECEIVED_STORAGE,
@@ -22,6 +23,7 @@ import { CAP_DASHBOARD_OPTIONS } from './cap-dashboard.auth';
 const DEFAULT_RETRY_OPTIONS: ResolvedCapSchedulerOptions = {
   batchSize: 200,
   leaseMs: 30_000,
+  inboxFallbackWindowMs: DEFAULT_INBOX_FALLBACK_WINDOW_MS,
   maxRetries: 3,
   maxInboxRetries: 3,
   instanceId: 'cap-dashboard',

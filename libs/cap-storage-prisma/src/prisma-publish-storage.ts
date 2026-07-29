@@ -1,6 +1,8 @@
 import type { Prisma } from '@prisma/client';
 import type {
   CapOperationContext,
+  CapOutboxSnapshot,
+  CapRequeueResult,
   CapabilityAwareStoragePort,
   CapPublishEvent,
   CapStorageCapabilities,
@@ -11,6 +13,7 @@ import type {
   JsonValue,
   MarkPublishFailedOptions,
   PublishClaimOwnership,
+  PublishStorageAdministrationPort,
   PublishStoragePort,
   RenewPublishClaimOptions,
 } from '@mikara89/cap-core';
@@ -71,6 +74,7 @@ const publishColumns = [
 export class PrismaPublishStorage
   implements
     PublishStoragePort<Prisma.TransactionClient>,
+    PublishStorageAdministrationPort<Prisma.TransactionClient>,
     CapabilityAwareStoragePort
 {
   private readonly options: ResolvedPrismaStorageOptions;
@@ -316,6 +320,56 @@ export class PrismaPublishStorage
     return row ? mapPublishRow(row) : undefined;
   }
 
+  async requeuePublish(
+    id: string,
+    now = new Date(),
+  ): Promise<CapRequeueResult<CapPublishEvent['status']>> {
+    const builder = new PrismaSqlBuilder(this.options.provider);
+    const failed = builder.parameter('failed');
+    const retryAt = builder.parameter(toRequiredPrismaDbDate(now));
+    const updatedAt = builder.parameter(toRequiredPrismaDbDate(now));
+    const eventId = builder.parameter(id);
+    const eligibleFailed = builder.parameter('failed');
+    const deadLetter = builder.parameter('dead_letter');
+    const affected = await executePrismaSql(
+      this.client,
+      `UPDATE ${this.quote(this.options.publishTableName)} SET ${this.quote(
+        'status',
+      )} = ${failed}, ${this.quote('retry_count')} = 0, ${this.quote(
+        'last_error',
+      )} = NULL, ${this.quote('next_retry_at')} = ${retryAt}, ${this.quote(
+        'locked_by',
+      )} = NULL, ${this.quote('locked_until')} = NULL, ${this.quote(
+        'published_at',
+      )} = NULL, ${this.quote('updated_at')} = ${updatedAt} WHERE ${this.quote(
+        'id',
+      )} = ${eventId} AND ${this.quote('status')} IN (${eligibleFailed}, ${deadLetter})`,
+      builder.values,
+    );
+    if (affected > 0) return { id, outcome: 'requeued' };
+
+    const row = await this.findPublishRowById(this.client, id);
+    return row
+      ? { id, outcome: 'not_eligible', previousStatus: row.status }
+      : { id, outcome: 'not_found' };
+  }
+
+  async getPublishSnapshot(): Promise<CapOutboxSnapshot> {
+    const rows = await queryPrismaSql<
+      Array<SnapshotRow<CapPublishEvent['status']>>
+    >(
+      this.client,
+      `SELECT ${this.quote('status')} AS ${this.quote(
+        'status',
+      )}, COUNT(*) AS ${this.quote('count')}, MIN(${this.quote(
+        'created_at',
+      )}) AS ${this.quote('oldest_at')} FROM ${this.quote(
+        this.options.publishTableName,
+      )} GROUP BY ${this.quote('status')}`,
+    );
+    return mapOutboxSnapshot(rows);
+  }
+
   async listPublish(
     options: DashboardListOptions = {},
   ): Promise<DashboardListResult<CapPublishEvent<JsonValue>>> {
@@ -405,6 +459,34 @@ export class PrismaPublishStorage
   private column(alias: string, column: string): string {
     return qualifiedPrismaColumn(this.options.provider, alias, column);
   }
+}
+
+interface SnapshotRow<TStatus extends string> {
+  status: TStatus;
+  count: number | bigint;
+  oldest_at: string | null;
+}
+
+function mapOutboxSnapshot(
+  rows: SnapshotRow<CapPublishEvent['status']>[],
+): CapOutboxSnapshot {
+  const counts: CapOutboxSnapshot['counts'] = {
+    pending: 0,
+    processing: 0,
+    published: 0,
+    failed: 0,
+    dead_letter: 0,
+  };
+  let oldestPendingAt: Date | null = null;
+  let oldestFailedAt: Date | null = null;
+  for (const row of rows) {
+    counts[row.status] = Number(row.count);
+    if (row.status === 'pending')
+      oldestPendingAt = fromPrismaDbDate(row.oldest_at);
+    if (row.status === 'failed')
+      oldestFailedAt = fromPrismaDbDate(row.oldest_at);
+  }
+  return { counts, oldestPendingAt, oldestFailedAt };
 }
 
 function mapPublishToValues<T extends JsonValue>(

@@ -34,6 +34,28 @@ CapModule.forRoot({
 });
 ```
 
+They also accept the optional framework-neutral core diagnostics sink:
+
+```ts
+import { type CapMessagingDiagnosticsPort } from '@mikara89/cap-core';
+
+const diagnostics: CapMessagingDiagnosticsPort = {
+  emit(event) {
+    console.log(event.type, event.id, event.at);
+  },
+};
+
+CapModule.forRoot({
+  imports: [storageModule, transportModule],
+  diagnostics,
+});
+```
+
+Diagnostics are best-effort and non-blocking. Events intentionally exclude
+message payloads and headers; sink failures are logged and swallowed. They are
+not a durable audit stream. See the repository
+[diagnostics guide](../../docs/diagnostics.md) for event and retry semantics.
+
 The default `warn` mode accepts strict legacy `{ payload, headers? }` bodies and
 warns once per engine. New bridges that need one body should use
 `createCapMessageEnvelope()` re-exported by `@mikara89/cap-nest`. Ordinary
@@ -49,6 +71,31 @@ async handleUserCreated(payload: unknown) {
   // handle message
 }
 ```
+
+## Inbox Recovery
+
+## Messaging administration
+
+`CapService` delegates `requeueInbox(id)`, `requeueOutbox(id)`, and
+`getMessagingSnapshot()` directly to core. These APIs are storage-capability
+dependent and do not add HTTP endpoints. Only failed/dead-letter records can be
+requeued; the normal scheduler later invokes handlers or emits messages. The
+snapshot is an operational aggregate and its inbox/outbox halves can represent
+slightly different instants.
+
+`CapModule` passes scheduler options to core. `scheduler.inboxFallbackWindowMs`
+defaults to `240_000` milliseconds and controls when a pending inbox row may be
+retried after an interrupted subscriber attempt:
+
+```ts
+CapModule.forRoot({
+  scheduler: { inboxFallbackWindowMs: 300_000 },
+});
+```
+
+Recovery is at least once and nontransactional. Keep the window longer than
+normal handler execution and backlog time, and make handlers idempotent because
+a slow handler may otherwise be recovered as stale.
 
 ## Subscription Lifecycle
 

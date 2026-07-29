@@ -416,6 +416,24 @@ npm run docs:api
   the npm cache and rerun the command.
 - Keep automatic schema and broker provisioning disabled in production unless
   you explicitly want CAP to create those resources.
+
+## Messaging administration
+
+`CapEngine` exposes framework-neutral operational APIs: `requeueInbox(id)`,
+`requeueOutbox(id)`, and `getMessagingSnapshot()`. Manual requeue accepts only
+`failed` and `dead_letter` rows; `pending`, `processing`, `processed`, and
+`published` records are not replayable. Requeue resets retry state and makes a
+row due immediately, but does not execute a subscriber or emit to a broker in
+the request. The normal inbox retry and outbox claim/lease scheduler paths do
+that work.
+
+Snapshots include every durable status plus the oldest current `pending` and
+`failed` row by durable creation time. They are an operational view, not a
+cross-table transaction: inbox and outbox halves can be observed at slightly
+different instants. Administration is an optional storage capability; all
+first-party storage adapters implement it, while third-party base adapters do
+not need to change.
+
 - Durable MikroORM inbox deduplication uses `(group, dedupeKey)`, and outbox
   claiming relies on pessimistic partial write locking. Multi-instance durable
   outbox dispatch is production-supported for lock-capable drivers covered by
@@ -430,12 +448,36 @@ npm run docs:api
   Existing prerelease databases need a migration for new inbox status/dead-letter
   fields and the dedupe index change.
 
+## Messaging diagnostics
+
+CAP can optionally emit typed, framework-neutral operational diagnostics from
+core. Configure a `CapMessagingDiagnosticsPort` through `CapEngine` or the
+Nest `CapModule` `diagnostics` option. The events cover durable inbox/outbox
+processed, failed, dead-lettered, retry, published, and manual-requeue
+transitions. They intentionally contain no message payloads or headers.
+
+Diagnostics are best-effort, non-blocking notifications: sink failures are
+logged and swallowed, and they are not an audit log or an exactly-once event
+stream. See [messaging diagnostics](docs/diagnostics.md) for the event model,
+retry semantics, and configuration example.
+
+## Inspiration and relationship to DotNetCore.CAP
+
+CAP Node.js is inspired by the durable outbox/inbox and event-bus architecture
+of [DotNetCore.CAP](https://github.com/dotnetcore/CAP). It is independently
+implemented for TypeScript and Node.js, with its own APIs and adapters; it is
+not an official port and compatibility is not guaranteed. See the
+[DotNetCore.CAP comparison](docs/dotnet-cap-comparison.md) for the shared model
+and current capability differences.
+
 ## Documentation
 
 - [Documentation index](docs/README.md)
 - [Getting started](docs/getting-started.md)
 - [Transactions](docs/transactions.md)
 - [Architecture](docs/architecture.md)
+- [DotNetCore.CAP comparison](docs/dotnet-cap-comparison.md)
+- [Messaging diagnostics](docs/diagnostics.md)
 - [Adapters](docs/adapters.md)
 - [Transport adapter author guide](docs/transport-adapter-author-guide.md)
 - [Dashboard](docs/cap-dashboard.md)

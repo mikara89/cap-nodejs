@@ -17,6 +17,7 @@ describe('CapService (unit)', () => {
   const schedulerOptions = {
     batchSize: 200,
     leaseMs: 30_000,
+    inboxFallbackWindowMs: 240_000,
     maxRetries: 7,
     maxInboxRetries: 2,
     instanceId: 'test-instance',

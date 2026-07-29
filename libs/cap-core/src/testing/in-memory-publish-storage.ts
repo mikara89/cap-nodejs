@@ -1,5 +1,9 @@
 import { type CapPublishEvent } from '../models/cap-publish-event';
 import {
+  type CapOutboxSnapshot,
+  type CapRequeueResult,
+} from '../models/cap-messaging-administration';
+import {
   type CapStorageCapabilities,
   type CapabilityAwareStoragePort,
 } from '../models/cap-storage-capabilities';
@@ -9,12 +13,16 @@ import {
   type ClaimUnpublishedOptions,
   type MarkPublishFailedOptions,
   type PublishClaimOwnership,
+  type PublishStorageAdministrationPort,
   type PublishStoragePort,
   type RenewPublishClaimOptions,
 } from '../ports/publish-storage.port';
 
 export class InMemoryPublishStorage
-  implements PublishStoragePort, CapabilityAwareStoragePort
+  implements
+    PublishStoragePort,
+    PublishStorageAdministrationPort,
+    CapabilityAwareStoragePort
 {
   readonly store = new Map<string, CapPublishEvent<JsonValue>>();
 
@@ -123,6 +131,57 @@ export class InMemoryPublishStorage
   findPublishById(id: string): Promise<CapPublishEvent<JsonValue> | undefined> {
     const event = this.store.get(id);
     return Promise.resolve(event ? { ...event } : undefined);
+  }
+
+  requeuePublish(
+    id: string,
+    now = new Date(),
+  ): Promise<CapRequeueResult<CapPublishEvent['status']>> {
+    const event = this.store.get(id);
+    if (!event) return Promise.resolve({ id, outcome: 'not_found' });
+    const previousStatus = event.status;
+    if (previousStatus !== 'failed' && previousStatus !== 'dead_letter') {
+      return Promise.resolve({ id, outcome: 'not_eligible', previousStatus });
+    }
+    event.status = 'failed';
+    event.retryCount = 0;
+    event.lastError = null;
+    event.nextRetryAt = new Date(now);
+    event.lockedBy = null;
+    event.lockedUntil = null;
+    event.publishedAt = null;
+    return Promise.resolve({ id, outcome: 'requeued', previousStatus });
+  }
+
+  getPublishSnapshot(): Promise<CapOutboxSnapshot> {
+    const counts: CapOutboxSnapshot['counts'] = {
+      pending: 0,
+      processing: 0,
+      published: 0,
+      failed: 0,
+      dead_letter: 0,
+    };
+    let oldestPendingAt: Date | null = null;
+    let oldestFailedAt: Date | null = null;
+    for (const event of this.store.values()) {
+      counts[event.status] += 1;
+      const occurredAt = new Date(event.occurredAt);
+      if (
+        event.status === 'pending' &&
+        (!oldestPendingAt || occurredAt < oldestPendingAt)
+      )
+        oldestPendingAt = occurredAt;
+      if (
+        event.status === 'failed' &&
+        (!oldestFailedAt || occurredAt < oldestFailedAt)
+      )
+        oldestFailedAt = occurredAt;
+    }
+    return Promise.resolve({
+      counts: { ...counts },
+      oldestPendingAt,
+      oldestFailedAt,
+    });
   }
 
   listPublish(

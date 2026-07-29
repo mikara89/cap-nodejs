@@ -39,6 +39,7 @@ describe('CapEngine', () => {
   const scheduler = {
     batchSize: 200,
     leaseMs: 30_000,
+    inboxFallbackWindowMs: 240_000,
     maxRetries: 7,
     maxInboxRetries: 2,
     instanceId: 'test-instance',
@@ -728,6 +729,158 @@ describe('CapEngine', () => {
     expect(handler).toHaveBeenNthCalledWith(2, { orderId: 'o1' }, undefined);
   });
 
+  it('passes one clock value and the default stale-pending cutoff to inbox recovery', async () => {
+    const clock = jest.fn(() => new Date('2026-01-01T00:10:00.000Z'));
+    const engine = createEngine({
+      now: clock,
+      scheduler: { ...scheduler, inboxFallbackWindowMs: undefined },
+    });
+    const getRetryDue = jest
+      .spyOn(receivedStorage, 'getRetryDue')
+      .mockResolvedValue([]);
+
+    await expect(engine.retryInboxBatch()).resolves.toBe(0);
+
+    expect(clock).toHaveBeenCalledTimes(1);
+    expect(getRetryDue).toHaveBeenCalledWith(
+      200,
+      new Date('2026-01-01T00:10:00.000Z'),
+      new Date('2026-01-01T00:06:00.000Z'),
+    );
+  });
+
+  it('uses the configured stale-pending fallback window', async () => {
+    const engine = createEngine({
+      scheduler: { ...scheduler, inboxFallbackWindowMs: 0 },
+    });
+    const getRetryDue = jest
+      .spyOn(receivedStorage, 'getRetryDue')
+      .mockResolvedValue([]);
+
+    await engine.retryInboxBatch();
+
+    expect(getRetryDue).toHaveBeenCalledWith(
+      200,
+      new Date('2026-01-01T00:00:00.000Z'),
+      new Date('2026-01-01T00:00:00.000Z'),
+    );
+  });
+
+  it('rejects invalid inbox fallback windows', () => {
+    expect(() =>
+      createEngine({ scheduler: { ...scheduler, inboxFallbackWindowMs: -1 } }),
+    ).toThrow(/inboxFallbackWindowMs/);
+    expect(() =>
+      createEngine({ scheduler: { ...scheduler, inboxFallbackWindowMs: NaN } }),
+    ).toThrow(/inboxFallbackWindowMs/);
+  });
+
+  it('retries stale pending records through the registered handler and marks success processed', async () => {
+    const engine = createEngine();
+    const handler = jest.fn();
+    engine.registerSubscription('stale', 'workers', handler);
+    await engine.startSubscriptions();
+    const record = receivedEvent('stale-success', 'stale', 'workers');
+    receivedStorage.store.set(record.id, record);
+    jest.spyOn(receivedStorage, 'getRetryDue').mockResolvedValue([record]);
+
+    await expect(engine.retryInboxBatch()).resolves.toBe(1);
+
+    expect(handler).toHaveBeenCalledWith(record.payload, record.headers);
+    expect(receivedStorage.store.get(record.id)).toMatchObject({
+      status: 'processed',
+      processed: true,
+    });
+  });
+
+  it('applies the existing failed and dead-letter lifecycle when stale pending recovery fails', async () => {
+    const engine = createEngine({
+      scheduler: { ...scheduler, maxInboxRetries: 2 },
+    });
+    engine.registerSubscription('stale-fail', 'workers', () => {
+      throw new Error('retry failure');
+    });
+    await engine.startSubscriptions();
+    const record = receivedEvent('stale-dead-letter', 'stale-fail', 'workers');
+    receivedStorage.store.set(record.id, record);
+    jest.spyOn(receivedStorage, 'getRetryDue').mockResolvedValue([record]);
+
+    await engine.retryInboxBatch();
+
+    expect(receivedStorage.store.get(record.id)).toMatchObject({
+      status: 'failed',
+      retryCount: 1,
+    });
+
+    await engine.retryReceived(record);
+
+    expect(receivedStorage.store.get(record.id)).toMatchObject({
+      status: 'dead_letter',
+      retryCount: 2,
+      nextRetry: null,
+    });
+  });
+
+  it('does not query inbox recovery when scheduling is disabled', async () => {
+    const engine = createEngine({
+      scheduler: { ...scheduler, disabled: true },
+    });
+    const getRetryDue = jest.spyOn(receivedStorage, 'getRetryDue');
+
+    await expect(engine.retryInboxBatch()).resolves.toBe(0);
+
+    expect(getRetryDue).not.toHaveBeenCalled();
+  });
+
+  it('recovers a combined limited batch without invoking recent or terminal inbox rows', async () => {
+    const engine = createEngine({
+      scheduler: { ...scheduler, batchSize: 2 },
+    });
+    const handler = jest.fn();
+    engine.registerSubscription('combined', 'workers', handler);
+    await engine.startSubscriptions();
+
+    const dueFailed = receivedEvent('due-failed', 'combined', 'workers');
+    dueFailed.status = 'failed';
+    dueFailed.retryCount = 1;
+    dueFailed.nextRetry = new Date('2025-12-31T23:50:00.000Z');
+    const stalePending = receivedEvent('stale-pending', 'combined', 'workers');
+    const recentPending = receivedEvent(
+      'recent-pending',
+      'combined',
+      'workers',
+    );
+    recentPending.occurredAt = '2026-01-01T00:00:00.001Z';
+    const processed = receivedEvent('processed', 'combined', 'workers');
+    processed.status = 'processed';
+    processed.processed = true;
+    const deadLetter = receivedEvent('dead-letter', 'combined', 'workers');
+    deadLetter.status = 'dead_letter';
+    deadLetter.retryCount = 2;
+    for (const event of [
+      dueFailed,
+      stalePending,
+      recentPending,
+      processed,
+      deadLetter,
+    ]) {
+      receivedStorage.store.set(event.id, event);
+    }
+
+    await expect(engine.retryInboxBatch()).resolves.toBe(2);
+
+    expect(handler).toHaveBeenCalledTimes(2);
+    expect(receivedStorage.store.get(dueFailed.id)?.status).toBe('processed');
+    expect(receivedStorage.store.get(stalePending.id)?.status).toBe(
+      'processed',
+    );
+    expect(receivedStorage.store.get(recentPending.id)?.status).toBe('pending');
+    expect(receivedStorage.store.get(processed.id)?.status).toBe('processed');
+    expect(receivedStorage.store.get(deadLetter.id)?.status).toBe(
+      'dead_letter',
+    );
+  });
+
   it('subscribe marks received failed when handler throws', async () => {
     const engine = createEngine();
     void engine.subscribe('topic-r', 'group-r', () => {
@@ -744,6 +897,29 @@ describe('CapEngine', () => {
     expect(event?.lastError).toBe('handler fail');
   });
 });
+
+function receivedEvent(
+  id: string,
+  topic: string,
+  group: string,
+): CapReceivedEvent<JsonValue> {
+  return {
+    id,
+    topic,
+    group,
+    messageId: id,
+    dedupeKey: `${topic}|${group}|${id}`,
+    occurredAt: '2025-12-31T23:50:00.000Z',
+    payload: { id },
+    headers: { source: 'test' },
+    retryCount: 0,
+    status: 'pending',
+    processed: false,
+    lastError: null,
+    processedAt: null,
+    nextRetry: null,
+  };
+}
 
 class FakePublisher implements PublisherPort {
   emitted: Array<{
@@ -1097,7 +1273,35 @@ class InMemoryReceivedStorage implements ReceivedStoragePort {
     return Promise.resolve();
   }
 
-  getRetryDue(): Promise<CapReceivedEvent[]> {
-    return Promise.resolve([]);
+  getRetryDue(
+    limit: number,
+    now = new Date(),
+    pendingBefore?: Date,
+  ): Promise<CapReceivedEvent[]> {
+    return Promise.resolve(
+      [...this.store.values()]
+        .filter((event) => {
+          if (event.status === 'failed') {
+            return event.nextRetry
+              ? event.nextRetry.getTime() <= now.getTime()
+              : false;
+          }
+          if (event.status === 'pending' && pendingBefore !== undefined) {
+            return (
+              new Date(event.occurredAt).getTime() <= pendingBefore.getTime()
+            );
+          }
+          return false;
+        })
+        .sort((left, right) => {
+          const leftTime =
+            left.nextRetry?.getTime() ?? new Date(left.occurredAt).getTime();
+          const rightTime =
+            right.nextRetry?.getTime() ?? new Date(right.occurredAt).getTime();
+          if (leftTime !== rightTime) return leftTime - rightTime;
+          return left.id.localeCompare(right.id);
+        })
+        .slice(0, limit),
+    );
   }
 }

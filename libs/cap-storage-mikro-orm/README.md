@@ -1,5 +1,13 @@
 # @mikara89/cap-storage-mikro-orm
 
+## Messaging administration
+
+`MikroPublishStorage` and `MikroReceivedStorage` implement CAP's optional
+administration ports. They atomically requeue only failed/dead-letter records,
+leaving scheduler dispatch and retry execution unchanged. Their snapshots use
+database aggregates for every status and the oldest current pending/failed
+creation timestamp.
+
 MikroORM storage adapter for CAP.
 
 This package provides durable outbox and inbox persistence through:
@@ -79,6 +87,11 @@ export class AppModule {}
   `status`, `lastError`, and `processedAt` columns and replaces the old unique
   index.
 - Dashboard list/find helpers are included for outbox and inbox records.
+
+Inbox recovery queries return due failed rows and, when core supplies a pending
+cutoff, stale pending rows in one deterministic limited result. They do not
+claim rows for execution; inbox processing remains at least once and callers
+must keep subscriber handlers idempotent.
 
 ## Documentation
 

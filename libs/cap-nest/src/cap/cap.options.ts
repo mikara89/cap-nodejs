@@ -1,6 +1,7 @@
 import type { ModuleMetadata } from '@nestjs/common';
 import type {
   CapMessageEnvelopeOptions,
+  CapMessagingDiagnosticsPort,
   CapTransactionContext,
   CapTransactionManagerPort,
 } from '@mikara89/cap-core';
@@ -12,6 +13,7 @@ export const CAP_SCHEDULER_OPTIONS = Symbol('CAP_SCHEDULER_OPTIONS');
 export interface CapSchedulerOptions {
   batchSize?: number;
   leaseMs?: number;
+  inboxFallbackWindowMs?: number;
   maxRetries?: number;
   maxInboxRetries?: number;
   instanceId?: string;
@@ -21,6 +23,7 @@ export interface CapSchedulerOptions {
 export interface ResolvedCapSchedulerOptions {
   batchSize: number;
   leaseMs: number;
+  inboxFallbackWindowMs: number;
   maxRetries: number;
   maxInboxRetries: number;
   instanceId: string;
@@ -34,4 +37,6 @@ export interface CapModuleOptions {
   transactionManager?: CapTransactionManagerPort;
   transactionContext?: CapTransactionContext;
   messageEnvelope?: CapMessageEnvelopeOptions;
+  /** Optional framework-neutral, best-effort core diagnostics sink. */
+  diagnostics?: CapMessagingDiagnosticsPort;
 }

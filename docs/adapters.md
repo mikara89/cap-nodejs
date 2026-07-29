@@ -92,7 +92,8 @@ dead-letter-aware retry state:
 - `trySaveReceived(event)` returning `{ inserted, id, event }`
 - `markProcessed(id)`
 - `markReceivedFailed(id, error, { maxRetries, nextRetryAt, now })`
-- `getRetryDue(limit)`
+- `getRetryDue(limit, now?, pendingBefore?)` (due failed rows, plus stale
+  pending rows when `pendingBefore` is supplied)
 - optional `initialize(options)`
 - optional dashboard helpers: `findReceivedById`, `listReceived`
 

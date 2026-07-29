@@ -47,6 +47,11 @@ The schema creates:
 - a unique received constraint on `group + dedupeKey`
 - indexes for publish claiming and inbox retry reads
 
+Inbox recovery queries return due failed rows and, when core supplies a pending
+cutoff, stale pending rows in one deterministic limited result. They do not
+claim rows for execution; inbox processing remains at least once and callers
+must keep subscriber handlers idempotent.
+
 Outbox completion, failure, and active lease renewal use atomic ownership
 predicates. `lockedBy` is an opaque per-claim token; stale owners receive
 `false` and cannot mutate a row reclaimed by another worker. PostgreSQL and
@@ -233,8 +238,18 @@ The package runs both shared storage contracts:
 
 - `definePublishStorageContract`
 - `defineReceivedStorageContract`
+- `definePublishStorageAdministrationContract`
+- `defineReceivedStorageAdministrationContract`
+
+## Messaging administration
+
+Both storage classes implement CAP's optional administration capability. Failed
+and dead-letter rows can be reset to failed and due immediately; active and
+successful states cannot be manually replayed. Snapshot queries use grouped
+status counts and `MIN(created_at)` for currently pending and failed rows,
+without loading payloads.
 
 Adapter-specific tests also cover explicit transaction usage, rollback,
 deprecated `savePublishWithTx` compatibility, received dedupe behavior,
-`markProcessed(processedAt)`, `getRetryDue(now)`, schema creation, and
+`markProcessed(processedAt)`, `getRetryDue(limit, now?, pendingBefore?)`, schema creation, and
 conservative SQLite capabilities.

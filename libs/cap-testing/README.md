@@ -87,13 +87,25 @@ defineReceivedStorageContract(
 ```
 
 The received contract verifies insert, `group + dedupeKey` idempotency,
-processed state, retry/dead-letter state, and due retry reads. Concurrency
-capability options make unsupported guarantees visible as skipped tests.
+processed state, retry/dead-letter state, and deterministic recovery reads. It
+covers due failed rows, stale pending rows (including the cutoff boundary),
+terminal and recent-row exclusion, one combined limit, and legacy two-argument
+`getRetryDue(limit, now?)` behavior. Concurrency capability options make
+unsupported guarantees visible as skipped tests.
 
 Use this together with the
 [storage adapter author guide](../../docs/storage-adapter-author-guide.md).
 
 ## Transport Contract
+
+## Messaging administration contracts
+
+Use `defineReceivedStorageAdministrationContract` and
+`definePublishStorageAdministrationContract` for adapters that implement the
+optional administration ports. They verify eligible failed/dead-letter requeue,
+terminal/active rejection, immediate normal retry/claim eligibility, immutable
+event preservation, complete status counts, and oldest current pending/failed
+timestamps. Snapshot assertions use deliberately out-of-order timestamps.
 
 Adapter authors can use `defineTransportContract` to qualify publisher and
 subscriber implementations with fast client fakes. The suite verifies logical

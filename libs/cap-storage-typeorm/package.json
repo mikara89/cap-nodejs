@@ -44,7 +44,7 @@
     "@types/node": "^22.0.0",
     "better-sqlite3": "12.10.1",
     "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.0",
+    "typeorm": "^0.3.31",
     "typescript": "^5.7.0"
   },
   "exports": {

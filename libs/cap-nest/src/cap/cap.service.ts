@@ -1,9 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   CapEngine,
+  DEFAULT_INBOX_FALLBACK_WINDOW_MS,
   type CapLogger,
+  type CapMessagingSnapshot,
   type CapOperationContext,
   type CapPublishOptions,
+  type CapPublishStatus,
+  type CapReceivedStatus,
+  type CapRequeueResult,
   type CapSubscriptionLifecycleSnapshot,
   type CapTransactionOptions,
 } from '@mikara89/cap-core';
@@ -23,6 +28,7 @@ type Handler<T = unknown> = (payload: T, headers?: CapHeaders) => Promise<void>;
 const DEFAULT_SCHEDULER_OPTIONS: ResolvedCapSchedulerOptions = {
   batchSize: 200,
   leaseMs: 30_000,
+  inboxFallbackWindowMs: DEFAULT_INBOX_FALLBACK_WINDOW_MS,
   maxRetries: 3,
   maxInboxRetries: 3,
   instanceId: 'cap-service-default',
@@ -31,7 +37,11 @@ const DEFAULT_SCHEDULER_OPTIONS: ResolvedCapSchedulerOptions = {
 
 export type {
   CapOperationContext,
+  CapMessagingSnapshot,
   CapPublishOptions,
+  CapPublishStatus,
+  CapReceivedStatus,
+  CapRequeueResult,
   CapSubscriptionLifecycleSnapshot,
   CapTransactionOptions,
 } from '@mikara89/cap-core';
@@ -133,6 +143,18 @@ export class CapService {
 
   retryInboxBatch(): Promise<number> {
     return this.engine.retryInboxBatch();
+  }
+
+  requeueInbox(id: string): Promise<CapRequeueResult<CapReceivedStatus>> {
+    return this.engine.requeueInbox(id);
+  }
+
+  requeueOutbox(id: string): Promise<CapRequeueResult<CapPublishStatus>> {
+    return this.engine.requeueOutbox(id);
+  }
+
+  getMessagingSnapshot(): Promise<CapMessagingSnapshot> {
+    return this.engine.getMessagingSnapshot();
   }
 
   close(): Promise<void> {
