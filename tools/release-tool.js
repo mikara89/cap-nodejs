@@ -1242,7 +1242,10 @@ async function registryMetadata(name, fetchImpl = globalThis.fetch) {
   let response;
   try {
     response = await fetchImpl(`${registry}${encodeURIComponent(name)}`, {
-      headers: { accept: 'application/json' },
+      headers: {
+        accept: 'application/json',
+        'cache-control': 'no-cache',
+      },
       redirect: 'error',
       signal: AbortSignal.timeout(30_000),
     });
@@ -1253,6 +1256,65 @@ async function registryMetadata(name, fetchImpl = globalThis.fetch) {
   if (!response.ok)
     fail(`npm registry returned HTTP ${response.status} for ${name}.`);
   return response.json();
+}
+
+async function waitForPublishedTargets(packages, head, options = {}) {
+  const targets = packages.filter((pkg) => pkg.npmAction === 'publish');
+  if (targets.length === 0) return;
+
+  const attempts = options.registryVisibilityAttempts ?? 7;
+  const delayMs = options.registryVisibilityDelayMs ?? 5_000;
+  const sleep =
+    options.sleep ||
+    ((milliseconds) =>
+      new Promise((resolve) => setTimeout(resolve, milliseconds)));
+  if (!Number.isInteger(attempts) || attempts < 1)
+    fail('Registry visibility attempts must be a positive integer.');
+  if (!Number.isFinite(delayMs) || delayMs < 0)
+    fail('Registry visibility delay must be a non-negative number.');
+
+  let pending = targets.map((pkg) => `${pkg.name}@${pkg.newVersion}`);
+  let lastRequestError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    pending = [];
+    lastRequestError = undefined;
+    for (const pkg of targets) {
+      let metadata;
+      try {
+        metadata = await registryMetadata(pkg.name, options.fetchImpl);
+      } catch (error) {
+        lastRequestError = error;
+        pending.push(`${pkg.name}@${pkg.newVersion}`);
+        continue;
+      }
+      const published = metadata?.versions?.[pkg.newVersion];
+      if (published?.gitHead && published.gitHead !== head) {
+        fail(
+          `${pkg.name}@${pkg.newVersion} npm gitHead is ${published.gitHead}, not approved HEAD ${head}.`,
+        );
+      }
+      if (
+        published?.gitHead !== head ||
+        metadata?.['dist-tags']?.latest !== pkg.newVersion
+      ) {
+        pending.push(`${pkg.name}@${pkg.newVersion}`);
+      }
+    }
+    if (pending.length === 0) return;
+    if (attempt < attempts) {
+      console.log(
+        `npm metadata is not yet consistent for ${pending.join(', ')}; retrying in ${delayMs}ms (${attempt}/${attempts}).`,
+      );
+      await sleep(delayMs);
+    }
+  }
+
+  const requestDetail = lastRequestError
+    ? ` Last registry error: ${lastRequestError.message}`
+    : '';
+  fail(
+    `${pending.join(', ')} did not become visible on npm at approved HEAD ${head} after ${attempts} attempts.${requestDetail}`,
+  );
 }
 
 async function buildPreparedPackages(packages, options = {}) {
@@ -2138,6 +2200,7 @@ async function executePlan(plan, options = {}) {
     inherit: true,
   });
   if (plan.prepared) {
+    await waitForPublishedTargets(plan.packages, plan.headSha, options);
     const published = await buildBootstrapPackages(discoverPackages(cwd), {
       ...options,
       cwd,
@@ -2335,6 +2398,7 @@ module.exports = {
   verifyRegistryArtifact,
   verifyConfiguration,
   validatePostVersionState,
+  waitForPublishedTargets,
   verifyHead,
   verifyRecoveryHead,
   versionArgsFromPublish,

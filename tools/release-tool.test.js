@@ -47,6 +47,7 @@ const {
   validatePlanFile,
   validatePostVersionState,
   verifyConfiguration,
+  waitForPublishedTargets,
 } = require('./release-tool');
 
 const rootDir = path.resolve(__dirname, '..');
@@ -1142,6 +1143,119 @@ test('prepared package planning uses npm latest and does not republish targets',
     ]),
     [['@fixture/a', 'skip-existing', true, '@fixture/a@1.1.0']],
   );
+});
+
+test('post-publish verification waits for npm metadata propagation', async () => {
+  const packages = [
+    {
+      name: '@fixture/published',
+      newVersion: '1.1.0',
+      npmAction: 'publish',
+    },
+    {
+      name: '@fixture/existing',
+      newVersion: '2.0.0',
+      npmAction: 'skip-existing',
+    },
+  ];
+  let requests = 0;
+  const delays = [];
+  await waitForPublishedTargets(packages, 'approved-head', {
+    registryVisibilityAttempts: 3,
+    registryVisibilityDelayMs: 25,
+    sleep: async (delay) => delays.push(delay),
+    fetchImpl: async () => {
+      requests += 1;
+      return {
+        status: 200,
+        ok: true,
+        json: async () =>
+          requests === 1
+            ? {
+                'dist-tags': { latest: '1.0.0' },
+                versions: { '1.0.0': { gitHead: 'baseline-head' } },
+              }
+            : {
+                'dist-tags': { latest: '1.1.0' },
+                versions: {
+                  '1.1.0': { gitHead: 'approved-head' },
+                },
+              },
+      };
+    },
+  });
+  assert.equal(requests, 2);
+  assert.deepEqual(delays, [25]);
+});
+
+test('post-publish verification fails immediately on a conflicting npm gitHead', async () => {
+  let delays = 0;
+  await assert.rejects(
+    waitForPublishedTargets(
+      [
+        {
+          name: '@fixture/conflict',
+          newVersion: '1.1.0',
+          npmAction: 'publish',
+        },
+      ],
+      'approved-head',
+      {
+        registryVisibilityAttempts: 3,
+        sleep: async () => {
+          delays += 1;
+        },
+        fetchImpl: async () => ({
+          status: 200,
+          ok: true,
+          json: async () => ({
+            'dist-tags': { latest: '1.1.0' },
+            versions: { '1.1.0': { gitHead: 'wrong-head' } },
+          }),
+        }),
+      },
+    ),
+    /npm gitHead is wrong-head, not approved HEAD approved-head/,
+  );
+  assert.equal(delays, 0);
+});
+
+test('post-publish verification remains bounded when npm metadata stays stale', async () => {
+  let requests = 0;
+  let delays = 0;
+  await assert.rejects(
+    waitForPublishedTargets(
+      [
+        {
+          name: '@fixture/stale',
+          newVersion: '1.1.0',
+          npmAction: 'publish',
+        },
+      ],
+      'approved-head',
+      {
+        registryVisibilityAttempts: 3,
+        registryVisibilityDelayMs: 0,
+        sleep: async () => {
+          delays += 1;
+        },
+        fetchImpl: async () => {
+          requests += 1;
+          return {
+            status: 200,
+            ok: true,
+            json: async () => ({
+              'dist-tags': { latest: '1.0.0' },
+              versions: { '1.0.0': { gitHead: 'baseline-head' } },
+            }),
+          };
+        },
+      },
+    ),
+    /did not become visible on npm .* after 3 attempts/,
+  );
+  assert.equal(requests, 3);
+  assert.equal(delays, 2);
 });
 
 test('prepared tags use Release annotations while bootstrap tags keep Baseline annotations', () =>
