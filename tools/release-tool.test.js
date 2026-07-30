@@ -1145,6 +1145,117 @@ test('prepared package planning uses npm latest and does not republish targets',
   );
 });
 
+test('prepared planning finalizes an untagged npm artifact at its ancestor gitHead', async () => {
+  const approvedHead = 'current-main-head';
+  const publishedHead = 'published-release-head';
+  const baselineHead = 'baseline-head';
+  const packages = [{ name: '@fixture/a', version: '1.1.0' }];
+  const metadata = {
+    'dist-tags': { latest: '1.1.0' },
+    versions: {
+      '1.0.0': { gitHead: baselineHead },
+      '1.1.0': { gitHead: publishedHead },
+    },
+  };
+  const plan = await buildPreparedPackages(packages, {
+    head: approvedHead,
+    fetchImpl: async () => ({
+      status: 200,
+      ok: true,
+      json: async () => metadata,
+    }),
+    packageAtCommit: () => ({ name: '@fixture/a', version: '1.1.0' }),
+    commitExists: () => true,
+    commitIsAncestor: (ancestor, descendant) =>
+      ancestor === publishedHead && descendant === approvedHead,
+    getTagCommit: (tag) =>
+      tag === packageTag('@fixture/a', '1.0.0') ? baselineHead : undefined,
+    sourceChanged: (from, to, _pkg, _cwd, _version, options) => {
+      if (
+        from === publishedHead &&
+        to === approvedHead &&
+        options?.ignoreVersion
+      ) {
+        return false;
+      }
+      return from === baselineHead && to === 'HEAD';
+    },
+    readChangelog: () =>
+      '# Change Log\n\n## 1.1.0 (2026-07-29)\n\n- add feature\n',
+  });
+
+  assert.equal(plan.length, 1);
+  assert.equal(plan[0].npmAction, 'skip-existing');
+  assert.equal(plan[0].tagTarget, publishedHead);
+  assert.equal(plan[0].targetExists, true);
+});
+
+test('prepared planning rejects an untagged npm artifact outside main history', async () => {
+  await assert.rejects(
+    buildPreparedPackages([{ name: '@fixture/a', version: '1.1.0' }], {
+      head: 'current-main-head',
+      fetchImpl: async () => ({
+        status: 200,
+        ok: true,
+        json: async () => ({
+          'dist-tags': { latest: '1.1.0' },
+          versions: {
+            '1.0.0': { gitHead: 'baseline-head' },
+            '1.1.0': { gitHead: 'unrelated-head' },
+          },
+        }),
+      }),
+      packageAtCommit: () => ({ name: '@fixture/a', version: '1.1.0' }),
+      commitExists: () => true,
+      commitIsAncestor: () => false,
+      getTagCommit: () => undefined,
+      sourceChanged: () => false,
+      readChangelog: () =>
+        '# Change Log\n\n## 1.1.0 (2026-07-29)\n\n- add feature\n',
+    }),
+    /gitHead unrelated-head is not an ancestor of approved HEAD current-main-head/,
+  );
+});
+
+test('prepared post-publish verification preserves an ancestor npm gitHead', async () => {
+  const publishedHead = 'published-release-head';
+  const [item] = await buildBootstrapPackages(
+    [{ name: '@fixture/a', version: '1.1.0' }],
+    {
+      ...bootstrapTestOptions(),
+      head: 'current-main-head',
+      anchorEquivalentAtHead: false,
+      fetchImpl: async () => ({
+        status: 200,
+        ok: true,
+        json: async () => ({
+          'dist-tags': { latest: '1.1.0' },
+          versions: {
+            '1.1.0': {
+              gitHead: publishedHead,
+              dist: {
+                tarball: 'https://registry.npmjs.org/a/-/a-1.1.0.tgz',
+                integrity: 'sha512-test',
+              },
+            },
+          },
+        }),
+      }),
+      packageAtCommit: () => ({ name: '@fixture/a', version: '1.1.0' }),
+      sourceFilesChanged: () => false,
+      verifyArtifact: async () => ({
+        tarball: 'https://registry.npmjs.org/a/-/a-1.1.0.tgz',
+        integrity: 'sha512-test',
+      }),
+      getTagCommit: () => undefined,
+    },
+  );
+
+  assert.equal(item.recordedGitHead, publishedHead);
+  assert.equal(item.tagTarget, publishedHead);
+  assert.equal(item.tagAction, 'create');
+});
+
 test('post-publish verification waits for npm metadata propagation', async () => {
   const packages = [
     {

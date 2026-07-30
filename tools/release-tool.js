@@ -1218,6 +1218,15 @@ function assertRecoveryTarget(target, mainHead, cwd = rootDir) {
   }
 }
 
+function commitIsAncestor(ancestor, descendant, cwd = rootDir) {
+  return (
+    run('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+      cwd,
+      allowFailure: true,
+    }).status === 0
+  );
+}
+
 function requiredDependents(packages, proposedPackages) {
   const proposed = new Map(
     proposedPackages.map((pkg) => [pkg.name, pkg.newVersion]),
@@ -1322,6 +1331,7 @@ async function buildPreparedPackages(packages, options = {}) {
   const currentHead = options.head || headSha(cwd);
   const getTagCommit = options.getTagCommit || tagCommit;
   const commitIsAvailable = options.commitExists || commitExists;
+  const isAncestor = options.commitIsAncestor || commitIsAncestor;
   const readPackageAtCommit =
     options.packageAtCommit || packageManifestAtCommit;
   const sourceChanged = options.sourceChanged || sourceFilesChanged;
@@ -1347,6 +1357,7 @@ async function buildPreparedPackages(packages, options = {}) {
     let baselineVersion = latest;
     let npmAction = 'publish';
     let targetExists = false;
+    let tagTarget = currentHead;
 
     if (publishedTarget) {
       if (pkg.version !== latest) {
@@ -1393,9 +1404,29 @@ async function buildPreparedPackages(packages, options = {}) {
         }
       }
       if (!existingTargetTag && publishedTarget.gitHead !== currentHead) {
-        fail(
-          `${pkg.name}@${pkg.version} exists on npm without a local tag, but its gitHead is ${publishedTarget.gitHead}, not approved HEAD ${currentHead}.`,
-        );
+        if (
+          !commitIsAvailable(publishedTarget.gitHead, cwd) ||
+          !isAncestor(publishedTarget.gitHead, currentHead, cwd)
+        ) {
+          fail(
+            `${pkg.name}@${pkg.version} exists on npm without a local tag, but its gitHead ${publishedTarget.gitHead} is not an ancestor of approved HEAD ${currentHead}.`,
+          );
+        }
+        if (
+          sourceChanged(
+            publishedTarget.gitHead,
+            currentHead,
+            pkg,
+            cwd,
+            undefined,
+            { ignoreVersion: true },
+          )
+        ) {
+          fail(
+            `${pkg.name}@${pkg.version} exists on npm without a local tag, but its package source changed after npm gitHead ${publishedTarget.gitHead}.`,
+          );
+        }
+        tagTarget = publishedTarget.gitHead;
       }
       baselineVersion = Object.keys(metadata.versions || {})
         .filter(
@@ -1490,7 +1521,7 @@ async function buildPreparedPackages(packages, options = {}) {
       baselineTagMatchesRegistry:
         baselineTagTarget === baselinePublished.gitHead,
       tag: packageTag(pkg.name, pkg.version),
-      tagTarget: currentHead,
+      tagTarget,
       githubRelease: packageTag(pkg.name, pkg.version),
     });
   }
@@ -1531,6 +1562,7 @@ async function buildBootstrapPackages(packages, options = {}) {
     // changes, ensuring a normal release immediately after bootstrap selects
     // zero packages.
     if (
+      options.anchorEquivalentAtHead !== false &&
       published?.gitHead &&
       published.gitHead !== currentHead &&
       !(options.sourceFilesChanged || sourceFilesChanged)(
@@ -2205,6 +2237,7 @@ async function executePlan(plan, options = {}) {
       ...options,
       cwd,
       head: plan.headSha,
+      anchorEquivalentAtHead: false,
     });
     const candidateNames = plan.packages.map((pkg) => pkg.name);
     for (const expected of plan.packages) {
@@ -2213,10 +2246,11 @@ async function executePlan(plan, options = {}) {
         !actual ||
         actual.npmAction !== 'skip-existing' ||
         actual.newVersion !== expected.newVersion ||
-        actual.recordedGitHead !== plan.headSha
+        actual.recordedGitHead !== expected.tagTarget ||
+        actual.tagTarget !== expected.tagTarget
       ) {
         fail(
-          `${expected.name}@${expected.newVersion} was not verified on npm at approved HEAD ${plan.headSha}; no release tags were created.`,
+          `${expected.name}@${expected.newVersion} was not verified on npm at approved tag target ${expected.tagTarget}; no release tags were created.`,
         );
       }
     }

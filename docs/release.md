@@ -462,6 +462,13 @@ Never create a new version merely to retry a partial release.
   completes only the missing artifacts, then verifies all targets before
   creating tags and GitHub Releases.
 
+  If `main` advanced after every artifact reached npm but before tags were
+  created, the stable planner may finalize an untagged artifact at its recorded
+  ancestor `gitHead`. This is allowed only when that commit remains in `main`
+  history and the package source is artifact-equivalent at current `main`; the
+  executor re-verifies the npm tarball and creates the tag at the recorded
+  `gitHead`, never at the newer administrative commit.
+
 - If a legacy conventional release fails after Lerna pushed its version commit
   and tags, retry through the explicit recovery operation:
 
