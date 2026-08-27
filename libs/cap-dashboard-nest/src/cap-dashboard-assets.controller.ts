@@ -34,14 +34,23 @@ export class CapDashboardAssetsController {
   }
 
   private getAssetFile(file: string): StreamableFile {
-    if (!Object.prototype.hasOwnProperty.call(CONTENT_TYPES, file)) {
+    const contentType = Object.prototype.hasOwnProperty.call(CONTENT_TYPES, file)
+      ? CONTENT_TYPES[file]
+      : undefined;
+    if (!contentType) {
+      throw new NotFoundException();
+    }
+
+    // Retrieve the safe key directly from the allowlist to break user-controlled taint flow
+    const safeFile = Object.keys(CONTENT_TYPES).find((k) => k === file);
+    if (!safeFile) {
       throw new NotFoundException();
     }
 
     const assetsRoot = resolve(
       (this.constructor as typeof CapDashboardAssetsController).assetsPath,
     );
-    const path = resolve(assetsRoot, file);
+    const path = resolve(assetsRoot, safeFile);
     if (path !== assetsRoot && !path.startsWith(assetsRoot + sep)) {
       throw new NotFoundException();
     }
@@ -51,7 +60,7 @@ export class CapDashboardAssetsController {
     }
 
     return new StreamableFile(readFileSync(path), {
-      type: CONTENT_TYPES[file],
+      type: contentType,
     });
   }
 }
