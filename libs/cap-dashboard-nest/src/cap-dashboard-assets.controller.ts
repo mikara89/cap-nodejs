@@ -34,21 +34,11 @@ export class CapDashboardAssetsController {
   }
 
   private getAssetFile(file: string): StreamableFile {
-    const contentType = Object.prototype.hasOwnProperty.call(
-      CONTENT_TYPES,
-      file,
-    )
-      ? CONTENT_TYPES[file]
-      : undefined;
-    if (!contentType) {
+    const asset = Object.entries(CONTENT_TYPES).find(([name]) => name === file);
+    if (!asset) {
       throw new NotFoundException();
     }
-
-    // Retrieve the safe key directly from the allowlist to break user-controlled taint flow
-    const safeFile = Object.keys(CONTENT_TYPES).find((k) => k === file);
-    if (!safeFile) {
-      throw new NotFoundException();
-    }
+    const [safeFile, contentType] = asset;
 
     const assetsRoot = resolve(
       (this.constructor as typeof CapDashboardAssetsController).assetsPath,
