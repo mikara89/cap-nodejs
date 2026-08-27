@@ -802,8 +802,14 @@ function normalizePublishConfigForBootstrap(publishConfig) {
   const normalized = { ...publishConfig };
 
   const isNpmjsRegistry = (value) => value === 'https://registry.npmjs.org/';
-  const isGitHubRegistry = (value) =>
-    typeof value === 'string' && value.includes('npm.pkg.github.com');
+  const isGitHubRegistry = (value) => {
+    if (typeof value !== 'string') return false;
+    try {
+      return new URL(value).hostname === 'npm.pkg.github.com';
+    } catch {
+      return false;
+    }
+  };
 
   if (
     normalized.registry &&
