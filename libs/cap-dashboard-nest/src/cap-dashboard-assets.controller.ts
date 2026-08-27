@@ -34,7 +34,10 @@ export class CapDashboardAssetsController {
   }
 
   private getAssetFile(file: string): StreamableFile {
-    const contentType = Object.prototype.hasOwnProperty.call(CONTENT_TYPES, file)
+    const contentType = Object.prototype.hasOwnProperty.call(
+      CONTENT_TYPES,
+      file,
+    )
       ? CONTENT_TYPES[file]
       : undefined;
     if (!contentType) {
