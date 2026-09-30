@@ -376,7 +376,7 @@ function removeFixture(cwd) {
   fs.rmSync(cwd, {
     recursive: true,
     force: true,
-    maxRetries: 5,
+    maxRetries: 10,
     retryDelay: 100,
   });
 }
@@ -492,7 +492,7 @@ function withPostVersionFixture(fn) {
   try {
     return fn(cwd);
   } finally {
-    fs.rmSync(cwd, { recursive: true, force: true });
+    removeFixture(cwd);
   }
 }
 
