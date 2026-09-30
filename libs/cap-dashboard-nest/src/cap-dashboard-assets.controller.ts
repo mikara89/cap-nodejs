@@ -34,14 +34,16 @@ export class CapDashboardAssetsController {
   }
 
   private getAssetFile(file: string): StreamableFile {
-    if (!Object.prototype.hasOwnProperty.call(CONTENT_TYPES, file)) {
+    const asset = Object.entries(CONTENT_TYPES).find(([name]) => name === file);
+    if (!asset) {
       throw new NotFoundException();
     }
+    const [safeFile, contentType] = asset;
 
     const assetsRoot = resolve(
       (this.constructor as typeof CapDashboardAssetsController).assetsPath,
     );
-    const path = resolve(assetsRoot, file);
+    const path = resolve(assetsRoot, safeFile);
     if (path !== assetsRoot && !path.startsWith(assetsRoot + sep)) {
       throw new NotFoundException();
     }
@@ -51,7 +53,7 @@ export class CapDashboardAssetsController {
     }
 
     return new StreamableFile(readFileSync(path), {
-      type: CONTENT_TYPES[file],
+      type: contentType,
     });
   }
 }
